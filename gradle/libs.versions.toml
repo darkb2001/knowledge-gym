@@ -1,0 +1,52 @@
+[versions]
+spring-boot = "3.2.5"
+spring-dependency-management = "1.1.4"
+springdoc = "2.5.0"
+jjwt = "0.12.5"
+jsoup = "1.17.2"
+rome = "2.1.0"
+resilience4j = "2.2.0"
+bucket4j = "8.10.1"
+archunit = "1.2.1"
+junit = "5.10.2"
+testcontainers = "1.19.7"
+trivy = "0.50.4"
+
+[libraries]
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
+spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
+spring-boot-starter-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-aop = { module = "org.springframework.boot:spring-boot-starter-aop" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-security-test = { module = "org.springframework.security:spring-security-test" }
+
+postgresql = { module = "org.postgresql:postgresql" }
+h2 = { module = "com.h2database:h2" }
+
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+rome = { module = "com.rometools:rome", version.ref = "rome" }
+
+resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version.ref = "resilience4j" }
+bucket4j-core = { module = "com.bucket4j:bucket4j-core", version.ref = "bucket4j" }
+
+springdoc-openapi = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+
+archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
+
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+
+testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }

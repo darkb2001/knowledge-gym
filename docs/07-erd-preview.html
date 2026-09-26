@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Knowledge Gym ERD Preview</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, securityLevel: 'loose', flowchart: { htmlLabels: true, useMaxWidth: true } });
+  </script>
+  <style>
+    body { margin: 0; font-family: ui-sans-serif, system-ui; background: #0f1115; color: #e8eaed; }
+    header { padding: 12px 16px; border-bottom: 1px solid #2a2f3a; }
+    header code { background: #1c212b; padding: 2px 6px; border-radius: 4px; }
+    .wrap { padding: 16px; overflow: auto; }
+    .mermaid { background: #fff; border-radius: 8px; padding: 16px; }
+  </style>
+</head>
+<body>
+  <header>
+    Compact ERD · full columns in <code>07-erd.md</code> · source <code>07-erd.mmd</code>
+  </header>
+  <div class="wrap">
+    <pre class="mermaid">
+flowchart TB
+    subgraph ID["Identity (6)"]
+        direction LR
+        users["users\nPK id · UK email · xp"]
+        refresh_tokens["refresh_tokens"]
+        password_reset_codes["password_reset_codes"]
+        notification_preferences["notification_preferences\nUK user_id+channel"]
+        audit_logs["audit_logs"]
+        user_badges["user_badges\nPK user_id+badge_code"]
+    end
+
+    subgraph CT["Content (4)"]
+        direction LR
+        topics["topics"]
+        modules["modules"]
+        questions["questions"]
+        question_options["question_options"]
+    end
+
+    subgraph LR2["Learning (13)"]
+        direction TB
+        srs_decks["srs_decks"]
+        srs_cards["srs_cards\nUK user+question"]
+        quiz_sessions["quiz_sessions"]
+        quiz_answers["quiz_answers"]
+        interview_sessions["interview_sessions"]
+        interview_answers["interview_answers"]
+        study_attempts["study_attempts"]
+        user_progress["user_progress\nUK user+module"]
+        notifications["notifications"]
+        daily_challenge_assignments["daily_challenge_assignments\nUK user+date"]
+        challenges["challenges"]
+        challenge_test_cases["challenge_test_cases"]
+        code_submissions["code_submissions\nFK challenge_id"]
+    end
+
+    subgraph NT["Notes (1)"]
+        notes["notes\nQUICK/STUDY/HIGHLIGHT/BOOKMARK"]
+    end
+
+    subgraph BG["Blog Agent (8)"]
+        direction TB
+        collector_sources["collector_sources"]
+        collected_items["collected_items"]
+        blog_posts["blog_posts"]
+        blog_comments["blog_comments"]
+        blog_views["blog_views\nUK post+user"]
+        blog_post_likes["blog_post_likes\nUK post+user"]
+        blog_generation_queue["blog_generation_queue"]
+        agent_runs["agent_runs"]
+    end
+
+    subgraph RD["Redis cache - not PG"]
+        direction LR
+        redis_keys["rt:* · pwd_reset · rl:*\ncache:* · lb:* · streak:*"]
+    end
+
+    users -->|1-N| refresh_tokens
+    users -->|1-N| password_reset_codes
+    users -->|1-N| notification_preferences
+    users -->|1-N| audit_logs
+    users -->|1-N| user_badges
+    topics -->|1-N| modules
+    modules -->|1-N| questions
+    questions -->|1-N| question_options
+    users -->|1-N| srs_decks
+    modules -.->|0-N| srs_decks
+    srs_decks -->|1-N| srs_cards
+    users -->|1-N| srs_cards
+    questions -->|1-N| srs_cards
+    users -->|1-N| quiz_sessions
+    quiz_sessions -->|1-N| quiz_answers
+    questions -->|1-N| quiz_answers
+    users -->|1-N| interview_sessions
+    topics -->|1-N| interview_sessions
+    interview_sessions -->|1-N| interview_answers
+    questions -->|1-N| interview_answers
+    users -->|1-N| study_attempts
+    questions -->|1-N| study_attempts
+    users -->|1-N| user_progress
+    modules -->|1-N| user_progress
+    users -->|1-N| notifications
+    users -->|1-N| daily_challenge_assignments
+    questions -->|1-N| daily_challenge_assignments
+    challenges -->|1-N| challenge_test_cases
+    users -->|1-N| code_submissions
+    challenges -->|1-N| code_submissions
+    users -->|1-N| notes
+    questions -.->|0-N| notes
+    modules -.->|0-N| notes
+    notes -.->|0-N| srs_cards
+    collector_sources -->|1-N| collected_items
+    collected_items -.->|N-1| blog_posts
+    users -.->|0-N| blog_posts
+    notes -.->|0-N| blog_posts
+    blog_posts -->|1-N| blog_comments
+    users -->|1-N| blog_comments
+    blog_posts -->|1-N| blog_views
+    users -->|1-N| blog_views
+    blog_posts -->|1-N| blog_post_likes
+    users -->|1-N| blog_post_likes
+    blog_generation_queue -->|writes| blog_posts
+    blog_generation_queue -->|1-N| agent_runs
+    users -.-> redis_keys
+
+    classDef ctxId fill:#1e3a5f,stroke:#4a90e2,color:#fff
+    classDef ctxCT fill:#2d4a2b,stroke:#7ed321,color:#fff
+    classDef ctxLR fill:#5a3a1e,stroke:#f5a623,color:#fff
+    classDef ctxNT fill:#4a1e5a,stroke:#bd10e8,color:#fff
+    classDef ctxBG fill:#5a1e1e,stroke:#d0021b,color:#fff
+    classDef ctxRD fill:#1a1a2e,stroke:#e94560,color:#fff
+    class users,refresh_tokens,password_reset_codes,notification_preferences,audit_logs,user_badges ctxId
+    class topics,modules,questions,question_options ctxCT
+    class srs_decks,srs_cards,quiz_sessions,quiz_answers,interview_sessions,interview_answers,study_attempts,user_progress,notifications,daily_challenge_assignments,challenges,challenge_test_cases,code_submissions ctxLR
+    class notes ctxNT
+    class collector_sources,collected_items,blog_posts,blog_comments,blog_views,blog_post_likes,blog_generation_queue,agent_runs ctxBG
+    class redis_keys ctxRD
+    </pre>
+  </div>
+</body>
+</html>

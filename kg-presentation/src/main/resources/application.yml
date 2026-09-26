@@ -1,0 +1,21 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: knowledge-gym
+  profiles:
+    active: dev
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.knowledgegym: DEBUG

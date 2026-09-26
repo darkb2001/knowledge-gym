@@ -1,0 +1,34 @@
+# Garage S3-compatible object storage config (single-node DEV)
+# Reference: https://garagehq.deuxfleurs.fr/reference_manual/configuration.html
+
+metadata_dir = "/data/meta"
+data_dir = "/data/data"
+db_engine = "sqlite"
+
+# Single-node dev: replication_factor=1 (no redundancy)
+# v2.4+ deprecates legacy `replication_mode` → use these two
+replication_factor = 1
+consistency_mode = "consistent"
+
+# RPC internal to container only
+rpc_bind_addr = "0.0.0.0:3905"
+rpc_public_addr = "127.0.0.1:3905"
+# DEV-ONLY rpc_secret (32-byte hex). Production: openssl rand -hex 32
+rpc_secret = "6f1c2a9d84b7e3509af2c1d64b8e97a0c5d2f3816e4a7b90c1d3e5f7a9b2c4d6"
+
+bootstrap_peers = []
+
+[s3_api]
+api_bind_addr = "0.0.0.0:3900"
+s3_region = "garage"
+root_domain = ".s3.garage.localhost"
+
+[s3_web]
+bind_addr = "0.0.0.0:3902"
+root_domain = ".web.garage.localhost"
+index = "index.html"
+
+[admin]
+api_bind_addr = "0.0.0.0:3901"
+# admin_token: garage reads GARAGE_ADMIN_TOKEN env var directly (v2.0+)
+# do NOT use ${} interpolation in TOML
