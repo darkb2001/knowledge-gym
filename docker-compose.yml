@@ -135,9 +135,9 @@ services:
       - "3902:3902"   # Web (bucket browser)
     environment:
       GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:-admin}
-      GARAGE_DEFAULT_BUCKET: kg-local
-      GARAGE_DEFAULT_ACCESS_KEY: kgadmin01
-      GARAGE_DEFAULT_SECRET_KEY: kgsecret1234567890
+      GARAGE_DEFAULT_BUCKET: ${GARAGE_DEFAULT_BUCKET:-kg-local}
+      GARAGE_DEFAULT_ACCESS_KEY: ${GARAGE_ACCESS_KEY:-kgadmin01}
+      GARAGE_DEFAULT_SECRET_KEY: ${GARAGE_SECRET_KEY:-kgsecret1234567890}
     healthcheck:
       test: ["CMD", "/garage", "-c", "/etc/garage.toml", "status"]
       interval: 10s
@@ -160,7 +160,7 @@ services:
     ports:
       - "3001:3000"
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-admin}
     volumes:
       - grafanadata:/var/lib/grafana
     depends_on:

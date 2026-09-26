@@ -1,13 +1,14 @@
 plugins {
     java
-    alias(libs.plugins.spring.boot) apply false
-    alias(libs.plugins.spring.dependency.management) apply false
 }
 
 dependencies {
-    // Application layer: Spring annotations (compileOnly — domain không import, ArchUnit enforce)
-    compileOnly("org.springframework:spring-context:6.1.6")
-    compileOnly("org.springframework:spring-tx:6.1.6")
+    // Application layer dùng @Transactional/@Service annotation →
+    // compileOnly Spring (domain code KHÔNG dùng trực tiếp, ArchUnit enforce).
+    // Version lấy từ Spring Boot BOM — một phiên bản duy nhất theo libs.versions.toml.
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}"))
+    compileOnly("org.springframework:spring-context")
+    compileOnly("org.springframework:spring-tx")
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)

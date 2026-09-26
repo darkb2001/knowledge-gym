@@ -9,6 +9,9 @@ import java.util.UUID;
 /**
  * User Aggregate Root — thuần Java domain entity.
  * Không JPA annotation, không Spring — mapping ở infrastructure layer (UserJpaEntity).
+ *
+ * Invariant: setter mutate field auditable đều gọi touch() để updatedAt phản ánh
+ * đúng thay đổi (review H2). Domain methods (changePassword...) validate chặt hơn.
  */
 public class User extends BaseEntity {
 
@@ -17,13 +20,13 @@ public class User extends BaseEntity {
     private String displayName;
     private String avatarUrl;
     private UserRole role;
-    private String authProvider;
+    private AuthProvider authProvider;
     private String oauthId;
 
     public User() {
         super();
         this.role = UserRole.USER;
-        this.authProvider = "LOCAL";
+        this.authProvider = AuthProvider.LOCAL;
     }
 
     public User(String email, String passwordHash, String displayName) {
@@ -63,17 +66,35 @@ public class User extends BaseEntity {
     }
 
     public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = normalizeEmail(email); }
+    public void setEmail(String email) {
+        this.email = normalizeEmail(email);
+        touch();
+    }
     public String getPasswordHash() { return passwordHash; }
-    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash");
+        touch();
+    }
     public String getDisplayName() { return displayName; }
-    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+        touch();
+    }
     public String getAvatarUrl() { return avatarUrl; }
-    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+        touch();
+    }
     public UserRole getRole() { return role; }
-    public void setRole(UserRole role) { this.role = role; }
-    public String getAuthProvider() { return authProvider; }
-    public void setAuthProvider(String authProvider) { this.authProvider = authProvider; }
+    public void setRole(UserRole role) {
+        this.role = Objects.requireNonNull(role, "role");
+        touch();
+    }
+    public AuthProvider getAuthProvider() { return authProvider; }
+    public void setAuthProvider(AuthProvider authProvider) {
+        this.authProvider = Objects.requireNonNull(authProvider, "authProvider");
+        touch();
+    }
     public String getOauthId() { return oauthId; }
     public void setOauthId(String oauthId) { this.oauthId = oauthId; }
 }
