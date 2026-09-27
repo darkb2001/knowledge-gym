@@ -27,6 +27,10 @@ spring-security-test = { module = "org.springframework.security:spring-security-
 postgresql = { module = "org.postgresql:postgresql" }
 h2 = { module = "com.h2database:h2" }
 
+# Spring Boot 3.2.5 BOM quản lý Flyway 9.x — PostgreSQL support nằm ngay trong flyway-core
+# (artifact flyway-database-postgresql chỉ tồn tại từ Flyway 10+)
+flyway-core = { module = "org.flywaydb:flyway-core" }
+
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }

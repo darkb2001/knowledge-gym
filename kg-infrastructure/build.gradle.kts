@@ -6,6 +6,9 @@ plugins {
 dependencies {
     api(project(":kg-core"))
 
+    // Spring Boot BOM — cung cấp version cho starters + flyway (single source: libs.versions.toml)
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}"))
+
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.data.redis)
@@ -13,6 +16,7 @@ dependencies {
     implementation(libs.spring.boot.starter.validation)
     implementation(libs.spring.boot.starter.aop)
     implementation(libs.spring.boot.starter.actuator)
+    implementation(libs.flyway.core)
     runtimeOnly(libs.postgresql)
 
     implementation(platform(libs.jjwt.api))
