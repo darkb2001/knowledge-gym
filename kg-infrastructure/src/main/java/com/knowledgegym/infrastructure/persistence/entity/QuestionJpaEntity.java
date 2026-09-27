@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -41,6 +42,7 @@ public class QuestionJpaEntity {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
+    @Version
     @Column(name = "version", nullable = false)
     private int version;
 

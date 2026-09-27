@@ -1,0 +1,16 @@
+spring:
+  autoconfigure:
+    exclude:
+      # Redis chưa wire ở m2 — exclude để smoke test chỉ cần Postgres
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+management:
+  endpoint:
+    health:
+      show-details: when_authorized

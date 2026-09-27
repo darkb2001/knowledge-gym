@@ -13,9 +13,7 @@ import java.util.stream.Stream;
 
 /**
  * Parser fixture count — đếm số .qa-card trong docs/*.html.
- * Log kết quả thực (không assume 240). Mục đích: tracking nội dung qua mini-phases.
- *
- * Chạy trong kg-infrastructure module vì module này có jsoup dependency.
+ * Log kết quả thực (không assume 240). Fixtures HTML sẽ được thêm ở m3/m4 khi parse content.
  */
 class QaCardFixtureCountTest {
 
@@ -23,19 +21,20 @@ class QaCardFixtureCountTest {
 
     @Test
     void countQaCardsInDocs() throws Exception {
-        Path docsDir = Paths.get("../../docs").normalize();
-
-        if (!Files.exists(docsDir)) {
-            log.warn("docs directory not found at {} — skipping count (expected in non-gradle contexts)", docsDir);
+        Path docsDir = resolveDocsDir();
+        if (docsDir == null) {
+            log.warn("docs/ not found — skip fixture count (HTML .qa-card arrives with content parser m4)");
             return;
         }
 
         int totalCount = 0;
+        int htmlFiles = 0;
         try (Stream<Path> paths = Files.list(docsDir)) {
-            Path[] htmlFiles = paths.filter(p -> p.toString().endsWith(".html")).toArray(Path[]::new);
-            log.info("Found {} HTML files in docs/", htmlFiles.length);
+            Path[] files = paths.filter(p -> p.toString().endsWith(".html")).toArray(Path[]::new);
+            htmlFiles = files.length;
+            log.info("Found {} HTML files in {}", htmlFiles, docsDir.toAbsolutePath());
 
-            for (Path htmlFile : htmlFiles) {
+            for (Path htmlFile : files) {
                 Document doc = Jsoup.parse(htmlFile.toFile(), "UTF-8");
                 int count = doc.select(".qa-card").size();
                 log.info("  {} → {} .qa-card", htmlFile.getFileName(), count);
@@ -43,8 +42,24 @@ class QaCardFixtureCountTest {
             }
         }
 
-        log.info("TOTAL .qa-card count across docs/*.html: {}", totalCount);
-        // Plan criterion: "Số câu thật được logged (không assume 240)" — count is informational.
-        // When .qa-card fixtures are added in m3+, assertTrue(totalCount > 0) will be the gate.
+        log.info("TOTAL .qa-card count across docs/*.html: {} (from {} files)", totalCount, htmlFiles);
+        // Informational until content fixtures land (m4). Do not assert > 0 yet.
+    }
+
+    /** Resolve docs/ from common working dirs (module root, project root, CI checkout). */
+    private static Path resolveDocsDir() {
+        Path[] candidates = {
+                Paths.get("docs"),
+                Paths.get("../docs"),
+                Paths.get("../../docs"),
+                Paths.get("knowledge-gym/docs")
+        };
+        for (Path candidate : candidates) {
+            Path normalized = candidate.normalize();
+            if (Files.isDirectory(normalized)) {
+                return normalized;
+            }
+        }
+        return null;
     }
 }

@@ -2,7 +2,6 @@ package com.knowledgegym.infrastructure;
 
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -16,9 +15,8 @@ import java.sql.Statement;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Flyway migration integration test — Testcontainers PostgreSQL, chạy Flyway programmatic.
- * BẬT: chạy trên local với Docker daemon running (postgres:16-alpine auto-pull).
- * CI: vô hiệu hóa nếu Docker daemon không available.
+ * Flyway migration integration test — Testcontainers PostgreSQL.
+ * Runs on CI (ubuntu-latest has Docker) and locally when Docker daemon is up.
  *
  * Success criteria (mini-phase 2):
  * - Flyway migrate sạch 13 migration (V001–V013)
@@ -26,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * - 1 materialized view: user_topic_mastery
  */
 @Testcontainers
-@Disabled("requires running Docker daemon — enable locally to verify Flyway migrations")
 class FlywayDatabaseMigrationTest {
 
     @Container

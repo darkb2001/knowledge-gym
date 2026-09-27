@@ -25,6 +25,7 @@
 | 11a | [coverage-matrix.md](./11-coverage-matrix.md) | Module ↔ Feature mapping |
 | 11b | [cloud-free-tier.md](./11-cloud-free-tier.md) | PVE + Mailu + Garage + Lambda + PBS + B2 |
 | 12 | [redis-strategy.md](./12-redis-strategy.md) | Redis auth/cache/locks/leaderboard/quota |
+| 13 | [m2-handoff-m3.md](./13-m2-handoff-m3.md) | **Handoff m2→m3** — schema/ports sẵn, việc Auth phải làm |
 
 ## Quick start
 
