@@ -32,29 +32,31 @@ import java.util.UUID;
 @Component
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
+    private static final int USER_AGENT_MAX_LEN = 500;
+
     private final UserRepository userRepository;
     private final TokenService tokenService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenCachePort cache;
     private final RefreshTokenCookie refreshCookie;
+    private final ClientIpResolver clientIpResolver;
     private final String successRedirectBase;
-    private final boolean trustForwardedHeaders;
 
     public OAuth2SuccessHandler(UserRepository userRepository,
                                 TokenService tokenService,
                                 RefreshTokenRepository refreshTokenRepository,
                                 RefreshTokenCachePort cache,
                                 RefreshTokenCookie refreshCookie,
+                                ClientIpResolver clientIpResolver,
                                 @Value("${app.security.oauth2.success-redirect-uri:http://localhost:3000/auth/oauth2/success}")
-                                String successRedirectBase,
-                                @Value("${app.security.trust-forwarded-headers:false}") boolean trustForwardedHeaders) {
+                                String successRedirectBase) {
         this.userRepository = userRepository;
         this.tokenService = tokenService;
         this.refreshTokenRepository = refreshTokenRepository;
         this.cache = cache;
         this.refreshCookie = refreshCookie;
+        this.clientIpResolver = clientIpResolver;
         this.successRedirectBase = successRedirectBase;
-        this.trustForwardedHeaders = trustForwardedHeaders;
         validateRedirectBase(successRedirectBase);
     }
 
@@ -107,8 +109,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String refreshHash = HashUtils.sha256Hex(rawRefresh);
 
         RefreshToken audit = new RefreshToken(user.getId(), refreshHash, familyId);
-        audit.setIpAddress(clientIp(request));
-        audit.setUserAgent(request.getHeader("User-Agent"));
+        audit.setIpAddress(clientIpResolver.resolve(request));
+        audit.setUserAgent(clientIpResolver.userAgent(request, USER_AGENT_MAX_LEN));
         refreshTokenRepository.save(audit);
         cache.store(refreshHash, user.getId(), familyId, RefreshToken.TTL);
 
@@ -120,14 +122,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 + "&role=" + user.getRole().name()
                 + "&provider=google";
         response.sendRedirect(redirect);
-    }
-
-    private String clientIp(HttpServletRequest req) {
-        if (trustForwardedHeaders) {
-            String forwarded = req.getHeader("X-Forwarded-For");
-            if (forwarded != null && !forwarded.isEmpty()) return forwarded.split(",")[0].trim();
-        }
-        return req.getRemoteAddr();
     }
 
     /** Chỉ cho phép http(s) absolute URL — chống open-redirect nếu config sai. */

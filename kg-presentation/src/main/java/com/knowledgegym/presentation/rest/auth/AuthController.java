@@ -2,6 +2,7 @@ package com.knowledgegym.presentation.rest.auth;
 
 import com.knowledgegym.identity.application.*;
 import com.knowledgegym.identity.domain.model.User;
+import com.knowledgegym.infrastructure.security.ClientIpResolver;
 import com.knowledgegym.infrastructure.security.RefreshTokenCookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,6 +21,7 @@ import java.util.Map;
 public class AuthController {
 
     private static final long ACCESS_TOKEN_TTL_SECONDS = 900L; // 15 minutes
+    private static final int USER_AGENT_MAX_LEN = 500;
 
     private final RegisterUseCase registerUseCase;
     private final LoginUseCase loginUseCase;
@@ -28,6 +30,7 @@ public class AuthController {
     private final ForgotPasswordUseCase forgotPasswordUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final RefreshTokenCookie refreshCookie;
+    private final ClientIpResolver clientIpResolver;
 
     public AuthController(RegisterUseCase registerUseCase,
                            LoginUseCase loginUseCase,
@@ -35,7 +38,8 @@ public class AuthController {
                            LogoutUseCase logoutUseCase,
                            ForgotPasswordUseCase forgotPasswordUseCase,
                            ResetPasswordUseCase resetPasswordUseCase,
-                           RefreshTokenCookie refreshCookie) {
+                           RefreshTokenCookie refreshCookie,
+                           ClientIpResolver clientIpResolver) {
         this.registerUseCase = registerUseCase;
         this.loginUseCase = loginUseCase;
         this.refreshTokenUseCase = refreshTokenUseCase;
@@ -43,6 +47,7 @@ public class AuthController {
         this.forgotPasswordUseCase = forgotPasswordUseCase;
         this.resetPasswordUseCase = resetPasswordUseCase;
         this.refreshCookie = refreshCookie;
+        this.clientIpResolver = clientIpResolver;
     }
 
     @PostMapping("/register")
@@ -51,7 +56,8 @@ public class AuthController {
                                    HttpServletRequest httpRequest, HttpServletResponse response) {
         User user = registerUseCase.execute(req.email(), req.password(), req.displayName());
         LoginUseCase.AuthResult auth = loginUseCase.execute(user.getEmail(), req.password(),
-                clientIp(httpRequest), userAgent(httpRequest));
+                clientIpResolver.resolve(httpRequest),
+                clientIpResolver.userAgent(httpRequest, USER_AGENT_MAX_LEN));
         refreshCookie.write(response, auth.refreshToken());
         return buildTokenResponse(auth, user.getId(), user.getEmail(), user.getDisplayName(), user.getRole().name());
     }
@@ -60,7 +66,8 @@ public class AuthController {
     public TokenResponse login(@Valid @RequestBody LoginRequest req,
                                 HttpServletRequest httpRequest, HttpServletResponse response) {
         LoginUseCase.AuthResult auth = loginUseCase.execute(req.email(), req.password(),
-                clientIp(httpRequest), userAgent(httpRequest));
+                clientIpResolver.resolve(httpRequest),
+                clientIpResolver.userAgent(httpRequest, USER_AGENT_MAX_LEN));
         refreshCookie.write(response, auth.refreshToken());
         return new TokenResponse(auth.accessToken(), ACCESS_TOKEN_TTL_SECONDS,
                 new TokenResponse.UserResponse(auth.userId().toString(), req.email(),
@@ -72,7 +79,8 @@ public class AuthController {
         String rawRefresh = refreshCookie.read(httpRequest);
         if (rawRefresh == null) throw new AuthException("Missing refresh cookie");
         RefreshTokenUseCase.Result result = refreshTokenUseCase.execute(rawRefresh,
-                clientIp(httpRequest), userAgent(httpRequest));
+                clientIpResolver.resolve(httpRequest),
+                clientIpResolver.userAgent(httpRequest, USER_AGENT_MAX_LEN));
         refreshCookie.write(response, result.newRefreshToken());
         return Map.of("accessToken", result.accessToken(), "expiresIn", ACCESS_TOKEN_TTL_SECONDS);
     }
@@ -101,16 +109,5 @@ public class AuthController {
                                               String email, String displayName, String role) {
         return new TokenResponse(auth.accessToken(), ACCESS_TOKEN_TTL_SECONDS,
                 new TokenResponse.UserResponse(userId.toString(), email, displayName, role));
-    }
-
-    private String clientIp(HttpServletRequest req) {
-        String forwarded = req.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isEmpty()) return forwarded.split(",")[0].trim();
-        return req.getRemoteAddr();
-    }
-
-    private String userAgent(HttpServletRequest req) {
-        String ua = req.getHeader("User-Agent");
-        return ua != null && ua.length() > 500 ? ua.substring(0, 500) : ua;
     }
 }

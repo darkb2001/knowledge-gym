@@ -8,7 +8,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -22,15 +21,13 @@ import java.util.function.Supplier;
 
 /**
  * Rate limit filter — Bucket4j Redis-backed CAS tokens.
- * Áp dụng cho: login 5/min, register 10/h, forgot-password 3/min, reset-password 5/min, global 100/min/IP.
- * Key: rate:{endpoint}:{clientIp}
- * X-Forwarded-For chỉ tin khi app.security.trust-forwarded-headers=true (sau nginx).
+ * Key: rate:{endpoint}:{clientIp} (IP qua {@link ClientIpResolver}).
  */
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final LettuceBasedProxyManager<String> proxyManager;
-    private final boolean trustForwardedHeaders;
+    private final ClientIpResolver clientIpResolver;
     private final Map<String, BucketConfiguration> configCache = new ConcurrentHashMap<>();
 
     private static final Map<String, Supplier<BucketConfiguration>> ENDPOINT_LIMITS = Map.of(
@@ -50,20 +47,18 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final Set<String> ENDPOINT_LIMIT_PATHS =
             Set.of("/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password");
 
-    public RateLimitFilter(LettuceBasedProxyManager<String> proxyManager,
-                            @Value("${app.security.trust-forwarded-headers:false}") boolean trustForwardedHeaders) {
+    public RateLimitFilter(LettuceBasedProxyManager<String> proxyManager, ClientIpResolver clientIpResolver) {
         this.proxyManager = proxyManager;
-        this.trustForwardedHeaders = trustForwardedHeaders;
+        this.clientIpResolver = clientIpResolver;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                      FilterChain chain) throws ServletException, IOException {
         String path = request.getRequestURI();
-        String clientIp = getClientIp(request);
+        String clientIp = clientIpResolver.resolve(request);
         String rateLimitKey = "rate:" + path + ":" + clientIp;
 
-        // Cache config theo path only — tránh ConcurrentHashMap unbounded theo IP
         BucketConfiguration config = configCache.computeIfAbsent(path, p -> {
             Supplier<BucketConfiguration> supplier = ENDPOINT_LIMITS.get(p);
             return (supplier != null ? supplier : GLOBAL_LIMIT).get();
@@ -89,15 +84,5 @@ public class RateLimitFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         return !ENDPOINT_LIMIT_PATHS.contains(path) && !path.startsWith("/auth/");
-    }
-
-    private String getClientIp(HttpServletRequest request) {
-        if (trustForwardedHeaders) {
-            String forwarded = request.getHeader("X-Forwarded-For");
-            if (forwarded != null && !forwarded.isEmpty()) {
-                return forwarded.split(",")[0].trim();
-            }
-        }
-        return request.getRemoteAddr();
     }
 }

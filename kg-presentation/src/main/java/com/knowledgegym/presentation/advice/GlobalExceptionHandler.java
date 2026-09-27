@@ -1,4 +1,4 @@
-package com.knowledgegym.presentation.rest.auth;
+package com.knowledgegym.presentation.advice;
 
 import com.knowledgegym.identity.application.AuthException;
 import org.springframework.dao.DataIntegrityViolationException;

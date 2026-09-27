@@ -1,5 +1,24 @@
 # Project Structure — Knowledge Gym
 
+## Current vs target (sau m3 Auth)
+
+Tree dài bên dưới = **roadmap target** (đủ context content/learning/…). Phần này ghi **đã có thật trong repo** sau m3 — tránh nhầm scaffold tương lai với code đang chạy.
+
+| Module | Đã có (m3) | Chưa (m4+) |
+|--------|------------|------------|
+| `kg-core` | `identity/` (User, RefreshToken, ports, Register/Login/Refresh/Logout/Forgot/Reset) + `shared/` stub | content, learning, progress, notes, blog use cases |
+| `kg-infrastructure` | Flyway V001 users/refresh/password_reset; JPA adapters; JWT + Cookie + OAuth2SuccessHandler; Redis refresh cache; Bucket4j `RateLimitFilter`; `ClientIpResolver`; Gmail SMTP | content parsers, SRS, AI writer, collectors |
+| `kg-presentation` | `rest/auth/*`, `advice/GlobalExceptionHandler` (RFC 7807), boot app | controllers khác, websocket |
+| `kg-agent` | module skeleton | schedulers |
+
+**ArchUnit (đang enforce):**
+- `PresentationLayerArchTest` — `..presentation..` ✗ `..infrastructure.persistence..` và ✗ JPA repos (cho phép `infrastructure.security` helpers như cookie/IP ở composition root)
+- `DomainLayerArchTest` — domain package ✗ Spring / JPA
+
+**IP audit helper:** `ClientIpResolver` (`trust-forwarded-headers`) dùng chung AuthController, RateLimitFilter, OAuth2SuccessHandler.
+
+---
+
 ## Kiến trúc: Clean Architecture + DDD (Hexagonal / Ports & Adapters)
 
 **Build tool: Gradle (Kotlin DSL)** — `build.gradle.kts`, Gradle 8.x, Java 21 toolchain.
@@ -147,35 +166,39 @@ knowledge-gym/
 │   │   │       ├── QuestionRepositoryAdapter.java
 │   │   │       ├── SRSCardRepositoryAdapter.java
 │   │   │       └── mapper/JpaMapper.java                        # Adapter pattern (Module 13)
-│   │   ├── security/
-│   │   │   ├── JwtTokenProvider.java        # implements TokenService port
-│   │   │   ├── BCryptPasswordHasher.java    # implements PasswordHasher port
+│   │   ├── security/                       # (m3 đã có) JWT, cookie, OAuth2, rate limit, ClientIpResolver
+│   │   │   ├── JwtTokenService.java        # implements TokenService port
+│   │   │   ├── BCryptPasswordHasher.java   # implements PasswordHasher port
 │   │   │   ├── JwtAuthenticationFilter.java
-│   │   │   └── OAuth2GoogleUserService.java
-│   │   ├── ratelimit/RateLimitFilter.java   # Bucket4j
-│   │   ├── cache/CaffeineQuestionCache.java, RedisLeaderboardAdapter.java
+│   │   │   ├── OAuth2SuccessHandler.java
+│   │   │   ├── RateLimitFilter.java        # Bucket4j Redis
+│   │   │   ├── ClientIpResolver.java       # XFF chỉ khi trust-forwarded-headers
+│   │   │   ├── RefreshTokenCookie.java
+│   │   │   └── RedisRefreshTokenCacheAdapter.java
+│   │   ├── email/GmailEmailService.java    # (m3) implements EmailPort
+│   │   ├── cache/CaffeineQuestionCache.java, RedisLeaderboardAdapter.java   # m4+
 │   │   ├── html/JsoupContentSource.java     # implements ContentSource port (Module 01)
 │   │   ├── ai/OpenAiWriterAdapter.java      # implements AiWriterPort (GPT-4o-mini, @CircuitBreaker)
 │   │   ├── collector/RssCollectorAdapter.java, GitHubTrendingAdapter.java   # implements CollectorPort
 │   │   ├── export/PdfExporter.java, MarkdownExporter.java
 │   │   └── config/SecurityConfig.java, CacheConfig.java, AsyncConfig.java,
 │   │               SchedulingConfig.java, OpenApiConfig.java, ArchTestConfig.java
-│   └── src/main/resources/db/migration/     # Flyway V001–V013 (32 bảng; V009 indexes, V010 mview)
+│   └── src/main/resources/db/migration/     # Flyway (m3: users/refresh/password_reset; target V001–V013)
 │
 ├── kg-presentation/                         # ADAPTERS IN (driving adapters)
 │   ├── build.gradle.kts                    # spring-boot-starter-web
 │   └── src/main/java/com/knowledgegym/presentation/
 │   │   ├── KnowledgeGymApplication.java    # @SpringBootApplication + @EnableAsync/@EnableScheduling
 │   │   ├── rest/
-│   │   │   ├── AuthController.java, QuestionController.java, QuizController.java,
-│   │   │   │   SRSController.java, MockInterviewController.java, NoteController.java,
-│   │   │   │   BlogController.java, DashboardController.java, AdminController.java
+│   │   │   ├── auth/                       # (m3) AuthController + request/response records
+│   │   │   ├── QuestionController.java, QuizController.java, …   # m4+
 │   │   │   ├── dto/                        # request/response records (Module 01 Records)
 │   │   │   └── mapper/UseCaseMapper.java   # DTO ↔ UseCase Command/Query
-│   │   ├── advice/GlobalExceptionHandler.java   # @ControllerAdvice + RFC 7807
+│   │   ├── advice/GlobalExceptionHandler.java   # @RestControllerAdvice + RFC 7807 (m3)
 │   │   └── websocket/ProgressWebSocketHandler.java   # nếu build, không thì REST polling
-│   └── src/test/java/                      # ArchUnit test: dependency rule enforcement
-│       └── ArchitectureTest.java           # domain không import spring/jpa; presentation không import infrastructure.persistence
+│   └── src/test/java/                      # ArchUnit + AuthIntegrationTest (Testcontainers)
+│       ├── PresentationLayerArchTest.java
+│       └── (kg-core) DomainLayerArchTest.java
 │
 ├── kg-agent/                               # Blog Agent — module Gradle riêng, compose cùng app (modular monolith, ADR-001)
 │   ├── build.gradle.kts                    # depends on kg-core + kg-infrastructure
