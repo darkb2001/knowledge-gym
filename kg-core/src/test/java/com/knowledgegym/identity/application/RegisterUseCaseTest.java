@@ -43,14 +43,14 @@ class RegisterUseCaseTest {
     void register_duplicateEmail_throws() {
         useCase.execute("dup@example.com", "password123", "A");
         assertThatThrownBy(() -> useCase.execute("dup@example.com", "password123", "B"))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(AuthException.class)
                 .hasMessageContaining("already registered");
     }
 
     @Test
     void register_shortPassword_throws() {
         assertThatThrownBy(() -> useCase.execute("x@example.com", "short", "X"))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(AuthException.class)
                 .hasMessageContaining("at least 8");
     }
 
@@ -58,7 +58,7 @@ class RegisterUseCaseTest {
     void register_emailIsCaseInsensitive_forUniqueness() {
         useCase.execute("case@example.com", "password123", "A");
         assertThatThrownBy(() -> useCase.execute("CASE@example.com", "password123", "B"))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(AuthException.class);
     }
 
     // --- Test doubles ---

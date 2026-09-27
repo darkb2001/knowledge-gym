@@ -23,6 +23,10 @@ app:
       refresh-secret: test-refresh-secret-minimum-32-characters-for-jwt
     cookie:
       secure: false
+    # Tests dùng X-Forwarded-For để cách ly rate-limit buckets giữa các test case
+    trust-forwarded-headers: true
+    cors:
+      allowed-origins: http://localhost:3000
   email:
     smtp-enabled: false
 

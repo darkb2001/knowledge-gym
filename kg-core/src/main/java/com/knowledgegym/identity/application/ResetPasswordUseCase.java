@@ -35,17 +35,18 @@ public class ResetPasswordUseCase {
      */
     public void execute(String email, String code, String newPassword) {
         if (newPassword == null || newPassword.length() < 8) {
-            throw new AuthException("Password must be at least 8 characters");
+            throw new AuthException(AuthException.Kind.BAD_REQUEST,
+                    "Password must be at least 8 characters");
         }
         String normalized = User.normalizeEmail(email);
         User user = userRepository.findByEmail(normalized)
-                .orElseThrow(() -> new AuthException("Invalid reset code"));
+                .orElseThrow(() -> new AuthException(AuthException.Kind.BAD_REQUEST, "Invalid reset code"));
 
         PasswordResetCode stored = codeRepository.findLatestActiveByUserId(user.getId())
-                .orElseThrow(() -> new AuthException("Invalid reset code"));
+                .orElseThrow(() -> new AuthException(AuthException.Kind.BAD_REQUEST, "Invalid reset code"));
 
         if (stored.isExpired() || stored.isUsed() || stored.isAttemptsExhausted()) {
-            throw new AuthException("Reset code expired or already used");
+            throw new AuthException(AuthException.Kind.BAD_REQUEST, "Reset code expired or already used");
         }
 
         String submittedHash = HashUtils.sha256Hex(code);
@@ -55,7 +56,7 @@ public class ResetPasswordUseCase {
                 stored.markUsed();
             }
             codeRepository.save(stored);
-            throw new AuthException("Invalid reset code");
+            throw new AuthException(AuthException.Kind.BAD_REQUEST, "Invalid reset code");
         }
 
         // Success: update password (domain method gọi touch()) + single-use code

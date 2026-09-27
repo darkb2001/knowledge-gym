@@ -17,12 +17,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<Map<String, Object>> handleAuthException(AuthException ex) {
-        return problem(HttpStatus.UNAUTHORIZED, "auth_error", ex.getMessage());
+        HttpStatus status = switch (ex.getKind()) {
+            case CONFLICT -> HttpStatus.CONFLICT;
+            case BAD_REQUEST -> HttpStatus.BAD_REQUEST;
+            case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
+        };
+        return problem(status, "auth_error", ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
-        return problem(HttpStatus.BAD_REQUEST, "bad_request", ex.getMessage());
+        // Không leak raw message nếu có chứa email — generic detail
+        String detail = ex.getMessage() != null && ex.getMessage().contains("@")
+                ? "Invalid request"
+                : ex.getMessage();
+        return problem(HttpStatus.BAD_REQUEST, "bad_request", detail);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

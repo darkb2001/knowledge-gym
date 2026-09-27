@@ -87,11 +87,27 @@ Full authentication module for Knowledge Gym:
    SameSite=Strict TTL 7d), shared by `AuthController` và `OAuth2SuccessHandler`. OAuth users giờ
    có refresh token đúng chuẩn password login.
 
+### Code Review Follow-up Round 2 (2026-09-27 afternoon)
+
+Additional fixes after second review pass:
+
+1. **LogoutUseCase bug** — trước đây chỉ revoke 1 token trong PG, không revoke family.
+   Fix: parse JWT → `revokeFamily` PG + Redis; fallback PG lookup nếu JWT invalid.
+2. **Register email leak** — message chứa `"Email already registered: user@x.com"`.
+   Fix: generic `"Email already registered"` + `AuthException.Kind.CONFLICT` → HTTP 409.
+3. **AuthException.Kind** — UNAUTHORIZED/BAD_REQUEST/CONFLICT map đúng HTTP status
+   (reset-password validation → 400 thay vì 401).
+4. **Redis blacklist** — `blacklist()` cũng `DELETE rt:{hash}` active key.
+5. **JWT clockSkewSeconds(30)** — JwtTokenService + JwtAuthenticationFilter.
+6. **CORS** — `app.security.cors.allowed-origins` env-driven (comma-separated).
+7. **Prod JWT fail-fast** — `JwtSecretValidator` ném nếu prod dùng default/weak secrets.
+8. **X-Forwarded-For** — chỉ tin khi `app.security.trust-forwarded-headers=true`
+   (prod=true sau nginx; test=true để cách ly rate-limit buckets).
+
 ### Deferred to m4+
 - Email verification flow (need email verification token table + flow)
 - RBAC integration tests (need admin endpoint to test 403)
 - Google OAuth2 integration test (needs real Google credentials in CI)
 - Per-email rate limit on login (currently IP-only due to filter not parsing body)
-- H1: JwtAuthenticationFilter doesn't check user exists / not deleted → consider adding user existence check
-- M3: RateLimitFilter trusts X-Forwarded-For unconditionally → consider trusted-proxy config
-- H5: SecurityConfig hard-codes CORS localhost:3000 → move to env-driven property
+- H1: JwtAuthenticationFilter doesn't check user exists / not deleted → 15m access TTL acceptable for now
+- Access-token denylist on logout (currently only refresh family revoked; access JWT còn sống ≤15m)

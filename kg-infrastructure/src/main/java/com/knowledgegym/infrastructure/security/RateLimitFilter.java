@@ -8,6 +8,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -15,19 +16,22 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 /**
  * Rate limit filter — Bucket4j Redis-backed CAS tokens.
  * Áp dụng cho: login 5/min, register 10/h, forgot-password 3/min, reset-password 5/min, global 100/min/IP.
- * Key: {endpoint}:{clientIp} (sử dụng IP-only vì filter không parse body).
- * Trả 429 + Retry-After header.
+ * Key: rate:{endpoint}:{clientIp}
+ * X-Forwarded-For chỉ tin khi app.security.trust-forwarded-headers=true (sau nginx).
  */
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final LettuceBasedProxyManager<String> proxyManager;
-    private final Map<String, BucketConfiguration> configCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final boolean trustForwardedHeaders;
+    private final Map<String, BucketConfiguration> configCache = new ConcurrentHashMap<>();
 
     private static final Map<String, Supplier<BucketConfiguration>> ENDPOINT_LIMITS = Map.of(
             "/auth/login", () -> BucketConfiguration.builder()
@@ -43,8 +47,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final Supplier<BucketConfiguration> GLOBAL_LIMIT = () -> BucketConfiguration.builder()
             .addLimit(Bandwidth.builder().capacity(100).refillGreedy(100, Duration.ofMinutes(1)).build()).build();
 
-    public RateLimitFilter(LettuceBasedProxyManager<String> proxyManager) {
+    private static final Set<String> ENDPOINT_LIMIT_PATHS =
+            Set.of("/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password");
+
+    public RateLimitFilter(LettuceBasedProxyManager<String> proxyManager,
+                            @Value("${app.security.trust-forwarded-headers:false}") boolean trustForwardedHeaders) {
         this.proxyManager = proxyManager;
+        this.trustForwardedHeaders = trustForwardedHeaders;
     }
 
     @Override
@@ -81,13 +90,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return !ENDPOINT_LIMIT_PATHS.contains(path) && !path.startsWith("/auth/");
     }
 
-    private static final java.util.Set<String> ENDPOINT_LIMIT_PATHS =
-            java.util.Set.of("/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password");
-
     private String getClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isEmpty()) {
-            return forwarded.split(",")[0].trim();
+        if (trustForwardedHeaders) {
+            String forwarded = request.getHeader("X-Forwarded-For");
+            if (forwarded != null && !forwarded.isEmpty()) {
+                return forwarded.split(",")[0].trim();
+            }
         }
         return request.getRemoteAddr();
     }

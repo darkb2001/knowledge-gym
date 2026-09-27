@@ -42,6 +42,8 @@ public class RedisRefreshTokenCacheAdapter implements RefreshTokenCachePort {
 
     @Override
     public void blacklist(String tokenHash, Duration ttl) {
+        // Xóa active key + set blacklist — tránh Redis rebuild/confusion sau rotation
+        redis.delete(PREFIX_ACTIVE + tokenHash);
         redis.opsForValue().set(PREFIX_BLACKLIST + tokenHash, "1", ttl);
     }
 

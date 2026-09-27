@@ -33,8 +33,10 @@ public class UseCaseConfig {
     }
 
     @Bean
-    LogoutUseCase logoutUseCase(RefreshTokenRepository refreshTokenRepository, RefreshTokenCachePort cache) {
-        return new LogoutUseCase(refreshTokenRepository, cache);
+    LogoutUseCase logoutUseCase(TokenService tokenService,
+                                 RefreshTokenRepository refreshTokenRepository,
+                                 RefreshTokenCachePort cache) {
+        return new LogoutUseCase(tokenService, refreshTokenRepository, cache);
     }
 
     @Bean

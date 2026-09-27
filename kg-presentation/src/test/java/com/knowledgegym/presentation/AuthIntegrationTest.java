@@ -160,7 +160,7 @@ class AuthIntegrationTest {
         mockMvc.perform(post("/auth/register")
                         .header("X-Forwarded-For", ip)
                         .contentType(MediaType.APPLICATION_JSON).content(body))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test

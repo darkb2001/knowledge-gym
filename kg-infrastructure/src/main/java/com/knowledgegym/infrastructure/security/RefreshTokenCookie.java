@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * HttpOnly refresh-token cookie — dùng chung cho AuthController (password login)
- * và OAuth2SuccessHandler (Google login) để policy cookie đồng nhất:
- * httpOnly + Secure(prod) + Path=/ + SameSite=Strict + TTL 7d.
+ * HttpOnly refresh-token cookie — dùng chung AuthController + OAuth2SuccessHandler.
+ * Policy: httpOnly + Secure(prod) + Path=/ + SameSite=Strict + TTL 7d.
+ * (ArchUnit chỉ cấm presentation → infrastructure.persistence; security helper OK.)
  */
 @Component
 public class RefreshTokenCookie {

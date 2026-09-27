@@ -62,6 +62,7 @@ public class JwtTokenService implements TokenService {
     public TokenPayload verifyAccessToken(String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(accessKey)
+                .clockSkewSeconds(30)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -75,6 +76,7 @@ public class JwtTokenService implements TokenService {
     public RefreshTokenClaims verifyRefreshToken(String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(refreshKey)
+                .clockSkewSeconds(30)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
