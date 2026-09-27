@@ -1,6 +1,7 @@
 package com.knowledgegym.presentation.rest.auth;
 
 import com.knowledgegym.identity.application.AuthException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -25,9 +26,14 @@ public class GlobalExceptionHandler {
         return problem(status, "auth_error", ex.getMessage());
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        // Register TOCTOU race trên uk_users_email → 409 generic (không leak email)
+        return problem(HttpStatus.CONFLICT, "conflict", "Resource already exists");
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
-        // Không leak raw message nếu có chứa email — generic detail
         String detail = ex.getMessage() != null && ex.getMessage().contains("@")
                 ? "Invalid request"
                 : ex.getMessage();

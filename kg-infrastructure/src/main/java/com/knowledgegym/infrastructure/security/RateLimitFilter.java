@@ -63,8 +63,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String clientIp = getClientIp(request);
         String rateLimitKey = "rate:" + path + ":" + clientIp;
 
-        BucketConfiguration config = configCache.computeIfAbsent(rateLimitKey, k -> {
-            Supplier<BucketConfiguration> supplier = ENDPOINT_LIMITS.get(path);
+        // Cache config theo path only — tránh ConcurrentHashMap unbounded theo IP
+        BucketConfiguration config = configCache.computeIfAbsent(path, p -> {
+            Supplier<BucketConfiguration> supplier = ENDPOINT_LIMITS.get(p);
             return (supplier != null ? supplier : GLOBAL_LIMIT).get();
         });
 

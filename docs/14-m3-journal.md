@@ -104,6 +104,18 @@ Additional fixes after second review pass:
 8. **X-Forwarded-For** — chỉ tin khi `app.security.trust-forwarded-headers=true`
    (prod=true sau nginx; test=true để cách ly rate-limit buckets).
 
+### Code Review Follow-up Round 3 (deep review MUST-FIX)
+
+From subagent deep re-review — remaining blockers fixed:
+
+1. **OAuth NPE** — `User.createGoogleUser(...)` cho phép `passwordHash=null`; adapter set `email_verified=true`.
+2. **Silent LOCAL→Google link** — reject 409 nếu account LOCAL đã tồn tại (chống takeover).
+3. **OAuth redirect** — `app.security.oauth2.success-redirect-uri` (absolute http(s) FE URL, validated).
+4. **Refresh concurrent session-kill** — PG-first CAS; CAS thua KHÔNG `revokeFamily` (winner giữ session).
+5. **Reset code in prod logs** — SMTP fail không log plaintext code; rethrow.
+6. **RateLimit config cache** — key theo path only (không per-IP unbounded map).
+7. **Register TOCTOU** — `DataIntegrityViolationException` → 409 generic.
+
 ### Deferred to m4+
 - Email verification flow (need email verification token table + flow)
 - RBAC integration tests (need admin endpoint to test 403)
@@ -111,3 +123,4 @@ Additional fixes after second review pass:
 - Per-email rate limit on login (currently IP-only due to filter not parsing body)
 - H1: JwtAuthenticationFilter doesn't check user exists / not deleted → 15m access TTL acceptable for now
 - Access-token denylist on logout (currently only refresh family revoked; access JWT còn sống ≤15m)
+- Explicit Google account linking from settings (LOCAL user)

@@ -11,12 +11,13 @@ import java.util.UUID;
 /**
  * Refresh token rotation — 2 lớp (Redis O(1) + PostgreSQL fallback).
  *
- * Sửa race condition (review blocker #1):
- * - Redis-first: blacklist OLD token TRƯỚC khi PG CAS revoke — concurrent request
- *   thứ 2 thấy blacklist → reject ngay, không cần PG check.
- * - PG CAS `revokeIfActive`: nếu cả 2 request đều đến PG (hiếm — Redis miss),
- *   chỉ 1 thành công. Thread thua → AuthException.
- * - `@Transactional`: PG writes toàn bộ hoặc rollback.
+ * Ordering (sửa multi-tab session-kill từ Redis-first):
+ * 1. Reuse checks (family revoked / blacklist) — chỉ revokeFamily khi TRUE reuse
+ * 2. Lookup Redis → PG fallback
+ * 3. PG CAS revoke old + insert new (atomic winner)
+ * 4. Redis store new + blacklist old (sau khi PG thắng)
+ *
+ * CAS thua (concurrent) → 401 KHÔNG revokeFamily (winner giữ session).
  */
 public class RefreshTokenUseCase {
 
@@ -51,29 +52,26 @@ public class RefreshTokenUseCase {
         UUID userId = claims.userId();
         UUID familyId = claims.familyId();
 
-        // Reuse detection: family revoked globally (reuse by other tab after legitimate rotation)
         if (cache.isFamilyRevoked(familyId)) {
             refreshTokenRepository.revokeFamily(familyId);
             throw new AuthException("Refresh token family revoked — reuse detected");
         }
 
-        // Token used after blacklisted (reuse by old tab)
+        // Blacklisted = đã rotated thành công trước đó → TRUE reuse (stolen/old tab)
         if (cache.isBlacklisted(oldHash)) {
             refreshTokenRepository.revokeFamily(familyId);
             throw new AuthException("Refresh token reuse detected — family revoked");
         }
 
-        // Redis hit → active token OK; miss → PG fallback
         Optional<RefreshTokenCachePort.CacheEntry> cacheEntry = cache.find(oldHash);
 
         if (cacheEntry.isEmpty()) {
-            // Fallback PostgreSQL (Redis restart or TTL expired)
             refreshTokenRepository.findByTokenHash(oldHash).ifPresent(audit -> {
                 if (audit.isRevoked()) {
+                    // PG đã revoke (rotation trước) nhưng Redis miss → reuse
                     refreshTokenRepository.revokeFamily(familyId);
                     throw new AuthException("Refresh token already revoked");
                 }
-                // Rebuild cache from PG audit
                 cache.store(oldHash, audit.getUserId(), audit.getFamilyId(), RefreshToken.TTL);
             });
             if (cache.find(oldHash).isEmpty()) {
@@ -84,31 +82,27 @@ public class RefreshTokenUseCase {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("User no longer exists"));
 
-        // --- Redis-FIRST: blacklist old token TRƯỚC khi tạo mới ---
-        // Concurrent request thứ 2 sẽ thấy isBlacklisted → reject ở trên.
-        cache.blacklist(oldHash, RefreshToken.TTL);
-
-        // Rotation: generate new token in same family
         String newAccessToken = tokenService.generateAccessToken(user.getId(), user.getRole().name());
         String newRawRefresh = tokenService.generateRefreshToken(user.getId(), familyId);
         String newHash = HashUtils.sha256Hex(newRawRefresh);
 
-        // PostgreSQL audit — CAS revoke old (atomic: chỉ 1 thread thắng)
+        // PG-first: CAS revoke old — chỉ 1 concurrent thread thắng
         RefreshToken newAudit = new RefreshToken(userId, newHash, familyId);
         newAudit.setIpAddress(ipAddress);
         newAudit.setUserAgent(userAgent);
         RefreshToken savedNew = refreshTokenRepository.save(newAudit);
 
-        refreshTokenRepository.findByTokenHash(oldHash).ifPresent(oldAudit -> {
-            boolean revoked = refreshTokenRepository.revokeIfActive(oldAudit.getId(), savedNew.getId());
+        Optional<RefreshToken> oldOpt = refreshTokenRepository.findByTokenHash(oldHash);
+        if (oldOpt.isPresent()) {
+            boolean revoked = refreshTokenRepository.revokeIfActive(oldOpt.get().getId(), savedNew.getId());
             if (!revoked) {
-                // CAS thua — token đã bị revoke bởi thread khác → coi như reuse
-                refreshTokenRepository.revokeFamily(familyId);
-                throw new AuthException("Concurrent refresh detected — family revoked");
+                // Concurrent loser — KHÔNG revokeFamily (winner vẫn valid)
+                throw new AuthException("Refresh token already rotated — retry with latest cookie");
             }
-        });
+        }
 
-        // Redis: store new (blacklist đã ghi ở trên)
+        // Redis sau PG thắng — blacklist + store new
+        cache.blacklist(oldHash, RefreshToken.TTL);
         cache.store(newHash, userId, familyId, RefreshToken.TTL);
 
         return new Result(newAccessToken, newRawRefresh, userId, user.getRole().name());

@@ -18,17 +18,16 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Google OAuth2 success handler — cập nhật user identity theo email_verified=true,
- * issue access JWT + refresh token pair (giống password login),
- * set refresh cookie (httpOnly) + redirect FE với access token trong URL fragment.
- *
- * Fragment pattern: `/auth/oauth2/success#accessToken=...&userId=...`
- * Access token KHÔNG vào cookie (FE đọc qua window.location.hash, XSS risk accepted cho SPA);
- * refresh token nằm trong httpOnly cookie — refresh được mà XSS không đọc được.
+ * Google OAuth2 success handler.
+ * - email_verified=true bắt buộc
+ * - Không silent-link LOCAL account (chống account takeover)
+ * - Redirect FE allowlisted qua app.security.oauth2.success-redirect-uri
  */
 @Component
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
@@ -38,17 +37,25 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenCachePort cache;
     private final RefreshTokenCookie refreshCookie;
+    private final String successRedirectBase;
+    private final boolean trustForwardedHeaders;
 
     public OAuth2SuccessHandler(UserRepository userRepository,
                                 TokenService tokenService,
                                 RefreshTokenRepository refreshTokenRepository,
                                 RefreshTokenCachePort cache,
-                                RefreshTokenCookie refreshCookie) {
+                                RefreshTokenCookie refreshCookie,
+                                @Value("${app.security.oauth2.success-redirect-uri:http://localhost:3000/auth/oauth2/success}")
+                                String successRedirectBase,
+                                @Value("${app.security.trust-forwarded-headers:false}") boolean trustForwardedHeaders) {
         this.userRepository = userRepository;
         this.tokenService = tokenService;
         this.refreshTokenRepository = refreshTokenRepository;
         this.cache = cache;
         this.refreshCookie = refreshCookie;
+        this.successRedirectBase = successRedirectBase;
+        this.trustForwardedHeaders = trustForwardedHeaders;
+        validateRedirectBase(successRedirectBase);
     }
 
     @Override
@@ -71,36 +78,44 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         }
 
         Optional<User> existing = userRepository.findByEmail(email);
-        User user = existing.orElseGet(() -> {
-            User u = new User(email, null, displayName != null ? displayName : email);
-            u.setAuthProvider(AuthProvider.GOOGLE);
-            u.setOauthId(googleSub);
-            return userRepository.save(u);
-        });
-
-        // Cập nhật oauth_id nếu lần đầu link (bảo mật: chỉ link khi email trùng)
-        if (user.getOauthId() == null) {
-            user.setAuthProvider(AuthProvider.GOOGLE);
-            user.setOauthId(googleSub);
-            userRepository.save(user);
+        User user;
+        if (existing.isEmpty()) {
+            user = userRepository.save(User.createGoogleUser(email, displayName, googleSub));
+        } else {
+            user = existing.get();
+            // Anti-takeover: không silent-link LOCAL → GOOGLE
+            if (user.getAuthProvider() == AuthProvider.LOCAL
+                    || (user.getOauthId() == null && user.getPasswordHash() != null)) {
+                response.sendError(HttpServletResponse.SC_CONFLICT,
+                        "Account exists with password login. Sign in with email/password, then link Google from settings.");
+                return;
+            }
+            if (user.getOauthId() != null && !user.getOauthId().equals(googleSub)) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "OAuth identity mismatch");
+                return;
+            }
+            if (user.getOauthId() == null) {
+                user.setAuthProvider(AuthProvider.GOOGLE);
+                user.setOauthId(googleSub);
+                user = userRepository.save(user);
+            }
         }
 
-        // Issue token pair — giống password login để OAuth user refresh được (blocker #3)
-        String familyId = UUID.randomUUID().toString();
+        UUID familyId = UUID.randomUUID();
         String accessToken = tokenService.generateAccessToken(user.getId(), user.getRole().name());
-        String rawRefresh = tokenService.generateRefreshToken(user.getId(), UUID.fromString(familyId));
+        String rawRefresh = tokenService.generateRefreshToken(user.getId(), familyId);
         String refreshHash = HashUtils.sha256Hex(rawRefresh);
 
-        RefreshToken audit = new RefreshToken(user.getId(), refreshHash, UUID.fromString(familyId));
+        RefreshToken audit = new RefreshToken(user.getId(), refreshHash, familyId);
         audit.setIpAddress(clientIp(request));
         audit.setUserAgent(request.getHeader("User-Agent"));
         refreshTokenRepository.save(audit);
-        cache.store(refreshHash, user.getId(), audit.getFamilyId(), RefreshToken.TTL);
+        cache.store(refreshHash, user.getId(), familyId, RefreshToken.TTL);
 
         refreshCookie.write(response, rawRefresh);
 
-        // Fragment redirect — access token cho FE ngay, không cần gọi /auth/refresh
-        String redirect = "/auth/oauth2/success#accessToken=" + java.net.URLEncoder.encode(accessToken, java.nio.charset.StandardCharsets.UTF_8)
+        String redirect = successRedirectBase
+                + "#accessToken=" + java.net.URLEncoder.encode(accessToken, StandardCharsets.UTF_8)
                 + "&userId=" + user.getId()
                 + "&role=" + user.getRole().name()
                 + "&provider=google";
@@ -108,8 +123,23 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     }
 
     private String clientIp(HttpServletRequest req) {
-        String forwarded = req.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isEmpty()) return forwarded.split(",")[0].trim();
+        if (trustForwardedHeaders) {
+            String forwarded = req.getHeader("X-Forwarded-For");
+            if (forwarded != null && !forwarded.isEmpty()) return forwarded.split(",")[0].trim();
+        }
         return req.getRemoteAddr();
+    }
+
+    /** Chỉ cho phép http(s) absolute URL — chống open-redirect nếu config sai. */
+    private static void validateRedirectBase(String base) {
+        URI uri = URI.create(base);
+        String scheme = uri.getScheme();
+        if (scheme == null || (!scheme.equals("http") && !scheme.equals("https"))) {
+            throw new IllegalStateException(
+                    "app.security.oauth2.success-redirect-uri must be absolute http(s) URL, got: " + base);
+        }
+        if (uri.getHost() == null) {
+            throw new IllegalStateException("oauth2 success-redirect-uri missing host: " + base);
+        }
     }
 }

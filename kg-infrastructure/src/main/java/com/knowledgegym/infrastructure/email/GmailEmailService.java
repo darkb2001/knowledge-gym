@@ -10,7 +10,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Gửi mã password reset qua Gmail SMTP (App Password).
- * Fallback: nếu SMTP chưa cấu hình (dev profile, thiếu App Password), log code ra console.
+ * Dev (smtp-enabled=false): log code ra console để test.
+ * Prod (smtp-enabled=true): KHÔNG bao giờ log plaintext code — fail loud nếu SMTP lỗi.
  */
 @Component
 public class GmailEmailService implements EmailService {
@@ -33,7 +34,6 @@ public class GmailEmailService implements EmailService {
     @Override
     public void sendPasswordResetCode(String email, String code) {
         if (!smtpEnabled) {
-            // Dev fallback — vẫn log để test có thể lấy code
             log.warn("[DEV-FALLBACK] Password reset code for {}: {}", email, code);
             return;
         }
@@ -51,9 +51,9 @@ public class GmailEmailService implements EmailService {
             mailSender.send(message);
             log.info("Password reset code sent to {}", email);
         } catch (Exception e) {
-            // Fallback: log thay vì fail request (plan: Gmail SMTP hay bị block)
-            log.error("Failed to send reset email to {}, falling back to console log. Code: {}",
-                    email, code, e);
+            // Prod: không log code — tránh secret trong log aggregator
+            log.error("Failed to send password reset email to {}", email, e);
+            throw new IllegalStateException("Unable to send password reset email", e);
         }
     }
 }

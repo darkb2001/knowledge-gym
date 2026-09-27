@@ -36,6 +36,19 @@ public class User extends BaseEntity {
         this.displayName = displayName;
     }
 
+    /**
+     * Factory OAuth — passwordHash null hợp lệ (DB nullable, login LOCAL sẽ reject).
+     */
+    public static User createGoogleUser(String email, String displayName, String googleSub) {
+        User u = new User();
+        u.email = normalizeEmail(email);
+        u.passwordHash = null;
+        u.displayName = displayName != null ? displayName : email;
+        u.authProvider = AuthProvider.GOOGLE;
+        u.oauthId = Objects.requireNonNull(googleSub, "googleSub");
+        return u;
+    }
+
     public User(UUID id) {
         super(id);
     }
@@ -71,8 +84,9 @@ public class User extends BaseEntity {
         touch();
     }
     public String getPasswordHash() { return passwordHash; }
+    /** Cho phép null — OAuth-only user không có mật khẩu LOCAL. */
     public void setPasswordHash(String passwordHash) {
-        this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash");
+        this.passwordHash = passwordHash;
         touch();
     }
     public String getDisplayName() { return displayName; }

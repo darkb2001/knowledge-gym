@@ -66,6 +66,12 @@ public class UserRepositoryAdapter implements UserRepository {
         entity.setOauthId(user.getOauthId());
         entity.setCreatedAt(user.getCreatedAt());
         entity.setUpdatedAt(user.getUpdatedAt());
+        // Google OAuth đã verify email_verified=true ở handler
+        if (user.getAuthProvider() == AuthProvider.GOOGLE && user.getOauthId() != null
+                && !entity.isEmailVerified()) {
+            entity.setEmailVerified(true);
+            entity.setEmailVerifiedAt(java.time.Instant.now());
+        }
     }
 
     private User toDomain(UserJpaEntity entity) {
