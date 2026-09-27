@@ -26,6 +26,43 @@ spring:
     baseline-on-migrate: false
     locations: classpath:db/migration
     validate-on-migrate: true
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      timeout: 2000ms
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            scope: email,profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+
+app:
+  email:
+    smtp-enabled: false
+    from: no-reply@knowledgegym.dev
+  security:
+    jwt:
+      access-secret: ${JWT_ACCESS_SECRET:dev-access-secret-minimum-32-characters-long-for-jwt-signing}
+      refresh-secret: ${JWT_REFRESH_SECRET:dev-refresh-secret-minimum-32-characters-long-for-jwt-sign}
+    cookie:
+      # Secure=false ở dev (http://localhost) — prod set true (https)
+      secure: ${REFRESH_COOKIE_SECURE:false}
 
 management:
   endpoints:
@@ -56,6 +93,13 @@ spring:
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
+
+app:
+  email:
+    smtp-enabled: true
+  security:
+    cookie:
+      secure: true
 
 management:
   endpoint:

@@ -13,4 +13,5 @@ dependencies {
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.archunit.junit5)
+    testImplementation("org.assertj:assertj-core") // version manage bởi Spring Boot BOM
 }

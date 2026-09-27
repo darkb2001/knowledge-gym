@@ -1,16 +1,37 @@
+# Test profile — m3: Postgres + Redis từ Testcontainers (không exclude Redis autoconfig nữa)
 spring:
-  autoconfigure:
-    exclude:
-      # Redis chưa wire ở m2 — exclude để smoke test chỉ cần Postgres
-      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
   jpa:
     hibernate:
       ddl-auto: validate
   flyway:
     enabled: true
+  security:
+    oauth2:
+      client:
+        registration:
+          # Dummy values — Spring Boot reject registration có client-id rỗng.
+          # Test không gọi Google thật; OAuth2 login flow test bằng MockMvc redirect.
+          google:
+            client-id: test-client-id.apps.googleusercontent.com
+            client-secret: test-client-secret
+
+# JWT secrets + cookie flags cho test (không cần env vars)
+app:
+  security:
+    jwt:
+      access-secret: test-access-secret-minimum-32-characters-for-jwt
+      refresh-secret: test-refresh-secret-minimum-32-characters-for-jwt
+    cookie:
+      secure: false
+  email:
+    smtp-enabled: false
 
 management:
   endpoint:
     health:
-      show-details: when_authorized
+      show-details: always
+      probes:
+        enabled: false  # Not Kubernetes — disable readiness check that returns 503
+  health:
+    mail:
+      enabled: false  # Không có SMTP thật trong test — tránh mail indicator DOWN → 503

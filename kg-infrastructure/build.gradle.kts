@@ -11,15 +11,20 @@ dependencies {
 
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.security)
+    implementation(libs.spring.boot.starter.oauth2.client)
+    implementation(libs.spring.boot.starter.mail)
     implementation(libs.spring.boot.starter.data.redis)
     implementation(libs.spring.boot.starter.cache)
     implementation(libs.spring.boot.starter.validation)
     implementation(libs.spring.boot.starter.aop)
     implementation(libs.spring.boot.starter.actuator)
+    // servlet API cần cho JwtAuthenticationFilter, RateLimitFilter, OAuth2SuccessHandler
+    implementation(libs.spring.boot.starter.web)
     implementation(libs.flyway.core)
+    implementation(libs.bucket4j.redis)
     runtimeOnly(libs.postgresql)
 
-    implementation(platform(libs.jjwt.api))
+    implementation(libs.jjwt.api)
     runtimeOnly(libs.jjwt.impl)
     runtimeOnly(libs.jjwt.jackson)
 
