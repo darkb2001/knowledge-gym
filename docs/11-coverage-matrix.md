@@ -19,17 +19,27 @@
 | **13 Design Patterns** | Strategy, Template Method, Observer, Builder, Factory, State | 2-3 |
 | **15 Auth/RBAC/OAuth** | JWT, OAuth2, RBAC, Resource Server | 1 |
 
+### Mini-phase đã implement (m4a)
+
+> Các module dưới có phần đã ship thật trong m4a (không chỉ là kế hoạch).
+
+| Module | Kiến thức m4a thực thi | Trạng thái |
+|--------|------------------------|------------|
+| **05 Database** | Flyway `V014` (unique index `uk_questions_module_sort` natural key) + `V015` (`searchable_text`, tsvector trigger `trg_questions_search`, GIN `idx_questions_search`), native upsert `ON CONFLICT` | Đã ship (m4a) |
+| **06 REST API** | `GET /questions` paginated (`page` 1-based, `size` cap 100) + filter + full-text `q`; `GET /questions/{id}`, `/topics`, `/modules`; RFC 7807 `GlobalExceptionHandler` (thêm 409 `ConflictException`, 500 `ContentImportException`); SpringDoc OpenAPI (`OpenApiConfig`), service tại `/api/v1` | Đã ship (m4a) |
+| **15 Auth/RBAC** | `@PreAuthorize("hasRole('ADMIN')")` trên `AdminContentController` → USER nhận 403 Problem Details (đóng deferred RBAC của m3) | Đã ship (m4a) |
+
 ---
 
 ## Feature ↔ Module Detail
 
 | Feature | Module 01 | Module 02 | Module 03 | Module 04 | Module 05 | Module 06 | Module 07 | Module 09 | Module 11 | Module 13 | Module 15 |
 |---------|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|
-| Content Parser | ✅ | ✅ | ✅ | | ✅ | | | | | | |
+| Content Parser | ✅ | ✅ | ✅ | | ✅ | ✅ | | | | | ✅ |
 | Auth + JWT | | | ✅ | | | ✅ | | | | | ✅ |
 | OAuth2 Google | | | ✅ | | | | | | | | ✅ |
 | RBAC | | | ✅ | | | ✅ | | | | | ✅ |
-| Question CRUD | | ✅ | ✅ | ✅ | | ✅ | | | | | |
+| Question CRUD | | ✅ | ✅ | ✅ | | ✅ | | | | | ✅ |
 | Flashcard + SRS | ✅ | ✅ | | ✅ | | | | | ✅ | | |
 | Quiz Mode | ✅ | | ✅ | | | ✅ | | | | ✅ | |
 | Mock Interview | ✅ | | ✅ | | | ✅ | ✅ | | | | |

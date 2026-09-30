@@ -3,6 +3,7 @@
 > **ADR-002:** Single-tenant — **không** có bảng `tenants`. Multi-tenant/monetization = **deferred Phase 5+** (xem `02-monetization.md`).
 > **Diagram:** `docs/07-erd.mmd` (compact) · `docs/07-erd.svg` · `docs/07-erd-preview.html`.
 > **DDL (cook source of truth):** [`docs/07-erd-ddl.sql`](./07-erd-ddl.sql) — full `CREATE TABLE` V001–V013. File này = lookup + tiers + quy tắc.
+> Migration m4 (`V014`, `V015`) chỉ `ALTER TABLE` / index / trigger — xem mục **V014–V015** bên dưới.
 > Preview IDE: Command Palette → **Mermaid Viewer: Open Preview to the Side**.
 > **Quy tắc:** mọi bảng **phải** thuộc đúng 1 migration. Enum **luôn UPPERCASE**. FK nullable ghi rõ.
 
@@ -38,9 +39,9 @@
 
 | Bảng | Migration | PK / UK | Ghi chú |
 |---|---|---|---|
-| `topics` | **V002** | `id PK`, `slug UK` | |
+| `topics` | **V002** | `id PK`, `slug UK` | `display_order INT` thêm ở **V014** (giữ thứ tự topic theo `nav-group` của `index.html`) |
 | `modules` | **V002** | `id PK`, `slug UK` | FK → `topics` |
-| `questions` | **V003** | `id PK` | `tags TEXT[] + GIN`, `search_vector tsvector + GIN` (ES fallback), `hints JSONB` nullable, `version INT` cho `@Version` |
+| `questions` | **V003** | `id PK`, **V014** `UK (module_id, sort_order)` | `tags TEXT[] + GIN`, `search_vector tsvector + GIN` (ES fallback), `hints JSONB` nullable, `version INT` cho `@Version`. **V014** thêm `uk_questions_module_sort` = natural key cho upsert idempotent. **V015** thêm `searchable_text TEXT` + trigger `trg_questions_search` populate `search_vector` |
 | `question_options` | **V003** | `id PK` | FK → `questions`, multiple-choice |
 
 ### Learning (13 bảng)
@@ -100,13 +101,62 @@ V012__create_challenges.sql          challenges, challenge_test_cases, code_subm
 V013__create_quiz_interview.sql      quiz_sessions, quiz_answers, interview_sessions,
                                      interview_answers, notifications,
                                      daily_challenge_assignments                            (6)
+V014__content_import_support.sql     topics.display_order + UK questions(module_id, sort_order) (0)
+V015__questions_fulltext_search.sql  questions.searchable_text + tsvector trigger + GIN     (0)
                                                                             ────────────────────
                                                                             TOTAL:        32 bảng
 ```
 
-**Kiểm tra:** 3+2+2+4+1+4+4+2+0+0+1+3+6 = **32** ✓ — không bảng nào thiếu migration, không migration nào trùng số.
+**Kiểm tra:** 3+2+2+4+1+4+4+2+0+0+1+3+6+0+0 = **32** ✓ — không bảng nào thiếu migration, không migration nào trùng số.
 
-## Index chính (V009)
+> **V014–V015 là migration m4 (content import + full-text search)** — chỉ `ALTER TABLE` / tạo index / trigger, **không** tạo bảng mới, nên tổng số bảng vẫn là 32.
+
+### V014 — Content import support (m4)
+
+```sql
+ALTER TABLE topics ADD COLUMN display_order INT NOT NULL DEFAULT 0;
+
+-- Natural key cho upsert idempotent: sort_order = số thứ tự .qa-card trong file module.
+-- Không dùng title làm key vì title có thể trùng giữa các module.
+CREATE UNIQUE INDEX uk_questions_module_sort ON questions (module_id, sort_order);
+```
+
+`(module_id, sort_order)` là conflict target của `INSERT ... ON CONFLICT ... DO UPDATE` (re-import `docs/`
+không nhân đôi câu hỏi). Admin tạo/sửa câu hỏi trùng `sortOrder` trong cùng module → **409**. Import
+cố ý **không** ghi đè `difficulty` (admin có thể đã sửa tay).
+
+### V015 — Full-text search cho questions (m4)
+
+```sql
+ALTER TABLE questions ADD COLUMN searchable_text TEXT NOT NULL DEFAULT '';
+
+CREATE OR REPLACE FUNCTION questions_search_vector_update() RETURNS trigger AS $$
+BEGIN
+    NEW.search_vector := to_tsvector('simple',
+        coalesce(NEW.title, '') || ' ' ||
+        coalesce(NEW.answer_html, '') || ' ' ||
+        coalesce(NEW.searchable_text, ''));
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_questions_search ON questions;
+CREATE TRIGGER trg_questions_search
+    BEFORE INSERT OR UPDATE OF title, answer_html, searchable_text ON questions
+    FOR EACH ROW EXECUTE FUNCTION questions_search_vector_update();
+```
+
+`search_vector TSVECTOR + GIN` đã có từ V003 nhưng **chưa bao giờ được populate** → V015 làm nó hoạt
+động thật bằng trigger. Trigger là **đường ghi duy nhất** cho `search_vector` (fire cả INSERT và
+`UPDATE OF title, answer_html, searchable_text`), nên không có đường ghi lệch.
+
+- `searchable_text` = token do `SearchText.build(title, answerText, tags)` sinh ra: bỏ dấu tiếng Việt,
+  n-gram 2–3 từ (`bat-dong-bo`), tách slug gạch nối, và bảng synonym Việt–Anh (`sao-luu` ⟷ `backup`/`replication`,
+  `bo-nho` ⟷ `memory`/`heap`, `garbage` ⟷ `thu-hoi-rac`). Ngân sách token cap 140.
+- Config `simple` (chỉ lowercase + tokenize), **không** stemming: nội dung trộn tiếng Việt + tiếng Anh,
+  stemming tiếng Anh sẽ băm nát từ tiếng Việt.
+
+## Index chính (V009 + inline V001–V008)
 
 ```sql
 -- Auth
@@ -126,10 +176,12 @@ CREATE INDEX idx_notif_unread            ON notifications(user_id, created_at DE
                                          WHERE read = false;
 -- Daily challenge lookup
 CREATE INDEX idx_daily_user_date         ON daily_challenge_assignments(user_id, challenge_date DESC);
--- Search fallback (khi de-scope Elasticsearch)
-CREATE INDEX idx_questions_search        ON questions USING GIN(search_vector);
-CREATE INDEX idx_notes_search            ON notes USING GIN(search_vector);
+-- Search (questions dùng FTS thật từ V015) + tags
+CREATE INDEX idx_questions_search        ON questions USING GIN(search_vector);   -- V003, populate bởi V015
+CREATE INDEX idx_notes_search            ON notes USING GIN(search_vector);       -- ES fallback
 CREATE INDEX idx_questions_tags          ON questions USING GIN(tags);
+-- Natural key import (V014)
+CREATE UNIQUE INDEX uk_questions_module_sort ON questions (module_id, sort_order);
 -- Blog
 CREATE INDEX idx_blog_published          ON blog_posts(published_at DESC)
                                          WHERE status = 'PUBLISHED';
@@ -139,11 +191,11 @@ CREATE INDEX idx_blog_published          ON blog_posts(published_at DESC)
 
 ```
 ┌─ Redis 7 — Knowledge Gym Key Space ────────────────────────────────────┐
-│  AUTH (m03)           │  CACHE (m04)           │  RATE LIMIT (m03)     │
-│  rt:{hash}     → 7d   │  cache:{entity}:{id}   │  rl:login:{ip}       │
-│  rt:blacklist:{hash}  │    → JSON, 30-60m      │  rl:register:{ip}    │
-│                → 7d   │                        │  rl:forgot:{ip}      │
-│  rt:revoked:{fid}→7d  │                        │  rl:global:{ip}     │
+│  AUTH (m03)           │  CACHE (m04) — Caffeine │  RATE LIMIT (m03)    │
+│  rt:{hash}     → 7d   │  (L1 in-JVM, KHÔNG ở   │  rl:login:{ip}       │
+│  rt:blacklist:{hash}  │   Redis; Redis L2 =    │  rl:register:{ip}    │
+│                → 7d   │   scale-out tương lai) │  rl:forgot:{ip}      │
+│  rt:revoked:{fid}→7d  │                        │  rl:global:{ip}      │
 │  pwd_reset:{email}→10m│                        │                      │
 │───────────────────────┼────────────────────────┼───────────────────────│
 │  LEADERBOARD (m07)    │  STREAK (m07)          │  AI QUOTA (m10)      │
@@ -160,7 +212,7 @@ CREATE INDEX idx_blog_published          ON blog_posts(published_at DESC)
 │     blog_post_likes    │                        │                      │
 └────────────────────────────────────────────────────────────────────────┘
 
-Estimated memory (1000 users): ~6 MB  ← Redis 256 MB trên Docker là đủ
+Estimated memory (1000 users): ~0.5 MB  ← content cache ở m4a là Caffeine in-JVM (không tính Redis)
 ```
 
 **Refresh token = 2 lớp:**
@@ -256,3 +308,12 @@ Các feature trong `02-monetization.md` **cố tình không** đưa vào ERD (AD
 
 **Bảng mới (3):** `srs_decks`, `daily_challenge_assignments`, `blog_post_likes`
 **Migration mới:** `V013__create_quiz_interview.sql` (6 bảng), `V012` đổi tên → `create_challenges` (3 bảng)
+
+### 09/2026 — m4a: content import + full-text search (V014, V015)
+
+| Migration | Nội dung | Bảng mới |
+|---|---|---|
+| **V014** `content_import_support.sql` | `topics.display_order`; **UK** `uk_questions_module_sort (module_id, sort_order)` = natural key cho upsert idempotent | 0 |
+| **V015** `questions_fulltext_search.sql` | `questions.searchable_text TEXT`; function + trigger `trg_questions_search` populate `search_vector` (config `simple`); GIN `idx_questions_search` (đã có từ V003) giờ mới hoạt động thật | 0 |
+
+Không tạo bảng mới → tổng vẫn **32 bảng**.

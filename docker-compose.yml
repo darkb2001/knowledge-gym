@@ -15,8 +15,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    volumes:
+      # docs/ nằm ngoài git root của repo — không nhúng vào image, mount read-only.
+      - ../docs:/content/docs:ro
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      CONTENT_DOCS_PATH: /content/docs
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/knowledgegym
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres

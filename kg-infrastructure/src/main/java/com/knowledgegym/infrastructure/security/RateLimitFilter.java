@@ -55,7 +55,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                      FilterChain chain) throws ServletException, IOException {
-        String path = request.getRequestURI();
+        String path = requestPath(request);
         String clientIp = clientIpResolver.resolve(request);
         String rateLimitKey = "rate:" + path + ":" + clientIp;
 
@@ -82,7 +82,25 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
+        String path = requestPath(request);
         return !ENDPOINT_LIMIT_PATHS.contains(path) && !path.startsWith("/auth/");
+    }
+
+    /**
+     * `getRequestURI()` bao gồm `server.servlet.context-path` (`/api/v1`), nên so khớp trực tiếp
+     * với `/auth/login` sẽ **luôn trượt** → rate limit im lặng không chạy ở production.
+     * `getServletPath()` đã trừ context-path nên khớp được cả khi có và không có context-path.
+     */
+    private static String requestPath(HttpServletRequest request) {
+        String servletPath = request.getServletPath();
+        if (servletPath != null && !servletPath.isEmpty()) {
+            return servletPath;
+        }
+        String uri = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (uri != null && contextPath != null && !contextPath.isEmpty() && uri.startsWith(contextPath)) {
+            return uri.substring(contextPath.length());
+        }
+        return uri == null ? "/" : uri;
     }
 }

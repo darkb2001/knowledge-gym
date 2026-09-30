@@ -39,6 +39,10 @@ public class QuestionJpaEntity {
     @Column(name = "hints", columnDefinition = "jsonb")
     private String hints;
 
+    /** Token cho full-text search — trigger V015 trộn cột này vào `search_vector`. */
+    @Column(name = "searchable_text", nullable = false, columnDefinition = "TEXT")
+    private String searchableText = "";
+
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
@@ -68,6 +72,8 @@ public class QuestionJpaEntity {
     public void setHints(String hints) { this.hints = hints; }
     public int getSortOrder() { return sortOrder; }
     public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
+    public String getSearchableText() { return searchableText; }
+    public void setSearchableText(String searchableText) { this.searchableText = searchableText; }
     public int getVersion() { return version; }
     public void setVersion(int version) { this.version = version; }
     public Instant getCreatedAt() { return createdAt; }

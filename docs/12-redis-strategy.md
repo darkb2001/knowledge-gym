@@ -86,16 +86,29 @@ POST /auth/refresh (cookie: refreshToken=xxx)
 
 **Purpose:** Distributed rate limit across instances. Bucket4j dùng Redis backend (Lua atomic script).
 
-### 4. Entity Cache — L2 (mini-phase 04)
+### 4. Entity Cache — Caffeine L1 (mini-phase 04, m4a)
 
-| Pattern | Value | TTL | Command |
+**m4a dùng Caffeine L1-only — KHÔNG có Redis L2 cho content cache.** Nội dung câu hỏi là tĩnh,
+đọc nhiều/ghi rất ít; mất cache khi restart là chấp nhận được, và L1 tránh round-trip mạng cho
+endpoint đọc nhiều nhất. (`kg-infrastructure` `CacheConfig` + `kg-presentation` `CachingConfig`.)
+
+| Spring cache name | Kiểu | Cấu hình | Endpoint dùng |
 |---|---|---|---|
-| `cache:question:{id}` | JSON | 30m | SET / GET |
-| `cache:module:{id}` | JSON | 30m | SET / GET |
-| `cache:topic:{id}` | JSON | 60m | SET / GET |
+| `questions` | Caffeine L1 | `maximumSize=1000`, `expireAfterWrite=30m` | `@Cacheable("questions", key="#id")` → `GET /questions/{id}` |
+| `topics` | Caffeine L1 | `maximumSize=1000`, `expireAfterWrite=30m` | `@Cacheable("topics", key="'all'")` → `GET /topics` |
+| `modules` | Caffeine L1 | `maximumSize=1000`, `expireAfterWrite=30m` | (dự phòng; `GET /modules` chưa cache) |
 
-**Purpose:** Caffeine là L1 (JVM heap, ~1s TTL cho hot keys), Redis là L2 (shared across instances).
-Spring Cache: `@Cacheable("questions")` → L1 miss → L2 (Redis) → miss → DB query.
+Config: `app.cache.questions.max-size` (default `1000`), `app.cache.questions.ttl` (default `30m`).
+
+**Eviction:** mọi mutation admin (`POST|PATCH|DELETE /admin/content/questions...`) evict **cả 3 cache**
+(`@CacheEvict(value={"questions","topics","modules"}, allEntries=true)`) — `topics`/`modules` chứa
+`moduleCount`/`questionCount` phái sinh nên thêm/xoá 1 câu hỏi làm số đếm trong 2 cache kia sai ngay.
+Import async (`POST /admin/content/parse`) clear cả 3 trong `finally` sau khi job xong, **kể cả khi lỗi
+giữa chừng** (import không transactional → rows đã commit vẫn nằm trong DB).
+
+> **Redis L2 = scale-out tương lai, chưa implement.** Nếu sau này chạy nhiều replica và cần cache chia sẻ,
+> thêm Redis L2 (vd `cache:q:{id}`, `cache:m:{id}`, `cache:t:{id}`, TTL 30–60m) và chuyển sang
+> `RedisCacheManager` composite L1+L2. Hiện tại đây **không phải** hành vi đang chạy.
 
 ### 5. Leaderboard — Sorted Set (mini-phase 07)
 
@@ -181,10 +194,10 @@ try {
 ┌─────────────────────────────────────────────────────────────────────┐
 │  Redis 7 — Knowledge Gym Key Space                                  │
 │                                                                      │
-│  AUTH (m03)          │  CACHE (m04)           │  RATE LIMIT (m03)    │
-│  rt:{hash}    → 7d   │  cache:q:{id}  → 30m   │  rl:login:{ip}      │
-│  rt:bl:{hash} → 7d   │  cache:m:{id}  → 30m   │  rl:register:{ip}  │
-│  rt:rev:{fid} → 7d   │  cache:t:{id}  → 60m   │  rl:forgot:{ip}    │
+│  AUTH (m03)          │  CACHE (future)        │  RATE LIMIT (m03)    │
+│  rt:{hash}    → 7d   │  (m4a dùng Caffeine L1 │  rl:login:{ip}      │
+│  rt:bl:{hash} → 7d   │   in-JVM, KHÔNG Redis) │  rl:register:{ip}  │
+│  rt:rev:{fid} → 7d   │  Redis L2 khi scale-out│  rl:forgot:{ip}    │
 │  pwd:{email}  → 10m  │                         │  rl:global:{ip}    │
 │──────────────────────┼─────────────────────────┼────────────────────│
 │  LEADERBOARD (m07)   │  STREAK (m07)           │  AI QUOTA (m10)    │
@@ -199,7 +212,6 @@ try {
 
 Estimated memory (1000 users):
   Auth tokens:     ~50 KB  (2000 keys × 100 bytes)
-  Cache:           ~5 MB   (500 keys × 10 KB avg)
   Rate limit:      ~20 KB  (100 keys × 200 bytes)
   Leaderboard:     ~100 KB (1 sorted set × 1000 members)
   Streak/stats:    ~200 KB (3000 keys × 60 bytes)
@@ -207,7 +219,7 @@ Estimated memory (1000 users):
   Blog counters:   ~10 KB  (50 keys × 200 bytes)
   Locks:           ~5 KB   (10 keys × 500 bytes)
   Online:          ~50 KB  (1000 keys × 50 bytes)
-  TOTAL:           ~6 MB   ← Redis 256 MB trên Docker là dư
+  TOTAL:           ~0.5 MB  ← chưa tính content cache (m4a dùng Caffeine in-JVM, không ở Redis)
 ```
 
 ## Docker Compose

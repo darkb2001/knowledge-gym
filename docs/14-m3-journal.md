@@ -116,9 +116,15 @@ From subagent deep re-review — remaining blockers fixed:
 6. **RateLimit config cache** — key theo path only (không per-IP unbounded map).
 7. **Register TOCTOU** — `DataIntegrityViolationException` → 409 generic.
 
+### m3.1 hygiene (2026-09-30 — commit `494b57e`)
+
+- `ClientIpResolver` (`kg-infrastructure/security`) — một chỗ resolve IP/UA, dùng chung cho `AuthController`, `RateLimitFilter`, `OAuth2SuccessHandler`. Trước đó `AuthController` tin `X-Forwarded-For` **không điều kiện**; giờ tuân `app.security.trust-forwarded-headers`.
+- `GlobalExceptionHandler` → `kg-presentation/.../advice/` (không còn nằm trong `rest/auth/`).
+- `docs/09-project-structure.md` — thêm bảng **current vs target** + ghi rõ ArchUnit đang enforce gì, tránh nhầm tree roadmap với code thật.
+
 ### Deferred to m4+
 - Email verification flow (need email verification token table + flow)
-- RBAC integration tests (need admin endpoint to test 403)
+- RBAC integration tests → ✅ **đóng ở m4a** (2026-09-30): `AdminContentController` `@PreAuthorize("hasRole('ADMIN')")` + `ContentApiIntegrationTest` assert USER → 403 Problem Details, xem `docs/15-m4-journal.md`.
 - Google OAuth2 integration test (needs real Google credentials in CI)
 - Per-email rate limit on login (currently IP-only due to filter not parsing body)
 - H1: JwtAuthenticationFilter doesn't check user exists / not deleted → 15m access TTL acceptable for now

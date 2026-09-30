@@ -1,10 +1,15 @@
 # REST API Design — Knowledge Gym
 
-> Base URL: `/api/v1`  
+> Base URL: `/api/v1` — đây là **servlet context-path** (`server.servlet.context-path`), áp dụng cho
+> **mọi** endpoint bên dưới (controller mapping không có prefix `api/v1`).
 > Auth: JWT Bearer (access) + refresh httpOnly cookie  
-> Total: ~75 endpoints  
+> Total: ~75 endpoints (một số là aspirational — xem ghi chú từng nhóm)  
 > **ADR-002:** single-tenant — **không** có field/param `tenant`. Enum strategy/status = **UPPERCASE**.  
 > Schema: `07-erd.md` + DDL `07-erd-ddl.sql`. Bookmark = `notes.note_type = BOOKMARK`.
+>
+> **Trạng thái:** m4 (m4a backend + m4b frontend) đã ship. m4a: content parser + REST + cache + Swagger + RBAC.
+> m4b: Next.js 14 frontend (auth + question browser). Các nhóm SRS / Quiz / Mock Interview / Code Challenge /
+> Notes / Blog / Agent / Dashboard / Notification / Export / WebSocket là **phase sau** — giữ ở đây làm thiết kế, **chưa** implement.
 
 ---
 
@@ -31,7 +36,7 @@ POST   /auth/logout             Logout (invalidate refresh token family)
        Headers: Authorization: Bearer {accessToken}
        Returns: 204
 
-GET    /auth/oauth2/authorization/google   OAuth2 Google login (redirect sang Google)
+GET    /oauth2/authorization/google       OAuth2 Google login (redirect sang Google)  [note: context-path `/api/v1` already applied]
        → redirect: /oauth2/callback/google (Spring Security handler)
        → chỉ nhận account có email_verified=true
        → same token pair as login (access JWT + refresh cookie)
@@ -71,57 +76,71 @@ DELETE /users/me                Delete account (soft delete)
 
 ## Topics & Modules Endpoints
 
+> **Shipped ở m4a** — `GET /topics`, `GET /topics/{slug}`, `GET /modules`, `GET /modules/{id}`.
+> `GET /modules` trả **List** (không phân trang); `GET /modules/{id}/mindmap` là phase sau.
+
 ```
-GET    /topics                  List all topics
-       Returns: List<TopicDTO>
+GET    /topics                  List all topics (m4a)
+       Returns: List<TopicDTO> { id, slug, name, description, displayOrder, moduleCount }
+       Cache:   @Cacheable("topics", key="'all'")
 
-GET    /topics/{slug}           Get topic detail with modules
-       Returns: { topic, modules[] }
+GET    /topics/{slug}           Get topic detail (m4a)
+       Returns: TopicDTO  — 404 (RFC 7807) nếu slug không tồn tại
+       (không trả kèm modules[] — dùng GET /modules?topicId=)
 
-GET    /modules                 List modules (filter by topicId)
-       Query:   ?topicId=&page=&size=
-       Returns: Page<ModuleDTO>
+GET    /modules                 List modules (m4a)
+       Query:   ?topicId=
+       Returns: List<ModuleDTO> { id, slug, name, description, displayOrder, topicId, topicSlug, questionCount }
 
-GET    /modules/{id}            Get module detail
-       Returns: { module, questions[], stats }
+GET    /modules/{id}            Get module detail (m4a)
+       Returns: ModuleDTO  — 404 nếu id không tồn tại
 
-GET    /modules/{id}/mindmap    Get mindmap structure
+GET    /modules/{id}/mindmap    Get mindmap structure                 [phase sau — chưa ship]
        Returns: { nodes[], edges[] }
 ```
 
 ## Questions Endpoints
 
+> **Shipped ở m4a:** `GET /questions` (list/filter/search) và `GET /questions/{id}` (detail).
+> Admin create/update/delete nằm ở nhóm **Admin Content** (`/admin/content/questions...`), không phải `/questions`.
+> Bookmark + random question là phase sau.
+
 ```
-GET    /questions               Search & filter questions
-       Query:   ?moduleId=&tag=&difficulty=&q=&page=&size=
-       Returns: Page<QuestionDTO>
+GET    /questions               Search & filter questions (m4a)
+       Query:   ?moduleId=          UUID, lọc theo module
+                &tag=               tag slug (khớp ANY(tags))
+                &difficulty=        JUNIOR|MID|SENIOR (không phân biệt hoa/thường; giá trị lạ → 400)
+                &q=                 full-text search (PostgreSQL tsvector, config 'simple')
+                &page=              1-based (mặc định 1)
+                &size=              mặc định 20, tối đa 100 (vượt → clamp về 100)
+       Returns: { items[], page, size, totalElements, totalPages }
+       items:   QuestionSummaryDTO { id, moduleId, moduleSlug, title, difficulty, tags, sortOrder }
+                — KHÔNG có answerHtml (payload nhẹ cho list)
+       Sort:    có `q` → ts_rank DESC; không `q` → module display_order, question sort_order
+       Note:    page là 1-based (khác Spring Data 0-based)
 
-GET    /questions/{id}          Get single question with full answer
-       Returns: { id, title, answerHtml, options[], tags }
+GET    /questions/{id}          Get single question with full answer (m4a)
+       Returns: QuestionDetailDTO { id, moduleId, moduleSlug, title, answerHtml, difficulty,
+                                    tags, sortOrder, options[] }
+                options: QuestionOptionDTO { id, content, displayOrder } — KHÔNG có isCorrect
+       Cache:   @Cacheable("questions", key="#id")  — 404 nếu id không tồn tại
+       Note:    options rỗng ở m4a (quiz sinh ở m6); để FE không phải đổi shape sau
 
-POST   /questions               Create question (ADMIN)
-       Body:    { moduleId, title, answerHtml, difficulty, tags, options }
+GET    /questions/random        Get random question                    [phase sau — chưa ship]
 
-PATCH  /questions/{id}          Update question (ADMIN)
-
-DELETE /questions/{id}          Delete question (ADMIN)
-
-POST   /questions/{id}/bookmark Toggle bookmark
-       Impl:    UPSERT/DELETE notes row note_type=BOOKMARK for (user, question)
-       Returns: 200 { bookmarked: boolean }
-
-GET    /questions/random        Get random question
-       Query:   ?moduleId=&difficulty=&excludeIds=
-       Returns: QuestionDTO
+POST   /questions/{id}/bookmark Toggle bookmark                        [phase sau — chưa ship]
 ```
 
 ## Global Search
 
 ```
-GET    /search                  Global search (questions + notes + blog)
+GET    /search                  Global search (questions + notes + blog)   [phase sau — chưa ship]
        Query:   ?q=&types=questions,notes,blog&page=&size=
        Impl:    Elasticsearch primary; fallback PG tsvector (de-scope ladder #7)
        Returns: { hits: [{ type, id, title, snippet, score }] }
+
+       Ghi chú: m4a mới chỉ có full-text search **trong** `GET /questions?q=` (PostgreSQL tsvector
+       trên bảng `questions`). Endpoint `/search` gộp nhiều nguồn chưa implement.
 ```
 
 ## SRS / Flashcard Endpoints
@@ -274,19 +293,56 @@ GET    /agent/runs               List all agent runs
 
 ## Admin Endpoints
 
+> **Shipped ở m4a:** nhóm **Admin Content** (dưới). Các endpoint admin khác (users, stats, audit-logs)
+> là phase sau.
+>
+> Toàn bộ `AdminContentController` có `@PreAuthorize("hasRole('ADMIN')")` → user thường nhận **403**
+> (Problem Details, không phải HTML). Mọi mutation đồng bộ **evict cả 3 cache** `questions`/`topics`/`modules`
+> (`topics`/`modules` chứa `moduleCount`/`questionCount` phái sinh nên 1 thay đổi câu hỏi làm số đếm sai ngay).
+
 ```
-GET    /admin/users             List users (paginated)
+POST   /admin/content/parse     Parse docs/ folder → import vào DB (m4a)
+       Returns: 202 { jobId, status }   status = "RUNNING"
+       Chạy BẮT BUỘC async (không giữ kết nối) — import 15 file HTML + upsert có thể vượt
+       timeout của reverse proxy. Job chạy nền trong **1 transaction** (rollback nếu fail),
+       evict 3 cache trong finally. Idempotent: natural key (topic/module = slug,
+       question = (module_id, sort_order)).
 
-PATCH  /admin/users/{id}/role   Change user role
+GET    /admin/content/jobs/{jobId}   Trạng thái job import (ADMIN) (m4a)
+       Returns: 200 { jobId, status, startedAt, finishedAt?, result?, errorMessage? }
+                status ∈ RUNNING | SUCCEEDED | FAILED
+                result: { topics, modules, questions, deleted, orphanModuleSlugs[] }
+       Errors:  404 nếu jobId không còn trong registry in-memory (max 20 job / mất khi restart)
 
-GET    /admin/stats             Platform-wide stats
+POST   /admin/content/questions    Create question (ADMIN) (m4a)
+       Body:    { moduleId, title, answerHtml, difficulty?, tags?, sortOrder? }
+       Returns: 201 AdminQuestionDTO { id, moduleId, title, answerHtml, difficulty, tags,
+                                       searchKeywords, sortOrder, createdAt, updatedAt, options[] }
+                options: AdminQuestionOptionDTO { id, content, isCorrect, displayOrder }
+       Errors:  409 nếu `sortOrder` gửi lên đã bị chiếm trong module (pre-check + unique index
+                `uk_questions_module_sort` là backstop dưới race); 404 nếu moduleId không tồn tại
+       Note:    sortOrder null → tự lấy nextSortOrder. difficulty null → mặc định MID.
+                answerHtml qua sanitizer (loại script/iframe/speak-notes; **giữ** flow-diagram).
 
-GET    /admin/audit-logs        View audit logs
+PATCH  /admin/content/questions/{id}   Update question (ADMIN) (m4a)
+       Body:    { title?, answerHtml?, difficulty?, tags? }  (field null = giữ nguyên)
+       Returns: 200 AdminQuestionDTO
+       Errors:  404 nếu id không tồn tại
+       Note:    KHÔNG đổi được `sortOrder` (không có field này trong update request).
+                Khi đổi title/answer/tags → tính lại `searchKeywords` (searchable_text)
 
-POST   /admin/content/import     Import from JSON/HTML
+DELETE /admin/content/questions/{id}   Delete question (ADMIN) (m4a)
+       Returns: 204  — 404 nếu id không tồn tại
 
-POST   /admin/content/parse     Parse docs/ folder
+GET    /admin/users             List users (paginated)                 [phase sau — chưa ship]
+PATCH  /admin/users/{id}/role   Change user role                       [phase sau — chưa ship]
+GET    /admin/stats             Platform-wide stats                    [phase sau — chưa ship]
+GET    /admin/audit-logs        View audit logs                        [phase sau — chưa ship]
+POST   /admin/content/import    Import from JSON/HTML                  [phase sau — chưa ship]
 ```
+
+> **Ghi chú (m4a):** các endpoint admin content trước đây ghi nhầm ở `/questions`. Thực tế mount tại
+> `/admin/content/...` (`@RequestMapping("/admin/content")`), không phải `/questions`.
 
 ## Dashboard / Analytics Endpoints
 

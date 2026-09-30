@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"><title>03. Spring Boot — Mini Fixture</title></head>
+<body>
+<div class="main">
+  <div class="module-header">
+    <h1>Spring Boot Framework</h1>
+    <p class="module-subtitle">DI/IoC, AOP, Cache</p>
+  </div>
+
+  <section class="section" id="dependency-injection">
+    <h2 class="section-title">Dependency Injection</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">Q1</span> Constructor injection hay field injection?</h3>
+      <div class="qa-answer">
+        <p>Constructor injection: bất biến, dễ test, fail-fast khi thiếu bean.</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="caching">
+    <h2 class="section-title">Caching</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">Q2</span> <code>@Cacheable</code> hoạt động thế nào?</h3>
+      <div class="qa-answer">
+        <p>Spring tạo proxy quanh bean; lần 2 không gọi method nữa. <code>@CacheEvict</code> để xoá khi dữ liệu đổi.</p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">Q3</span> Vì sao <code>@Async</code> không chạy khi gọi method trong cùng class?</h3>
+      <div class="qa-answer">
+        <p>Vì self-invocation không đi qua proxy — đây là lỗi im lặng.</p>
+      </div>
+    </article>
+  </section>
+</div>
+</body>
+</html>

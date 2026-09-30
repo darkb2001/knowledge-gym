@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"><title>02. Multithreading — Mini Fixture</title></head>
+<body>
+<div class="main">
+  <div class="module-header">
+    <h1>Multithreading &amp; Concurrency</h1>
+    <p class="module-subtitle">Thread, synchronized, CompletableFuture</p>
+  </div>
+
+  <section class="section" id="thread-basics">
+    <h2 class="section-title">Thread Basics</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">Q1</span> Sự khác biệt giữa <code>Runnable</code> và <code>Callable</code>?</h3>
+      <div class="qa-answer">
+        <p><code>Callable</code> trả về giá trị và ném checked exception; <code>Runnable</code> thì không.</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="concurrency-utils">
+    <h2 class="section-title">Concurrency Utilities</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">Q2</span> Đồng bộ bất đồng bộ (bất đồng bộ hoá) luồng với <code>CompletableFuture</code>?</h3>
+      <div class="qa-answer">
+        <p>Dùng <code>thenCompose</code> để tránh lồng <code>CompletableFuture</code>.</p>
+        <div class="code-block" data-lang="java"><pre><code>CompletableFuture.supplyAsync(() -> fetch())
+    .thenApply(String::toUpperCase)
+    .exceptionally(ex -> "fallback");</code></pre></div>
+      </div>
+    </article>
+  </section>
+</div>
+</body>
+</html>

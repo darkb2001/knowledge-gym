@@ -5,7 +5,9 @@ global:
 
 scrape_configs:
   - job_name: "knowledge-gym"
-    metrics_path: "/actuator/prometheus"
+    # context-path /api/v1 áp dụng cho management endpoints → phải có prefix,
+    # nếu không scrape sẽ 404 và dashboard im lặng trống.
+    metrics_path: "/api/v1/actuator/prometheus"
     static_configs:
       - targets: ["app:8080"]
         labels:

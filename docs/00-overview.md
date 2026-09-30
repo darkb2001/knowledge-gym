@@ -34,7 +34,7 @@ Nền tảng ôn tập kiến thức IT cá nhân hóa. Content từ kho notes h
 | Search | **Elasticsearch 8** (global search: questions + notes + blog, hybrid với embedding) | 05, 06 |
 | Messaging | **Apache Kafka** (event backbone: blog pipeline publish–subscribe, DLQ) | 07, 14 |
 | Agent | @Scheduled + CompletableFuture | 02, 03 |
-| Frontend | Next.js 14 + Tailwind + shadcn/ui | - |
+| Frontend | **Next.js 14** + Tailwind + shadcn/ui (m4b: auth + question browser shipped) | - |
 | Diagrams | Cytoscape.js + Mermaid.js | 11 |
 | CI/CD | GitHub Actions + Docker + Compose | 09 |
 | Monitoring | Prometheus + Grafana (metrics: CPU, RAM, latency, request) | 09 |
@@ -118,7 +118,7 @@ Nền tảng ôn tập kiến thức IT cá nhân hóa. Content từ kho notes h
 | Gradle modules | 4 (kg-core, kg-infrastructure, kg-presentation, kg-agent) — Clean Architecture layers |
 | Build script | Kotlin DSL (`build.gradle.kts`) |
 | UX modes | 10 (6 MVP + 4 optional) |
-| Flyway migrations | V001–V013 (32 tables + indexes + materialized view) |
+| Flyway migrations | V001–**V015** (32 tables + indexes + materialized view; m4a content parser support) |
 | Docs modules covered | 15/15 (100%) |
 | Infra services (docker-compose, server local) | 9: nginx, app, postgres, redis, kafka, elasticsearch, garage, prometheus, grafana |
 | Cloud serverless (free vĩnh viễn, Terraform) | 1: AWS Lambda + EventBridge (+ Firebase Hosting cho FE) — SES đã bỏ (12-tháng free hết) |

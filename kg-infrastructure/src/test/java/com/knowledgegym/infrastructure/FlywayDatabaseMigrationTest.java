@@ -18,10 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Flyway migration integration test — Testcontainers PostgreSQL.
  * Runs on CI (ubuntu-latest has Docker) and locally when Docker daemon is up.
  *
- * Success criteria (mini-phase 2):
- * - Flyway migrate sạch 13 migration (V001–V013)
+ * Success criteria:
+ * - Flyway migrate sạch 15 migration (V001–V013 ở m2, V014–V015 ở m4a)
  * - Đúng 32 bảng trong schema public (loại flyway_schema_history)
  * - 1 materialized view: user_topic_mastery
+ * - m4a: unique index `uk_questions_module_sort` + cột `questions.searchable_text` + trigger tsvector
  */
 @Testcontainers
 class FlywayDatabaseMigrationTest {
@@ -44,10 +45,35 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldMigrateAllThirteenMigrations() throws Exception {
+    void shouldMigrateAllFifteenMigrations() throws Exception {
         query("SELECT count(*) FROM flyway_schema_history WHERE success = true", rs -> {
-            assertEquals(13, rs.getInt(1),
-                    "Expected 13 successful Flyway migrations (V001–V013)");
+            assertEquals(15, rs.getInt(1),
+                    "Expected 15 successful Flyway migrations (V001–V015)");
+        });
+    }
+
+    @Test
+    void shouldCreateUniqueIndexOnModuleSortOrder() throws Exception {
+        query("SELECT count(*) FROM pg_indexes " +
+                "WHERE schemaname = 'public' AND indexname = 'uk_questions_module_sort'", rs -> {
+            assertEquals(1, rs.getInt(1), "uk_questions_module_sort must exist (V014)");
+        });
+    }
+
+    @Test
+    void shouldCreateSearchVectorTriggerAndColumn() throws Exception {
+        query("SELECT count(*) FROM information_schema.columns " +
+                "WHERE table_schema = 'public' AND table_name = 'questions' " +
+                "AND column_name = 'searchable_text'", rs -> {
+            assertEquals(1, rs.getInt(1), "questions.searchable_text must exist (V015)");
+        });
+        query("SELECT count(*) FROM pg_trigger " +
+                "WHERE tgname = 'trg_questions_search' AND NOT tgisinternal", rs -> {
+            assertEquals(1, rs.getInt(1), "trg_questions_search must exist (V015)");
+        });
+        query("SELECT count(*) FROM pg_indexes " +
+                "WHERE schemaname = 'public' AND indexname = 'idx_questions_search'", rs -> {
+            assertEquals(1, rs.getInt(1), "GIN index on search_vector must exist (V003)");
         });
     }
 

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"><title>01. Java Core — Mini Fixture</title></head>
+<body>
+<div class="main">
+  <div class="module-header">
+    <h1>Java Core &amp; Memory Internals</h1>
+    <p class="module-subtitle">JVM, Garbage Collection, String Pool</p>
+  </div>
+
+  <section class="section" id="jvm">
+    <h2 class="section-title">Nền tảng JVM &amp; Bộ nhớ</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">Q1</span> Phân biệt JDK, JRE và JVM?</h3>
+      <div class="qa-answer">
+        <p>JDK ⊃ JRE ⊃ JVM. JVM chạy bytecode; JRE = JVM + libs; JDK = JRE + dev tools.</p>
+        <div class="code-block" data-lang="bash"><pre><code>java -version
+javac -version</code></pre></div>
+        <div class="speak-notes">
+          <div class="ans-label">Nói trong 60 giây</div>
+          <ul><li>Đây là ghi chú nói miệng, KHÔNG phải đáp án.</li></ul>
+        </div>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">Q2</span> Bộ nhớ Heap chia thành các vùng nào?</h3>
+      <div class="qa-answer">
+        <p>Young (Eden + Survivor) và Old generation; GC dọn rác (garbage) theo từng vùng.</p>
+        <div class="flow-diagram">
+          <div class="flow-row">
+            <div class="flow-node primary">Eden</div>
+            <div class="flow-node secondary">Survivor</div>
+            <div class="flow-node success">Old</div>
+          </div>
+        </div>
+        <div class="callout callout-warn">
+          <div class="callout-title">Lưu ý</div>
+          <p>Full GC là stop-the-world.</p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="collections">
+    <h2 class="section-title">Collections Framework</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">Q3</span> Vì sao cần <code>record</code>?</h3>
+      <div class="qa-answer">
+        <p>Record tự sinh constructor, accessor, equals/hashCode/toString.</p>
+        <table class="feature-table">
+          <thead><tr><th>Trước</th><th>Sau</th></tr></thead>
+          <tbody><tr><td>50 dòng boilerplate</td><td>1 dòng</td></tr></tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <div class="qa-answer">
+        <p>Card không có <code>h3.qa-question</code> — title fallback về section title.</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="language">
+    <h2 class="section-title">Keyword, Generics, Modern Java</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">Q5</span> So sánh String bằng <code>==</code> hay <code>equals</code>?</h3>
+      <div class="qa-answer">
+        <p>Luôn dùng <code>equals</code> cho giá trị; <code>==</code> chỉ so reference.</p>
+        <script>alert('stored-xss-should-be-removed')</script>
+        <p>Đoạn này phải sống sót qua sanitize.</p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">Q6</span> Liên kết ngoài có giữ được không?</h3>
+      <div class="qa-answer">
+        <p>Xem <a href="15-auth-rbac-oauth.html">module Auth/RBAC</a>.</p>
+        <p>Trang chủ <a href="https://docs.oracle.com/javase/specs/">JLS</a>.</p>
+        <p onclick="alert(1)">Thuộc tính on* phải bị strip.</p>
+        <iframe src="https://evil.example"></iframe>
+        <p>Link <a href="javascript:alert(1)">nguy hiểm</a> phải bị strip.</p>
+      </div>
+    </article>
+  </section>
+</div>
+</body>
+</html>

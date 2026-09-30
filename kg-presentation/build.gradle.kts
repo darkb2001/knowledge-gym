@@ -13,6 +13,10 @@ dependencies {
     implementation(libs.springdoc.openapi)
     // DataIntegrityViolationException (register TOCTOU → 409)
     implementation("org.springframework:spring-tx")
+    // AccessDeniedException + @PreAuthorize — kg-presentation dùng trực tiếp nên cần trên
+    // compile classpath (runtime đã có sẵn qua kg-infrastructure, nhưng transitive deps
+    // không expose ra compile classpath của module khác).
+    implementation("org.springframework.security:spring-security-core")
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)

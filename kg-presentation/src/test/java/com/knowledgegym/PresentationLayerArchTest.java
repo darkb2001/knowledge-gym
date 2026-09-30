@@ -10,8 +10,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
  * Clean Architecture dependency rule (kg-presentation):
- * Presentation layer KHÔNG trực tiếp truy cập infrastructure.persistence
- * (chỉ gọi application use case).
+ * Presentation không đụng persistence / content adapters — chỉ gọi use case + port.
+ * (infrastructure.security cookie/IP vẫn được phép: đó là adapter HTTP session.)
  */
 class PresentationLayerArchTest {
 
@@ -31,6 +31,16 @@ class PresentationLayerArchTest {
                 .should().dependOnClassesThat().resideInAnyPackage(
                         "..infrastructure.persistence..")
                 .because("presentation calls use cases, not persistence adapters directly")
+                .check(classes);
+    }
+
+    @Test
+    void presentation_khong_import_infrastructure_content() {
+        noClasses()
+                .that().resideInAPackage("..presentation..")
+                .should().dependOnClassesThat().resideInAnyPackage(
+                        "..infrastructure.content..")
+                .because("content import đi qua ContentImportJob port, không inject adapter")
                 .check(classes);
     }
 

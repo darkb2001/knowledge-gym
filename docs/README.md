@@ -26,6 +26,8 @@
 | 11b | [cloud-free-tier.md](./11-cloud-free-tier.md) | PVE + Mailu + Garage + Lambda + PBS + B2 |
 | 12 | [redis-strategy.md](./12-redis-strategy.md) | Redis auth/cache/locks/leaderboard/quota |
 | 13 | [m2-handoff-m3.md](./13-m2-handoff-m3.md) | **Handoff m2→m3** — schema/ports sẵn, việc Auth phải làm |
+| 14 | [m3-journal.md](./14-m3-journal.md) | **Journal m3** — Auth (JWT/OAuth2/refresh/forgot-password) |
+| 15 | [m4-journal.md](./15-m4-journal.md) | **Journal m4a** — Content Parser + REST API + V014/V015 + cache + Swagger + RBAC |
 
 ## Quick start
 
@@ -43,6 +45,7 @@ cat 08-rest-api.md
 
 ## Status
 
-- Schema: **32 bảng + 1 MVIEW**, Flyway V001–V013, tiers **MVP Must 16 / Optional 3 / Full 13**
+- Schema: **32 bảng + 1 MVIEW**, Flyway V001–**V015** (V014–V015 = m4a import support + full-text search), tiers **MVP Must 16 / Optional 3 / Full 13**
+- Backend m4a: **Content Parser + REST API (`/questions`, `/topics`, `/modules`, `/admin/content/*`) + Caffeine cache + Swagger + RBAC** đã ship
 - Infra: Garage (not MinIO), Mailu (not SES), no Keycloak, no tenants
-- Ready to cook: m1 → m2 after DDL review
+- Journal: `14-m3-journal.md` (Auth), `15-m4-journal.md` (m4a)

@@ -1,21 +1,45 @@
 # Project Structure — Knowledge Gym
 
-## Current vs target (sau m3 Auth)
+## Current vs target (sau m4 Content Parser + REST + Frontend)
 
-Tree dài bên dưới = **roadmap target** (đủ context content/learning/…). Phần này ghi **đã có thật trong repo** sau m3 — tránh nhầm scaffold tương lai với code đang chạy.
+Tree dài bên dưới = **roadmap target** (đủ context content/learning/…). Phần này ghi **đã có thật trong repo** sau m4 — tránh nhầm scaffold tương lai với code đang chạy.
 
-| Module | Đã có (m3) | Chưa (m4+) |
+| Module | Đã có (m4a) | Chưa (m5+) |
 |--------|------------|------------|
-| `kg-core` | `identity/` (User, RefreshToken, ports, Register/Login/Refresh/Logout/Forgot/Reset) + `shared/` stub | content, learning, progress, notes, blog use cases |
-| `kg-infrastructure` | Flyway V001 users/refresh/password_reset; JPA adapters; JWT + Cookie + OAuth2SuccessHandler; Redis refresh cache; Bucket4j `RateLimitFilter`; `ClientIpResolver`; Gmail SMTP | content parsers, SRS, AI writer, collectors |
-| `kg-presentation` | `rest/auth/*`, `advice/GlobalExceptionHandler` (RFC 7807), boot app | controllers khác, websocket |
+| `kg-core` | `identity/` (User, RefreshToken, ports, Register/Login/Refresh/Logout/Forgot/Reset); **`content/`** (domain model/port + 5 use case + `SearchText`); `shared/` (`NotFoundException`, `ConflictException`, `PageResult`, enums) | learning, progress, notes, blog use cases |
+| `kg-infrastructure` | Flyway V001–**V015**; JPA adapters (**content**: Question/Topic/Module + native upsert & `QuestionSearchDao`); Jsoup `ContentSource` + `AnswerHtmlSanitizer`; `ContentImportJobService` (async, in-memory registry); Caffeine `CacheConfig`; `AppContentProperties`; JWT + Cookie + OAuth2SuccessHandler; Redis refresh cache; Bucket4j `RateLimitFilter`; `ClientIpResolver`; Gmail SMTP | SRS, AI writer, collectors |
+| `kg-presentation` | `rest/auth/*`; **`rest/content/*`** (+ `rest/content/dto/*`); `advice/GlobalExceptionHandler` (RFC 7807); **`config/`** (`CachingConfig`, `OpenApiConfig`); boot app | controllers khác, websocket |
+|| **`kg-frontend`** | **Next.js 14** App Router + TS + Tailwind; `/login`, `/register`, `/forgot-password` (3-step); Google OAuth2 → `${API_BASE}/oauth2/authorization/google`; `/questions` (filter+search+pagination); `/questions/[id]` (detail); in-memory JWT + `ensureAccessToken` | — |
 | `kg-agent` | module skeleton | schedulers |
 
 **ArchUnit (đang enforce):**
-- `PresentationLayerArchTest` — `..presentation..` ✗ `..infrastructure.persistence..` và ✗ JPA repos (cho phép `infrastructure.security` helpers như cookie/IP ở composition root)
+- `PresentationLayerArchTest` — `..presentation..` ✗ `..infrastructure.persistence..` và ✗ JPA repos; ✗ `..infrastructure.content` (để tránh presentation phụ thuộc adapter content); cho phép `infrastructure.security` helpers như cookie/IP ở composition root
 - `DomainLayerArchTest` — domain package ✗ Spring / JPA
 
 **IP audit helper:** `ClientIpResolver` (`trust-forwarded-headers`) dùng chung AuthController, RateLimitFilter, OAuth2SuccessHandler.
+
+### Package mới ở m4a
+
+**`kg-core` — `com.knowledgegym.content`** (thuần Java, zero Spring/JPA):
+- `domain/model/` — `Question`, `QuestionOption`, `Topic`, `ModuleRef`, `TopicWithStats`, `ModuleWithStats`, `ContentCatalog`, `ParsedQuestion`, `QuestionQuery`
+- `domain/port/` — `QuestionRepository`, `TopicRepository`, `ModuleRepository`, `ContentSource`, `AnswerHtmlSanitizer`
+- `application/` — `ImportContentUseCase`, `QueryQuestionsUseCase`, `GetQuestionDetailUseCase`, `ManageQuestionsUseCase`, `CatalogQueryUseCase`, `ModuleDifficultyDefaults`, `SearchText`, `ContentImportException`
+
+**`kg-core` — `com.knowledgegym.shared`** (dùng chung giữa các context):
+- `application/` — `NotFoundException` (→404), `ConflictException` (→409)
+- `domain/model/` — `PageResult` (pagination trung lập), `Difficulty`, `UserRole`, `NoteType`, `BlogStatus`, `AgentType`, `BaseEntity`
+
+**`kg-infrastructure`**:
+- `content/` — `JsoupContentSource` (implements `ContentSource`, parse `.qa-card`, `CompletableFuture` song song), `JsoupAnswerHtmlSanitizer` (Jsoup `Safelist`, loại script/iframe/`speak-notes`/`flow-diagram`), `ContentImportJobService` (import async → HTTP 202 + in-memory job registry, max 20 job)
+- `persistence/adapter/` — `QuestionRepositoryAdapter` (native `ON CONFLICT (module_id, sort_order) DO UPDATE`), `TopicRepositoryAdapter`, `ModuleRepositoryAdapter`
+- `persistence/dao/` — `QuestionSearchDao` (native tsquery + `ts_rank`)
+- `config/` — `CacheConfig` (Caffeine), `AppContentProperties` (`app.content.*`), `UseCaseConfig` (bean cho content use case + `contentImportExecutor`)
+
+**`kg-presentation`**:
+- `rest/content/` — `QuestionController`, `QuestionDetailController`, `TopicController`, `ModuleController`, `AdminContentController`
+- `rest/content/dto/` — `QuestionSummaryDTO`, `QuestionDetailDTO`, `QuestionOptionDTO`, `AdminQuestionDTO`, `TopicDTO`, `ModuleDTO`, `PageResponse`
+- `config/` — `CachingConfig` (`@EnableCaching`), `OpenApiConfig` (Swagger/springdoc, title "Knowledge Gym API")
+- `advice/` — `GlobalExceptionHandler` (thêm `ConflictException`→409, `ContentImportException`→500)
 
 ---
 
@@ -88,9 +112,10 @@ knowledge-gym/
 │   └── src/main/java/com/knowledgegym/
 │       ├── shared/
 │       │   ├── domain/                     # thuần Java — KHÔNG spring/jpa annotation
-│       │   │   ├── model/                  # Value Objects, enums, base entity ids
+│       │   │   ├── model/                  # (m4a) PageResult, Difficulty, enums, BaseEntity
 │       │   │   └── port/                   # Repository interface, EventBus port, Clock port
 │       │   └── application/
+│       │       ├── NotFoundException.java, ConflictException.java   # (m4a) → 404 / 409
 │       │       ├── event/                  # DomainEvent, ProgressUpdatedEvent
 │       │       └── common/                 # UseCase marker, BusinessException
 │       │
@@ -104,12 +129,21 @@ knowledge-gym/
 │       │       ├── LoginUseCase.java
 │       │       └── RefreshTokenUseCase.java
 │       │
-│       ├── content/
-│       │   ├── domain/model/Question.java, QuestionOption.java, Topic.java, ModuleRef.java
-│       │   ├── domain/port/QuestionRepository.java, ContentSource.java
+│       ├── content/                        # (m4a) Context: Question, Topic, Parser
+│       │   ├── domain/model/Question.java, QuestionOption.java, Topic.java, ModuleRef.java,
+│       │   │                TopicWithStats.java, ModuleWithStats.java, ContentCatalog.java,
+│       │   │                ParsedQuestion.java, QuestionQuery.java
+│       │   ├── domain/port/QuestionRepository.java, TopicRepository.java,
+│       │   │               ModuleRepository.java, ContentSource.java, AnswerHtmlSanitizer.java
 │       │   └── application/
 │       │       ├── ImportContentUseCase.java
-│       │       └── QueryQuestionsUseCase.java   # pagination, filter
+│       │       ├── QueryQuestionsUseCase.java     # pagination, filter, full-text
+│       │       ├── GetQuestionDetailUseCase.java
+│       │       ├── ManageQuestionsUseCase.java    # admin CRUD, sanitize + searchKeywords
+│       │       ├── CatalogQueryUseCase.java       # topics/modules + stats
+│       │       ├── SearchText.java                # tokenizer (bỏ dấu, n-gram, synonym Việt–Anh)
+│       │       ├── ModuleDifficultyDefaults.java
+│       │       └── ContentImportException.java
 │       │
 │       ├── learning/
 │       │   ├── domain/
@@ -176,14 +210,15 @@ knowledge-gym/
 │   │   │   ├── RefreshTokenCookie.java
 │   │   │   └── RedisRefreshTokenCacheAdapter.java
 │   │   ├── email/GmailEmailService.java    # (m3) implements EmailPort
-│   │   ├── cache/CaffeineQuestionCache.java, RedisLeaderboardAdapter.java   # m4+
-│   │   ├── html/JsoupContentSource.java     # implements ContentSource port (Module 01)
+│   │   ├── content/                        # (m4a) JsoupContentSource, JsoupAnswerHtmlSanitizer,
+│   │   │                                   #       ContentImportJobService (async import + job registry)
+│   │   ├── cache/CaffeineQuestionCache.java, RedisLeaderboardAdapter.java   # m5+ (m4a dùng config/CacheConfig)
 │   │   ├── ai/OpenAiWriterAdapter.java      # implements AiWriterPort (GPT-4o-mini, @CircuitBreaker)
 │   │   ├── collector/RssCollectorAdapter.java, GitHubTrendingAdapter.java   # implements CollectorPort
 │   │   ├── export/PdfExporter.java, MarkdownExporter.java
 │   │   └── config/SecurityConfig.java, CacheConfig.java, AsyncConfig.java,
-│   │               SchedulingConfig.java, OpenApiConfig.java, ArchTestConfig.java
-│   └── src/main/resources/db/migration/     # Flyway (m3: users/refresh/password_reset; target V001–V013)
+│   │               SchedulingConfig.java, AppContentProperties.java, UseCaseConfig.java, ArchTestConfig.java
+│   └── src/main/resources/db/migration/     # Flyway V001–V015 (m4a: V014 import support, V015 FTS)
 │
 ├── kg-presentation/                         # ADAPTERS IN (driving adapters)
 │   ├── build.gradle.kts                    # spring-boot-starter-web
@@ -191,10 +226,14 @@ knowledge-gym/
 │   │   ├── KnowledgeGymApplication.java    # @SpringBootApplication + @EnableAsync/@EnableScheduling
 │   │   ├── rest/
 │   │   │   ├── auth/                       # (m3) AuthController + request/response records
-│   │   │   ├── QuestionController.java, QuizController.java, …   # m4+
-│   │   │   ├── dto/                        # request/response records (Module 01 Records)
+│   │   │   ├── content/                    # (m4a) QuestionController, QuestionDetailController,
+│   │   │   │                               #       TopicController, ModuleController, AdminContentController
+│   │   │   │   └── dto/                    # (m4a) QuestionSummaryDTO, QuestionDetailDTO, QuestionOptionDTO,
+│   │   │   │                               #       AdminQuestionDTO, TopicDTO, ModuleDTO, PageResponse
+│   │   │   ├── QuizController.java, …      # m6+
 │   │   │   └── mapper/UseCaseMapper.java   # DTO ↔ UseCase Command/Query
-│   │   ├── advice/GlobalExceptionHandler.java   # @RestControllerAdvice + RFC 7807 (m3)
+│   │   ├── config/                         # (m4a) CachingConfig (@EnableCaching), OpenApiConfig (springdoc)
+│   │   ├── advice/GlobalExceptionHandler.java   # @RestControllerAdvice + RFC 7807 (m3, mở rộng m4a)
 │   │   └── websocket/ProgressWebSocketHandler.java   # nếu build, không thì REST polling
 │   └── src/test/java/                      # ArchUnit + AuthIntegrationTest (Testcontainers)
 │       ├── PresentationLayerArchTest.java

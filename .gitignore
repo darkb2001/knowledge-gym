@@ -19,6 +19,11 @@ build/
 .env.*
 !.env.example
 
+# Node
+node_modules/
+kg-frontend/.next/
+kg-frontend/out/
+
 # OS
 .DS_Store
 Thumbs.db

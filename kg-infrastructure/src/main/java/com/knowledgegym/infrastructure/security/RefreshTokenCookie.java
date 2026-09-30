@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * HttpOnly refresh-token cookie — dùng chung AuthController + OAuth2SuccessHandler.
- * Policy: httpOnly + Secure(prod) + Path=/ + SameSite=Strict + TTL 7d.
+ * Policy: httpOnly + Secure(prod) + Path=/ + SameSite + TTL 7d.
  * (ArchUnit chỉ cấm presentation → infrastructure.persistence; security helper OK.)
  */
 @Component
@@ -18,9 +18,18 @@ public class RefreshTokenCookie {
     public static final int MAX_AGE_SECONDS = 7 * 24 * 3600;
 
     private final boolean secure;
+    private final String sameSite;
 
-    public RefreshTokenCookie(@Value("${app.security.cookie.secure:false}") boolean secure) {
+    public RefreshTokenCookie(@Value("${app.security.cookie.secure:false}") boolean secure,
+                              @Value("${app.security.cookie.same-site:Strict}") String sameSite) {
+        // SameSite=None mà không Secure thì browser drop cookie im lặng (không có log phía server)
+        // — fail fast lúc startup thay vì để auth hỏng trên prod.
+        if ("None".equalsIgnoreCase(sameSite) && !secure) {
+            throw new IllegalStateException(
+                    "app.security.cookie.same-site=None yêu cầu secure=true (browser drop cookie cross-site không Secure)");
+        }
         this.secure = secure;
+        this.sameSite = sameSite;
     }
 
     public void write(HttpServletResponse response, String rawToken) {
@@ -29,7 +38,7 @@ public class RefreshTokenCookie {
         cookie.setSecure(secure);
         cookie.setPath("/");
         cookie.setMaxAge(MAX_AGE_SECONDS);
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", sameSite);
         response.addCookie(cookie);
     }
 
@@ -39,7 +48,7 @@ public class RefreshTokenCookie {
         cookie.setSecure(secure);
         cookie.setPath("/");
         cookie.setMaxAge(0);
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", sameSite);
         response.addCookie(cookie);
     }
 

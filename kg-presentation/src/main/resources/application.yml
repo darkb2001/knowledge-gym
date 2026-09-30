@@ -53,22 +53,47 @@ spring:
             redirect-uri: "{baseUrl}/login/oauth2/code/google"
 
 app:
+  version: ${APP_VERSION:0.4.0}
   email:
     smtp-enabled: false
     from: no-reply@knowledgegym.dev
+  content:
+    # `docs/` nằm ngoài git root của repo (knowledge-gym/) — CI không có.
+    # Local dev: ../docs. Container: mount volume + CONTENT_DOCS_PATH=/content/docs.
+    docs-path: ${CONTENT_DOCS_PATH:../docs}
+    parse-parallelism: ${CONTENT_PARSE_PARALLELISM:4}
+  cache:
+    questions:
+      # L1 Caffeine — nội dung tĩnh, đọc nhiều. Mutation của admin evict toàn bộ.
+      max-size: 1000
+      ttl: 30m
   security:
+    # Swagger UI bật ở dev; prod tắt (xem block prod bên dưới).
+    swagger-enabled: true
     jwt:
       access-secret: ${JWT_ACCESS_SECRET:dev-access-secret-minimum-32-characters-long-for-jwt-signing}
       refresh-secret: ${JWT_REFRESH_SECRET:dev-refresh-secret-minimum-32-characters-long-for-jwt-sign}
     cookie:
       # Secure=false ở dev (http://localhost) — prod set true (https)
       secure: ${REFRESH_COOKIE_SECURE:false}
+      # SameSite: Strict khi FE cùng site (dev), None khi cross-site (prod).
+      # SameSite=None BẮT BUỘC đi kèm Secure=true — đặt cookie.same-site=None mà secure=false
+      # sẽ bị browser drop cookie.
+      same-site: ${REFRESH_COOKIE_SAME_SITE:Strict}
     trust-forwarded-headers: ${TRUST_FORWARDED_HEADERS:false}
     cors:
       allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
     oauth2:
       # FE callback — fragment #accessToken=... (must be absolute http(s))
       success-redirect-uri: ${OAUTH2_SUCCESS_REDIRECT:http://localhost:3000/auth/oauth2/success}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
 
 management:
   endpoints:
@@ -89,6 +114,10 @@ logging:
 
 server:
   port: 8080
+  servlet:
+    # Khớp docs/08-rest-api.md + infra/nginx.conf (`location /api/v1/auth/`).
+    # AuthController mapping vẫn là `/auth/*`; context-path được thêm ở tầng servlet.
+    context-path: /api/v1
 
 ---
 spring:
@@ -104,9 +133,19 @@ app:
   email:
     smtp-enabled: true
   security:
+    # Không lộ API docs ở prod.
+    swagger-enabled: false
     cookie:
       secure: true
+      # FE ở domain khác → cross-site cookie. Bắt buộc đi kèm secure=true.
+      same-site: None
     trust-forwarded-headers: true  # nginx → app
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 management:
   endpoint:

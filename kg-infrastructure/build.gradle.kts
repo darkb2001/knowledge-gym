@@ -32,6 +32,7 @@ dependencies {
     implementation(libs.rome)
     implementation(libs.resilience4j.spring.boot3)
     implementation(libs.bucket4j.core)
+    implementation(libs.caffeine)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
