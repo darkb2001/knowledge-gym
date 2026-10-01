@@ -7,10 +7,9 @@
 > **ADR-002:** single-tenant — **không** có field/param `tenant`. Enum strategy/status = **UPPERCASE**.  
 > Schema: `07-erd.md` + DDL `07-erd-ddl.sql`. Bookmark = `notes.note_type = BOOKMARK`.
 >
-> **Trạng thái:** m4 (m4a backend + m4b frontend) đã ship. m4a: content parser + REST + cache + Swagger + RBAC.
-> m4b: Next.js 14 frontend (auth + question browser). **m5 đã ship:** SRS + SM-2 + FlashcardDeck
-> (`/srs/enroll` dual-mode, `/srs/due`, `/srs/review/{cardId}` + FE flip card). **m6 đã triển khai:** Quiz + Mock Interview TEXT (backend + frontend).
-> Code Challenge / Notes / Blog / Agent / Dashboard / Notification / Export / WebSocket là **phase sau** — giữ ở đây làm thiết kế, **chưa** implement.
+> **Trạng thái:** m4 (m4a backend + m4b frontend), m5 (SRS + SM-2 + FlashcardDeck), m6 (Quiz + Mock Interview TEXT),
+> và m7 (progress + radar/heatmap/streak/XP/leaderboard) đã triển khai. Code Challenge / Notes / Blog / Agent /
+> Notification / Export / WebSocket là **phase sau** — giữ ở đây làm thiết kế, **chưa** implement.
 
 ---
 
@@ -62,13 +61,14 @@ GET    /users/me                Get current user profile
 PATCH  /users/me                Update profile
        Body:    { displayName?, avatarUrl? }
 
-GET    /users/me/progress       Get user progress across all modules
+GET    /users/me/progress       Get user progress across all modules       [m7]
        Returns: List<{ moduleId, masteryPct, totalAttempts, streak }>
 
-GET    /users/me/stats          Get user stats (XP, badges, streak)
-       Returns: { xp, level, badges[], currentStreak, longestStreak }
+GET    /users/me/stats          Get user stats                              [m7]
+       Returns: { xp, currentStreak, longestStreak: null, level: null, badges: [] }
+       level / badges / longestStreak = [m12] — trả null/[] thay vì giá trị bịa
 
-GET    /users/me/bookmarks      Get bookmarked questions
+GET    /users/me/bookmarks      Get bookmarked questions                    [m8]
        Impl:    notes WHERE user_id=me AND note_type='BOOKMARK'
        Returns: List<QuestionDTO>
 
@@ -413,19 +413,47 @@ POST   /admin/content/import    Import from JSON/HTML                  [phase sa
 
 ## Dashboard / Analytics Endpoints
 
-```
-GET    /dashboard/overview       Dashboard data
-       Returns: { todayProgress, streakCount, weekHeatmap[],
-                   recentActivity[], weaknessAreas[], nextReviewCount }
+> **m7 ship đúng 5 endpoint dưới đây.** `/dashboard/overview` (bản cũ trong doc này) **không** ship ở
+> m7: `weaknessAreas` thuộc m12 (m12 plan đã nhận "weakness radar"), `nextReviewCount` đã có sẵn ở
+> `QueryDueUseCase` (m5) nên không cần gộp lại. `level`/`badges`/`longestStreak` chưa có cột ở DB ⇒
+> trả `null`/`[]`, **không** bịa giá trị — hiện thực thật ở m12 (`user_stats` + `user_badges`).
 
-GET    /dashboard/radar          Knowledge radar
-       Returns: { modules: [{ name, masteryPct, weaknessRank }] }
+```
+GET    /dashboard/radar          Knowledge radar (mastery per module)
+       Source: user_progress (GROUP BY module_id) — KHÔNG đọc MVIEW user_topic_mastery (chưa refresh)
+       Returns: { modules: [{ moduleId, name, masteryPct }] }
+                weaknessRank chưa ship ở m7 — tên field cũ để lại đây gây hiểu sai, đã bỏ khỏi response
+                (weakness per-topic = m12). Đừng trả một số không có định nghĩa nào trong docs.
 
 GET    /dashboard/heatmap        Activity heatmap
-       Query:   ?days=90
-       Returns: List<{ date, count }>
+       Query:   ?days=90 (default 90, cap 365)
+       Returns: [ { date, count } ] — đủ `days` phần tử, gồm ngày count = 0
+       Bucket:  (attempted_at AT TIME ZONE :zone)::date, zone = app.progress.timezone
 
-GET    /dashboard/leaderboard    Top users
+GET    /dashboard/leaderboard    Top 100 theo XP
+       Source: Redis sorted set lb:global (cache-aside, TTL 1h) → miss ⇒ rebuild từ PG
+       Rebuild: ZADD vào lb:global:tmp:{uuid} (unique mỗi lần) → EXPIRE 60 → RENAME (atomic)
+       Filter: chỉ user có xp > 0; member = "%010d:%s" (xp, userId) để tie-break tất định
+       Returns: [ { rank, userId, displayName, xp } ] — tie-break tất định khi XP bằng nhau
+
+GET    /users/me/progress       Get user progress across all modules
+       Returns: List<{ moduleId, masteryPct, totalAttempts, streak }>
+       streak tính on-read từ study_attempts (user_progress.streak_days KHÔNG dùng ở m7)
+
+GET    /users/me/stats          Get user stats
+       Returns: { xp, currentStreak, longestStreak: null, level: null, badges: [] }
+       xp = users.xp (ghi cùng tx với attempt); recompute từ study_attempts
+            (DISTINCT ON question_id, chỉ tính lần trả lời ĐẦU TIÊN của mỗi câu) khi cần đối chiếu
+       currentStreak tính on-read từ study_attempts (bucket theo app.progress.timezone)
+       longestStreak / level / badges = [m12]
+```
+
+### Dashboard endpoints chưa ship (ghi rõ phase)
+
+```
+GET    /dashboard/overview       [m12] todayProgress + recentActivity + weaknessAreas
+GET    /users/me/bookmarks       [m8] notes WHERE note_type='BOOKMARK'
+WS     /ws/progress              [de-scope → REST polling]
 ```
 
 ## Notification Endpoints

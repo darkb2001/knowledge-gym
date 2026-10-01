@@ -7,7 +7,7 @@ import com.knowledgegym.learning.domain.model.AttemptSource;
 import com.knowledgegym.learning.domain.model.QuizAnswer;
 import com.knowledgegym.learning.domain.model.QuizSession;
 import com.knowledgegym.learning.domain.port.QuizSessionRepository;
-import com.knowledgegym.learning.domain.port.StudyAttemptRepository;
+import com.knowledgegym.progress.application.RecordAttemptUseCase;
 import com.knowledgegym.shared.application.ConflictException;
 import com.knowledgegym.shared.application.NotFoundException;
 import com.knowledgegym.shared.domain.port.DistributedLockPort;
@@ -59,20 +59,20 @@ public class SubmitQuizUseCase {
     private final QuizSessionRepository sessionRepository;
     private final QuestionRepository questionRepository;
     private final QuestionOptionRepository optionRepository;
-    private final StudyAttemptRepository attemptRepository;
+    private final RecordAttemptUseCase recordAttemptUseCase;
     private final DistributedLockPort lock;
     private final Clock clock;
 
     public SubmitQuizUseCase(QuizSessionRepository sessionRepository,
                              QuestionRepository questionRepository,
                              QuestionOptionRepository optionRepository,
-                             StudyAttemptRepository attemptRepository,
+                             RecordAttemptUseCase recordAttemptUseCase,
                              DistributedLockPort lock,
                              Clock clock) {
         this.sessionRepository = sessionRepository;
         this.questionRepository = questionRepository;
         this.optionRepository = optionRepository;
-        this.attemptRepository = attemptRepository;
+        this.recordAttemptUseCase = recordAttemptUseCase;
         this.lock = lock;
         this.clock = clock;
     }
@@ -173,13 +173,12 @@ public class SubmitQuizUseCase {
         int score = session.finish(correctCount, now);
         sessionRepository.save(session);
 
-        for (QuizAnswer answer : toInsert) {
-            var attempt = com.knowledgegym.learning.domain.model.StudyAttempt.record(
-                    userId, answer.questionId(), AttemptSource.PRACTICE, answer.correct(), answer.timeMs(), now);
-            attempt.setScore(BigDecimal.valueOf(answer.correct() ? 100 : 0));
-            attempt.setAnswer(answer.selectedOptionId() == null ? null : answer.selectedOptionId().toString());
-            attemptRepository.save(attempt);
-        }
+        List<RecordAttemptUseCase.AttemptFact> facts = toInsert.stream().map(answer ->
+                new RecordAttemptUseCase.AttemptFact(answer.questionId(), AttemptSource.PRACTICE,
+                        answer.correct(), answer.timeMs(),
+                        answer.selectedOptionId() == null ? null : answer.selectedOptionId().toString(),
+                        BigDecimal.valueOf(answer.correct() ? 100 : 0))).toList();
+        recordAttemptUseCase.execute(userId, facts, now);
 
         // Breakdown luôn theo thứ tự câu của session, gồm cả câu bỏ trống.
         return new QuizResult(sessionId, score, correctCount, session.getTotal(),

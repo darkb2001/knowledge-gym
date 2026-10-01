@@ -15,7 +15,7 @@
 | **Naming FK** | Luôn có hậu tố `_id`: `used_in_post_id`, `source_module_id`, `deck_id`. |
 | **Soft ref** | FK nullable + `ON DELETE SET NULL` cho tham chiếu không bắt buộc (`source_note_id`, `deck_id`). |
 | **Counter cache** | `blog_posts.view_count` / `like_count` là **cache** — nguồn thật là `blog_views` / `blog_post_likes` (+ Redis buffer 5m). |
-| **XP / streak** | **PostgreSQL là source of truth** (`users.xp`, `user_progress.streak_days`). Redis (`lb:global`, `streak:*`) chỉ là cache TTL 1h. |
+| **XP / streak** | **`study_attempts` là nguồn gốc** (append-only, ghi trong cùng tx nghiệp vụ từ m5/m6). `users.xp` + `user_progress` (mastery/total/correct) là **read model ghi cùng tx với attempt** và **recompute được** từ `study_attempts`; tính đúng-một-lần đến từ **luật "lần đầu của câu" + advisory lock** (m7 P5), **không** từ tx boundary. `user_progress.streak_days` **m7 không ghi** (streak tính on-read). Redis (`lb:global`) chỉ là cache TTL 1h — flush xong rebuild phải ra cùng kết quả. |
 | **Attempt tables** | 3 bảng riêng có mục đích khác nhau — **không gộp**: `study_attempts` (flashcard/daily/practice), `quiz_answers` (trong quiz session), `interview_answers` (trong interview session). |
 | **Search** | Elasticsearch là chính. `search_vector tsvector + GIN` trên `questions`/`notes` là **fallback** khi de-scope ES (xem de-scope ladder). |
 | **Tags** | `TEXT[] + GIN index`. **Không** dùng junction table `question_tags`. |
@@ -28,7 +28,7 @@
 
 | Bảng | Migration | PK / UK | Ghi chú |
 |---|---|---|---|
-| `users` | **V001** | `id PK`, `email UK`, `UK (auth_provider, oauth_id)` partial | `password_hash` NULL khi OAuth-only. `auth_provider` + `oauth_id` (không có `oauth_provider`). `xp INT DEFAULT 0` = source of truth |
+| `users` | **V001** | `id PK`, `email UK`, `UK (auth_provider, oauth_id)` partial | `password_hash` NULL khi OAuth-only. `auth_provider` + `oauth_id` (không có `oauth_provider`). `xp INT` = read model ghi **cùng tx** với attempt (m7) + recompute được từ `study_attempts` (`idx_users_xp` cho leaderboard). **Không có** cột `level`; `longest_streak` cũng không có — cả hai hoãn m12. |
 | `refresh_tokens` | **V001** | `id PK`, `token_hash UK` | Audit log 2 lớp (Redis lookup + PG audit). `expires_at` TTL 7d |
 | `notification_preferences` | **V001** | `id PK`, `UK (user_id, channel)` | 1 user nhiều channel (EMAIL + PUSH) |
 | `audit_logs` | **V008** | `id PK` | `details JSONB` |
@@ -50,8 +50,9 @@
 |---|---|---|---|
 | `srs_decks` | **V004** | `id PK` | `module_id` NULL = custom deck do user tạo (`01-ux-modes.md` L42–43) |
 | `srs_cards` | **V004** | `id PK`, `UK (user_id, question_id)` | `deck_id` NULL, `source_note_id` NULL (note→card), SM-2 fields |
-| `study_attempts` | **V004** | `id PK` | `source (FLASHCARD/DAILY/PRACTICE)` — phân biệt nguồn attempt |
-| `user_progress` | **V004** | `id PK`, `UK (user_id, module_id)` | UPSERT conflict target. `streak_days` per-module |
+| `study_attempts` | **V004** | `id PK` | `source (FLASHCARD/DAILY/PRACTICE)` — phân biệt nguồn attempt. **Nguồn gốc của mọi số liệu dashboard**: m7 ghi `users.xp`/`user_progress` cùng tx và có công thức để recompute từ đây. Index `idx_attempts_user_date (user_id, attempted_at DESC)` + `idx_attempts_wrong` ngay trong V004 — **V009 không tạo index nào** (placeholder). Attempt ghi bởi `ReviewCardUseCase` (FLASHCARD) và `SubmitQuizUseCase` (PRACTICE); **mock interview không ghi attempt** (CHECK không có giá trị `INTERVIEW`) |
+| `user_progress` | **V004** | `id PK`, `UK (user_id, module_id)` | UPSERT conflict target. `streak_days` per-module; `mastery_pct` = `correct_count / total_attempts`, `total_attempts = 0` ⇒ `0`. Là **read model** của `study_attempts` — ghi cùng tx với attempt (m7), gộp theo module (1 quiz = 1 upsert), **không** dùng `save()` (UK `23505` khi 2 module concurrency) |
+
 | `challenges` | **V012** | `id PK`, `slug UK` | Code sandbox — **khác** `questions`. `hints JSONB`, `solution_code` |
 | `challenge_test_cases` | **V012** | `id PK` | FK → `challenges`, `is_hidden` cho hidden test |
 | `code_submissions` | **V012** | `id PK` | FK → **`challenges`** (không phải `questions`), `viewed_solution_at` |
@@ -106,13 +107,17 @@ V014__content_import_support.sql     topics.display_order + UK questions(module_
 V015__questions_fulltext_search.sql  questions.searchable_text + tsvector trigger + GIN     (0)
 V016__quiz_interview_integrity.sql   quiz_session_questions + UK/index quiz/interview       (1)
 V017__interview_answer_order.sql     interview_answers.display_order                        (0)
+V018__backfill_progress_read_models.sql  backfill users.xp + user_progress from study_attempts (0)
                                                                             ────────────────────
                                                                             TOTAL:        33 bảng
 ```
 
 **Kiểm tra:** 3+2+2+4+1+4+4+2+0+0+1+3+6+0+0+1 = **33** ✓ — không bảng nào thiếu migration, không migration nào trùng số.
 
-> **V014–V015 (m4) và V017 (m6c)** chỉ `ALTER TABLE` / tạo index / trigger, **không** tạo bảng mới — chỉ V016 thêm bảng thứ 33.
+> **V014–V015 (m4), V017 (m6c) và V018 (m7)** không tạo bảng mới — chỉ V016 thêm bảng thứ 33.
+>
+> Các mục dưới đây nhóm theo phase ghi chú, không theo số version: V016/V017 (m6) trước, rồi V010
+> (rà soát lại ở m7 — xem "V010 chưa được dùng"), rồi V014/V015 (m4).
 
 ### V016 — Quiz/interview integrity (m6)
 
@@ -128,7 +133,7 @@ UK `(session_id, question_id)` cho `quiz_answers` và `interview_answers`; index
 `interview_answers.display_order INT NOT NULL` + index `(session_id)`: placeholder giao câu được
 insert trong cùng transaction nên `attempted_at` bằng nhau — không có cột này thì `ORDER BY
 attempted_at, id` trả về thứ tự UUID ngẫu nhiên thay vì thứ tự đã giao.
-Flyway hiện có 17 migration / 33 bảng. DDL chuẩn là V016 + V017 trong kg-infrastructure.
+Flyway hiện có 18 migration / 33 bảng. V018 là data backfill, không đổi schema.
 
 `interview_answers` mang vai trò kép: placeholder membership (`keyword_score` NULL, `display_order`
 theo thứ tự giao) và row kết quả sau khi chấm. `answer()` upsert nội dung chấm, **không** đụng
@@ -148,6 +153,16 @@ Quiz membership tách riêng khỏi answers. Interview membership tái dùng ans
 (`keyword_score=NULL`), grading upsert row đó; finish bỏ qua placeholder chưa nộp.
 Xoá câu qua QuestionDependentsDao xoá quiz session liên quan và interview answer, giữ interview session.
 
+### V010 — `user_topic_mastery` MVIEW **chưa được dùng** (m7 KHÔNG đọc)
+
+`V010__create_mviews.sql` tạo MVIEW aggregate `user_progress` theo topic, nhưng **không có chỗ nào
+trong repo gọi `REFRESH MATERIALIZED VIEW`** (chỉ `FlywayDatabaseMigrationTest` assert nó tồn tại).
+Postgres không tự refresh ⇒ MVIEW trả snapshot tại thời điểm migrate, tức gần như luôn rỗng/sai.
+
+**Quyết định m7:** radar/mastery tính trực tiếp từ `user_progress` (`GROUP BY module_id`, chỉ vài
+chục row/user) — **không** đọc MVIEW. MVIEW để nguyên (không drop: migration đã ship, drop = thêm
+nhiễu Flyway) và chỉ hồi sinh nếu m12 cần, lúc đó phải kèm `REFRESH ... CONCURRENTLY` định kỳ
+(`idx_utm_user_topic` là unique index nên `CONCURRENTLY` dùng được).
 ### V014 — Content import support (m4)
 
 ```sql
@@ -236,10 +251,12 @@ CREATE INDEX idx_blog_published          ON blog_posts(published_at DESC)
 │  pwd_reset:{email}→10m│                        │                      │
 │───────────────────────┼────────────────────────┼───────────────────────│
 │  LEADERBOARD (m07)    │  STREAK (m07)          │  AI QUOTA (m10)      │
-│  lb:global     → 1h   │  streak:{uid}:cur      │  ai:{uid}:{date}    │
-│  lb:topic:{id} → 1h   │  streak:{uid}:last     │    → 48h            │
-│  ↑ cache của users.xp │  ↑ cache của           │                      │
-│                        │   user_progress        │                      │
+│  lb:global        1h  │  (KHÔNG cache ở m7:    │  ai:{uid}:{date}    │
+│  lb:global:tmp:   60s │   streak tính on-read  │    → 48h            │
+│    {uuid} mỗi lần     │   từ study_attempts)   │                      │
+│  ↑ cache của users.xp │  key streak:{uid}:*    │                      │
+│    (read model, ghi   │  chỉ là phương án nếu  │                      │
+│     cùng tx + recompute│  sau này đo thấy chậm │                      │
 │───────────────────────┼────────────────────────┼───────────────────────│
 │  BLOG (m09)           │  LOCKS (m06,m10)       │  ONLINE (m12)        │
 │  views:{pid}   → 5m   │  lock:quiz:{sid}:{uid} │  online:{uid} → 5m  │
@@ -299,7 +316,12 @@ Estimated memory (1000 users): ~0.5 MB  ← content cache ở m4a là Caffeine i
 
 1. **m7 xong = MVP ship được** dù Full tables trống (0 rows), không wire API.
 2. De-scope ladder cắt **feature/code**, không drop bảng đã migrate (tránh Flyway chaos).
-3. JPA entity Full có thể tạo ở m2 (skeleton) hoặc đúng phase — miễn `ddl-auto=validate` khớp schema.
+3. **m7 không thêm bảng và không thêm cột.** `users.xp` + `user_progress.*` đã có từ V001/V004 ở dạng
+   skeleton — m7 chỉ wire ghi/đọc (`users.xp`, `user_progress`) + công thức recompute. Nếu implement
+   thực sự cần index mới (đo thấy chậm), đó là
+   V018 và phải ghi lại trong journal: "chỉ thêm khi có số đo, không thêm phòng trước".
+4. MVIEW `user_topic_mastery` (V010) **không** là datasource của m7 (chưa bao giờ refresh — xem
+   mục V010 ở trên).
 
 ## Deferred Phase 5+ — KHÔNG có trong 32 bảng
 
@@ -334,7 +356,7 @@ Các feature trong `02-monetization.md` **cố tình không** đưa vào ERD (AD
 | 10 | `user_progress` thiếu UK → UPSERT không có conflict target | Thêm `UK (user_id, module_id)` |
 | 11 | `srs_cards` thiếu UK → user có thể có 2 card cùng question | Thêm `UK (user_id, question_id)` |
 | 12 | `user_badges` không có PK | Thêm `PK (user_id, badge_code)` |
-| 13 | XP chỉ ở Redis (m07) → mất khi restart | `users.xp` = source of truth, Redis là cache |
+| 13 | XP chỉ ở Redis (m07) → mất khi restart | XP có **cột `users.xp` ghi cùng tx** với attempt + công thức tường minh (`UserXpPolicy`) để recompute từ `study_attempts`. Tính đúng-một-lần đến từ **luật "lần đầu của câu" + advisory lock** (m7 P5), **không** từ tx boundary; Redis chỉ là cache TTL 1h |
 | 14 | `blog_generation_queue.strategy` mang 2 nghĩa (chọn topic vs cách viết) | Tách `selection_strategy` + `writer_strategy` |
 | 15 | `tokens_used`/`cost_usd` duplicate ở queue và `agent_runs` | Chỉ giữ ở `agent_runs` + thêm `queue_id` FK |
 | 16 | Note → flashcard / note → blog không truy vết được | Thêm `srs_cards.source_note_id`, `blog_posts.source_note_id` |

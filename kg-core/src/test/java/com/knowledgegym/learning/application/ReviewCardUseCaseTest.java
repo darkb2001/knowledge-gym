@@ -1,11 +1,13 @@
 package com.knowledgegym.learning.application;
 
 import com.knowledgegym.learning.application.LearningTestSupport.InMemorySRSCardRepository;
-import com.knowledgegym.learning.application.LearningTestSupport.InMemoryStudyAttemptRepository;
+import com.knowledgegym.progress.application.ProgressTestSupport;
+import com.knowledgegym.progress.application.RecordAttemptUseCase;
 import com.knowledgegym.learning.domain.model.AttemptSource;
 import com.knowledgegym.learning.domain.model.SRSCard;
 import com.knowledgegym.learning.domain.model.StudyAttempt;
 import com.knowledgegym.learning.domain.service.Sm2Scheduler;
+import com.knowledgegym.progress.domain.service.UserXpPolicy;
 import com.knowledgegym.shared.application.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,15 +37,22 @@ class ReviewCardUseCaseTest {
     private static final Clock CLOCK = Clock.fixed(NOW, ZoneOffset.UTC);
 
     private InMemorySRSCardRepository cards;
-    private InMemoryStudyAttemptRepository attempts;
+    private ProgressTestSupport.InMemoryStudyAttemptRepository attempts;
+    private ProgressTestSupport.XpAndLockRecorder xp;
+    private ProgressTestSupport.InMemoryProgressRepository progress;
     private ReviewCardUseCase useCase;
     private SRSCard card;
 
     @BeforeEach
     void setUp() {
         cards = new InMemorySRSCardRepository();
-        attempts = new InMemoryStudyAttemptRepository();
-        useCase = new ReviewCardUseCase(cards, attempts, CLOCK);
+        attempts = new ProgressTestSupport.InMemoryStudyAttemptRepository();
+        xp = new ProgressTestSupport.XpAndLockRecorder(attempts.store);
+        progress = new ProgressTestSupport.InMemoryProgressRepository();
+        var questionModules = new ProgressTestSupport.InMemoryQuestionModulePort();
+        questionModules.seed(QUESTION_ID, UUID.randomUUID());
+        useCase = new ReviewCardUseCase(cards,
+                new RecordAttemptUseCase(attempts, questionModules, xp, progress), CLOCK);
 
         card = SRSCard.newCard(USER_ID, QUESTION_ID, null, null, TODAY);
         cards.store.put(card.getId(), card);
@@ -116,6 +125,37 @@ class ReviewCardUseCaseTest {
         assertThat(attempts.store).extracting(StudyAttempt::isCorrect)
                 .as("Good=true, Hard=false, Again=false").containsExactly(true, false, false);
         assertThat(attempts.store).extracting(StudyAttempt::getTimeMs).containsExactly(1000, 2000, 3000);
+    }
+
+    /**
+     * Flashcard đi qua `RecordAttemptUseCase` (đường production), nên một lần review phải materialize
+     * cả `user_progress` lẫn XP — không chỉ ghi `study_attempts`.
+     */
+    @Test
+    void reviewMaterializesProgressAndXpAlongsideTheAttempt() {
+        useCase.execute(USER_ID, card.getId(), Sm2Scheduler.QUALITY_GOOD, 4200);
+
+        assertThat(progress.findAllByUser(USER_ID)).hasSize(1);
+        assertThat(progress.findAllByUser(USER_ID).get(0).totalAttempts()).isEqualTo(1);
+        assertThat(progress.findAllByUser(USER_ID).get(0).correctCount()).isEqualTo(1);
+        assertThat(xp.currentXp(USER_ID))
+                .as("lần đầu của câu → xpFor(FLASHCARD, correct)")
+                .isEqualTo(UserXpPolicy.xpFor(AttemptSource.FLASHCARD, true));
+    }
+
+    /** On lại cùng thẻ: lần thứ hai không cộng thêm XP (cùng câu) nhưng vẫn ghi attempt. */
+    @Test
+    void secondReviewOfTheSameCardDoesNotAwardXpAgain() {
+        useCase.execute(USER_ID, card.getId(), Sm2Scheduler.QUALITY_GOOD, null);
+        int xpAfterFirst = xp.currentXp(USER_ID);
+        card.setNextReview(TODAY);
+
+        useCase.execute(USER_ID, card.getId(), Sm2Scheduler.QUALITY_GOOD, null);
+
+        assertThat(attempts.store).hasSize(2);
+        assertThat(xp.currentXp(USER_ID)).isEqualTo(xpAfterFirst);
+        assertThat(progress.findAllByUser(USER_ID).get(0).totalAttempts()).isEqualTo(2);
+        assertThat(progress.findAllByUser(USER_ID).get(0).masteryPct()).isEqualByComparingTo("100.00");
     }
 
     @Test

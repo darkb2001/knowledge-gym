@@ -35,6 +35,7 @@ export function AppHeader({ user }: { user: User | null }) {
         <div className="flex items-center gap-3 text-sm">
           {user ? (
             <>
+              <Link href="/dashboard" className="text-ink-200 transition hover:text-ember-300">Dashboard</Link>
               <span className="hidden text-ink-200 sm:inline">{user.displayName}</span>
               <button
                 type="button"

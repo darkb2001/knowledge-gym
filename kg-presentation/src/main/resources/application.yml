@@ -54,6 +54,8 @@ spring:
 
 app:
   version: ${APP_VERSION:0.4.0}
+  progress:
+    timezone: ${APP_PROGRESS_TIMEZONE:Asia/Ho_Chi_Minh}
   email:
     smtp-enabled: false
     from: no-reply@knowledgegym.dev

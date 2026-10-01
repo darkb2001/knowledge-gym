@@ -31,7 +31,10 @@ import com.knowledgegym.learning.application.strategy.*;
 import com.knowledgegym.learning.domain.model.QuizStrategy;
 import com.knowledgegym.learning.domain.port.*;
 import com.knowledgegym.shared.domain.port.DistributedLockPort;
+import com.knowledgegym.progress.application.*;
+import com.knowledgegym.progress.domain.port.*;
 import java.util.Map;
+import java.time.ZoneId;
 
 
 /**
@@ -133,9 +136,36 @@ public class UseCaseConfig {
      * trị). Với quiz thì "random" sẽ trùng lặp giữa các user.
      */
     @Bean GenerateQuizUseCase generateQuizUseCase(QuestionRepository q, QuestionOptionRepository o, QuizSessionRepository s, Map<QuizStrategy, QuizGenerationStrategy> strategies, Clock c){return new GenerateQuizUseCase(q,o,s,strategies,java.util.concurrent.ThreadLocalRandom.current(),c);}
-    @Bean SubmitQuizUseCase submitQuizUseCase(QuizSessionRepository s, QuestionRepository q, QuestionOptionRepository o, StudyAttemptRepository a, DistributedLockPort l, Clock c){return new SubmitQuizUseCase(s,q,o,a,l,c);}
+    @Bean SubmitQuizUseCase submitQuizUseCase(QuizSessionRepository s, QuestionRepository q, QuestionOptionRepository o, RecordAttemptUseCase recordAttempts, DistributedLockPort l, Clock c){return new SubmitQuizUseCase(s,q,o,recordAttempts,l,c);}
     @Bean QueryQuizUseCase queryQuizUseCase(QuizSessionRepository s, QuestionRepository q, QuestionOptionRepository o){return new QueryQuizUseCase(s,q,o);}
     @Bean MockInterviewUseCase mockInterviewUseCase(InterviewSessionRepository s, QuestionRepository q, ModuleRepository m, TopicRepository t, Clock c){return new MockInterviewUseCase(s,q,m,t,c);}
+
+    @Bean
+    ZoneId progressTimezone(AppProgressProperties properties) {
+        return properties.getTimezone();
+    }
+
+    @Bean
+    RecordAttemptUseCase recordAttemptUseCase(StudyAttemptRepository attempts,
+            QuestionModulePort questionModules, UserXpRepository xp, UserProgressRepository progress) {
+        return new RecordAttemptUseCase(attempts, questionModules, xp, progress);
+    }
+
+    @Bean
+    QueryProgressUseCase queryProgressUseCase(UserProgressRepository progress, UserXpRepository xp,
+            StudyAttemptAnalytics analytics, ModuleRepository modules, ZoneId progressTimezone, Clock clock) {
+        return new QueryProgressUseCase(progress, xp, analytics, modules, progressTimezone, clock);
+    }
+
+    @Bean
+    QueryHeatmapUseCase queryHeatmapUseCase(StudyAttemptAnalytics analytics, ZoneId progressTimezone, Clock clock) {
+        return new QueryHeatmapUseCase(analytics, progressTimezone, clock);
+    }
+
+    @Bean
+    QueryLeaderboardUseCase queryLeaderboardUseCase(LeaderboardPort leaderboard) {
+        return new QueryLeaderboardUseCase(leaderboard);
+    }
 
     // ------------------------------------------------------------------ learning / SRS (m5)
 
@@ -168,9 +198,9 @@ public class UseCaseConfig {
 
     @Bean
     ReviewCardUseCase reviewCardUseCase(SRSCardRepository srsCardRepository,
-                                        StudyAttemptRepository studyAttemptRepository,
+                                        RecordAttemptUseCase recordAttemptUseCase,
                                         Clock clock) {
-        return new ReviewCardUseCase(srsCardRepository, studyAttemptRepository, clock);
+        return new ReviewCardUseCase(srsCardRepository, recordAttemptUseCase, clock);
     }
 
     /**

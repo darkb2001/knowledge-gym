@@ -2,9 +2,8 @@ package com.knowledgegym.learning.application;
 
 import com.knowledgegym.learning.domain.model.AttemptSource;
 import com.knowledgegym.learning.domain.model.SRSCard;
-import com.knowledgegym.learning.domain.model.StudyAttempt;
 import com.knowledgegym.learning.domain.port.SRSCardRepository;
-import com.knowledgegym.learning.domain.port.StudyAttemptRepository;
+import com.knowledgegym.progress.application.RecordAttemptUseCase;
 import com.knowledgegym.learning.domain.service.Sm2Scheduler;
 import com.knowledgegym.shared.application.NotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -35,14 +35,13 @@ import java.util.UUID;
 public class ReviewCardUseCase {
 
     private final SRSCardRepository cardRepository;
-    private final StudyAttemptRepository attemptRepository;
+    private final RecordAttemptUseCase recordAttemptUseCase;
     private final Clock clock;
 
-    public ReviewCardUseCase(SRSCardRepository cardRepository,
-                             StudyAttemptRepository attemptRepository,
+    public ReviewCardUseCase(SRSCardRepository cardRepository, RecordAttemptUseCase recordAttemptUseCase,
                              Clock clock) {
         this.cardRepository = cardRepository;
-        this.attemptRepository = attemptRepository;
+        this.recordAttemptUseCase = recordAttemptUseCase;
         this.clock = clock;
     }
 
@@ -68,8 +67,8 @@ public class ReviewCardUseCase {
         cardRepository.save(card);
 
         boolean correct = Sm2Scheduler.isCorrect(quality);
-        attemptRepository.save(StudyAttempt.record(
-                userId, card.getQuestionId(), AttemptSource.FLASHCARD, correct, timeMs, now));
+        recordAttemptUseCase.execute(userId, List.of(new RecordAttemptUseCase.AttemptFact(
+                card.getQuestionId(), AttemptSource.FLASHCARD, correct, timeMs, null, null)), now);
 
         return new ReviewResult(quality, schedule.intervalDays(), schedule.easeFactor(),
                 schedule.repetitions(), schedule.nextReview(), correct);

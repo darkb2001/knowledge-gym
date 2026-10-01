@@ -1,15 +1,15 @@
 # Project Structure — Knowledge Gym
 
-## Current vs target (sau m5 SRS + SM-2 + FlashcardDeck)
+## Current vs target (sau m7 Progress + Dashboard)
 
-Tree dài bên dưới = **roadmap target** (đủ context content/learning/…). Phần này ghi **đã có thật trong repo** sau m5 — tránh nhầm scaffold tương lai với code đang chạy.
+Tree dài bên dưới = **roadmap target** (đủ context content/learning/…). Phần này ghi **đã có thật trong repo** sau m7 — tránh nhầm scaffold tương lai với code đang chạy.
 
 | Module | Đã có (m5) | Chưa (m6+) |
 |--------|------------|------------|
-| `kg-core` | `identity/` (User, RefreshToken, ports, Register/Login/Refresh/Logout/Forgot/Reset); **`content/`** (domain model/port + 5 use case + `SearchText`); **`learning/`** (SRS: `SRSCard`/`SrsDeck`/`StudyAttempt` + `Sm2Scheduler` + 3 use case); `shared/` (`NotFoundException`, `ConflictException`, `PageResult`, enums) | quiz/interview use cases, progress, notes, blog use cases |
-| `kg-infrastructure` | Flyway V001–**V015**; JPA adapters (**content**: Question/Topic/Module + native upsert & `QuestionSearchDao`; **learning**: SRS card/deck/attempt); Jsoup `ContentSource` + `AnswerHtmlSanitizer`; `ContentImportJobService` (async, in-memory registry); Caffeine `CacheConfig`; `AppContentProperties`; JWT + Cookie + OAuth2SuccessHandler; Redis refresh cache; Bucket4j `RateLimitFilter`; `ClientIpResolver`; Gmail SMTP | AI writer, collectors |
-| `kg-presentation` | `rest/auth/*`; **`rest/content/*`** (+ `rest/content/dto/*`); **`rest/srs/*`** (m5); `advice/GlobalExceptionHandler` (RFC 7807); **`config/`** (`CachingConfig`, `OpenApiConfig`); boot app | controllers khác, websocket |
-|| **`kg-frontend`** | **Next.js 14** App Router + TS + Tailwind; `/login`, `/register`, `/forgot-password` (3-step); Google OAuth2 → `${API_BASE}/oauth2/authorization/google`; `/questions` (filter+search+pagination); `/questions/[id]` (detail); `/flashcard/[moduleId]` + `FlashcardDeck` (m5); in-memory JWT + `ensureAccessToken` | — |
+| `kg-core` | `identity/` (auth use cases); `content/` (models/ports + catalog/import/query); `learning/` (SRS, Quiz, Mock Interview TEXT); `progress/` (attempt recording, XP/mastery policy, dashboard queries); `shared/` | notes, blog use cases |
+| `kg-infrastructure` | Flyway V001–**V018** (V018 backfills XP/mastery from historical attempts); JPA adapters for content/learning/progress; atomic progress upsert + XP/advisory-lock adapter; Redis `lb:global` cache-aside; Jsoup content import; Caffeine; JWT/OAuth2/cookie; refresh cache; Bucket4j rate limit; SMTP | AI writer, collectors |
+| `kg-presentation` | REST auth/content/SRS/quiz/interview + **dashboard** (radar, heatmap, leaderboard, user progress/stats); RFC 7807 advice; caching/OpenAPI config; boot app | notes/blog controllers, websocket |
+| **`kg-frontend`** | Next.js 14 App Router + TS + Tailwind; auth, question browser/detail, flashcards, quiz, interview, **`/dashboard`** (radar + heatmap + leaderboard); in-memory JWT + `ensureAccessToken` | — |
 | `kg-agent` | module skeleton | schedulers |
 
 **ArchUnit (đang enforce):**
@@ -164,11 +164,17 @@ knowledge-gym/
 │       │       └── SubmitMockAnswerUseCase.java           # keyword grading
 │       │
 │       ├── progress/
+│       │   ├── domain/model/UserProgress.java
 │       │   ├── domain/service/MasteryCalculator.java, StreakCalculator.java
-│       │   ├── domain/port/UserProgressRepository.java, StudyAttemptRepository.java
+│       │   ├── domain/port/UserProgressRepository.java, LeaderboardPort.java
 │       │   └── application/
-│       │       ├── RecordAttemptUseCase.java              # @TransactionalEventListener AFTER_COMMIT
-│       │       └── QueryDashboardUseCase.java             # radar, heatmap, leaderboard, streak
+│       │       ├── RecordAttemptUseCase.java      # đồng bộ, cùng tx với insert attempt (m7)
+│       │       ├── QueryProgressUseCase.java      # radar + streak + XP
+│       │       ├── QueryHeatmapUseCase.java       # 90 ngày, bucket theo timezone
+│       │       └── QueryLeaderboardUseCase.java   # cache-aside lb:global
+│       │
+│       │   # Lưu ý: StudyAttempt model/port + StudyAttemptRepository nằm ở learning/, KHÔNG lặp lại ở đây.
+│       │   # m7 KHÔNG có ProgressUpdatedEvent/async listener: XP materialize cùng tx + TTL 1h là đủ.
 │       │
 │       ├── notes/
 │       │   ├── domain/model/Note.java, NoteType.java
@@ -230,7 +236,10 @@ knowledge-gym/
 │   │   │   │                               #       TopicController, ModuleController, AdminContentController
 │   │   │   │   └── dto/                    # (m4a) QuestionSummaryDTO, QuestionDetailDTO, QuestionOptionDTO,
 │   │   │   │                               #       AdminQuestionDTO, TopicDTO, ModuleDTO, PageResponse
-│   │   │   ├── QuizController.java, …      # m6+
+│   │   │   ├── quiz/                       # (m6) QuizController
+│   │   │   ├── interview/                  # (m6) MockInterviewController
+│   │   │   ├── srs/                        # (m5) SRSController + dto/
+│   │   │   ├── dashboard/                  # (m7) DashboardController + dto/DashboardResponses
 │   │   │   └── mapper/UseCaseMapper.java   # DTO ↔ UseCase Command/Query
 │   │   ├── config/                         # (m4a) CachingConfig (@EnableCaching), OpenApiConfig (springdoc)
 │   │   ├── advice/GlobalExceptionHandler.java   # @RestControllerAdvice + RFC 7807 (m3, mở rộng m4a)
@@ -250,7 +259,8 @@ knowledge-gym/
 │   ├── package.json
 │   ├── app/
 │   │   ├── (auth)/login/page.tsx, register/page.tsx
-│   │   ├── page.tsx                        # Dashboard
+│   │   ├── page.tsx                        # Redirect → /questions (KHÔNG phải Dashboard)
+│   │   ├── dashboard/page.tsx              # (m7) radar + heatmap + leaderboard
 │   │   ├── flashcard/[moduleId]/page.tsx
 │   │   ├── quiz/[moduleId]/page.tsx
 │   │   ├── mock-interview/page.tsx
@@ -404,7 +414,7 @@ dependencies {
 | Strategy pattern | 13 | `QuizGenerationStrategy` |
 | Template Method | 13 | `BlogTemplate` |
 | State pattern | 13 | `BlogPost.status` |
-| @TransactionalEventListener | 02, 03 | `RecordAttemptUseCase` |
+| @TransactionalEventListener | 02, 03 | ~~`RecordAttemptUseCase`~~ — **m7 không dùng**: XP/`user_progress` ghi **đồng bộ cùng tx**; Redis chỉ có TTL, không evict |
 | CircuitBreaker/Retry | 07 | `OpenAiWriterAdapter` |
 | ArchUnit | 12 | `ArchitectureTest` enforce dependency rule |
 | Records (DTO) | 01 | `presentation/rest/dto` |

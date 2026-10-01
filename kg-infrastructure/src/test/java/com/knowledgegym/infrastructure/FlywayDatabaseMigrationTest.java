@@ -1,6 +1,7 @@
 package com.knowledgegym.infrastructure;
 
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.MigrationVersion;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -11,6 +12,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.time.Instant;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -19,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Runs on CI (ubuntu-latest has Docker) and locally when Docker daemon is up.
  *
  * Success criteria:
- * - Flyway migrate sạch 17 migration (V001–V013 ở m2, V014–V015 ở m4a, V016 ở m6a, V017 ở m6c)
+ * - Flyway migrate sạch 18 migration (V018 backfills progress read models without changing schema)
  * - Đúng 33 bảng trong schema public (loại flyway_schema_history)
  * - 1 materialized view: user_topic_mastery
  * - m4a: unique index `uk_questions_module_sort` + cột `questions.searchable_text` + trigger tsvector
@@ -48,10 +51,10 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldMigrateAllSeventeenMigrations() throws Exception {
+    void shouldMigrateAllEighteenMigrations() throws Exception {
         query("SELECT count(*) FROM flyway_schema_history WHERE success = true", rs -> {
-            assertEquals(17, rs.getInt(1),
-                    "Expected 17 successful Flyway migrations (V001–V017)");
+            assertEquals(18, rs.getInt(1),
+                    "Expected 18 successful Flyway migrations (V001–V018)");
         });
     }
 
@@ -130,6 +133,51 @@ class FlywayDatabaseMigrationTest {
         });
     }
 
+    @Test
+    void v018BackfillsHistoricalXpAndMasteryFromAttempts() throws Exception {
+        String schema = "m7_backfill_test";
+        Flyway.configure().dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
+                .schemas(schema).defaultSchema(schema).locations("classpath:db/migration")
+                .target(MigrationVersion.fromVersion("17")).load().migrate();
+
+        UUID user = UUID.randomUUID();
+        UUID module = UUID.randomUUID();
+        UUID topic = UUID.randomUUID();
+        UUID firstQuestion = UUID.randomUUID();
+        UUID secondQuestion = UUID.randomUUID();
+        try (Connection conn = DriverManager.getConnection(
+                POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+             Statement statement = conn.createStatement()) {
+            statement.execute("SET search_path TO " + schema);
+            statement.execute("INSERT INTO users (id,email,display_name) VALUES ('" + user +
+                    "','m7-backfill@example.com','Backfill')");
+            statement.execute("INSERT INTO topics (id,name,slug) VALUES ('" + topic + "','Topic','topic')");
+            statement.execute("INSERT INTO modules (id,topic_id,name,slug) VALUES ('" + module +
+                    "','" + topic + "','Module','module')");
+            statement.execute("INSERT INTO questions (id,module_id,title,answer_html,difficulty,sort_order) VALUES " +
+                    "('" + firstQuestion + "','" + module + "','Q1','A','MID',1)," +
+                    "('" + secondQuestion + "','" + module + "','Q2','A','MID',2)");
+            Instant first = Instant.parse("2026-01-01T00:00:00Z");
+            statement.execute("INSERT INTO study_attempts (user_id,question_id,source,is_correct,attempted_at) VALUES " +
+                    "('" + user + "','" + firstQuestion + "','FLASHCARD',true,'" + first + "')," +
+                    "('" + user + "','" + firstQuestion + "','PRACTICE',false,'" + first.plusSeconds(1) + "')," +
+                    "('" + user + "','" + secondQuestion + "','DAILY',false,'" + first.plusSeconds(2) + "')");
+        }
+
+        Flyway.configure().dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
+                .schemas(schema).defaultSchema(schema).locations("classpath:db/migration").load().migrate();
+
+        queryInSchema(schema, "SELECT xp FROM users WHERE id = '" + user + "'", rs ->
+                assertEquals(11, rs.getInt(1), "first attempt per question: 10 XP + 1 XP"));
+        queryInSchema(schema, "SELECT total_attempts,correct_count,mastery_pct,streak_days FROM user_progress " +
+                "WHERE user_id = '" + user + "' AND module_id = '" + module + "'", rs -> {
+            assertEquals(3, rs.getInt(1));
+            assertEquals(1, rs.getInt(2));
+            assertEquals("33.33", rs.getBigDecimal(3).toPlainString());
+            assertEquals(0, rs.getInt(4), "M7 derives streak on read");
+        });
+    }
+
     private interface RowAssert {
         void accept(ResultSet rs) throws Exception;
     }
@@ -141,6 +189,18 @@ class FlywayDatabaseMigrationTest {
              ResultSet rs = stmt.executeQuery(sql)) {
             rs.next();
             assertion.accept(rs);
+        }
+    }
+
+    private void queryInSchema(String schema, String sql, RowAssert assertion) throws Exception {
+        try (Connection conn = DriverManager.getConnection(
+                POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("SET search_path TO " + schema);
+            try (ResultSet rs = stmt.executeQuery(sql)) {
+                rs.next();
+                assertion.accept(rs);
+            }
         }
     }
 }
