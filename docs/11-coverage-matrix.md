@@ -14,7 +14,7 @@
 | **08 System Design** | L1/L2 cache, multi-tier arch, design docs | 2-4 |
 | **09 Cloud/CI/CD** | Docker, Compose, GitHub Actions, Prometheus | 1, 4 |
 | **10 Daifuku Domain** | Warehouse-themed UX, bin tracking (optional) | Optional |
-| **11 DSA** | SM-2 Priority Queue, Graph mindmap, hash-based dedup | 2, 4 |
+| **11 DSA** | SM-2 scheduling (composite index query), Graph mindmap, hash-based dedup | 2, 4 |
 | **12 Software Design** | UML diagrams, ADR, SOLID adherence | 4 |
 | **13 Design Patterns** | Strategy, Template Method, Observer, Builder, Factory, State | 2-3 |
 | **15 Auth/RBAC/OAuth** | JWT, OAuth2, RBAC, Resource Server | 1 |
@@ -29,6 +29,16 @@
 | **06 REST API** | `GET /questions` paginated (`page` 1-based, `size` cap 100) + filter + full-text `q`; `GET /questions/{id}`, `/topics`, `/modules`; RFC 7807 `GlobalExceptionHandler` (thêm 409 `ConflictException`, 500 `ContentImportException`); SpringDoc OpenAPI (`OpenApiConfig`), service tại `/api/v1` | Đã ship (m4a) |
 | **15 Auth/RBAC** | `@PreAuthorize("hasRole('ADMIN')")` trên `AdminContentController` → USER nhận 403 Problem Details (đóng deferred RBAC của m3) | Đã ship (m4a) |
 
+### Mini-phase đã implement (m5)
+
+> SRS + SM-2 + FlashcardDeck ship thật trong m5.
+
+| Module | Kiến thức m5 thực thi | Trạng thái |
+|--------|------------------------|------------|
+| **11 DSA** | `Sm2Scheduler` domain service thuần Java: SM-2 thang quality 0–3 (Again/Hard/Good/Easy), ease floor 1.3, lịch thẻ mới (Again/Hard/Good 1 ngày, Easy 4 ngày). Không dùng in-memory `PriorityQueue` — due queue query DB theo composite index `idx_srs_due (user_id, next_review)` | Đã ship (m5) |
+| **04 JPA/Hibernate** | `findByIdForUpdate` (pessimistic write lock) cho luồng review; `insertIgnoringDuplicates` native `ON CONFLICT DO NOTHING RETURNING`; transaction bao update card + insert `study_attempts` | Đã ship (m5) |
+| **05 Database** | Reuse `V004` (`srs_decks`, `srs_cards`, `study_attempts` + `idx_srs_due` + UK) — **không** migration mới; FK cleanup `QuestionDependentsDao` trước khi xoá `questions` | Đã ship (m5) |
+
 ---
 
 ## Feature ↔ Module Detail
@@ -40,7 +50,7 @@
 | OAuth2 Google | | | ✅ | | | | | | | | ✅ |
 | RBAC | | | ✅ | | | ✅ | | | | | ✅ |
 | Question CRUD | | ✅ | ✅ | ✅ | | ✅ | | | | | ✅ |
-| Flashcard + SRS | ✅ | ✅ | | ✅ | | | | | ✅ | | |
+| Flashcard + SRS | ✅ | | | ✅ | | | | | ✅ | | |
 | Quiz Mode | ✅ | | ✅ | | | ✅ | | | | ✅ | |
 | Mock Interview | ✅ | | ✅ | | | ✅ | ✅ | | | | |
 | Code Challenge | ✅ | ✅ | | | ✅ | ✅ | | | | | |
@@ -73,7 +83,7 @@
 | 06 REST API | CRUD, Pagination, Error handling, Swagger | **100%** |
 | 07 Microservices | Circuit Breaker, Events | **80%** |
 | 09 Cloud/CI/CD | Docker, Compose, GitHub Actions, Prometheus | **100%** |
-| 11 DSA | Priority Queue, Graph, Fisher-Yates | **90%** |
+| 11 DSA | Composite index query, Graph, Fisher-Yates | **90%** |
 | 12 Software Design | UML, ADR, SOLID | **80%** |
 | 13 Design Patterns | Strategy, Factory, Observer, Builder, Template | **100%** |
 | 15 Auth/RBAC/OAuth | JWT, OAuth2, RBAC, Resource Server | **100%** |

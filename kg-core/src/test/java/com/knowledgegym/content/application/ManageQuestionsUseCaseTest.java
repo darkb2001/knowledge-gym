@@ -226,6 +226,11 @@ class ManageQuestionsUseCaseTest {
         }
 
         @Override
+        public List<Question> findByIds(Collection<UUID> ids) {
+            return ids.stream().map(store::get).filter(java.util.Objects::nonNull).toList();
+        }
+
+        @Override
         public Optional<Question> findByModuleIdAndSortOrder(UUID moduleId, int sortOrder) {
             return store.values().stream()
                     .filter(q -> moduleId.equals(q.getModuleId()) && q.getSortOrder() == sortOrder)

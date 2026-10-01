@@ -108,6 +108,11 @@ class QueryQuestionsUseCaseTest {
         }
 
         @Override
+        public List<Question> findByIds(Collection<UUID> ids) {
+            return List.of();
+        }
+
+        @Override
         public Optional<Question> findByModuleIdAndSortOrder(UUID moduleId, int sortOrder) {
             return Optional.empty();
         }

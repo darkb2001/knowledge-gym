@@ -165,7 +165,7 @@ body {
 }
 
 .answer-html .flow-node.secondary {
-  @apply border-ink-500 text-ink-200;
+  @apply border-ink-600 text-ink-200;
 }
 
 .answer-html .flow-node.success {

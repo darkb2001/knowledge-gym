@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { RequireAuth, inputClass } from "@/components/ui";
 import { ApiError } from "@/lib/api-client";
 import { listModules, listQuestions, listTopics } from "@/lib/questions";
@@ -23,6 +24,8 @@ function isAbortError(err: unknown): boolean {
 }
 
 function QuestionsBrowser() {
+  const searchParams = useSearchParams();
+  const moduleParam = searchParams.get("moduleId") ?? "";
   const [topics, setTopics] = useState<Topic[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
   const [catalogError, setCatalogError] = useState<string | null>(null);
@@ -30,7 +33,7 @@ function QuestionsBrowser() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
-  const [moduleId, setModuleId] = useState("");
+  const [moduleId, setModuleId] = useState(moduleParam);
   const [difficulty, setDifficulty] = useState("");
   const [tag, setTag] = useState("");
   const [tagDraft, setTagDraft] = useState("");
@@ -39,6 +42,13 @@ function QuestionsBrowser() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [catalogTick, setCatalogTick] = useState(0);
+
+  // Deep link `?moduleId=…` (vd nút "quay lại danh sách câu hỏi" từ trang flashcard) phải áp vào
+  // bộ lọc ngay cả khi trang đã mount — `useState(initial)` chỉ chạy một lần nên không đủ.
+  useEffect(() => {
+    setPage(1);
+    setModuleId(moduleParam);
+  }, [moduleParam]);
 
   // Debounce tag so each keystroke does not fire a new request (stale-response race).
   useEffect(() => {
@@ -215,6 +225,15 @@ function QuestionsBrowser() {
         </p>
       ) : null}
 
+      {moduleId ? (
+        <Link
+          href={`/flashcard/${encodeURIComponent(moduleId)}`}
+          className="mb-6 inline-flex items-center gap-2 rounded-sm border border-moss-600/60 px-4 py-2 text-sm text-moss-400 transition hover:bg-moss-600/10"
+        >
+          Ôn flashcard module này →
+        </Link>
+      ) : null}
+
       <p className="mb-4 text-xs uppercase tracking-[0.18em] text-ink-400">
         {topics.length} topics · {modules.length} modules · {totalElements} hits
       </p>
@@ -287,9 +306,13 @@ function QuestionsBrowser() {
 }
 
 export default function QuestionsPage() {
+  // `useSearchParams` opts the route into client-side rendering — Next requires a Suspense
+  // boundary so the shell can still be prerendered.
   return (
     <RequireAuth>
-      <QuestionsBrowser />
+      <Suspense fallback={<p className="animate-soft-pulse text-ink-400">Đang tải…</p>}>
+        <QuestionsBrowser />
+      </Suspense>
     </RequireAuth>
   );
 }

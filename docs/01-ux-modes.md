@@ -34,9 +34,12 @@
 │  JDK = JRE + công cụ dev                    │
 │                                             │
 │  [Again]  [Hard]  [Good]  [Easy]           │
-│   1m      6m      1d      4d               │
+│   1d      1d      1d      4d               │
 └─────────────────────────────────────────────┘
 ```
+
+> Nhãn dưới nút phản ánh lịch m5 (SM-2 thang 0–3, đơn vị **ngày**): lần ôn đầu Again/Hard/Good → 1 ngày,
+> Easy → 4 ngày. Không phải 1m/6m như mock cũ.
 
 - **SM-2 Algorithm**: ease_factor, interval, repetitions — card khó xuất hiện thường xuyên hơn
 - **Deck per module**: "Java Core Flashcards", "Database Flashcards"

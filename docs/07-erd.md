@@ -94,7 +94,7 @@ V006__create_blog.sql                blog_posts, blog_comments, blog_views,
 V007__create_agent.sql               collector_sources, collected_items,
                                      blog_generation_queue, agent_runs                      (4)
 V008__create_audit.sql               audit_logs, user_badges                                (2)
-V009__create_indexes.sql             composite + partial indexes (không tạo bảng)           (0)
+V009__create_indexes.sql             placeholder (không tạo index/bảng — giữ migration sequence) (0)
 V010__create_mviews.sql              user_topic_mastery MATERIALIZED VIEW                    (0)
 V011__password_reset_codes.sql       password_reset_codes                                   (1)
 V012__create_challenges.sql          challenges, challenge_test_cases, code_submissions     (3)
@@ -156,7 +156,7 @@ CREATE TRIGGER trg_questions_search
 - Config `simple` (chỉ lowercase + tokenize), **không** stemming: nội dung trộn tiếng Việt + tiếng Anh,
   stemming tiếng Anh sẽ băm nát từ tiếng Việt.
 
-## Index chính (V009 + inline V001–V008)
+## Index chính (inline V001–V008, V013)
 
 ```sql
 -- Auth
@@ -166,8 +166,8 @@ CREATE UNIQUE INDEX idx_users_oauth      ON users(auth_provider, oauth_id)
 -- SRS (query nóng nhất: "cards due today")
 CREATE INDEX idx_srs_due                 ON srs_cards(user_id, next_review);
 -- Dashboard heatmap + weakness radar
-CREATE INDEX idx_attempts_user_date      ON study_attempts(user_id, attempted_at DESC);
-CREATE INDEX idx_attempts_wrong          ON study_attempts(question_id)
+CREATE INDEX idx_attempts_user_date      ON study_attempts(user_id, attempted_at DESC);  -- V004
+CREATE INDEX idx_attempts_wrong          ON study_attempts(question_id)               -- V004
                                          WHERE is_correct = false;
 -- Leaderboard
 CREATE INDEX idx_users_xp                ON users(xp DESC);
@@ -178,7 +178,7 @@ CREATE INDEX idx_notif_unread            ON notifications(user_id, created_at DE
 CREATE INDEX idx_daily_user_date         ON daily_challenge_assignments(user_id, challenge_date DESC);
 -- Search (questions dùng FTS thật từ V015) + tags
 CREATE INDEX idx_questions_search        ON questions USING GIN(search_vector);   -- V003, populate bởi V015
-CREATE INDEX idx_notes_search            ON notes USING GIN(search_vector);       -- ES fallback
+CREATE INDEX idx_notes_search            ON notes USING GIN(search_vector);       -- created V005; ES fallback
 CREATE INDEX idx_questions_tags          ON questions USING GIN(tags);
 -- Natural key import (V014)
 CREATE UNIQUE INDEX uk_questions_module_sort ON questions (module_id, sort_order);

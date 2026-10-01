@@ -28,6 +28,7 @@
 | 13 | [m2-handoff-m3.md](./13-m2-handoff-m3.md) | **Handoff m2→m3** — schema/ports sẵn, việc Auth phải làm |
 | 14 | [m3-journal.md](./14-m3-journal.md) | **Journal m3** — Auth (JWT/OAuth2/refresh/forgot-password) |
 | 15 | [m4-journal.md](./15-m4-journal.md) | **Journal m4a** — Content Parser + REST API + V014/V015 + cache + Swagger + RBAC |
+| 16 | [m5-journal.md](./16-m5-journal.md) | **Journal m5** — SRS + SM-2 + FlashcardDeck (enroll/due/review + `study_attempts`) |
 
 ## Quick start
 
@@ -47,5 +48,6 @@ cat 08-rest-api.md
 
 - Schema: **32 bảng + 1 MVIEW**, Flyway V001–**V015** (V014–V015 = m4a import support + full-text search), tiers **MVP Must 16 / Optional 3 / Full 13**
 - Backend m4a: **Content Parser + REST API (`/questions`, `/topics`, `/modules`, `/admin/content/*`) + Caffeine cache + Swagger + RBAC** đã ship
+- Backend m5: **SRS + SM-2** (`/srs/enroll`, `/srs/due`, `/srs/review/{cardId}`) + FE `FlashcardDeck` đã ship; **không migration mới** (V004 đủ)
 - Infra: Garage (not MinIO), Mailu (not SES), no Keycloak, no tenants
-- Journal: `14-m3-journal.md` (Auth), `15-m4-journal.md` (m4a)
+- Journal: `14-m3-journal.md` (Auth), `15-m4-journal.md` (m4a), `16-m5-journal.md` (SRS)

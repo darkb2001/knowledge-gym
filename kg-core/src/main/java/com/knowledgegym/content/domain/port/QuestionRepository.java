@@ -14,6 +14,16 @@ public interface QuestionRepository {
     Optional<Question> findById(UUID id);
 
     /**
+     * Nhiều câu theo id trong 1 query. Thêm cho m5 (phiên flashcard cần nội dung của cả list thẻ
+     * đến hạn) — gọi {@link #findById} trong vòng lặp là N+1, và N ở đây là số thẻ trong phiên
+     * (tới 100) nên không thể coi là chi phí không đáng kể.
+     *
+     * Trả về **chỉ những câu tìm thấy** (không có phần tử null): câu đã bị re-import xoá là chuyện
+     * bình thường, caller tự quyết định bỏ qua hay báo lỗi.
+     */
+    List<Question> findByIds(Collection<UUID> ids);
+
+    /**
      * Tra theo natural key của import. Dùng để phát hiện `sortOrder` đã bị chiếm trước khi
      * ghi — cho phép trả 409 thay vì upsert ghi đè im lặng.
      */

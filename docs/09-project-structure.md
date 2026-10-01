@@ -1,15 +1,15 @@
 # Project Structure — Knowledge Gym
 
-## Current vs target (sau m4 Content Parser + REST + Frontend)
+## Current vs target (sau m5 SRS + SM-2 + FlashcardDeck)
 
-Tree dài bên dưới = **roadmap target** (đủ context content/learning/…). Phần này ghi **đã có thật trong repo** sau m4 — tránh nhầm scaffold tương lai với code đang chạy.
+Tree dài bên dưới = **roadmap target** (đủ context content/learning/…). Phần này ghi **đã có thật trong repo** sau m5 — tránh nhầm scaffold tương lai với code đang chạy.
 
-| Module | Đã có (m4a) | Chưa (m5+) |
+| Module | Đã có (m5) | Chưa (m6+) |
 |--------|------------|------------|
-| `kg-core` | `identity/` (User, RefreshToken, ports, Register/Login/Refresh/Logout/Forgot/Reset); **`content/`** (domain model/port + 5 use case + `SearchText`); `shared/` (`NotFoundException`, `ConflictException`, `PageResult`, enums) | learning, progress, notes, blog use cases |
-| `kg-infrastructure` | Flyway V001–**V015**; JPA adapters (**content**: Question/Topic/Module + native upsert & `QuestionSearchDao`); Jsoup `ContentSource` + `AnswerHtmlSanitizer`; `ContentImportJobService` (async, in-memory registry); Caffeine `CacheConfig`; `AppContentProperties`; JWT + Cookie + OAuth2SuccessHandler; Redis refresh cache; Bucket4j `RateLimitFilter`; `ClientIpResolver`; Gmail SMTP | SRS, AI writer, collectors |
-| `kg-presentation` | `rest/auth/*`; **`rest/content/*`** (+ `rest/content/dto/*`); `advice/GlobalExceptionHandler` (RFC 7807); **`config/`** (`CachingConfig`, `OpenApiConfig`); boot app | controllers khác, websocket |
-|| **`kg-frontend`** | **Next.js 14** App Router + TS + Tailwind; `/login`, `/register`, `/forgot-password` (3-step); Google OAuth2 → `${API_BASE}/oauth2/authorization/google`; `/questions` (filter+search+pagination); `/questions/[id]` (detail); in-memory JWT + `ensureAccessToken` | — |
+| `kg-core` | `identity/` (User, RefreshToken, ports, Register/Login/Refresh/Logout/Forgot/Reset); **`content/`** (domain model/port + 5 use case + `SearchText`); **`learning/`** (SRS: `SRSCard`/`SrsDeck`/`StudyAttempt` + `Sm2Scheduler` + 3 use case); `shared/` (`NotFoundException`, `ConflictException`, `PageResult`, enums) | quiz/interview use cases, progress, notes, blog use cases |
+| `kg-infrastructure` | Flyway V001–**V015**; JPA adapters (**content**: Question/Topic/Module + native upsert & `QuestionSearchDao`; **learning**: SRS card/deck/attempt); Jsoup `ContentSource` + `AnswerHtmlSanitizer`; `ContentImportJobService` (async, in-memory registry); Caffeine `CacheConfig`; `AppContentProperties`; JWT + Cookie + OAuth2SuccessHandler; Redis refresh cache; Bucket4j `RateLimitFilter`; `ClientIpResolver`; Gmail SMTP | AI writer, collectors |
+| `kg-presentation` | `rest/auth/*`; **`rest/content/*`** (+ `rest/content/dto/*`); **`rest/srs/*`** (m5); `advice/GlobalExceptionHandler` (RFC 7807); **`config/`** (`CachingConfig`, `OpenApiConfig`); boot app | controllers khác, websocket |
+|| **`kg-frontend`** | **Next.js 14** App Router + TS + Tailwind; `/login`, `/register`, `/forgot-password` (3-step); Google OAuth2 → `${API_BASE}/oauth2/authorization/google`; `/questions` (filter+search+pagination); `/questions/[id]` (detail); `/flashcard/[moduleId]` + `FlashcardDeck` (m5); in-memory JWT + `ensureAccessToken` | — |
 | `kg-agent` | module skeleton | schedulers |
 
 **ArchUnit (đang enforce):**
@@ -194,7 +194,7 @@ knowledge-gym/
 │   ├── build.gradle.kts                    # spring-boot-starter-data-jpa, security, redis, jjwt, jsoup, rome, resilience4j
 │   └── src/main/java/com/knowledgegym/infrastructure/
 │   │   ├── persistence/                    # JPA entities (khác domain model!) + Spring Data + adapter
-│   │   │   ├── entity/UserJpaEntity.java, QuestionJpaEntity.java, SRSCardJpaEntity.java, ...
+│   │   │   ├── entity/UserJpaEntity.java, QuestionJpaEntity.java, SrsCardJpaEntity.java, SrsDeckJpaEntity.java, StudyAttemptJpaEntity.java, ...
 │   │   │   ├── repository/SpringDataUserRepository.java, ...   # extends JpaRepository
 │   │   │   └── adapter/UserRepositoryAdapter.java              # implements domain port, map Entity ↔ Domain
 │   │   │       ├── QuestionRepositoryAdapter.java

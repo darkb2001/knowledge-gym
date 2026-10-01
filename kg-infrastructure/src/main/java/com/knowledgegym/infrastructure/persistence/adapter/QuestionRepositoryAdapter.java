@@ -4,6 +4,7 @@ import com.knowledgegym.content.application.SearchText;
 import com.knowledgegym.content.domain.model.Question;
 import com.knowledgegym.content.domain.model.QuestionQuery;
 import com.knowledgegym.content.domain.port.QuestionRepository;
+import com.knowledgegym.infrastructure.persistence.dao.QuestionDependentsDao;
 import com.knowledgegym.infrastructure.persistence.dao.QuestionSearchDao;
 import com.knowledgegym.infrastructure.persistence.entity.QuestionJpaEntity;
 import com.knowledgegym.infrastructure.persistence.repository.SpringDataQuestionRepository;
@@ -25,15 +26,28 @@ public class QuestionRepositoryAdapter implements QuestionRepository {
 
     private final SpringDataQuestionRepository springData;
     private final QuestionSearchDao searchDao;
+    private final QuestionDependentsDao dependentsDao;
 
-    public QuestionRepositoryAdapter(SpringDataQuestionRepository springData, QuestionSearchDao searchDao) {
+    public QuestionRepositoryAdapter(SpringDataQuestionRepository springData, QuestionSearchDao searchDao,
+                                     QuestionDependentsDao dependentsDao) {
         this.springData = springData;
         this.searchDao = searchDao;
+        this.dependentsDao = dependentsDao;
     }
 
     @Override
     public Optional<Question> findById(UUID id) {
         return springData.findById(id).map(QuestionRepositoryAdapter::toDomain);
+    }
+
+    @Override
+    public List<Question> findByIds(Collection<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return springData.findAllById(ids).stream()
+                .map(QuestionRepositoryAdapter::toDomain)
+                .toList();
     }
 
     @Override
@@ -76,6 +90,9 @@ public class QuestionRepositoryAdapter implements QuestionRepository {
     @Override
     @Transactional
     public int deleteAbsentSortOrders(UUID moduleId, Collection<Integer> keepSortOrders) {
+        // Xoá thẻ SRS + attempt trước: `question_id` FK là NO ACTION (V004), để lại thì câu lệnh
+        // DELETE bên dưới nổ FK ngay khi có user đã enroll (m5 là phase đầu ghi row vào đó).
+        dependentsDao.deleteForModule(moduleId, keepSortOrders);
         if (keepSortOrders == null || keepSortOrders.isEmpty()) {
             long before = springData.countByModuleId(moduleId);
             springData.deleteByModuleId(moduleId);
@@ -106,7 +123,10 @@ public class QuestionRepositoryAdapter implements QuestionRepository {
     }
 
     @Override
+    @Transactional
     public void deleteById(UUID id) {
+        // Cùng lý do với `deleteAbsentSortOrders`: thẻ SRS + attempt trỏ tới câu này chặn DELETE.
+        dependentsDao.deleteForQuestion(id);
         springData.deleteById(id);
     }
 

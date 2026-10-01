@@ -12,10 +12,18 @@ import com.knowledgegym.content.domain.port.QuestionRepository;
 import com.knowledgegym.content.domain.port.TopicRepository;
 import com.knowledgegym.identity.application.*;
 import com.knowledgegym.identity.domain.port.*;
+import com.knowledgegym.learning.application.EnrollCardsUseCase;
+import com.knowledgegym.learning.application.QueryDueUseCase;
+import com.knowledgegym.learning.application.ReviewCardUseCase;
+import com.knowledgegym.learning.domain.port.SRSCardRepository;
+import com.knowledgegym.learning.domain.port.SrsDeckRepository;
+import com.knowledgegym.learning.domain.port.StudyAttemptRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.time.Clock;
 
 /**
  * Use case beans — DDD application services.
@@ -100,6 +108,42 @@ public class UseCaseConfig {
     CatalogQueryUseCase catalogQueryUseCase(TopicRepository topicRepository,
                                             ModuleRepository moduleRepository) {
         return new CatalogQueryUseCase(topicRepository, moduleRepository);
+    }
+
+    // ------------------------------------------------------------------ learning / SRS (m5)
+
+    /**
+     * `Clock` bean để use case không đọc đồng hồ hệ thống trực tiếp — test set `next_review`/
+     * `last_reviewed_at` theo thời điểm cố định thay vì phụ thuộc ngày chạy.
+     */
+    @Bean
+    Clock clock() {
+        return Clock.systemDefaultZone();
+    }
+
+    @Bean
+    EnrollCardsUseCase enrollCardsUseCase(QuestionRepository questionRepository,
+                                          ModuleRepository moduleRepository,
+                                          SRSCardRepository srsCardRepository,
+                                          SrsDeckRepository srsDeckRepository,
+                                          Clock clock) {
+        return new EnrollCardsUseCase(questionRepository, moduleRepository,
+                srsCardRepository, srsDeckRepository, clock);
+    }
+
+    @Bean
+    QueryDueUseCase queryDueUseCase(SRSCardRepository srsCardRepository,
+                                    QuestionRepository questionRepository,
+                                    ModuleRepository moduleRepository,
+                                    Clock clock) {
+        return new QueryDueUseCase(srsCardRepository, questionRepository, moduleRepository, clock);
+    }
+
+    @Bean
+    ReviewCardUseCase reviewCardUseCase(SRSCardRepository srsCardRepository,
+                                        StudyAttemptRepository studyAttemptRepository,
+                                        Clock clock) {
+        return new ReviewCardUseCase(srsCardRepository, studyAttemptRepository, clock);
     }
 
     /**

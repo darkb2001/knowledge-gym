@@ -8,8 +8,9 @@
 > Schema: `07-erd.md` + DDL `07-erd-ddl.sql`. Bookmark = `notes.note_type = BOOKMARK`.
 >
 > **Trạng thái:** m4 (m4a backend + m4b frontend) đã ship. m4a: content parser + REST + cache + Swagger + RBAC.
-> m4b: Next.js 14 frontend (auth + question browser). Các nhóm SRS / Quiz / Mock Interview / Code Challenge /
-> Notes / Blog / Agent / Dashboard / Notification / Export / WebSocket là **phase sau** — giữ ở đây làm thiết kế, **chưa** implement.
+> m4b: Next.js 14 frontend (auth + question browser). **m5 đã ship:** SRS + SM-2 + FlashcardDeck
+> (`/srs/enroll` dual-mode, `/srs/due`, `/srs/review/{cardId}` + FE flip card). Các nhóm Quiz / Mock Interview /
+> Code Challenge / Notes / Blog / Agent / Dashboard / Notification / Export / WebSocket là **phase sau** — giữ ở đây làm thiết kế, **chưa** implement.
 
 ---
 
@@ -145,24 +146,51 @@ GET    /search                  Global search (questions + notes + blog)   [phas
 
 ## SRS / Flashcard Endpoints
 
-```
-POST   /srs/enroll              Enroll questions into SRS deck
-       Body:    { questionIds[], deckId? }
-       Returns: 201 { enrolled: int, cardIds[] }
+**Đã ship ở m5.** `userId` luôn lấy từ JWT principal — không có field `userId` trong body/query.
 
-GET    /srs/due                 Get cards due for review
+```
+POST   /srs/enroll              Enroll vào SRS deck (dual-mode, idempotent)
+       Body:    { moduleId }                       → Mode A: cả module, auto deck theo module
+                { questionIds[], deckId? }         → Mode B: đúng list câu (custom deck)
+       Gửi cả hai hoặc không gửi gì → 400
+       Returns: 201 { enrolled: int, cardIds[], deckId }
+       Re-enroll không tạo card trùng (UK user_id+question_id) → enrolled: 0
+
+GET    /srs/due                 Thẻ đến hạn, sắp theo nextReview
        Query:   ?moduleId=&limit=
        Returns: List<SRSCardDTO>
+       { cardId, questionId, moduleId, moduleSlug, title, answerHtml,
+         difficulty, repetitions, easeFactor, intervalDays, nextReview }
 
-POST   /srs/review/{cardId}     Submit review result
-       Body:    { quality: 0-3, timeMs }
-       Returns: { nextReview, interval, easeFactor }
+POST   /srs/review/{cardId}     Ghi kết quả 1 lần ôn (SM-2 + study_attempts cùng tx)
+       Body:    { quality: 0-3, timeMs? }     quality ngoài 0-3 → 400
+       Returns: { cardId, quality, intervalDays, easeFactor, repetitions,
+                  nextReview, correct }
 
 GET    /srs/stats               Get SRS statistics
        Returns: { dueToday, learned, mature, young }
+       (⚠️ chưa implement — m7 Dashboard)
 
 POST   /srs/reset               Reset all SRS cards
+       (⚠️ chưa implement)
 ```
+
+Bảng mapping `quality` (canonical — xem `Sm2Scheduler`):
+
+| quality | Nhãn FE | interval | ease | repetitions |
+|---|---|---|---|---|
+| 0 | Again | 1 ngày | −0.2 | 0 (reset) |
+| 1 | Hard | ceil(prev × 1.2) | −0.14 | +1 |
+| 2 | Good | ceil(prev × ease) | giữ nguyên | +1 |
+| 3 | Easy | ceil(prev × ease × 1.3) | +0.1 | +1 |
+
+(`ceil` làm tròn lên; ease floor 1.3; first review: Again/Hard/Good → 1 ngày, Easy → 4 ngày.)
+
+`timeMs` optional — FE m5 luôn gửi (ms từ lúc thẻ được hiển thị, **không** phải từ lúc lật). BE lưu vào `study_attempts.time_ms`;
+không gửi thì lưu `NULL` (analytics phân biệt "không đo" với "0 ms"), **không** default số giả.
+
+Mỗi lần review ghi thêm 1 row `study_attempts`: `source = 'FLASHCARD'`,
+`is_correct = (quality >= 2)`, `answer = NULL`.
 
 ## Quiz Endpoints
 

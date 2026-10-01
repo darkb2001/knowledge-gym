@@ -40,7 +40,7 @@ public record QuestionDTO(
 |---------|-------------------|
 | Batch content import | ExecutorService, CompletableFuture |
 | Blog Agent scheduling | ScheduledExecutorService |
-| SRS review queue | BlockingQueue, ConcurrentLinkedQueue |
+| SRS review queue | DB composite-index query (không in-memory queue) — m5 |
 | Real-time analytics | ConcurrentHashMap, AtomicLong |
 | Rate limiter cho AI API | Semaphore |
 | WebSocket live progress | CompletableFuture + async |
@@ -178,35 +178,53 @@ public GradingResult gradeAnswer(String question, String userAnswer) {
 
 | Feature | Kiến thức áp dụng |
 |---------|-------------------|
-| SRS scheduling | Priority Queue (Binary Heap) |
+| SRS scheduling | Composite-index range query (B-tree) — không dùng in-memory heap |
 | Content search | Trie / Full-text |
 | Knowledge graph | Graph traversal (BFS/DFS) |
 | Quiz randomization | Fisher-Yates shuffle |
 | Dedup algorithm | Hash-based dedup |
 
 ```java
-// SRS — Priority Queue + SM-2
-public class SRScheduler {
-    private final PriorityQueue<SRSCard> dueQueue = new PriorityQueue<>(
-        Comparator.comparing(SRSCard::nextReview)
-    );
-    
-    public void updateCard(SRSCard card, int quality) {
-        double newEase = card.easeFactor() 
-            + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
-        newEase = Math.max(1.3, newEase);
-        
-        int newInterval = switch (quality) {
-            case 0, 1 -> 1;
-            case 2 -> (int) (card.interval() * 1.2);
-            case 3 -> (int) (card.interval() * newEase);
-            default -> card.interval();
-        };
-        
-        dueQueue.offer(card.withNextReview(now().plusDays(newInterval)));
+// SRS — SM-2 scheduling (đã ship ở m5: knowledge-gym/kg-core/.../learning/domain/service/Sm2Scheduler.java)
+// LƯU Ý: thang quality của API là 0–3 (Again/Hard/Good/Easy), KHÔNG phải thang SM-2 gốc 0–5.
+// Bảng canonical nằm ở plans/knowledge-gym/mini-phase-05-srs.md — snippet này chỉ minh hoạ.
+public final class Sm2Scheduler {
+    public static Schedule next(int quality, int repetitions, int intervalDays,
+                                double easeFactor, LocalDate today) {
+        int newRepetitions;
+        int newIntervalDays;
+        double newEaseFactor = easeFactor;
+
+        switch (quality) {
+            case 0 -> { // Again — quên hoàn toàn
+                newRepetitions = 0;
+                newIntervalDays = 1;
+                newEaseFactor = clampEase(easeFactor - 0.2);
+            }
+            case 1 -> { // Hard — nhớ nhưng khó
+                newRepetitions = repetitions + 1;
+                newIntervalDays = repetitions == 0 ? 1 : ceil(intervalDays * 1.2);
+                newEaseFactor = clampEase(easeFactor - 0.14);
+            }
+            case 3 -> { // Easy — quá dễ (bonus +30% interval, +0.1 ease)
+                newRepetitions = repetitions + 1;
+                newIntervalDays = repetitions == 0 ? 4 : ceil(intervalDays * easeFactor * 1.3);
+                newEaseFactor = clampEase(easeFactor + 0.1);
+            }
+            default -> { // 2 = Good — giữ nguyên ease
+                newRepetitions = repetitions + 1;
+                newIntervalDays = repetitions == 0 ? 1 : ceil(intervalDays * easeFactor);
+            }
+        }
+        return new Schedule(newIntervalDays, round2(newEaseFactor), newRepetitions,
+                today.plusDays(newIntervalDays));
     }
 }
 ```
+
+Queue thẻ đến hạn **không** giữ in-memory (teaching snippet cũ dùng `PriorityQueue`): m5 query DB
+`WHERE user_id = ? AND next_review <= today` theo composite index `idx_srs_due (user_id, next_review)`
+— dữ liệu thẻ phải sống qua restart và nhiều instance.
 
 ---
 
@@ -216,7 +234,7 @@ public class SRScheduler {
 |---------|---------|---------------|
 | Quiz generators | **Strategy** | QuizGenerationStrategy |
 | Content parsers | **Factory** | HtmlParserFactory |
-| SRS algorithm | **Template Method** | AbstractSRSAlgorithm |
+| SRS algorithm | **Domain Service** (static, pure) | Sm2Scheduler |
 | Event system | **Observer** | ApplicationEvent |
 | API responses | **Builder** | ApiResponse.builder() |
 | Blog templates | **Template Method** | BlogTemplate → DeepDive |
@@ -270,7 +288,7 @@ public class WeaknessFocusedStrategy implements QuizGenerationStrategy {
 | 06 REST API | CRUD, Pagination, Error handling, Swagger | **100%** |
 | 07 Microservices | Circuit Breaker, Events | **80%** |
 | 09 Cloud/CI/CD | Docker, Compose, GitHub Actions, Prometheus | **100%** |
-| 11 DSA | Priority Queue, Graph, Fisher-Yates | **90%** |
+| 11 DSA | Composite-index query, Graph, Fisher-Yates | **90%** |
 | 12 Software Design | UML, ADR, SOLID | **80%** |
 | 13 Design Patterns | Strategy, Factory, Observer, Builder, Template | **100%** |
 | 15 Auth/RBAC/OAuth | JWT, OAuth2, RBAC, Resource Server | **100%** |
