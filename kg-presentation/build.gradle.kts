@@ -7,6 +7,7 @@ plugins {
 dependencies {
     implementation(project(":kg-core"))
     implementation(project(":kg-infrastructure"))
+    implementation(project(":kg-agent"))
 
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.actuator)

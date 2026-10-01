@@ -10,6 +10,7 @@ dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}"))
 
     implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.kafka)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.oauth2.client)
     implementation(libs.spring.boot.starter.mail)

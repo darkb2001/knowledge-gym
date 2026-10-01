@@ -93,7 +93,9 @@ public class NoteRepositoryAdapter implements NoteRepository {
                 + "SELECT 'question' type,id,title,left(title,240) excerpt,ts_rank(search_vector,ts.q) rank "
                 + "FROM questions,ts WHERE search_vector @@ ts.q "
                 + "UNION ALL SELECT 'note',id,coalesce(note_type,'Note'),left(coalesce(content,''),240),"
-                + "ts_rank(search_vector,ts.q) FROM notes,ts WHERE user_id=? AND search_vector @@ ts.q"
+                + "ts_rank(search_vector,ts.q) FROM notes,ts WHERE user_id=? AND search_vector @@ ts.q "
+                + "UNION ALL SELECT 'blog',id,title,left(coalesce(excerpt,''),240),ts_rank(search_vector,ts.q) "
+                + "FROM blog_posts,ts WHERE status='PUBLISHED' AND search_vector @@ ts.q"
                 + ") hits ORDER BY rank DESC LIMIT 30";
         return jdbc.query(sql,
                 (rs, n) -> new SearchHit(

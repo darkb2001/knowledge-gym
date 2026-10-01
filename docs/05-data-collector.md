@@ -25,6 +25,8 @@
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+**Phase boundary:** M9 implements collection, deterministic ranking, and the blog/publishing foundation; it does not call an AI model. AI drafting begins in M10 and every draft requires human review. Telegram is a delivery or command channel, not a data source. The existing bot stays an external service: integrate through an authenticated HTTP contract after its role is confirmed, without sharing the app database or exposing Kafka to its LXC.
+
 ## Nguồn dữ liệu
 
 ```

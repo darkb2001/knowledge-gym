@@ -135,9 +135,9 @@ POST   /questions/{id}/bookmark Toggle bookmark                        [phase sa
 ## Global Search
 
 ```
-GET    /search                  Global search (questions + caller's notes) [m8]
+GET    /search                  Global search (questions + caller's notes + published blogs) [m9]
        Query:   ?q=
-       Impl:    PostgreSQL tsvector on questions and caller-owned notes; ES deferred
+       Impl:    PostgreSQL tsvector on questions, caller-owned notes, and PUBLISHED blogs; ES deferred
        Returns: { hits: [{ type, id, title, snippet, score }] }
 
        Ghi chú: m4a mới chỉ có full-text search **trong** `GET /questions?q=` (PostgreSQL tsvector
@@ -308,31 +308,35 @@ GET    /notes/export?format=md  Export as Markdown [m8]; PDF deferred
 ## Blog Endpoints
 
 ```
-GET    /blog/posts              List published posts
-       Query:   ?topic=&page=&size=&sort=
+GET    /blog/posts              List published posts [m9]
+       Query:   ?tag=&page=&size=
 
-GET    /blog/posts/{slug}       Get single post
+GET    /blog/posts/{slug}       Get published post [m9]
 
-POST   /blog/posts/{id}/like    Toggle like (idempotent via blog_post_likes UK)
-       Returns: 200 { liked: boolean, likeCount }
+POST   /blog/posts/{slug}/like Ensure liked (idempotent via blog_post_likes UK) [m9]
+       Returns: 200 { liked: true }
 
-DELETE /blog/posts/{id}/like    Unlike (same as toggle when liked=true)
-       Returns: 200 { liked: false, likeCount }
+DELETE /blog/posts/{slug}/like Ensure unliked (idempotent) [m9]
+       Returns: 200 { liked: false }
 
-POST   /blog/posts/{id}/view    Track view (idempotent UK post+user)
+POST   /blog/posts/{slug}/view Track authenticated view (idempotent UK post+user) [m9]
 
-GET    /blog/posts/{id}/comments   Get comments
+GET    /blog/posts/{slug}/comments Get comments [m9]
 
-POST   /blog/posts/{id}/comments   Post comment
-       Body:    { content, parentId? }
+POST   /blog/posts/{slug}/comments Post sanitized comment [m9]
+       Body:    { content, parentId? } (authenticated)
 
-GET    /blog/feed.rss           RSS feed
+GET    /blog/feed.rss           RSS feed [m9]
+
+POST   /admin/blog/collect      Run due collectors (ADMIN) [m9]
+POST   /admin/blog/posts        Create sanitized manual draft (ADMIN) [m9]
+POST   /admin/blog/posts/{id}/publish Publish draft; writes outbox event (ADMIN) [m9]
 ```
 
 ## Agent Endpoints (Admin)
 
 ```
-POST   /agent/collector/run     Trigger data collection
+POST   /agent/collector/run     (superseded by /admin/blog/collect)
        Returns: 202 { jobId }
 
 GET    /agent/collector/runs    Run history

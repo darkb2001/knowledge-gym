@@ -16,6 +16,8 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
+**Implementation boundary:** collector and manual publishing are M9 and do not call an LLM. AI drafting starts in M10. The owner controls the daily schedule separately from the publish policy: manual mode provides a sanitized preview and iterative AI revision before explicit publish; qualified auto-publish mode publishes only when hard validation and the configured threshold pass, otherwise the draft goes to `REVIEW`. The user's Hermes Agent on Proxmox is an optional external admin/ops interface, not the writer itself. If connected, it uses typed commands through a private, authenticated application API; do not expose its general tool-enabled API to product requests or pass untrusted collected text as agent instructions.
+
 ## Blog Content Types
 
 | Type | Tần suất | Mô tả |
@@ -76,6 +78,8 @@ class BlogWriterAgent:
 ```
 
 ## Scheduling (Cron)
+
+The times below are example defaults, not hard-coded schedules. In M10 the owner enables/disables the daily writer and selects local time/timezone in the admin UI; scheduled and manual runs enter the same idempotent queue. The publication policy is a separate setting: manual mode creates a previewable draft for iterative revision and approval; qualified auto-publish publishes only after validation and threshold checks, otherwise it enters review.
 
 ```
 */6 * * * *    Collector.run()         # Mỗi 6 giờ

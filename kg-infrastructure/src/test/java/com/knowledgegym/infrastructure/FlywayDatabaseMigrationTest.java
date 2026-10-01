@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Runs on CI (ubuntu-latest has Docker) and locally when Docker daemon is up.
  *
  * Success criteria:
- * - Flyway migrate sạch 20 migration (V019 notes search_vector; V020 broaden trigger)
+ * - Flyway migrate sạch 21 migration (V019/V020 notes search; V021 blog/outbox)
  * - Đúng 33 bảng trong schema public (loại flyway_schema_history)
  * - 1 materialized view: user_topic_mastery
  * - m4a: unique index `uk_questions_module_sort` + cột `questions.searchable_text` + trigger tsvector
@@ -51,10 +51,10 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldMigrateAllTwentyMigrations() throws Exception {
+    void shouldMigrateAllTwentyOneMigrations() throws Exception {
         query("SELECT count(*) FROM flyway_schema_history WHERE success = true", rs -> {
-            assertEquals(20, rs.getInt(1),
-                    "Expected 20 successful Flyway migrations (V001–V020)");
+            assertEquals(21, rs.getInt(1),
+                    "Expected 21 successful Flyway migrations (V001–V021)");
         });
     }
 
@@ -130,12 +130,12 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldCreateExactly33Tables() throws Exception {
+    void shouldCreateExactly34Tables() throws Exception {
         query("SELECT count(*) FROM information_schema.tables " +
                 "WHERE table_schema = 'public' AND table_type = 'BASE TABLE' " +
                 "AND table_name != 'flyway_schema_history'", rs -> {
-            assertEquals(33, rs.getInt(1),
-                    "Expected exactly 33 tables excluding flyway_schema_history");
+            assertEquals(34, rs.getInt(1),
+                    "Expected exactly 34 tables excluding flyway_schema_history");
         });
     }
 
@@ -145,6 +145,15 @@ class FlywayDatabaseMigrationTest {
                 "WHERE schemaname = 'public' AND matviewname = 'user_topic_mastery'", rs -> {
             assertEquals(1, rs.getInt(1), "user_topic_mastery MVIEW must exist (V010)");
         });
+    }
+
+    @Test
+    void shouldCreateTransactionalOutboxAndBlogSearchVector() throws Exception {
+        query("SELECT count(*) FROM information_schema.tables WHERE table_schema='public' " +
+                "AND table_name='event_outbox'", rs -> assertEquals(1, rs.getInt(1)));
+        query("SELECT count(*) FROM information_schema.columns WHERE table_schema='public' " +
+                "AND table_name='blog_posts' AND column_name='search_vector'", rs -> assertEquals(1, rs.getInt(1)));
+        query("SELECT count(*) FROM collector_sources WHERE active", rs -> assertEquals(2, rs.getInt(1)));
     }
 
     @Test

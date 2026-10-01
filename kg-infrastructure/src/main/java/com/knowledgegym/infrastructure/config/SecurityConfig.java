@@ -54,6 +54,7 @@ public class SecurityConfig {
             .headers(h -> h.contentSecurityPolicy(c -> c.policyDirectives(contentSecurityPolicy())))
             .authorizeHttpRequests(auth -> {
                 auth.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/blog/posts", "/blog/posts/**", "/blog/feed.rss").permitAll()
                     .requestMatchers("/auth/register", "/auth/login", "/auth/forgot-password",
                                      "/auth/reset-password", "/auth/refresh", "/auth/logout").permitAll()
                     .requestMatchers("/login/**", "/oauth2/**").permitAll();

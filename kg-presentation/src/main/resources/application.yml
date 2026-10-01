@@ -3,6 +3,8 @@ spring:
     name: knowledge-gym
   profiles:
     active: dev
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/knowledgegym}
     username: ${DB_USER:postgres}
@@ -56,6 +58,15 @@ app:
   version: ${APP_VERSION:0.4.0}
   progress:
     timezone: ${APP_PROGRESS_TIMEZONE:Asia/Ho_Chi_Minh}
+  blog:
+    canonical-base-url: ${BLOG_CANONICAL_BASE_URL:http://localhost:3000}
+    collector:
+      enabled: ${APP_BLOG_COLLECTOR_ENABLED:false}
+      poll-ms: ${APP_BLOG_COLLECTOR_POLL_MS:600000}
+    kafka:
+      enabled: ${APP_BLOG_KAFKA_ENABLED:false}
+    outbox:
+      poll-ms: ${APP_BLOG_OUTBOX_POLL_MS:5000}
   email:
     smtp-enabled: false
     from: no-reply@knowledgegym.dev
