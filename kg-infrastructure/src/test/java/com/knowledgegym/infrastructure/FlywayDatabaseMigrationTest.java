@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Runs on CI (ubuntu-latest has Docker) and locally when Docker daemon is up.
  *
  * Success criteria:
- * - Flyway migrate sạch 18 migration (V018 backfills progress read models without changing schema)
+ * - Flyway migrate sạch 20 migration (V019 notes search_vector; V020 broaden trigger)
  * - Đúng 33 bảng trong schema public (loại flyway_schema_history)
  * - 1 materialized view: user_topic_mastery
  * - m4a: unique index `uk_questions_module_sort` + cột `questions.searchable_text` + trigger tsvector
@@ -51,10 +51,24 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldMigrateAllEighteenMigrations() throws Exception {
+    void shouldMigrateAllTwentyMigrations() throws Exception {
         query("SELECT count(*) FROM flyway_schema_history WHERE success = true", rs -> {
-            assertEquals(18, rs.getInt(1),
-                    "Expected 18 successful Flyway migrations (V001–V018)");
+            assertEquals(20, rs.getInt(1),
+                    "Expected 20 successful Flyway migrations (V001–V020)");
+        });
+    }
+
+    @Test
+    void shouldInstallNotesSearchVectorTrigger() throws Exception {
+        query("SELECT count(*) FROM information_schema.triggers WHERE trigger_schema='public' " +
+                "AND event_object_table='notes' AND trigger_name='trg_notes_search_vector'", rs -> {
+            assertEquals(2, rs.getInt(1), "V020 must maintain notes full-text vector on INSERT and UPDATE");
+        });
+        query("SELECT action_statement FROM information_schema.triggers WHERE trigger_schema='public' " +
+                "AND event_object_table='notes' AND trigger_name='trg_notes_search_vector' " +
+                "AND event_manipulation='UPDATE' LIMIT 1", rs -> {
+            // V020 fires on any UPDATE (no UPDATE OF column list), so updated_at stays correct.
+            assertEquals("EXECUTE FUNCTION notes_search_vector_update()", rs.getString(1));
         });
     }
 

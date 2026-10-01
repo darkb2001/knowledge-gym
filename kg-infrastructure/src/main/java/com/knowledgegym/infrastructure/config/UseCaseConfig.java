@@ -167,6 +167,14 @@ public class UseCaseConfig {
         return new QueryLeaderboardUseCase(leaderboard);
     }
 
+    // ------------------------------------------------------------------ notes (m8)
+
+    @Bean
+    com.knowledgegym.notes.application.NotesUseCase notesUseCase(
+            com.knowledgegym.notes.domain.port.NoteRepository noteRepository) {
+        return new com.knowledgegym.notes.application.NotesUseCase(noteRepository);
+    }
+
     // ------------------------------------------------------------------ learning / SRS (m5)
 
     /**

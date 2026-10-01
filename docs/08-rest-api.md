@@ -68,9 +68,9 @@ GET    /users/me/stats          Get user stats                              [m7]
        Returns: { xp, currentStreak, longestStreak: null, level: null, badges: [] }
        level / badges / longestStreak = [m12] — trả null/[] thay vì giá trị bịa
 
-GET    /users/me/bookmarks      Get bookmarked questions                    [m8]
+GET    /users/me/bookmarks      Get user's bookmark notes                    [m8]
        Impl:    notes WHERE user_id=me AND note_type='BOOKMARK'
-       Returns: List<QuestionDTO>
+       Returns: List<Note>
 
 DELETE /users/me                Delete account (soft delete)
 ```
@@ -135,13 +135,13 @@ POST   /questions/{id}/bookmark Toggle bookmark                        [phase sa
 ## Global Search
 
 ```
-GET    /search                  Global search (questions + notes + blog)   [phase sau — chưa ship]
-       Query:   ?q=&types=questions,notes,blog&page=&size=
-       Impl:    Elasticsearch primary; fallback PG tsvector (de-scope ladder #7)
+GET    /search                  Global search (questions + caller's notes) [m8]
+       Query:   ?q=
+       Impl:    PostgreSQL tsvector on questions and caller-owned notes; ES deferred
        Returns: { hits: [{ type, id, title, snippet, score }] }
 
        Ghi chú: m4a mới chỉ có full-text search **trong** `GET /questions?q=` (PostgreSQL tsvector
-       trên bảng `questions`). Endpoint `/search` gộp nhiều nguồn chưa implement.
+       trên bảng `questions` và `notes`). M8 triển khai PostgreSQL full-text; blog/ES deferred.
 ```
 
 ## SRS / Flashcard Endpoints
@@ -278,31 +278,31 @@ POST   /challenges/{id}/hint    Get next hint
 ## Notes Endpoints
 
 ```
-GET    /notes                   Get user's notes
-       Query:   ?moduleId=&type=&tag=&page=&size=
+GET    /notes                   Get user's notes [m8]
+       Query:   none
 
-POST   /notes                   Create note
-       Body:    { questionId?, moduleId, type, content, tags, isPublic }
-       type:    "QUICK" | "STUDY" | "HIGHLIGHT" | "BOOKMARK"
+POST   /notes                   Create private note (owner inferred from JWT) [m8]
+       Body:    { questionId?, moduleId?, noteType, content, tags }
+       noteType: "QUICK" | "STUDY" | "HIGHLIGHT" | "BOOKMARK"
 
-GET    /notes/{id}              Get single note
+GET    /notes/{id}              Get owned note [m8]
 
-PATCH  /notes/{id}              Update note
+PUT    /notes/{id}              Update owned note [m8]
 
-DELETE /notes/{id}              Delete note
+DELETE /notes/{id}              Delete owned note [m8]
 
-POST   /notes/{id}/convert      Convert note to flashcard
-       Body:    { front, back }
+POST   /notes/{id}/convert      Convert question-linked note to SRS card [m8]
+       Body:    none; note must reference a question, existing card is returned idempotently
 
-GET    /notes/public            Get public notes
+GET    /notes/public            Deferred (notes are private in m8)
 
-POST   /notes/{id}/share        Share note
+POST   /notes/{id}/share        Deferred
 
-GET    /notes/search            Full-text search (notes only)
+GET    /notes/search            Deferred; use global /search
        Query:   ?q=
 
-GET    /notes/export            Export as Markdown/PDF
-       Query:   ?format=md|pdf
+GET    /notes/export?format=md  Export as Markdown [m8]; PDF deferred
+       Query:   ?format=md (PDF deferred)
 ```
 
 ## Blog Endpoints
