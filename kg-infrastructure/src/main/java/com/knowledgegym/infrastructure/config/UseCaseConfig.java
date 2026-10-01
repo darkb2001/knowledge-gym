@@ -24,6 +24,15 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.time.Clock;
+import com.knowledgegym.content.application.GenerateQuestionOptionsUseCase;
+import com.knowledgegym.content.domain.port.QuestionOptionRepository;
+import com.knowledgegym.learning.application.*;
+import com.knowledgegym.learning.application.strategy.*;
+import com.knowledgegym.learning.domain.model.QuizStrategy;
+import com.knowledgegym.learning.domain.port.*;
+import com.knowledgegym.shared.domain.port.DistributedLockPort;
+import java.util.Map;
+
 
 /**
  * Use case beans — DDD application services.
@@ -82,8 +91,8 @@ public class UseCaseConfig {
     ImportContentUseCase importContentUseCase(ContentSource contentSource,
                                               TopicRepository topicRepository,
                                               ModuleRepository moduleRepository,
-                                              QuestionRepository questionRepository) {
-        return new ImportContentUseCase(contentSource, topicRepository, moduleRepository, questionRepository);
+                                              QuestionRepository questionRepository, GenerateQuestionOptionsUseCase options) {
+        return new ImportContentUseCase(contentSource, topicRepository, moduleRepository, questionRepository, options);
     }
 
     @Bean
@@ -93,8 +102,8 @@ public class UseCaseConfig {
 
     @Bean
     GetQuestionDetailUseCase getQuestionDetailUseCase(QuestionRepository questionRepository,
-                                                     ModuleRepository moduleRepository) {
-        return new GetQuestionDetailUseCase(questionRepository, moduleRepository);
+                                                     ModuleRepository moduleRepository, QuestionOptionRepository options) {
+        return new GetQuestionDetailUseCase(questionRepository, moduleRepository, options);
     }
 
     @Bean
@@ -109,6 +118,24 @@ public class UseCaseConfig {
                                             ModuleRepository moduleRepository) {
         return new CatalogQueryUseCase(topicRepository, moduleRepository);
     }
+
+    @Bean GenerateQuestionOptionsUseCase generateQuestionOptionsUseCase(ModuleRepository m, QuestionRepository q, QuestionOptionRepository o) {return new GenerateQuestionOptionsUseCase(m,q,o);}
+    @Bean Map<QuizStrategy, QuizGenerationStrategy> quizStrategies(QuestionRepository q, ModuleRepository m, StudyAttemptRepository a, SRSCardRepository s, Clock c) {
+        var pool=new QuizCandidatePool(q,m);
+        return Map.of(QuizStrategy.RANDOM,new RandomQuizStrategy(pool),QuizStrategy.WEAKNESS,new WeaknessQuizStrategy(pool,a),QuizStrategy.INTERVIEW,new InterviewQuizStrategy(pool),QuizStrategy.SPACED,new SpacedQuizStrategy(pool,s,c));
+    }
+    /**
+     * `ThreadLocalRandom.current()` **cố ý** ở đây: mỗi lần gọi, JDK trả về generator của thread đang
+     * chạy, nên bean singleton này vẫn random trên từng request thread. Thay bằng
+     * `RandomGenerator.getDefault()` sẽ là **regression**: nó trả một instance chia sẻ, và dù hợp đồng
+     * `RandomGenerator` không hứa thread-safe, JDK hiện dùng `L32X64MixRandom` với state không đồng bộ
+     * → nhiều request đồng thời có thể nhận cùng seed (đo được: 4 thread × 20k lần chỉ ra 1/1000 giá
+     * trị). Với quiz thì "random" sẽ trùng lặp giữa các user.
+     */
+    @Bean GenerateQuizUseCase generateQuizUseCase(QuestionRepository q, QuestionOptionRepository o, QuizSessionRepository s, Map<QuizStrategy, QuizGenerationStrategy> strategies, Clock c){return new GenerateQuizUseCase(q,o,s,strategies,java.util.concurrent.ThreadLocalRandom.current(),c);}
+    @Bean SubmitQuizUseCase submitQuizUseCase(QuizSessionRepository s, QuestionRepository q, QuestionOptionRepository o, StudyAttemptRepository a, DistributedLockPort l, Clock c){return new SubmitQuizUseCase(s,q,o,a,l,c);}
+    @Bean QueryQuizUseCase queryQuizUseCase(QuizSessionRepository s, QuestionRepository q, QuestionOptionRepository o){return new QueryQuizUseCase(s,q,o);}
+    @Bean MockInterviewUseCase mockInterviewUseCase(InterviewSessionRepository s, QuestionRepository q, ModuleRepository m, TopicRepository t, Clock c){return new MockInterviewUseCase(s,q,m,t,c);}
 
     // ------------------------------------------------------------------ learning / SRS (m5)
 

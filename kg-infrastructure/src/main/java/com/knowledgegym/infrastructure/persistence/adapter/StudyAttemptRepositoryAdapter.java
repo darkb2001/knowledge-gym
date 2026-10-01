@@ -33,6 +33,14 @@ public class StudyAttemptRepositoryAdapter implements StudyAttemptRepository {
         return toDomain(springData.save(entity));
     }
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+    @Override
+    @SuppressWarnings("unchecked")
+    public java.util.List<UUID> findWrongQuestionIdsByUser(UUID userId) {
+        return entityManager.createNativeQuery("SELECT question_id FROM study_attempts WHERE user_id=:user AND is_correct=false GROUP BY question_id ORDER BY count(*) DESC, question_id", UUID.class).setParameter("user",userId).getResultList();
+    }
+
     static StudyAttempt toDomain(StudyAttemptJpaEntity entity) {
         StudyAttempt attempt = StudyAttempt.record(
                 entity.getUserId(), entity.getQuestionId(),

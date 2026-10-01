@@ -30,6 +30,7 @@ import java.util.UUID;
  */
 public class ImportContentUseCase {
 
+    private GenerateQuestionOptionsUseCase generateOptions;
     private final ContentSource contentSource;
     private final TopicRepository topicRepository;
     private final ModuleRepository moduleRepository;
@@ -45,6 +46,9 @@ public class ImportContentUseCase {
         this.questionRepository = questionRepository;
     }
 
+    public ImportContentUseCase(ContentSource c, TopicRepository t, ModuleRepository m, QuestionRepository q, GenerateQuestionOptionsUseCase o) {
+        this(c,t,m,q);generateOptions=o;
+    }
     public record ImportResult(int topics, int modules, int questions, int deleted,
                                List<String> orphanModuleSlugs) {}
 
@@ -94,6 +98,7 @@ public class ImportContentUseCase {
             deleted += questionRepository.deleteAbsentSortOrders(entry.getKey(), entry.getValue());
         }
 
+        if(generateOptions != null) generateOptions.execute();
         return new ImportResult(topicIdsBySlug.size(), moduleIdsBySlug.size(), written, deleted,
                 List.copyOf(orphans));
     }

@@ -78,6 +78,7 @@ final class LearningTestSupport {
         public PageResult<Question> search(QuestionQuery query) {
             List<Question> matched = store.values().stream()
                     .filter(q -> query.moduleId() == null || query.moduleId().equals(q.getModuleId()))
+                    .filter(q -> query.difficulty() == null || query.difficulty() == q.getDifficulty())
                     .sorted(Comparator.comparingInt(Question::getSortOrder))
                     .toList();
             int from = (int) Math.min(query.offset(), matched.size());
@@ -244,6 +245,9 @@ final class LearningTestSupport {
     }
 
     static final class InMemoryStudyAttemptRepository implements StudyAttemptRepository {
+        public List<UUID> findWrongQuestionIdsByUser(UUID userId) {
+            return store.stream().filter(a -> a.getUserId().equals(userId) && !a.isCorrect()).map(StudyAttempt::getQuestionId).distinct().toList();
+        }
 
         final List<StudyAttempt> store = new ArrayList<>();
 

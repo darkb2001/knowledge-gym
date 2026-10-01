@@ -41,6 +41,10 @@ public class InterviewAnswerJpaEntity {
     @Column(name = "attempted_at", nullable = false, updatable = false)
     private Instant attemptedAt;
 
+    /** Thứ tự câu trong phiên (V017). NULL với row tạo trước V017 hoặc không qua đường assign. */
+    @Column(name = "display_order")
+    private Integer displayOrder;
+
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
     public UUID getSessionId() { return sessionId; }
@@ -59,4 +63,6 @@ public class InterviewAnswerJpaEntity {
     public void setSampleAnswer(String sampleAnswer) { this.sampleAnswer = sampleAnswer; }
     public Instant getAttemptedAt() { return attemptedAt; }
     public void setAttemptedAt(Instant attemptedAt) { this.attemptedAt = attemptedAt; }
+    public Integer getDisplayOrder() { return displayOrder; }
+    public void setDisplayOrder(Integer displayOrder) { this.displayOrder = displayOrder; }
 }

@@ -1,5 +1,6 @@
 package com.knowledgegym.presentation.rest.content;
 
+import com.knowledgegym.content.application.GenerateQuestionOptionsUseCase;
 import com.knowledgegym.content.application.ManageQuestionsUseCase;
 import com.knowledgegym.content.domain.model.Question;
 import com.knowledgegym.content.domain.port.ContentImportJob;
@@ -44,13 +45,20 @@ import java.util.UUID;
 public class AdminContentController {
 
     private final ContentImportJob importJob;
+    private final GenerateQuestionOptionsUseCase options;
     private final ManageQuestionsUseCase manageQuestionsUseCase;
 
     public AdminContentController(ContentImportJob importJob,
-                                  ManageQuestionsUseCase manageQuestionsUseCase) {
+                                  ManageQuestionsUseCase manageQuestionsUseCase,
+                                  GenerateQuestionOptionsUseCase options) {
+        this.options = options;
         this.importJob = importJob;
         this.manageQuestionsUseCase = manageQuestionsUseCase;
     }
+
+    @PostMapping("/questions/generate-options")
+    @CacheEvict(value="questions", allEntries=true)
+    public com.knowledgegym.content.application.GenerateQuestionOptionsUseCase.Result generateOptions(){return options.execute();}
 
     public record ImportSubmission(UUID jobId, String status) {}
 
@@ -104,7 +112,8 @@ public class AdminContentController {
         Question created = manageQuestionsUseCase.create(new ManageQuestionsUseCase.CreateCommand(
                 request.moduleId(), request.title(), request.answerHtml(),
                 parseDifficulty(request.difficulty()), request.tags(), request.sortOrder()));
-        return AdminQuestionDTO.from(created, List.of());
+        // Câu mới cần option để vào được pool quiz — cùng lý do import sinh option ngay sau khi ghi.
+        return AdminQuestionDTO.from(created, options.generateFor(created.getModuleId(), created.getId()));
     }
 
     /** Override độ khó/chỉnh sửa thủ công — ghi đè difficulty mặc định từ import. */
@@ -114,7 +123,9 @@ public class AdminContentController {
                                    @Valid @RequestBody QuestionUpdateRequest request) {
         Question updated = manageQuestionsUseCase.update(id, new ManageQuestionsUseCase.UpdateCommand(
                 request.title(), request.answerHtml(), parseDifficulty(request.difficulty()), request.tags()));
-        return AdminQuestionDTO.from(updated, List.of());
+        // Sửa `answer_html` đổi đáp án đúng, nên option phải sinh lại; nội dung không đổi thì
+        // `replaceOptions` giữ nguyên IDs (không phá answer của quiz cũ).
+        return AdminQuestionDTO.from(updated, options.generateFor(updated.getModuleId(), updated.getId()));
     }
 
     @DeleteMapping("/questions/{id}")

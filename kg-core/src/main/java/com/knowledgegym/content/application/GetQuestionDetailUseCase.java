@@ -13,13 +13,14 @@ import java.util.UUID;
 /**
  * Chi tiết 1 câu hỏi cho `GET /questions/{id}`.
  *
- * m4a luôn trả `options` rỗng: đáp án quiz do m6 sinh (xem `## Deferred sang m5+` trong plan).
+ * m6 trả options đã sinh lúc import/backfill.
  * Điểm quan trọng là DTO public **không có** cờ đáp án đúng, nên rỗng cũng không lộ gì.
  */
 public class GetQuestionDetailUseCase {
 
     private final QuestionRepository questionRepository;
     private final ModuleRepository moduleRepository;
+    private com.knowledgegym.content.domain.port.QuestionOptionRepository options;
 
     public GetQuestionDetailUseCase(QuestionRepository questionRepository,
                                     ModuleRepository moduleRepository) {
@@ -27,6 +28,9 @@ public class GetQuestionDetailUseCase {
         this.moduleRepository = moduleRepository;
     }
 
+    public GetQuestionDetailUseCase(QuestionRepository q, ModuleRepository m, com.knowledgegym.content.domain.port.QuestionOptionRepository o) {
+        this(q,m); this.options=o;
+    }
     public record QuestionDetail(Question question, String moduleSlug, List<QuestionOption> options) {}
 
     public QuestionDetail execute(UUID id) {
@@ -35,6 +39,6 @@ public class GetQuestionDetailUseCase {
         String moduleSlug = moduleRepository.findById(question.getModuleId())
                 .map(ModuleRef::getSlug)
                 .orElse(null);
-        return new QuestionDetail(question, moduleSlug, List.of());
+        return new QuestionDetail(question, moduleSlug, options == null ? List.of() : options.findByQuestionId(id));
     }
 }

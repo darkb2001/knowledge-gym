@@ -225,6 +225,8 @@ function QuestionsBrowser() {
         </p>
       ) : null}
 
+      <Link href="/mock-interview" className="mb-6 mr-4 inline-flex rounded-sm border border-ink-600 px-4 py-2 text-sm">Mock Interview →</Link>
+      {moduleId ? <Link href={`/quiz/${encodeURIComponent(moduleId)}`} className="mb-6 mr-4 inline-flex rounded-sm border border-ember-400 px-4 py-2 text-sm text-ember-400">Làm quiz module này →</Link> : null}
       {moduleId ? (
         <Link
           href={`/flashcard/${encodeURIComponent(moduleId)}`}

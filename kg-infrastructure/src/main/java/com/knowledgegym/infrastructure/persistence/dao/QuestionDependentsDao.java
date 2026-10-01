@@ -24,10 +24,9 @@ import java.util.stream.Collectors;
  * `{1,2,3}` rồi cast `int[]`: bind một `Collection` vào native query phụ thuộc hành vi mở rộng
  * tham số của Hibernate, còn literal thì không (đúng cách `QuestionRepositoryAdapter` xử lý `tags`).
  *
- * <p><b>Bảo trì:</b> khi thêm bảng mới tham chiếu `questions(id)` mà không `ON DELETE CASCADE`
- * (V013 có `quiz_answers`, `interview_answers`, `daily_challenge_assignments` — hiện chưa phase
- * nào ghi row), phải bổ sung vào đây, nếu không re-import lại nổ FK. Không xoá sẵn các bảng đó
- * bây giờ vì "xoá lịch sử quiz/phỏng vấn" là quyết định nghiệp vụ thuộc phase sở hữu chúng.
+ * <p>m6 xoá toàn bộ quiz session chứa câu bị xoá để score/total/membership không lệch nhau.
+ * Interview chỉ xoá answer; session giữ nguyên và điểm đã chốt là lịch sử tại thời điểm finish.
+ * Daily assignment cũng được dọn để re-import không bị chặn bởi FK.
  */
 @Component
 public class QuestionDependentsDao {
@@ -48,32 +47,19 @@ public class QuestionDependentsDao {
                         + "AND sort_order <> ALL(cast(:keepSortOrders as int[]))";
         String keepLiteral = wholeModule ? null : toPgIntArrayLiteral(keepSortOrders);
 
-        // study_attempts trước srs_cards: không bắt buộc về FK (cả hai trỏ tới questions, không trỏ
-        // nhau), nhưng giữ thứ tự này để log/lock nhất quán giữa hai bảng.
-        Query attempts = entityManager.createNativeQuery(
-                "DELETE FROM study_attempts WHERE question_id IN (" + doomed + ")");
-        Query cards = entityManager.createNativeQuery(
-                "DELETE FROM srs_cards WHERE question_id IN (" + doomed + ")");
-        for (Query query : new Query[]{attempts, cards}) {
-            query.setParameter("moduleId", moduleId);
-            if (keepLiteral != null) {
-                query.setParameter("keepSortOrders", keepLiteral);
-            }
+        for (String table : new String[]{"quiz_sessions", "interview_answers", "daily_challenge_assignments", "study_attempts", "srs_cards"}) {
+            String sql = table.equals("quiz_sessions")
+                ? "DELETE FROM quiz_sessions WHERE id IN (SELECT session_id FROM quiz_session_questions WHERE question_id IN (" + doomed + "))"
+                : "DELETE FROM " + table + " WHERE question_id IN (" + doomed + ")";
+            Query query = entityManager.createNativeQuery(sql).setParameter("moduleId", moduleId);
+            if (keepLiteral != null) query.setParameter("keepSortOrders", keepLiteral);
+            query.executeUpdate();
         }
-        attempts.executeUpdate();
-        cards.executeUpdate();
     }
-
-    /** Xoá thẻ SRS + attempt của một câu hỏi cụ thể (admin xoá thủ công). */
     public void deleteForQuestion(UUID questionId) {
-        Query attempts = entityManager.createNativeQuery(
-                "DELETE FROM study_attempts WHERE question_id = :questionId");
-        Query cards = entityManager.createNativeQuery(
-                "DELETE FROM srs_cards WHERE question_id = :questionId");
-        attempts.setParameter("questionId", questionId);
-        cards.setParameter("questionId", questionId);
-        attempts.executeUpdate();
-        cards.executeUpdate();
+        entityManager.createNativeQuery("DELETE FROM quiz_sessions WHERE id IN (SELECT session_id FROM quiz_session_questions WHERE question_id=:id)").setParameter("id", questionId).executeUpdate();
+        for (String table : new String[]{"interview_answers", "daily_challenge_assignments", "study_attempts", "srs_cards"})
+            entityManager.createNativeQuery("DELETE FROM " + table + " WHERE question_id=:id").setParameter("id",questionId).executeUpdate();
     }
 
     /** Mảng PostgreSQL dạng literal `{1,2,3}`; phần tử là `int` nên chỉ cần lọc ký tự số và dấu `-`. */

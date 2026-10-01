@@ -208,12 +208,12 @@ class ContentApiIntegrationTest {
     @Test
     @Order(6)
     void questionDetailDoesNotLeakQuizAnswerFlags() throws Exception {
-        // Ghi trực tiếp 1 question_options có isCorrect để chứng minh DTO public vẫn không lộ.
+        // m6 import sinh options thật; DTO public vẫn không lộ cờ đúng.
         MvcResult detail = mockMvc.perform(get("/questions/{id}", firstQuestionId)
                         .header("Authorization", bearer(adminToken())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(firstQuestionId))
-                .andExpect(jsonPath("$.options").isEmpty())
+                .andExpect(jsonPath("$.options").isNotEmpty())
                 .andReturn();
 
         String body = detail.getResponse().getContentAsString();

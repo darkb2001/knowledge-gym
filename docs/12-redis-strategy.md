@@ -152,24 +152,16 @@ TTL 48h để cover múi giờ khác nhau.
 
 | Pattern | Value | TTL | Command |
 |---|---|---|---|
-| `lock:quiz:{sessionId}:{userId}` | UUID (owner) | 30s | SET NX EX / Lua compare-and-delete |
+| `lock:quiz:{sessionId}:{userId}` | UUID owner token | 10s | SET NX / Lua compare-and-delete |
 
-**Purpose:** Tránh double-submit quiz khi user click 2 lần (debounce distributed).
+`RedisLockAdapter` dùng `StringRedisTemplate`: set-if-absent với TTL và nhả lock bằng Lua chỉ khi
+token còn khớp. Redis lỗi → **fail-open**, kể cả nhả lock lỗi cũng không che lỗi gốc của submit.
 
-```java
-// Redisson hoặc Lettuce manual
-String lockKey = "lock:quiz:" + sessionId + ":" + userId;
-String ownerId = UUID.randomUUID().toString();
-boolean acquired = redis.set(lockKey, ownerId, SetArgs.Builder.nx().ex(30));
-if (!acquired) throw new QuizAlreadySubmittedException();
-
-try {
-    return quizUseCase.submit(sessionId, userId, answers);
-} finally {
-    // Lua script compare-and-delete (tránh xóa nhầm lock của request khác)
-    redis.eval(UNLOCK_SCRIPT, List.of(lockKey), List.of(ownerId));
-}
-```
+Lock chỉ giảm request bấm đúp, không giữ tính đúng đắn. Transaction submit khoá row session bằng
+`SELECT ... FOR UPDATE` (scope user), kiểm tra `finished_at`, insert answers bằng
+`ON CONFLICT (session_id, question_id) DO NOTHING` trên UK V016, cập nhật kết quả và ghi PRACTICE
+trong cùng transaction. Request thứ hai → 409, không ghi thêm attempt. Nhả Redis trước commit
+vẫn an toàn vì DB row lock giữ đến commit. Test M6 dừng Redis và submit đồng thời để chứng minh.
 
 ### 10. Distributed Lock — AI Writer Run (mini-phase 10)
 

@@ -9,7 +9,7 @@
 >
 > **Trạng thái:** m4 (m4a backend + m4b frontend) đã ship. m4a: content parser + REST + cache + Swagger + RBAC.
 > m4b: Next.js 14 frontend (auth + question browser). **m5 đã ship:** SRS + SM-2 + FlashcardDeck
-> (`/srs/enroll` dual-mode, `/srs/due`, `/srs/review/{cardId}` + FE flip card). Các nhóm Quiz / Mock Interview /
+> (`/srs/enroll` dual-mode, `/srs/due`, `/srs/review/{cardId}` + FE flip card). **m6 đã triển khai:** Quiz + Mock Interview TEXT (backend + frontend).
 > Code Challenge / Notes / Blog / Agent / Dashboard / Notification / Export / WebSocket là **phase sau** — giữ ở đây làm thiết kế, **chưa** implement.
 
 ---
@@ -192,39 +192,72 @@ không gửi thì lưu `NULL` (analytics phân biệt "không đo" với "0 ms")
 Mỗi lần review ghi thêm 1 row `study_attempts`: `source = 'FLASHCARD'`,
 `is_correct = (quality >= 2)`, `answer = NULL`.
 
-## Quiz Endpoints
+## Quiz Endpoints (m6a + m6b)
 
+```text
+POST /quiz/generate → 201
+Body: { moduleId, count (1..50), strategy, difficulty? }
+strategy: RANDOM | WEAKNESS | INTERVIEW | SPACED
+Response: { id, strategy, score, total, startedAt, finishedAt,
+            questions: [{ questionId, title, options: [{ id, content }] }], timeLimit }
+
+POST /quiz/{id}/submit → 200
+Body: { answers: [{ questionId, selectedOptionId?, timeMs? }] }
+Response: { sessionId, score, correctCount, total,
+            breakdown: [{ questionId, correct, selectedOptionId, correctOptionId }] }
+
+GET /quiz/{id} → cùng shape với generate, chỉ chủ sở hữu
+GET /quiz/history?page=1&size=20 → { items, page, size, totalElements, totalPages }
+items: [{ id, strategy, score, total, startedAt, finishedAt }]
+POST /admin/content/questions/generate-options → { questions, eligible, options }
 ```
-POST   /quiz/generate           Generate quiz
-       Body:    { moduleId, count, strategy, difficulty }
-       strategy: "RANDOM" | "WEAKNESS" | "INTERVIEW" | "SPACED"
-       Returns: Quiz { id, questions[], timeLimit }
 
-POST   /quiz/{id}/submit        Submit quiz answers
-       Body:    { answers: [{ questionId, selectedOptionId, text? }] }
-       Returns: QuizResult { score, correctCount, breakdown[] }
+- Options được sinh tự động khi import **và khi admin tạo/sửa câu hỏi**; endpoint backfill chỉ
+  ADMIN, evict cache questions. Chạy lại với cùng nội dung giữ nguyên option IDs. Options public
+  không chứa cờ đúng.
+- `count` là trần; session có thể ít câu hơn nếu pool chưa đủ MCQ. Pool rỗng → 409.
+  WEAKNESS ưu tiên câu từng sai, INTERVIEW ưu tiên MID/SENIOR; SPACED **chỉ** lấy thẻ đến hạn.
+- `timeLimit = số câu thực tế × 60` giây, **FE-only**. Không có cột time limit hoặc server deadline;
+  timer browser tự nộp khi hết giờ, không phải cơ chế chống gian lận.
+- `score = round(correctCount / total × 100)`. Bỏ trống tính sai; có thể gửi `answers: []`.
+  Mỗi câu của session vẫn có 1 `quiz_answers` và 1 `study_attempts(PRACTICE)` với score 0/100.
+- Chặn null element, trùng questionId, câu ngoài phiên và option thuộc câu khác → 400.
+  Mọi thao tác get/submit scope user lấy từ JWT; phiên người khác → 404.
+- Submit chốt phiên cùng transaction với PRACTICE. Lần hai → 409; row lock + DB UK bảo vệ khi
+  Redis chết. Redis chỉ debounce fail-open, xem `12-redis-strategy.md` §9.
+- Xoá câu hỏi qua admin/re-import xoá toàn bộ quiz session chứa câu đó, tránh score/total lệch.
+- Phân trang 1-based, size 1..100. FE route `/quiz/[moduleId]` có timer, progress, breakdown,
+  lịch sử và error/empty state; entry tại question browser khi chọn module.
 
-GET    /quiz/{id}               Get quiz detail
+## Mock Interview Endpoints (m6c)
 
-GET    /quiz/history            Get quiz history
-       Query:   ?page=&size=
+```text
+POST /mock-interview/start → 201
+Body: { topicId, questionCount (1..20), mode: "TEXT" }
+Response: { session: { id, userId, topicId, questionCount, mode, status,
+                      overallScore, startedAt, finishedAt, questionIds },
+            questions: [{ questionId, title }] }
+
+POST /mock-interview/{id}/answer → 200
+Body: { questionId, userAnswer }
+Response: { sessionId, questionId, userAnswer, keywordScore, feedback, sampleAnswer, attemptedAt }
+
+POST /mock-interview/{id}/finish → 200, session với status=FINISHED
+GET /mock-interview/history?page=1&size=20 → { items, page, size, totalElements, totalPages }
 ```
 
-## Mock Interview Endpoints
-
-```
-POST   /mock-interview/start    Start session
-       Body:    { topicId, questionCount, mode: "TEXT" | "AUDIO" }
-       Returns: Session { id, questions[], timeLimit }
-
-POST   /mock-interview/{id}/answer  Submit answer
-       Body:    { questionId, answerText }
-       Returns: GradingResult { score, feedback, sampleAnswer }
-
-POST   /mock-interview/{id}/finish  Finish and get report
-
-GET    /mock-interview/history  Get past mock interviews
-```
+TEXT-only; AUDIO → 400. userAnswer phải có nội dung, tối đa 20.000 ký tự.
+Câu hỏi chọn qua topic → modules → questions; số thực tế có thể thấp hơn questionCount.
+Tập câu được giao persist thành placeholder `interview_answers` có `keyword_score=NULL`:
+không thêm bảng membership thứ hai. Answer chỉ chấp nhận câu được giao và upsert theo
+UK `(session_id, question_id)`, đúng 1 row/câu; cột DB là `user_answer`.
+Keyword grader thuần Java so khớp từ nguyên vẹn, chuẩn hoá hoa/thường và dấu tiếng Việt.
+Finish lấy trung bình **chỉ answer đã nộp** (`keyword_score IS NOT NULL`), không answer → 0.
+Row lock serialize answer/finish; phiên đã FINISHED → 409, phiên user khác → 404.
+`questionIds` trong session giữ **đúng thứ tự đã giao** (`interview_answers.display_order`, V017).
+Response đi qua DTO (`rest/interview/dto`) nên không lộ trường nội bộ của domain.
+Xoá câu dọn answer nhưng giữ interview session (và điểm đã chốt); FK topic giữ nguyên.
+FE `/mock-interview` có text editor, chấm từ khóa, sửa answer, sample answer, finish và lịch sử.
 
 ## Code Challenge Endpoints
 
@@ -351,13 +384,19 @@ POST   /admin/content/questions    Create question (ADMIN) (m4a)
                 `uk_questions_module_sort` là backstop dưới race); 404 nếu moduleId không tồn tại
        Note:    sortOrder null → tự lấy nextSortOrder. difficulty null → mặc định MID.
                 answerHtml qua sanitizer (loại script/iframe/speak-notes; **giữ** flow-diagram).
+                Option của câu này được sinh ngay sau khi ghi, nên `options` trong response là dữ
+                liệu thật (≥2 option, đúng 1 `isCorrect`) chứ không phải mảng rỗng.
+                Câu anh em trong module **không** bị sinh lại — tránh đổi option ID của quiz cũ.
 
 PATCH  /admin/content/questions/{id}   Update question (ADMIN) (m4a)
        Body:    { title?, answerHtml?, difficulty?, tags? }  (field null = giữ nguyên)
        Returns: 200 AdminQuestionDTO
        Errors:  404 nếu id không tồn tại
        Note:    KHÔNG đổi được `sortOrder` (không có field này trong update request).
-                Khi đổi title/answer/tags → tính lại `searchKeywords` (searchable_text)
+                Khi đổi title/answer/tags → tính lại `searchKeywords` (searchable_text).
+                Option của câu này được sinh lại; nội dung option không đổi thì giữ nguyên ID. Nội
+                dung đổi → option ID mới, `quiz_answers.selected_option_id` cũ thành NULL nhưng
+                `answer_text` (snapshot lúc submit) vẫn giữ lựa chọn của user.
 
 DELETE /admin/content/questions/{id}   Delete question (ADMIN) (m4a)
        Returns: 204  — 404 nếu id không tồn tại

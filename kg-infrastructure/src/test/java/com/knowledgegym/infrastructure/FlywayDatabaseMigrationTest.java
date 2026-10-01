@@ -19,10 +19,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Runs on CI (ubuntu-latest has Docker) and locally when Docker daemon is up.
  *
  * Success criteria:
- * - Flyway migrate sạch 15 migration (V001–V013 ở m2, V014–V015 ở m4a)
- * - Đúng 32 bảng trong schema public (loại flyway_schema_history)
+ * - Flyway migrate sạch 17 migration (V001–V013 ở m2, V014–V015 ở m4a, V016 ở m6a, V017 ở m6c)
+ * - Đúng 33 bảng trong schema public (loại flyway_schema_history)
  * - 1 materialized view: user_topic_mastery
  * - m4a: unique index `uk_questions_module_sort` + cột `questions.searchable_text` + trigger tsvector
+ * - m6a (V016): bảng `quiz_session_questions` + UK `(session_id, question_id)` trên
+ *   `quiz_answers`/`interview_answers` — hàng rào chống double-submit ở DB, không phụ thuộc Redis
+ * - m6c (V017): `interview_answers.display_order` giữ thứ tự câu đã giao
  */
 @Testcontainers
 class FlywayDatabaseMigrationTest {
@@ -45,10 +48,42 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldMigrateAllFifteenMigrations() throws Exception {
+    void shouldMigrateAllSeventeenMigrations() throws Exception {
         query("SELECT count(*) FROM flyway_schema_history WHERE success = true", rs -> {
-            assertEquals(15, rs.getInt(1),
-                    "Expected 15 successful Flyway migrations (V001–V015)");
+            assertEquals(17, rs.getInt(1),
+                    "Expected 17 successful Flyway migrations (V001–V017)");
+        });
+    }
+
+    @Test
+    void shouldRequireDisplayOrderOnInterviewAnswers() throws Exception {
+        query("SELECT is_nullable FROM information_schema.columns " +
+                "WHERE table_schema = 'public' AND table_name = 'interview_answers' " +
+                "AND column_name = 'display_order'", rs -> {
+            assertEquals("NO", rs.getString(1), "interview_answers.display_order phải NOT NULL (V017)");
+        });
+    }
+
+    @Test
+    void shouldCreateQuizSessionQuestionsAndSessionQuestionUniqueConstraints() throws Exception {
+        query("SELECT count(*) FROM information_schema.tables " +
+                "WHERE table_schema = 'public' AND table_name = 'quiz_session_questions'", rs -> {
+            assertEquals(1, rs.getInt(1), "quiz_session_questions must exist (V016)");
+        });
+        for (String constraint : new String[]{
+                "uk_quiz_answers_session_question", "uk_interview_answers_session_question"}) {
+            query("SELECT count(*) FROM pg_constraint WHERE conname = '" + constraint + "'", rs -> {
+                assertEquals(1, rs.getInt(1), constraint + " must exist (V016)");
+            });
+        }
+    }
+
+    @Test
+    void shouldCascadeDeleteQuizSessionQuestionsWhenQuestionDeleted() throws Exception {
+        // `ON DELETE CASCADE` thay cho `NO ACTION` của V013: re-import xoá câu không được nổ FK.
+        query("SELECT confdeltype FROM pg_constraint " +
+                "WHERE conname = 'quiz_session_questions_question_id_fkey'", rs -> {
+            assertEquals("c", rs.getString(1), "question_id FK phải là ON DELETE CASCADE (V016)");
         });
     }
 
@@ -78,12 +113,12 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldCreateExactly32Tables() throws Exception {
+    void shouldCreateExactly33Tables() throws Exception {
         query("SELECT count(*) FROM information_schema.tables " +
                 "WHERE table_schema = 'public' AND table_type = 'BASE TABLE' " +
                 "AND table_name != 'flyway_schema_history'", rs -> {
-            assertEquals(32, rs.getInt(1),
-                    "Expected exactly 32 tables excluding flyway_schema_history");
+            assertEquals(33, rs.getInt(1),
+                    "Expected exactly 33 tables excluding flyway_schema_history");
         });
     }
 

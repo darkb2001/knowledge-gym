@@ -22,7 +22,7 @@
 | **Reserved enum** | `users.role` có `PREMIUM`, `users.auth_provider` có `GITHUB` — khai báo sẵn trong CHECK, **chưa dùng** ở MVP. |
 | **OAuth columns** | `auth_provider` (`LOCAL`/`GOOGLE`/`GITHUB`) + `oauth_id` (NULL khi LOCAL). **Không** có cột `oauth_provider` (trùng nghĩa). UK partial: `(auth_provider, oauth_id) WHERE oauth_id IS NOT NULL`. |
 
-## Bảng tra cứu — 32 bảng × migration
+## Bảng tra cứu — 33 bảng × migration (32 từ m2 + 1 từ m6)
 
 ### Identity (6 bảng)
 
@@ -44,7 +44,7 @@
 | `questions` | **V003** | `id PK`, **V014** `UK (module_id, sort_order)` | `tags TEXT[] + GIN`, `search_vector tsvector + GIN` (ES fallback), `hints JSONB` nullable, `version INT` cho `@Version`. **V014** thêm `uk_questions_module_sort` = natural key cho upsert idempotent. **V015** thêm `searchable_text TEXT` + trigger `trg_questions_search` populate `search_vector` |
 | `question_options` | **V003** | `id PK` | FK → `questions`, multiple-choice |
 
-### Learning (13 bảng)
+### Learning (14 bảng)
 
 | Bảng | Migration | PK / UK | Ghi chú |
 |---|---|---|---|
@@ -56,9 +56,10 @@
 | `challenge_test_cases` | **V012** | `id PK` | FK → `challenges`, `is_hidden` cho hidden test |
 | `code_submissions` | **V012** | `id PK` | FK → **`challenges`** (không phải `questions`), `viewed_solution_at` |
 | `quiz_sessions` | **V013** | `id PK` | `strategy (RANDOM/WEAKNESS/INTERVIEW/SPACED)` |
-| `quiz_answers` | **V013** | `id PK` | `selected_option_id` FK NULL + `answer_text` (hỗ trợ cả MCQ và text) |
+| `quiz_session_questions` | **V016** | `PK (session_id, question_id)` | Ordered membership, cả 2 FK CASCADE |
+| `quiz_answers` | **V013**, **V016** | `id PK`, `UK (session_id, question_id)` | `selected_option_id` FK NULL (`ON DELETE SET NULL`) + `answer_text` = snapshot nội dung option đã chọn, giữ được lựa chọn của user khi option bị sinh lại |
 | `interview_sessions` | **V013** | `id PK` | `mode (TEXT/AUDIO)`, `status (ACTIVE/FINISHED)`, `overall_score` |
-| `interview_answers` | **V013** | `id PK` | Tách khỏi session (1 session → N câu). `audio_url` cho speech mode |
+| `interview_answers` | **V013**, **V016**, **V017** | `id PK`, `UK (session_id, question_id)`, `display_order NOT NULL` | Hai vai trò trên cùng bảng: placeholder membership (`keyword_score NULL`, `display_order` = thứ tự giao câu) và row kết quả sau khi chấm. `audio_url` cho speech mode |
 | `notifications` | **V013** | `id PK` | `metadata JSONB` chứa entity refs (vd. `questionId`) |
 | `daily_challenge_assignments` | **V013** | `id PK`, `UK (user_id, challenge_date)` | `status (PENDING/COMPLETED/SKIPPED)` — nút "Skip hôm nay" |
 
@@ -103,13 +104,49 @@ V013__create_quiz_interview.sql      quiz_sessions, quiz_answers, interview_sess
                                      daily_challenge_assignments                            (6)
 V014__content_import_support.sql     topics.display_order + UK questions(module_id, sort_order) (0)
 V015__questions_fulltext_search.sql  questions.searchable_text + tsvector trigger + GIN     (0)
+V016__quiz_interview_integrity.sql   quiz_session_questions + UK/index quiz/interview       (1)
+V017__interview_answer_order.sql     interview_answers.display_order                        (0)
                                                                             ────────────────────
-                                                                            TOTAL:        32 bảng
+                                                                            TOTAL:        33 bảng
 ```
 
-**Kiểm tra:** 3+2+2+4+1+4+4+2+0+0+1+3+6+0+0 = **32** ✓ — không bảng nào thiếu migration, không migration nào trùng số.
+**Kiểm tra:** 3+2+2+4+1+4+4+2+0+0+1+3+6+0+0+1 = **33** ✓ — không bảng nào thiếu migration, không migration nào trùng số.
 
-> **V014–V015 là migration m4 (content import + full-text search)** — chỉ `ALTER TABLE` / tạo index / trigger, **không** tạo bảng mới, nên tổng số bảng vẫn là 32.
+> **V014–V015 (m4) và V017 (m6c)** chỉ `ALTER TABLE` / tạo index / trigger, **không** tạo bảng mới — chỉ V016 thêm bảng thứ 33.
+
+### V016 — Quiz/interview integrity (m6)
+
+Thêm bảng thứ 33: `quiz_session_questions(session_id, question_id, display_order)`.
+PK `(session_id, question_id)`, FK session CASCADE và question CASCADE; index question_id.
+
+UK `(session_id, question_id)` cho `quiz_answers` và `interview_answers`; index history
+`quiz_sessions(user_id, started_at DESC)`, `interview_sessions(user_id, started_at DESC)`,
+`interview_sessions(user_id, status)` và `quiz_answers(session_id)`.
+
+### V017 — Thứ tự câu phỏng vấn (m6c)
+
+`interview_answers.display_order INT NOT NULL` + index `(session_id)`: placeholder giao câu được
+insert trong cùng transaction nên `attempted_at` bằng nhau — không có cột này thì `ORDER BY
+attempted_at, id` trả về thứ tự UUID ngẫu nhiên thay vì thứ tự đã giao.
+Flyway hiện có 17 migration / 33 bảng. DDL chuẩn là V016 + V017 trong kg-infrastructure.
+
+`interview_answers` mang vai trò kép: placeholder membership (`keyword_score` NULL, `display_order`
+theo thứ tự giao) và row kết quả sau khi chấm. `answer()` upsert nội dung chấm, **không** đụng
+`display_order`; xoá câu thì xoá row, session giữ nguyên.
+
+```mermaid
+erDiagram
+    quiz_sessions ||--|{ quiz_session_questions : assigns
+    questions ||--o{ quiz_session_questions : included
+    quiz_sessions ||--o{ quiz_answers : records
+    question_options ||--o{ quiz_answers : selects
+    interview_sessions ||--o{ interview_answers : assigns_and_grades
+    questions ||--o{ interview_answers : answers
+```
+
+Quiz membership tách riêng khỏi answers. Interview membership tái dùng answer placeholder
+(`keyword_score=NULL`), grading upsert row đó; finish bỏ qua placeholder chưa nộp.
+Xoá câu qua QuestionDependentsDao xoá quiz session liên quan và interview answer, giữ interview session.
 
 ### V014 — Content import support (m4)
 

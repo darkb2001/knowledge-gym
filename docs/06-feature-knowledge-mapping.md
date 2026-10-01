@@ -243,6 +243,9 @@ Queue thẻ đến hạn **không** giữ in-memory (teaching snippet cũ dùng 
 | DTO mapping | **Adapter** | Entity ↔ DTO mappers |
 
 ```java
+// Teaching example only — KHÔNG phải contract production.
+// m6: QuizGenerationStrategy.rank() ở application/strategy; Map<QuizStrategy,...>
+// wiring tại UseCaseConfig, shuffle thuần Java tại domain/service/RandomOrder.
 // Strategy pattern cho quiz
 @Component
 @Qualifier("random")
