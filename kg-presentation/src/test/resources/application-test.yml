@@ -18,6 +18,10 @@ spring:
 # JWT secrets + cookie flags cho test (không cần env vars)
 app:
   security:
+    # Test khẳng định swagger reachable khi được bật (ContentApiIntegrationTest), mà
+    # SecurityConfig chỉ permitAll /v3/api-docs/** khi cờ này true. Base để false vì
+    # prod không lộ API docs, nên test phải tự bật.
+    swagger-enabled: true
     jwt:
       access-secret: test-access-secret-minimum-32-characters-for-jwt
       refresh-secret: test-refresh-secret-minimum-32-characters-for-jwt
