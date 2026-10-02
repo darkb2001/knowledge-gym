@@ -58,7 +58,9 @@ class AuthIntegrationTest {
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("spring.data.redis.host", REDIS::getHost);
         registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
-        registry.add("server.forward-headers-strategy", () -> "native");
+        // MockMvc cannot install Tomcat's native RemoteIpValve; use the framework
+        // equivalent here while production uses the native strategy in application-prod.yml.
+        registry.add("server.forward-headers-strategy", () -> "framework");
     }
 
     @Autowired MockMvc mockMvc;
@@ -75,6 +77,7 @@ class AuthIntegrationTest {
     @Test
     void oauth_redirect_uses_forwarded_https_host_and_context_path() throws Exception {
         mockMvc.perform(get("/oauth2/authorization/google")
+                        .contextPath("/api/v1")
                         .header("X-Forwarded-Proto", "https")
                         .header("Host", "api.darkb-tech.io.vn")
                         .header("X-Forwarded-Host", "api.darkb-tech.io.vn"))
