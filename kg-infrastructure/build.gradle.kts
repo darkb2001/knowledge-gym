@@ -34,6 +34,8 @@ dependencies {
     implementation(libs.resilience4j.spring.boot3)
     implementation(libs.bucket4j.core)
     implementation(libs.caffeine)
+    implementation(libs.aws.s3)
+    implementation(libs.aws.auth)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)

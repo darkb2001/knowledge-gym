@@ -1,0 +1,40 @@
+groups:
+  - name: knowledge-gym
+    rules:
+      - alert: KnowledgeGymAppDown
+        expr: up{job="knowledge-gym"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Knowledge Gym API scrape is down
+      - alert: KnowledgeGymHighJvmHeap
+        expr: >-
+          (jvm_memory_used_bytes{area="heap"} /
+          jvm_memory_max_bytes{area="heap"}) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: JVM heap usage is above 85% for 10 minutes
+      - alert: KnowledgeGymHighHttp5xxRate
+        expr: >-
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) /
+          clamp_min(
+            sum(rate(http_server_requests_seconds_count[5m])), 0.001
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: More than 5% of HTTP requests are failing with 5xx
+      - alert: KnowledgeGymPrometheusRemoteSamplesDiscarded
+        expr: >-
+          grafanacloud_instance_samples_discarded_per_second{
+          reason="per_user_series_limit"} > 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: >-
+            Grafana Cloud is discarding samples due to its active-series limit

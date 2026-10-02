@@ -62,7 +62,9 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/blog/posts", "/blog/posts/**", "/blog/feed.rss").permitAll()
                     .requestMatchers("/auth/register", "/auth/login", "/auth/forgot-password",
                                      "/auth/reset-password", "/auth/refresh", "/auth/logout").permitAll()
-                    .requestMatchers("/login/**", "/oauth2/**").permitAll();
+                    .requestMatchers("/login/**", "/oauth2/**").permitAll()
+                    // Internal cron endpoints authenticate with their own shared token.
+                    .requestMatchers(HttpMethod.POST, "/internal/**").permitAll();
                 if (swaggerEnabled) {
                     auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
                 }

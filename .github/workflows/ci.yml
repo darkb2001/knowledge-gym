@@ -83,3 +83,32 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  image-security:
+    needs: publish-image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      # GHCR package mặc định là private → không login thì Trivy pull sẽ 401 và
+      # job đỏ vĩnh viễn, không phải vì có CVE. `packages: read` ở trên là phần
+      # quyền tương ứng cho GITHUB_TOKEN.
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Scan published image with Trivy
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:latest
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL
+          scanners: vuln

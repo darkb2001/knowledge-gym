@@ -168,6 +168,10 @@ services:
       - "9090:9090"
     volumes:
       - ./infra/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # `infra/prometheus.yml` khai báo `rule_files: /etc/prometheus/alerts.yml`.
+      # Thiếu mount này Prometheus fail lúc load config ("no such file or directory")
+      # chứ không chỉ bỏ qua rules — dev compose phải mount cùng path với prod.
+      - ./infra/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
       - promdata:/prometheus
     depends_on:
       - app
@@ -180,6 +184,9 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-admin}
     volumes:
       - grafanadata:/var/lib/grafana
+      # Provisioning giống prod để datasource/dashboard hỏng ở dev là thấy ngay.
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
 

@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: Knowledge Gym
+    orgId: 1
+    folder: Knowledge Gym
+    type: file
+    disableDeletion: true
+    editable: false
+    options:
+      path: /var/lib/grafana/dashboards

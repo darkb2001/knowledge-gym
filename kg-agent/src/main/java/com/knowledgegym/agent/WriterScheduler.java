@@ -27,13 +27,15 @@ public class WriterScheduler {
     private final int tokenLimit;
     private final double costLimit;
     private final boolean apiKeyConfigured;
+    private final String cronMode;
 
     public WriterScheduler(BlogScheduleSettingsPort settings, BlogWriterRepository writerRepository,
                            GenerateBlogUseCase generate,
                            @Value("${app.blog.writer.daily-request-limit:20}") int requestLimit,
                            @Value("${app.blog.writer.daily-token-limit:80000}") int tokenLimit,
                            @Value("${app.blog.writer.daily-cost-limit-usd:10}") double costLimit,
-                           @Value("${app.blog.writer.api-key:}") String apiKey) {
+                           @Value("${app.blog.writer.api-key:}") String apiKey,
+                           @Value("${app.cron.mode:embedded}") String cronMode) {
         this.settings = settings;
         this.writerRepository = writerRepository;
         this.generate = generate;
@@ -41,6 +43,7 @@ public class WriterScheduler {
         this.tokenLimit = tokenLimit;
         this.costLimit = costLimit;
         this.apiKeyConfigured = apiKey != null && !apiKey.isBlank();
+        this.cronMode = cronMode;
     }
 
     @Scheduled(fixedDelayString = "${app.blog.writer.poll-ms:30000}",
@@ -49,6 +52,9 @@ public class WriterScheduler {
         if (!apiKeyConfigured) return;
         settings.reclaimStaleGenerating(Duration.ofMinutes(15));
         var config = settings.current();
+        // Stale GENERATING reclamation above is internal housekeeping and must keep
+        // running in external mode; only the externally-triggered writer job is gated.
+        if ("external".equalsIgnoreCase(cronMode)) return;
         var now = ZonedDateTime.now(config.timezone());
         LocalDate today = now.toLocalDate();
         if (config.enabled() && !now.toLocalTime().isBefore(config.localTime())

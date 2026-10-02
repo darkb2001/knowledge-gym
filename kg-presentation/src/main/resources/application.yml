@@ -54,6 +54,9 @@ spring:
 
 app:
   version: ${APP_VERSION:0.4.0}
+  cron:
+    mode: ${APP_CRON_MODE:embedded}
+    token: ${CRON_TOKEN:}
   progress:
     timezone: ${APP_PROGRESS_TIMEZONE:Asia/Ho_Chi_Minh}
   blog:
@@ -82,12 +85,14 @@ app:
     from: no-reply@knowledgegym.dev
   content:
     # `docs/` nằm ngoài git root của repo (knowledge-gym/) — CI không có.
-    # Local dev: ../docs. Container: mount volume + CONTENT_DOCS_PATH=/content/docs.
+    # Local dev: ../docs. Container: mount volume + CONTENT_DOCS_PATH
+    # is mounted as /content/docs in the container.
     docs-path: ${CONTENT_DOCS_PATH:../docs}
     parse-parallelism: ${CONTENT_PARSE_PARALLELISM:4}
   cache:
     questions:
-      # L1 Caffeine — nội dung tĩnh, đọc nhiều. Mutation của admin evict toàn bộ.
+      # L1 Caffeine — nội dung tĩnh, đọc nhiều.
+      # Mutation của admin evict toàn bộ.
       max-size: 1000
       ttl: 30m
   security:
@@ -103,6 +108,18 @@ app:
       allowed-origins: ${CORS_ALLOWED_ORIGINS:}
     oauth2:
       success-redirect-uri: ${OAUTH2_SUCCESS_REDIRECT:}
+
+storage:
+  s3:
+    enabled: ${STORAGE_S3_ENABLED:false}
+    endpoint: ${S3_ENDPOINT:http://localhost:3900}
+    # Hostname mà browser gọi được, dùng để KÝ presigned URL. Trong Compose đây
+    # phải là hostname public (S3_PUBLIC_ENDPOINT), không phải `garage:3900` —
+    # ký bằng DNS nội bộ thì client không resolve được và upload fail im lặng.
+    public-endpoint: ${S3_PUBLIC_ENDPOINT:}
+    region: ${S3_REGION:garage}
+    access-key: ${S3_ACCESS_KEY:}
+    secret-key: ${S3_SECRET_KEY:}
 
 resilience4j:
   circuitbreaker:
@@ -147,5 +164,6 @@ server:
   port: 8080
   servlet:
     # Khớp docs/08-rest-api.md + infra/nginx.conf (`location /api/v1/auth/`).
-    # AuthController mapping vẫn là `/auth/*`; context-path được thêm ở tầng servlet.
+    # AuthController mapping vẫn là `/auth/*`;
+    # context-path được thêm ở tầng servlet.
     context-path: /api/v1
