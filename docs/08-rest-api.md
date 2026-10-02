@@ -7,9 +7,7 @@
 > **ADR-002:** single-tenant — **không** có field/param `tenant`. Enum strategy/status = **UPPERCASE**.  
 > Schema: `07-erd.md` + DDL `07-erd-ddl.sql`. Bookmark = `notes.note_type = BOOKMARK`.
 >
-> **Trạng thái:** m4 (m4a backend + m4b frontend), m5 (SRS + SM-2 + FlashcardDeck), m6 (Quiz + Mock Interview TEXT),
-> và m7 (progress + radar/heatmap/streak/XP/leaderboard) đã triển khai. Code Challenge / Notes / Blog / Agent /
-> Notification / Export / WebSocket là **phase sau** — giữ ở đây làm thiết kế, **chưa** implement.
+> **Trạng thái:** m4–m10 đã triển khai phần MVP tương ứng. Blog Collector/public blog (m9) và AI Writer queue, schedule, revisions/review (m10) hiện có; Hermes connector, social posting, notifications, PDF export và WebSocket vẫn deferred.
 
 ---
 
@@ -331,29 +329,26 @@ GET    /blog/feed.rss           RSS feed [m9]
 POST   /admin/blog/collect      Run due collectors (ADMIN) [m9]
 POST   /admin/blog/posts        Create sanitized manual draft (ADMIN) [m9]
 POST   /admin/blog/posts/{id}/publish Publish draft; writes outbox event (ADMIN) [m9]
+
+GET    /admin/blog/writer/settings Read schedule/publish policy and next run (ADMIN) [m10]
+PUT    /admin/blog/writer/settings Update enabled/timezone/daily limit/policy/threshold (ADMIN) [m10]
+POST   /admin/blog/writer/runs Enqueue a generation (ADMIN; requestId idempotency key) [m10]
+GET    /admin/blog/writer/runs/{id} Read queue status [m10]
+GET    /admin/blog/writer/stats Read daily/monthly usage and review/failure counts [m10]
+GET    /admin/blog/writer/review List REVIEW drafts [m10]
+GET    /admin/blog/writer/posts/{id} Read a private draft preview (ADMIN) [m10]
+GET    /admin/blog/writer/posts/{id}/revisions Read immutable revision history [m10]
+POST   /admin/blog/writer/posts/{id}/revise Ask AI to revise a draft (ADMIN) [m10]
+PUT    /admin/blog/writer/posts/{id} Save a manual edit as a new revision (ADMIN) [m10]
+POST   /admin/blog/writer/posts/{id}/revisions/{version}/restore Restore content as a new revision (ADMIN) [m10]
+POST   /admin/blog/writer/posts/{id}/publish Explicitly approve and publish (ADMIN) [m10]
+POST   /admin/blog/writer/posts/{id}/reject Archive a review draft (ADMIN) [m10]
 ```
 
 ## Agent Endpoints (Admin)
 
 ```
-POST   /agent/collector/run     (superseded by /admin/blog/collect)
-       Returns: 202 { jobId }
-
-GET    /agent/collector/runs    Run history
-
-GET    /agent/collector/items   List collected items
-       Query:   ?sourceId=&category=&used=
-
-POST   /agent/writer/run         Trigger blog generation
-       Body:    { topicId, strategy }
-
-GET    /agent/writer/queue       Generation queue
-
-POST   /agent/writer/{postId}/approve    Approve (publish)
-
-POST   /agent/writer/{postId}/reject     Reject (with reason)
-
-GET    /agent/runs               List all agent runs
+Legacy `/agent/*` routes are design-only. Use `/admin/blog/collect` for M9 collection and `/admin/blog/writer/*` for M10 writing and review. The OpenAI key is configured on the backend and never sent to these API requests.
 ```
 
 ## Admin Endpoints

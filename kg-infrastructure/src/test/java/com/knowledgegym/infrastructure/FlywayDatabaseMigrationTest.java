@@ -22,8 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Runs on CI (ubuntu-latest has Docker) and locally when Docker daemon is up.
  *
  * Success criteria:
- * - Flyway migrate sạch 21 migration (V019/V020 notes search; V021 blog/outbox)
- * - Đúng 33 bảng trong schema public (loại flyway_schema_history)
+ * - Flyway migrate sạch 22 migration (V021 blog/outbox; V022 AI writer schedule/revisions)
+ * - Đúng 38 bảng trong schema public (loại flyway_schema_history)
  * - 1 materialized view: user_topic_mastery
  * - m4a: unique index `uk_questions_module_sort` + cột `questions.searchable_text` + trigger tsvector
  * - m6a (V016): bảng `quiz_session_questions` + UK `(session_id, question_id)` trên
@@ -51,10 +51,10 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldMigrateAllTwentyOneMigrations() throws Exception {
+    void shouldMigrateAllTwentyTwoMigrations() throws Exception {
         query("SELECT count(*) FROM flyway_schema_history WHERE success = true", rs -> {
-            assertEquals(21, rs.getInt(1),
-                    "Expected 21 successful Flyway migrations (V001–V021)");
+            assertEquals(22, rs.getInt(1),
+                    "Expected 22 successful Flyway migrations (V001–V022)");
         });
     }
 
@@ -130,12 +130,12 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldCreateExactly34Tables() throws Exception {
+    void shouldCreateExactly38Tables() throws Exception {
         query("SELECT count(*) FROM information_schema.tables " +
                 "WHERE table_schema = 'public' AND table_type = 'BASE TABLE' " +
                 "AND table_name != 'flyway_schema_history'", rs -> {
-            assertEquals(34, rs.getInt(1),
-                    "Expected exactly 34 tables excluding flyway_schema_history");
+            assertEquals(38, rs.getInt(1),
+                    "Expected exactly 38 tables excluding flyway_schema_history");
         });
     }
 
@@ -154,6 +154,15 @@ class FlywayDatabaseMigrationTest {
         query("SELECT count(*) FROM information_schema.columns WHERE table_schema='public' " +
                 "AND table_name='blog_posts' AND column_name='search_vector'", rs -> assertEquals(1, rs.getInt(1)));
         query("SELECT count(*) FROM collector_sources WHERE active", rs -> assertEquals(2, rs.getInt(1)));
+    }
+
+    @Test
+    void shouldCreatePersistentWriterSettingsAndRevisionHistory() throws Exception {
+        query("SELECT publish_policy || ':' || schedule_enabled::text FROM blog_writer_settings WHERE id", rs ->
+                assertEquals("MANUAL_REVIEW:false", rs.getString(1)));
+        query("SELECT count(*) FROM information_schema.tables WHERE table_schema='public' " +
+                "AND table_name IN ('blog_draft_revisions','blog_writer_audit')", rs -> assertEquals(2, rs.getInt(1)));
+        query("SELECT count(*) FROM pg_indexes WHERE schemaname='public' AND indexname='uk_blog_generation_idempotency'", rs -> assertEquals(1, rs.getInt(1)));
     }
 
     @Test

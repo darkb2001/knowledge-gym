@@ -1,20 +1,8 @@
-# Auto-Blog Engine — AI Agent viết blog hàng ngày
+# Auto-Blog Engine — AI Writer và blog tri thức
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Auto-Blog Pipeline                        │
-│                                                             │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌───────┐ │
-│  │ Content  │───▶│  AI      │───▶│ Review   │───▶│Publish│ │
-│  │ Selector │    │  Writer  │    │ Queue    │    │       │ │
-│  └──────────┘    └──────────┘    └──────────┘    └───────┘ │
-│       │               │               │               │     │
-│  Pick topic      Generate post    Human approve    RSS/SEO  │
-│  from DB         from knowledge   (optional)       Social   │
-└─────────────────────────────────────────────────────────────┘
-```
+M9 Collector → normalized PostgreSQL references → M10 topic/template selection → dedicated text model API → source-ID validation + HTML sanitization → immutable draft revisions → manual review or qualified auto-publish → M9 blog/search/RSS.
 
 **Implementation boundary:** collector and manual publishing are M9 and do not call an LLM. AI drafting starts in M10. The owner controls the daily schedule separately from the publish policy: manual mode provides a sanitized preview and iterative AI revision before explicit publish; qualified auto-publish mode publishes only when hard validation and the configured threshold pass, otherwise the draft goes to `REVIEW`. The user's Hermes Agent on Proxmox is an optional external admin/ops interface, not the writer itself. If connected, it uses typed commands through a private, authenticated application API; do not expose its general tool-enabled API to product requests or pass untrusted collected text as agent instructions.
 
@@ -22,7 +10,7 @@
 
 | Type | Tần suất | Mô tả |
 |------|----------|-------|
-| **Daily Deep Dive** | Hàng ngày | Mổ xẻ 1 câu hỏi phỏng vấn chi tiết |
+| **Daily Deep Dive** | Hàng ngày | Mổ xẻ một chủ đề dựa trên nguồn tri thức đã thu thập |
 | **Weekly Digest** | Hàng tuần | "Top 10 câu hỏi Java tuần này" |
 | **Comparison Post** | 2 lần/tuần | "HashMap vs ConcurrentHashMap" |
 | **Cheat Sheet** | Hàng tuần | "Spring Transaction Cheat Sheet" |
@@ -42,54 +30,17 @@
 
 ## AI Writer Pipeline
 
-```python
-class BlogWriterAgent:
-    def write_post(self, topic, reference_data, collected_items):
-        # 1. Gather context: knowledge base + internet + user notes
-        context = self.gather_context(topic, ...)
-        
-        # 2. Choose template
-        template = self.choose_template(topic, context)
-        
-        # 3. AI generate
-        draft = self.ai_generate(
-            model="gpt-4o-mini",
-            prompt=self.build_prompt(template, context),
-            max_tokens=4000,
-            temperature=0.7
-        )
-        
-        # 4. Enrich: code examples + Mermaid diagrams
-        draft = self.add_code_examples(draft, context.code_snippets)
-        draft = self.generate_mermaid_diagrams(draft)
-        
-        # 5. SEO optimization
-        draft = self.optimize_seo(draft, ...)
-        
-        # 6. Quality score
-        score = self.evaluate_quality(draft, criteria={
-            "accuracy", "readability", "originality",
-            "code_quality", "seo_score", "length"
-        })
-        
-        return Post(
-            status="published" if score > 85 else "review"
-        )
-```
+The model receives up to eight collected references as quoted, untrusted evidence. Private user notes are excluded. It returns structured fields and source IDs; the application rejects IDs outside the supplied set, strips model-created links, sanitizes HTML, and appends canonical source links itself. The quality score checks editorial signals and evidence coverage; it does not establish factual accuracy.
+
+`OPENAI_API_KEY` is read only by the backend provider adapter and is never returned to the browser. The adapter sends text-only Chat Completions requests with tools disabled. Resilience4j applies a circuit breaker, up to three attempts, and a global rate limiter. PostgreSQL reserves daily request/token/cost budgets before provider calls and records reported usage afterward. Configure the provider account's spending limit as a second cap.
+
+For a deployment, set `OPENAI_API_KEY` as an application secret and set `APP_BLOG_WRITER_ENABLED=true` to start the queue worker. The persisted schedule itself defaults off and the publication policy defaults to `MANUAL_REVIEW`. Without the key, the admin page reports the missing backend configuration and generation/revision requests are rejected; the queue worker also stays idle. The key must never be copied into browser environment variables.
 
 ## Scheduling (Cron)
 
 The times below are example defaults, not hard-coded schedules. In M10 the owner enables/disables the daily writer and selects local time/timezone in the admin UI; scheduled and manual runs enter the same idempotent queue. The publication policy is a separate setting: manual mode creates a previewable draft for iterative revision and approval; qualified auto-publish publishes only after validation and threshold checks, otherwise it enters review.
 
-```
-*/6 * * * *    Collector.run()         # Mỗi 6 giờ
-0 2 * * *      TopicSelector.select()  # 2 AM
-0 3 * * *      BlogWriter.write()      # 3 AM
-0 4 * * *      Publisher.publish()     # 4 AM
-0 5 * * 1      WeeklyDigest.generate() # 5 AM Monday
-0 6 * * *      SocialPoster.post()     # 6 AM
-0 7 * * *      EmailDigest.send()      # 7 AM
-```
+At the configured local time, M10 enqueues a daily idempotent run. `Generate now` enters the same queue and obeys the same budget. `MANUAL_REVIEW` (default) is independent from the scheduler toggle and provides a sanitized preview, manual edits, AI revisions, version compare/restore, explicit publish, and reject. `AUTO_PUBLISH_QUALIFIED` publishes only after hard checks and the configured threshold pass; otherwise the post remains in review. The app rereads policy after generation so a switch to manual prevents in-flight auto-publish.
 
 ## Blog UI
 
@@ -151,7 +102,8 @@ blog_generation_queue
 ├── writer_strategy (AUTO | TEMPLATE | CURATED)              ← viết kiểu gì
 ├── reference_items (JSONB)
 ├── status (QUEUED | GENERATING | DONE | FAILED)
-├── scheduled_for, error_message
+├── idempotency_key (unique), requested_by, attempts, retry_after
+├── scheduled_for, started_at, completed_at, generated_post_id, error_message
    ⚠ tokens_used / cost_usd KHÔNG ở đây — chỉ ở agent_runs
 
 agent_runs
@@ -161,22 +113,25 @@ agent_runs
 ├── started_at, finished_at
 ├── input_summary, output_summary, error_message
 ├── tokens_used, cost_usd     ← nguồn duy nhất cho AI cost
+
+blog_writer_settings           ← single-row persistent config (V022)
+├── schedule_enabled, local_time, timezone, daily_limit
+├── publish_policy (MANUAL_REVIEW | AUTO_PUBLISH_QUALIFIED), quality_threshold
+├── last_scheduled_date, last_run_at, updated_by, updated_at
+
+blog_draft_revisions           ← append-only versions (V022)
+├── post_id, version, title/body/excerpt, SEO metadata
+├── source_ids, instruction, model, quality_score, tokens_used, cost_usd, created_by
+
+blog_writer_audit              ← policy/settings change history (V022)
+blog_ai_budget_reservations    ← atomic daily request/token/cost caps (V022)
 ```
 
-**Lifecycle rõ ràng:** `blog_generation_queue.status` kết thúc ở `DONE`/`FAILED`.
-Vòng đời bài viết (review/publish) nằm trên `blog_posts.status`.
+**Lifecycle rõ ràng:** `blog_generation_queue.status` kết thúc ở `DONE`/`FAILED`; ba lỗi provider sẽ chuyển queue sang `FAILED`, còn transient failures được retry có backoff. Vòng đời bài viết (review/publish/reject-as-archived) nằm trên `blog_posts.status`. `agent_runs` ghi usage theo lần gọi; revision lưu lại cùng usage gắn với phiên bản bất biến.
 
-## Cost Optimization
+## Cost Tracking
 
-| Action | Model | Cost/bài |
-|--------|-------|----------|
-| Topic selection | Local logic | $0 |
-| Research enrichment | GPT-4o-mini | ~$0.02 |
-| Draft writing | GPT-4o-mini | ~$0.08 |
-| Quality review | Claude 3.5 Haiku | ~$0.01 |
-| Cover image | DALL-E 3 | ~$0.04 |
-| SEO optimization | GPT-4o-mini | ~$0.01 |
-| **Total/bài** | | **~$0.16** (~$5/tháng) |
+Usage and estimated provider cost are recorded per generation/revision in `agent_runs` and immutable revisions. The configurable defaults currently match the provider's published GPT-4o mini rates ([model page](https://developers.openai.com/api/docs/models/gpt-4o-mini)); update the environment values if the model or provider rates change.
 
 ## Agent Dashboard (Admin)
 

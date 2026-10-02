@@ -61,5 +61,8 @@ public final class BlogPostsUseCase {
         String safe = tag.trim().toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{N}-]", "");
         return safe.substring(0, Math.min(50, safe.length()));
     }
-    public interface HtmlSanitizer { String sanitize(String html); }
+    public interface HtmlSanitizer {
+        String sanitize(String html);
+        default String sanitizeGenerated(String html) { return sanitize(html); }
+    }
 }

@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * OpenAPI metadata + bearer auth scheme để "Authorize" trong Swagger UI gửi được JWT.
- * Chỉ tạo khi `app.security.swagger-enabled=true` (dev bật trong `application.yml`, prod tắt).
+ * Chỉ tạo khi `app.security.swagger-enabled=true` (dev bật trong `application-dev.yml`, prod tắt).
  * Default = false để khớp `SecurityConfig` — không permitAll `/v3/api-docs/**` khi chưa bật.
  */
 @Configuration
