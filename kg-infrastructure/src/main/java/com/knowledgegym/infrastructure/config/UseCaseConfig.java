@@ -158,6 +158,11 @@ public class UseCaseConfig {
     }
 
     @Bean
+    QueryMindmapUseCase queryMindmapUseCase(ModuleRepository modules, UserProgressRepository progress) {
+        return new QueryMindmapUseCase(modules, progress);
+    }
+
+    @Bean
     QueryHeatmapUseCase queryHeatmapUseCase(StudyAttemptAnalytics analytics, ZoneId progressTimezone, Clock clock) {
         return new QueryHeatmapUseCase(analytics, progressTimezone, clock);
     }
