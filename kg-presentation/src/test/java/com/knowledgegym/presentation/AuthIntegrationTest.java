@@ -83,7 +83,7 @@ class AuthIntegrationTest {
                         .header("X-Forwarded-Host", "api.darkb-tech.io.vn"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().string("Location", containsString(
-                        "redirect_uri=https%3A%2F%2Fapi.darkb-tech.io.vn%2Fapi%2Fv1%2Flogin%2Foauth2%2Fcode%2Fgoogle")));
+                        "redirect_uri=https://api.darkb-tech.io.vn/api/v1/login/oauth2/code/google")));
     }
 
     @Test
