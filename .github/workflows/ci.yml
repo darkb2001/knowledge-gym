@@ -114,9 +114,14 @@ jobs:
           scanners: vuln
 
   # Deploy prod bằng pull — KHÔNG build trên LXC 8GB.
+  # Cần GitHub Environment `production` secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY
+  # (optional DEPLOY_ROOT, mặc định /opt/knowledge-gym). Job skip nếu DEPLOY_HOST trống.
   deploy-prod:
     needs: image-security
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment:
       name: production
