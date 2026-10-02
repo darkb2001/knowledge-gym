@@ -2,16 +2,13 @@ package com.knowledgegym.infrastructure.search;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Conflicts;
-import co.elastic.clients.json.jackson.JacksonJsonpMapper;
-import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.knowledgegym.content.application.SearchText;
 import com.knowledgegym.search.domain.model.SearchDocument;
 import com.knowledgegym.search.domain.port.SearchIndexPort;
+import com.knowledgegym.search.domain.port.SearchModeSettingsPort;
 import com.knowledgegym.shared.domain.model.SearchHit;
 import java.util.List;
 import java.util.UUID;
-import org.apache.http.HttpHost;
-import org.elasticsearch.client.RestClient;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -43,16 +40,20 @@ class SearchIndexIntegrationTest {
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
             .withDatabaseName("search_test").withUsername("test").withPassword("test");
 
+    /**
+     * Image must stay on the same major as the elasticsearch-java client Spring Boot manages
+     * (9.x under Boot 4.1). The low-level RestClient path was removed from that client, so the
+     * cluster and the simplified {@code ElasticsearchClient.of} builder have to match.
+     */
     @Container
     static final ElasticsearchContainer ELASTICSEARCH =
-            new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.11.4")
+            new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:9.1.5")
                     .withEnv("xpack.security.enabled", "false")
                     .withEnv("discovery.type", "single-node")
                     .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m");
 
     static JdbcTemplate jdbc;
     static TransactionTemplate tx;
-    static RestClient restClient;
     static ElasticsearchClient client;
     static ElasticsearchSearchAdapter adapter;
     static JdbcSearchDocumentAdapter documents;
@@ -70,20 +71,38 @@ class SearchIndexIntegrationTest {
         jdbc = new JdbcTemplate(dataSource);
         tx = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
 
-        restClient = RestClient.builder(HttpHost.create(ELASTICSEARCH.getHttpHostAddress())).build();
-        client = new ElasticsearchClient(new RestClientTransport(restClient, new JacksonJsonpMapper()));
+        // ES 9 Java client: RestClient/HttpHost are gone; the simplified builder owns the transport.
+        String address = ELASTICSEARCH.getHttpHostAddress();
+        final String host = address.startsWith("http") ? address : "http://" + address;
+        client = ElasticsearchClient.of(b -> b.host(host));
         var initializer = new SearchIndexInitializer(client, jdbc, INDEX, false);
         initializer.initialise();
 
         adapter = new ElasticsearchSearchAdapter(client, initializer);
         documents = new JdbcSearchDocumentAdapter(jdbc);
-        relay = new SearchIndexRelay(jdbc, documents, adapter, tx);
+        relay = new SearchIndexRelay(jdbc, documents, adapter, tx, settings(SearchModeSettingsPort.Mode.ELASTICSEARCH));
+    }
+
+    /**
+     * The relay only consults {@code current()}, so a fixed stub is enough for every case but the
+     * gate test. Not a lambda: the port has two methods, so it is not a functional interface.
+     */
+    private static SearchModeSettingsPort settings(SearchModeSettingsPort.Mode mode) {
+        return new SearchModeSettingsPort() {
+            @Override public SearchModeSettingsPort.Settings current() {
+                return new SearchModeSettingsPort.Settings(mode, 0, java.time.Instant.EPOCH, null);
+            }
+            @Override public SearchModeSettingsPort.Settings update(SearchModeSettingsPort.Mode next,
+                                                                    long version, UUID actorId) {
+                throw new UnsupportedOperationException("test settings are read-only");
+            }
+        };
     }
 
     @AfterAll
     static void tearDown() throws Exception {
-        if (restClient != null) {
-            restClient.close();
+        if (client != null) {
+            client.close();
         }
     }
 
@@ -248,7 +267,7 @@ class SearchIndexIntegrationTest {
             @Override public void delete(java.util.Collection<SearchIndexPort.DocumentRef> refs) {
                 throw new IllegalStateException("cluster unavailable");
             }
-        }, tx);
+        }, tx, settings(SearchModeSettingsPort.Mode.ELASTICSEARCH));
 
         failing.drain();
 
@@ -264,5 +283,30 @@ class SearchIndexIntegrationTest {
         relay.drain();
         assertEquals(0, jdbc.queryForObject(
                 "SELECT count(*) FROM search_outbox WHERE processed_at IS NULL", Integer.class));
+    }
+
+    /**
+     * The runtime switch must actually stop index traffic, not merely stop the read path. Rows stay
+     * pending on purpose: PostgreSQL mode is a pause, and coming back to AUTO drains the backlog.
+     */
+    @Test
+    void postgresModeLeavesRowsPendingAndNeverTouchesTheCluster() {
+        insertQuestion("Question about pausing", "<p>x</p>", "pausing");
+        SearchIndexRelay paused =
+                new SearchIndexRelay(jdbc, documents, adapter, tx, settings(SearchModeSettingsPort.Mode.POSTGRES));
+
+        paused.drain();
+
+        assertEquals(0, jdbc.queryForObject(
+                "SELECT count(*) FROM search_outbox WHERE processed_at IS NOT NULL", Integer.class),
+                "a paused relay must not mark rows processed");
+        assertTrue(adapter.search(userId, "pausing", 10).isEmpty(),
+                "nothing may reach the index while search is pinned to PostgreSQL");
+
+        // Flipping back to AUTO resumes draining rather than losing the backlog.
+        relay.drain();
+        assertEquals(0, jdbc.queryForObject(
+                "SELECT count(*) FROM search_outbox WHERE processed_at IS NULL", Integer.class),
+                "resuming must drain what accumulated during the pause");
     }
 }

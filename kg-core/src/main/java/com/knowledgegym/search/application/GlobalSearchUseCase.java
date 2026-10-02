@@ -1,5 +1,7 @@
 package com.knowledgegym.search.application;
 
+import com.knowledgegym.search.domain.port.SearchModeSettingsPort;
+import com.knowledgegym.search.domain.port.SearchModeSettingsPort.Mode;
 import com.knowledgegym.search.domain.port.SearchQueryPort;
 import com.knowledgegym.shared.domain.model.SearchHit;
 import java.util.List;
@@ -33,10 +35,27 @@ public class GlobalSearchUseCase {
 
     private final SearchQueryPort postgres;
     private final Optional<SearchQueryPort> index;
+    private final SearchModeSettingsPort settings;
 
+    /** Backward-compatible constructor for pure domain tests: ES is preferred when supplied. */
     public GlobalSearchUseCase(SearchQueryPort postgres, Optional<SearchQueryPort> index) {
+        this(postgres, index, new SearchModeSettingsPort() {
+            public SearchModeSettingsPort.Settings current() {
+                return new SearchModeSettingsPort.Settings(
+                        index.isPresent() ? Mode.ELASTICSEARCH : Mode.POSTGRES,
+                        0, java.time.Instant.EPOCH, null);
+            }
+            public SearchModeSettingsPort.Settings update(Mode mode, long version, UUID actorId) {
+                throw new UnsupportedOperationException("test settings are read-only");
+            }
+        });
+    }
+
+    public GlobalSearchUseCase(SearchQueryPort postgres, Optional<SearchQueryPort> index,
+                               SearchModeSettingsPort settings) {
         this.postgres = postgres;
         this.index = index;
+        this.settings = settings;
     }
 
     /**
@@ -50,7 +69,8 @@ public class GlobalSearchUseCase {
             return List.of();
         }
         String trimmed = query.trim();
-        if (index.isPresent()) {
+        Mode mode = settings.current().mode();
+        if (mode != Mode.POSTGRES && index.isPresent()) {
             try {
                 return index.get().search(userId, trimmed, LIMIT);
             } catch (RuntimeException unavailable) {

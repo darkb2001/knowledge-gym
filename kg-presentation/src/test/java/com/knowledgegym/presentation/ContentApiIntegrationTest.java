@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -347,16 +347,9 @@ class ContentApiIntegrationTest {
 
         var rawRest = new org.springframework.web.client.RestTemplate();
         // Mặc định RestTemplate ném exception khi 4xx — tắt để so sánh status code ở đây.
-        rawRest.setErrorHandler(new org.springframework.web.client.ResponseErrorHandler() {
-            @Override
-            public boolean hasError(org.springframework.http.client.ClientHttpResponse response) {
-                return false;
-            }
-
-            @Override
-            public void handleError(org.springframework.http.client.ClientHttpResponse response) {
-            }
-        });
+        // Spring Framework 7 bỏ `handleError(ClientHttpResponse)`; chỉ còn overload 3 tham số.
+        // `hasError=false` đủ để không bao giờ gọi handleError.
+        rawRest.setErrorHandler(response -> false);
 
         ResponseEntity<String> without = rawRest.getForEntity(
                 "http://localhost:" + localServerPort + "/actuator/health", String.class);

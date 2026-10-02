@@ -1,15 +1,24 @@
 [versions]
-spring-boot = "3.2.5"
-spring-dependency-management = "1.1.4"
-springdoc = "2.5.0"
+# Spring Boot 4.x — Spring Framework 7, Spring Security 7, Tomcat 11, Hibernate 7.
+# Nâng từ 3.2.5 vì 3.2.x không còn patch OSS và bản Tomcat 10.1.20 kèm theo có 7 CVE
+# CRITICAL chỉ đóng được ở 11.0.25+ (xem ghi chú `parsson` bên dưới).
+spring-boot = "4.1.1"
+spring-dependency-management = "1.1.7"
+# springdoc 3.x là dòng duy nhất hỗ trợ Boot 4 / Spring Framework 7.
+springdoc = "3.1.1"
 jjwt = "0.12.5"
 jsoup = "1.17.2"
 rome = "2.1.0"
-resilience4j = "2.2.0"
+# resilience4j 2.4.0 có artifact `spring-boot4`; `spring-boot3` không tương thích Boot 4.
+resilience4j = "2.4.0"
 bucket4j = "8.10.1"
-archunit = "1.2.1"
-junit = "5.10.2"
-testcontainers = "1.19.7"
+archunit = "1.5.1"
+junit = "6.0.3"
+# Testcontainers 2.x không chỉ đổi version mà ĐỔI TÊN artifact (xem [libraries]).
+testcontainers = "2.0.5"
+# Spring Boot không quản lý `parsson` (đến qua jakarta.json). Bản 1.0.0 mà Boot 3.x kéo về
+# dính CVE-2023-7272 (stack overflow khi parse input lồng sâu) — phải pin thủ công.
+parsson = "1.1.3"
 trivy = "0.50.4"
 aws-sdk = "2.25.60"
 
@@ -22,7 +31,9 @@ spring-boot-starter-mail = { module = "org.springframework.boot:spring-boot-star
 spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
 spring-boot-starter-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
 spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
-spring-boot-starter-aop = { module = "org.springframework.boot:spring-boot-starter-aop" }
+# Boot 4 đổi tên `spring-boot-starter-aop` -> `spring-boot-starter-aspectj`
+# (starter-aop dừng ở 4.0.0-M2, không có bản GA nào).
+spring-boot-starter-aop = { module = "org.springframework.boot:spring-boot-starter-aspectj" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 # version do Spring Boot BOM quản lý (không cần version.ref)
@@ -34,12 +45,31 @@ spring-security-test = { module = "org.springframework.security:spring-security-
 aws-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-sdk" }
 aws-auth = { module = "software.amazon.awssdk:auth", version.ref = "aws-sdk" }
 
+# Boot 4 dùng Jackson 3 (`tools.jackson`) làm mặc định cho HTTP, nhưng BOM của nó vẫn
+# quản lý Jackson 2 (`com.fasterxml.jackson:*` = 2.21.5) cho code cũ. Các module dùng
+# `com.fasterxml.jackson` phải khai báo `jackson-databind` tường minh (không cần version)
+# vì starter không còn kéo nó vào compile classpath nữa.
+
 postgresql = { module = "org.postgresql:postgresql" }
 h2 = { module = "com.h2database:h2" }
 
-# Spring Boot 3.2.5 BOM quản lý Flyway 9.x — PostgreSQL support nằm ngay trong flyway-core
-# (artifact flyway-database-postgresql chỉ tồn tại từ Flyway 10+)
+# Boot 4 kéo Flyway 12. Từ Flyway 10, hỗ trợ PostgreSQL nằm ở artifact riêng
+# `flyway-database-postgresql` — chỉ `flyway-core` là KHÔNG đủ và migrate sẽ fail lúc boot.
 flyway-core = { module = "org.flywaydb:flyway-core" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
+
+# Pin CVE-2023-7272: `parsson` đến transitively qua jakarta.json và Boot BOM không quản lý
+# nó, nên đây là chỗ duy nhất ép được version.
+parsson = { module = "org.eclipse.parsson:parsson", version.ref = "parsson" }
+
+# Boot 4 không còn kéo Jackson 2 (`com.fasterxml.jackson`) vào compile classpath — nó dùng
+# Jackson 3 (`tools.jackson`) cho HTTP message converter. Code đang parse JSON thủ công vẫn
+# dùng Jackson 2 API nên phải khai báo tường minh. Version do Boot BOM quản lý (2.21.5).
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+
+# Boot 4 tách MockMvc/TestRestTemplate ra khỏi spring-boot-starter-test vào
+# spring-boot-starter-webmvc-test (kéo AutoConfigureMockMvc + TestRestTemplate).
+spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }
 
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
@@ -48,7 +78,8 @@ jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 rome = { module = "com.rometools:rome", version.ref = "rome" }
 
-resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version.ref = "resilience4j" }
+# `spring-boot4`: artifact dành riêng cho Boot 4 (2.4.0 là bản đầu tiên có).
+resilience4j-spring-boot4 = { module = "io.github.resilience4j:resilience4j-spring-boot4", version.ref = "resilience4j" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version.ref = "bucket4j" }
 # bucket4j-redis: LettuceBasedProxyManager (lettuce provided-scope — spring-boot-starter-data-redis đã có lettuce-core)
 bucket4j-redis = { module = "com.bucket4j:bucket4j-redis", version.ref = "bucket4j" }
@@ -59,10 +90,15 @@ archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref
 
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+# Align Gradle's junit-platform-launcher with the JUnit BOM (JUnit 6 requires this;
+# an older launcher from Gradle fails discovery with OutputDirectoryCreator missing).
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 
-testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
-testcontainers-elasticsearch = { module = "org.testcontainers:elasticsearch", version.ref = "testcontainers" }
-testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+# Testcontainers 2.x: artifact được đổi tên có tiền tố `testcontainers-`
+# (`postgresql` -> `testcontainers-postgresql`).
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
+testcontainers-elasticsearch = { module = "org.testcontainers:testcontainers-elasticsearch", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

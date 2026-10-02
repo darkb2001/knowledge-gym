@@ -195,8 +195,15 @@ public class UseCaseConfig {
             @org.springframework.beans.factory.annotation.Qualifier("postgresSearchQuery")
             com.knowledgegym.search.domain.port.SearchQueryPort postgresSearch,
             @org.springframework.beans.factory.annotation.Qualifier("elasticsearchSearchQuery")
-            java.util.Optional<com.knowledgegym.search.domain.port.SearchQueryPort> searchIndex) {
-        return new com.knowledgegym.search.application.GlobalSearchUseCase(postgresSearch, searchIndex);
+            java.util.Optional<com.knowledgegym.search.domain.port.SearchQueryPort> searchIndex,
+            com.knowledgegym.search.domain.port.SearchModeSettingsPort searchSettings) {
+        return new com.knowledgegym.search.application.GlobalSearchUseCase(postgresSearch, searchIndex, searchSettings);
+    }
+
+    @Bean
+    com.knowledgegym.search.application.SearchModeUseCase searchModeUseCase(
+            com.knowledgegym.search.domain.port.SearchModeSettingsPort settings) {
+        return new com.knowledgegym.search.application.SearchModeUseCase(settings);
     }
 
     // ------------------------------------------------------------------ learning / SRS (m5)

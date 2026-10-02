@@ -15,6 +15,8 @@ dependencies {
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(platform(libs.junit.bom))
+    testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation("org.mockito:mockito-core") // test doubles for ports in application use-case tests
     testImplementation(libs.archunit.junit5)
     testImplementation("org.assertj:assertj-core") // version manage bởi Spring Boot BOM

@@ -4,6 +4,10 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
 }
 
+// Boot 4.1.1 BOM pins Tomcat 11.0.24; Trivy CRITICAL CVE-2026-65182 needs ≥11.0.25.
+// Spring Dependency Management reads this property before resolving the BOM.
+extra["tomcat.version"] = "11.0.26"
+
 dependencies {
     implementation(project(":kg-core"))
     implementation(project(":kg-infrastructure"))
@@ -21,7 +25,12 @@ dependencies {
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(platform(libs.junit.bom))
+    testRuntimeOnly(libs.junit.platform.launcher)
+    // Boot 4: MockMvc + TestRestTemplate live here, not in starter-test.
     testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.boot.starter.webmvc.test)
+    testImplementation(libs.jackson.databind)
     testImplementation(libs.spring.boot.starter.data.redis) // M7 leaderboard cache integration assertions
     testImplementation("org.springframework:spring-jdbc") // integration assertions against persisted quiz rows
     testImplementation(libs.spring.security.test)

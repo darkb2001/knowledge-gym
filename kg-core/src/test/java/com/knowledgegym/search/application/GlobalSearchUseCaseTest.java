@@ -1,5 +1,6 @@
 package com.knowledgegym.search.application;
 
+import com.knowledgegym.search.domain.port.SearchModeSettingsPort;
 import com.knowledgegym.search.domain.port.SearchQueryPort;
 import com.knowledgegym.shared.domain.model.SearchHit;
 import java.util.ArrayList;
@@ -30,8 +31,45 @@ class GlobalSearchUseCaseTest {
 
     /** Flag off is not an error path: the Postgres query is the original implementation. */
     @Test
+    void forcedPostgresModeDoesNotCallTheIndex() {
+        var useCase = new GlobalSearchUseCase(postgres, Optional.of(index), fixedMode(SearchModeSettingsPort.Mode.POSTGRES));
+
+        assertThat(useCase.search(user, "heap")).extracting(SearchHit::title).containsExactly("postgres");
+        assertThat(index.calls).isEmpty();
+    }
+
+    @Test
     void usesPostgresWhenTheIndexBeanIsAbsent() {
         var useCase = new GlobalSearchUseCase(postgres, Optional.empty());
+
+        assertThat(useCase.search(user, "heap")).extracting(SearchHit::title).containsExactly("postgres");
+    }
+
+    /** AUTO means "prefer the index, degrade to Postgres" — the default production posture. */
+    @Test
+    void autoModePrefersTheIndex() {
+        var useCase = new GlobalSearchUseCase(postgres, Optional.of(index), fixedMode(SearchModeSettingsPort.Mode.AUTO));
+
+        assertThat(useCase.search(user, "heap")).extracting(SearchHit::title).containsExactly("index");
+        assertThat(postgres.calls).isEmpty();
+    }
+
+    @Test
+    void autoModeFallsBackToPostgresWhenTheIndexFails() {
+        index.failure = new IllegalStateException("cluster unreachable");
+        var useCase = new GlobalSearchUseCase(postgres, Optional.of(index), fixedMode(SearchModeSettingsPort.Mode.AUTO));
+
+        assertThat(useCase.search(user, "heap")).extracting(SearchHit::title).containsExactly("postgres");
+    }
+
+    /**
+     * The mode and the bean can disagree: an operator can select ELASTICSEARCH while the capability
+     * flag is off, so no index bean exists. That must still answer, not NPE.
+     */
+    @Test
+    void elasticsearchModeWithoutAnIndexBeanFallsBackToPostgres() {
+        var useCase = new GlobalSearchUseCase(postgres, Optional.empty(),
+                fixedMode(SearchModeSettingsPort.Mode.ELASTICSEARCH));
 
         assertThat(useCase.search(user, "heap")).extracting(SearchHit::title).containsExactly("postgres");
     }
@@ -65,6 +103,17 @@ class GlobalSearchUseCaseTest {
         useCase.search(user, "  heap  ");
 
         assertThat(index.calls).containsExactly(new Call(user, "heap", 30));
+    }
+
+    private static SearchModeSettingsPort fixedMode(SearchModeSettingsPort.Mode mode) {
+        return new SearchModeSettingsPort() {
+            @Override public SearchModeSettingsPort.Settings current() {
+                return new SearchModeSettingsPort.Settings(mode, 0, java.time.Instant.EPOCH, null);
+            }
+            @Override public SearchModeSettingsPort.Settings update(SearchModeSettingsPort.Mode next, long version, UUID actorId) {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     private static SearchHit hit(String title) {

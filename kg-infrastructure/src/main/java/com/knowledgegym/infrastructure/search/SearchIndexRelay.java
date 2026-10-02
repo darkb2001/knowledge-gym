@@ -3,6 +3,7 @@ package com.knowledgegym.infrastructure.search;
 import com.knowledgegym.search.domain.model.SearchDocument;
 import com.knowledgegym.search.domain.port.SearchDocumentPort;
 import com.knowledgegym.search.domain.port.SearchIndexPort;
+import com.knowledgegym.search.domain.port.SearchModeSettingsPort;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,17 +52,33 @@ public class SearchIndexRelay {
     private final SearchDocumentPort documents;
     private final SearchIndexPort index;
     private final TransactionTemplate tx;
+    private final SearchModeSettingsPort settings;
 
+    /**
+     * Exactly one constructor, deliberately. This class is a {@code @Component} with no
+     * {@code @Autowired} annotation, so adding a second one — even a test convenience overload —
+     * stops Spring being able to choose and fails context startup. The integration test builds this
+     * class by hand and needs no overload; production gets {@code settings} injected.
+     *
+     * <p>The mode is read on every tick rather than cached, which is the point of the runtime
+     * switch: an operator can stop Elasticsearch from the admin UI and the relay stops calling it
+     * without a restart.
+     */
     public SearchIndexRelay(JdbcTemplate jdbc, SearchDocumentPort documents,
-                            SearchIndexPort index, TransactionTemplate tx) {
+                            SearchIndexPort index, TransactionTemplate tx,
+                            SearchModeSettingsPort settings) {
         this.jdbc = jdbc;
         this.documents = documents;
         this.index = index;
         this.tx = tx;
+        this.settings = settings;
     }
 
     @Scheduled(fixedDelayString = "${app.search.elasticsearch.poll-ms:5000}")
     public void drain() {
+        if (isServingFromPostgres()) {
+            return;
+        }
         List<Pending> claimed = claimBatch();
         if (claimed == null || claimed.isEmpty()) {
             return;
@@ -182,6 +199,28 @@ public class SearchIndexRelay {
             }
             return List.copyOf(newest.values());
         });
+    }
+
+    /**
+     * Whether the operator has pinned search to PostgreSQL, in which case this relay must not touch
+     * the cluster at all — the point of the switch is to be able to stop Elasticsearch without the
+     * app still hammering it.
+     *
+     * <p>Deliberately fails <b>open</b>: if the settings row cannot be read (missing row, migration
+     * not yet applied, transient DB error) the relay keeps draining. Failing closed would look safer
+     * but is the worse failure — the capture triggers keep writing regardless, so a relay that
+     * silently stops would grow {@code search_outbox} without bound while the index drifts, and
+     * nothing would surface it. Draining an index nobody is reading from is harmless; a stalled
+     * outbox is not.
+     */
+    private boolean isServingFromPostgres() {
+        try {
+            return settings.current().mode() == SearchModeSettingsPort.Mode.POSTGRES;
+        } catch (RuntimeException unreadable) {
+            log.warn("Search mode is unreadable; continuing to drain the index outbox: {}",
+                    unreadable.toString());
+            return false;
+        }
     }
 
     private void markProcessed(List<Pending> rows) {
