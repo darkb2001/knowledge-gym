@@ -36,10 +36,15 @@ dependencies {
     implementation(libs.caffeine)
     implementation(libs.aws.s3)
     implementation(libs.aws.auth)
+    // ES search. Optional at runtime: search falls back to PostgreSQL when the
+    // cluster is unreachable, so this dependency never becomes a hard startup
+    // requirement — see app.search.elasticsearch.enabled.
+    implementation(libs.spring.boot.starter.data.elasticsearch)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.elasticsearch)
     testImplementation(libs.testcontainers.junit.jupiter)
 }

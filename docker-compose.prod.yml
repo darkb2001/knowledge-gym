@@ -74,6 +74,11 @@ services:
       SPRING_REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+      # Index search (M11). ES đã nằm trong `depends_on: service_healthy` của app
+      # từ trước, nên bật biến này không thêm ràng buộc khởi động nào; nó chỉ định
+      # tuyến `GET /search` qua ES. Nếu ES chết, search tự fallback về tsvector
+      # (GlobalSearchUseCase) nên đây không phải đường làm sập API.
+      APP_SEARCH_ES_ENABLED: ${APP_SEARCH_ES_ENABLED:-true}
       APP_BLOG_COLLECTOR_ENABLED: ${APP_BLOG_COLLECTOR_ENABLED:-false}
       APP_BLOG_KAFKA_ENABLED: ${APP_BLOG_KAFKA_ENABLED:-true}
       APP_BLOG_WRITER_ENABLED: ${APP_BLOG_WRITER_ENABLED:-false}

@@ -39,6 +39,10 @@ services:
       APP_BLOG_WRITER_MONTHLY_COST_ALERT_USD: ${APP_BLOG_WRITER_MONTHLY_COST_ALERT_USD:-10}
       BLOG_CANONICAL_BASE_URL: ${BLOG_CANONICAL_BASE_URL:-http://localhost}
       SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+      # Bật index search thật. ES nằm sẵn trong `depends_on` của app từ trước, nên
+      # đây không tạo thêm ràng buộc khởi động; chỉ định tuyến `GET /search`
+      # qua ES thay vì tsvector.
+      APP_SEARCH_ES_ENABLED: "true"
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus,info
       S3_ENDPOINT: http://garage:3900
       S3_ACCESS_KEY: ${GARAGE_ACCESS_KEY:-kgadmin01}

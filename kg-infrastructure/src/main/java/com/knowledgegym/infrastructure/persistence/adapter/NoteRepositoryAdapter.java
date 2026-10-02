@@ -3,7 +3,6 @@ package com.knowledgegym.infrastructure.persistence.adapter;
 import com.knowledgegym.infrastructure.persistence.entity.NoteJpaEntity;
 import com.knowledgegym.infrastructure.persistence.repository.SpringDataNoteRepository;
 import com.knowledgegym.notes.domain.model.Note;
-import com.knowledgegym.notes.domain.model.SearchHit;
 import com.knowledgegym.notes.domain.port.NoteRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -84,26 +83,6 @@ public class NoteRepositoryAdapter implements NoteRepository {
         return jdbc.queryForObject(
                 "SELECT id FROM srs_cards WHERE user_id=? AND question_id=?",
                 UUID.class, userId, questionId);
-    }
-
-    @Override
-    public List<SearchHit> search(UUID userId, String query) {
-        String sql = "WITH ts AS (SELECT plainto_tsquery('simple', ?) q) "
-                + "SELECT type,id,title,excerpt FROM ("
-                + "SELECT 'question' type,id,title,left(title,240) excerpt,ts_rank(search_vector,ts.q) rank "
-                + "FROM questions,ts WHERE search_vector @@ ts.q "
-                + "UNION ALL SELECT 'note',id,coalesce(note_type,'Note'),left(coalesce(content,''),240),"
-                + "ts_rank(search_vector,ts.q) FROM notes,ts WHERE user_id=? AND search_vector @@ ts.q "
-                + "UNION ALL SELECT 'blog',id,title,left(coalesce(excerpt,''),240),ts_rank(search_vector,ts.q) "
-                + "FROM blog_posts,ts WHERE status='PUBLISHED' AND search_vector @@ ts.q"
-                + ") hits ORDER BY rank DESC LIMIT 30";
-        return jdbc.query(sql,
-                (rs, n) -> new SearchHit(
-                        rs.getString("type"),
-                        rs.getObject("id", UUID.class),
-                        rs.getString("title"),
-                        rs.getString("excerpt")),
-                query, userId);
     }
 
     private Note toDomain(NoteJpaEntity entity) {

@@ -1,7 +1,7 @@
 package com.knowledgegym.notes.application;
 
 import com.knowledgegym.notes.domain.model.Note;
-import com.knowledgegym.notes.domain.model.SearchHit;
+import com.knowledgegym.shared.domain.model.SearchHit;
 import com.knowledgegym.notes.domain.port.NoteRepository;
 import com.knowledgegym.shared.application.NotFoundException;
 import org.junit.jupiter.api.Test;
@@ -77,6 +77,5 @@ class NotesUseCaseTest {
         @Override public UUID upsertSrsCardFromNote(UUID userId, UUID questionId, UUID noteId) {
             return cards.computeIfAbsent(userId + ":" + questionId, key -> UUID.randomUUID());
         }
-        @Override public List<SearchHit> search(UUID userId, String query) { return List.of(); }
     }
 }

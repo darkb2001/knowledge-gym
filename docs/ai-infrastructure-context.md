@@ -90,6 +90,7 @@ Before go-live, verify host sysctl, create CT 102, install Docker and Compose, c
 - Redis has an explicit 128 MB cap; assess eviction and persistence needs against actual cache/session use.
 - Kafka is currently a single broker with replication factor 1. It has no redundancy if the node or volume fails.
 - Elasticsearch is single-node and its security is disabled in Compose. Treat that Compose setup as private-network/dev-oriented unless secured at the deployment layer.
+- Elasticsearch now backs global search (`GET /search`): a single non-dated index `knowledge-gym-search` fed by `search_outbox` (V023 triggers) through `SearchIndexRelay`, with automatic fallback to the PostgreSQL `tsvector` query when the cluster is unreachable. Retention is document-level (the outbox pruner); there is no ILM/rollover, so `scripts/es-retention.sh` (which deletes `knowledge-gym-YYYY.MM.DD` indices) is inert by design until rollover is adopted.
 - Garage is configured as a single node. It is not a replicated object-storage cluster in this Compose setup.
 - `CollectorScheduler` and blog writer scheduling run inside the Spring application when enabled. Avoid also scheduling equivalent work externally unless duplicate execution is made safe. AWS Lambda cron jobs shown in docs do not have corresponding handlers/endpoints in this repo.
 - Blog writer can call an external OpenAI API when enabled; include request/token budgets and API cost controls in capacity and operational planning.

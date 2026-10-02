@@ -133,13 +133,17 @@ POST   /questions/{id}/bookmark Toggle bookmark                        [phase sa
 ## Global Search
 
 ```
-GET    /search                  Global search (questions + caller's notes + published blogs) [m9]
+GET    /search                  Global search (questions + caller's notes + published blogs) [m9, ES m11]
        Query:   ?q=
-       Impl:    PostgreSQL tsvector on questions, caller-owned notes, and PUBLISHED blogs; ES deferred
-       Returns: { hits: [{ type, id, title, snippet, score }] }
+       Impl:    Elasticsearch index `knowledge-gym-search` (m11), fed from PostgreSQL via the
+                `search_outbox` triggers; falls back to the PostgreSQL tsvector query when the
+                index is unavailable or `app.search.elasticsearch.enabled=false`
+       Returns: JSON array of { type, id, title, excerpt }   (bare array, not an envelope)
 
-       Ghi chú: m4a mới chỉ có full-text search **trong** `GET /questions?q=` (PostgreSQL tsvector
-       trên bảng `questions` và `notes`). M8 triển khai PostgreSQL full-text; blog/ES deferred.
+       Ghi chú: hành vi trả về vẫn là mảng phẳng `[{type,id,title,excerpt}]` như m9 — bật ES chỉ
+       đổi backend xếp hạng, KHÔNG đổi shape. Index và truy vấn dùng CHUNG `SearchText`
+       (bỏ dấu + stopword + n-gram + synonym Việt–Anh); truy vấn không dấu vẫn khớp nội dung có dấu.
+       ES chỉ dùng để xếp hạng/scale, không đảm nhiệm ngôn ngữ học.
 ```
 
 ## SRS / Flashcard Endpoints

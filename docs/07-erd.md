@@ -17,7 +17,7 @@
 | **Counter cache** | `blog_posts.view_count` / `like_count` là **cache** — nguồn thật là `blog_views` / `blog_post_likes` (+ Redis buffer 5m). |
 | **XP / streak** | **`study_attempts` là nguồn gốc** (append-only, ghi trong cùng tx nghiệp vụ từ m5/m6). `users.xp` + `user_progress` (mastery/total/correct) là **read model ghi cùng tx với attempt** và **recompute được** từ `study_attempts`; tính đúng-một-lần đến từ **luật "lần đầu của câu" + advisory lock** (m7 P5), **không** từ tx boundary. `user_progress.streak_days` **m7 không ghi** (streak tính on-read). Redis (`lb:global`) chỉ là cache TTL 1h — flush xong rebuild phải ra cùng kết quả. |
 | **Attempt tables** | 3 bảng riêng có mục đích khác nhau — **không gộp**: `study_attempts` (flashcard/daily/practice), `quiz_answers` (trong quiz session), `interview_answers` (trong interview session). |
-| **Search** | Elasticsearch là chính. `search_vector tsvector + GIN` trên `questions`/`notes` là **fallback** khi de-scope ES (xem de-scope ladder). |
+| **Search** | Elasticsearch 8 (index `knowledge-gym-search`) là chính cho `GET /search`; `search_vector tsvector + GIN` trên `questions`/`notes`/`blog_posts` là fallback tự động khi ES lỗi/tắt (xem V023 + `GlobalSearchUseCase`). |
 | **Tags** | `TEXT[] + GIN index`. **Không** dùng junction table `question_tags`. |
 | **Reserved enum** | `users.role` có `PREMIUM`, `users.auth_provider` có `GITHUB` — khai báo sẵn trong CHECK, **chưa dùng** ở MVP. |
 | **OAuth columns** | `auth_provider` (`LOCAL`/`GOOGLE`/`GITHUB`) + `oauth_id` (NULL khi LOCAL). **Không** có cột `oauth_provider` (trùng nghĩa). UK partial: `(auth_provider, oauth_id) WHERE oauth_id IS NOT NULL`. |
@@ -41,7 +41,7 @@
 |---|---|---|---|
 | `topics` | **V002** | `id PK`, `slug UK` | `display_order INT` thêm ở **V014** (giữ thứ tự topic theo `nav-group` của `index.html`) |
 | `modules` | **V002** | `id PK`, `slug UK` | FK → `topics` |
-| `questions` | **V003** | `id PK`, **V014** `UK (module_id, sort_order)` | `tags TEXT[] + GIN`, `search_vector tsvector + GIN` (ES fallback), `hints JSONB` nullable, `version INT` cho `@Version`. **V014** thêm `uk_questions_module_sort` = natural key cho upsert idempotent. **V015** thêm `searchable_text TEXT` + trigger `trg_questions_search` populate `search_vector` |
+| `questions` | **V003** | `id PK`, **V014** `UK (module_id, sort_order)` | `tags TEXT[] + GIN`, `search_vector tsvector + GIN` (ES fallback), `hints JSONB` nullable, `version INT` cho `@Version`. **V014** thêm `uk_questions_module_sort` = natural key cho upsert idempotent. **V015** thêm `searchable_text TEXT` + trigger `trg_questions_search` populate `search_vector`; **V023** thêm trigger `trg_search_outbox_question` đẩy thay đổi vào `search_outbox` cho ES index |
 | `question_options` | **V003** | `id PK` | FK → `questions`, multiple-choice |
 
 ### Learning (14 bảng)

@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 # Delete date-suffixed Elasticsearch indices older than ES_RETENTION_DAYS.
 # Run from the LXC host/container with curl and an ES endpoint reachable.
+#
+# NOTE: this only matches indices named `<prefix>-YYYY.MM.DD`, i.e. a rollover
+# setup. The search index shipped in V023 is a single index
+# (`knowledge-gym-search`, see app.search.elasticsearch.index) with no date
+# suffix, so this script is a no-op for it by design — document retention there
+# is handled by deleting documents, not indices, plus the search_outbox pruner.
+# Wire this up only if index rollover is adopted later.
 set -euo pipefail
 
 ES_URL="${ES_URL:-http://localhost:9200}"

@@ -9,6 +9,9 @@ dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}"))
     compileOnly("org.springframework:spring-context")
     compileOnly("org.springframework:spring-tx")
+    // kg-core dùng Logger ở application layer (search fallback phải log được khi degrade).
+    // compileOnly vì runtime đã có qua spring-boot-starter-logging.
+    compileOnly("org.slf4j:slf4j-api")
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)

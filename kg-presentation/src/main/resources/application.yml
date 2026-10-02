@@ -31,6 +31,8 @@ spring:
       host: ${SPRING_REDIS_HOST:localhost}
       port: ${SPRING_REDIS_PORT:6379}
       timeout: 2000ms
+  elasticsearch:
+    uris: ${SPRING_ELASTICSEARCH_URIS:http://localhost:9200}
   mail:
     host: smtp.gmail.com
     port: 587
@@ -80,6 +82,23 @@ app:
       enabled: ${APP_BLOG_KAFKA_ENABLED:false}
     outbox:
       poll-ms: ${APP_BLOG_OUTBOX_POLL_MS:5000}
+  search:
+    elasticsearch:
+      # Mặc định TẮT. Khi tắt, `GET /search` chạy đúng câu tsvector cũ — hành vi
+      # không đổi so với trước khi có ES.
+      enabled: ${APP_SEARCH_ES_ENABLED:false}
+      index: ${APP_SEARCH_ES_INDEX:knowledge-gym-search}
+      poll-ms: ${APP_SEARCH_ES_POLL_MS:5000}
+      # Re-seed index từ bảng nguồn mỗi lần khởi động. Trigger chỉ bắt được write,
+      # nên content tạo lúc tính năng đang tắt sẽ thiếu vĩnh viễn nếu không làm.
+      # Upsert theo id nên idempotent; tắt chỉ khi chủ động muốn giữ index cũ.
+      reindex-on-startup: ${APP_SEARCH_ES_REINDEX_ON_STARTUP:true}
+    outbox:
+      # search_outbox là hàng đợi công việc có biên, KHÔNG phải nguồn sự thật.
+      # Row quá hạn bị xoá kể cả còn pending, vì index được dựng lại từ bảng
+      # nguồn khi khởi động. Không dọn thì khi ES tắt bảng phình vô hạn.
+      retention-days: ${APP_SEARCH_OUTBOX_RETENTION_DAYS:7}
+      prune-ms: ${APP_SEARCH_OUTBOX_PRUNE_MS:3600000}
   email:
     smtp-enabled: false
     from: no-reply@knowledgegym.dev
@@ -153,6 +172,12 @@ management:
       show-details: when_authorized
       probes:
         enabled: true
+  health:
+    elasticsearch:
+      # Tắt health indicator của ES. Search CHỦ Ý degrade sang PostgreSQL khi ES chết
+      # (xem GlobalSearchUseCase), nên ES down không phải là app unhealthy — để nguyên
+      # sẽ khiến /actuator/health trả DOWN và mọi probe/alert báo động sai.
+      enabled: ${APP_SEARCH_ES_HEALTH_ENABLED:false}
 
 logging:
   level:

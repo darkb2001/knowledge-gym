@@ -1,7 +1,6 @@
 package com.knowledgegym.notes.application;
 
 import com.knowledgegym.notes.domain.model.Note;
-import com.knowledgegym.notes.domain.model.SearchHit;
 import com.knowledgegym.notes.domain.port.NoteRepository;
 import com.knowledgegym.shared.application.NotFoundException;
 import com.knowledgegym.shared.domain.model.NoteType;
@@ -66,13 +65,6 @@ public class NotesUseCase {
 
     public List<Note> bookmarks(UUID userId) {
         return notes.findBookmarks(userId);
-    }
-
-    public List<SearchHit> search(UUID userId, String query) {
-        if (query == null || query.isBlank()) {
-            return List.of();
-        }
-        return notes.search(userId, query.trim());
     }
 
     public String exportMarkdown(UUID userId) {

@@ -22,8 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Runs on CI (ubuntu-latest has Docker) and locally when Docker daemon is up.
  *
  * Success criteria:
- * - Flyway migrate sạch 22 migration (V021 blog/outbox; V022 AI writer schedule/revisions)
- * - Đúng 38 bảng trong schema public (loại flyway_schema_history)
+ * - Flyway migrate sạch 23 migration (V022 AI writer schedule/revisions; V023 search outbox)
+ * - Đúng 39 bảng trong schema public (loại flyway_schema_history)
  * - 1 materialized view: user_topic_mastery
  * - m4a: unique index `uk_questions_module_sort` + cột `questions.searchable_text` + trigger tsvector
  * - m6a (V016): bảng `quiz_session_questions` + UK `(session_id, question_id)` trên
@@ -51,10 +51,10 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldMigrateAllTwentyTwoMigrations() throws Exception {
+    void shouldMigrateAllTwentyThreeMigrations() throws Exception {
         query("SELECT count(*) FROM flyway_schema_history WHERE success = true", rs -> {
-            assertEquals(22, rs.getInt(1),
-                    "Expected 22 successful Flyway migrations (V001–V022)");
+            assertEquals(23, rs.getInt(1),
+                    "Expected 23 successful Flyway migrations (V001–V023)");
         });
     }
 
@@ -130,12 +130,33 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldCreateExactly38Tables() throws Exception {
+    void shouldCreateExactly39Tables() throws Exception {
         query("SELECT count(*) FROM information_schema.tables " +
                 "WHERE table_schema = 'public' AND table_type = 'BASE TABLE' " +
                 "AND table_name != 'flyway_schema_history'", rs -> {
-            assertEquals(38, rs.getInt(1),
-                    "Expected exactly 38 tables excluding flyway_schema_history");
+            assertEquals(39, rs.getInt(1),
+                    "Expected exactly 39 tables excluding flyway_schema_history");
+        });
+    }
+
+    @Test
+    void shouldInstallSearchOutboxCaptureTriggers() throws Exception {
+        // V023: every write path that changes what is searchable must enqueue a
+        // document, otherwise the ES index drifts from Postgres silently.
+        query("SELECT count(*) FROM information_schema.tables " +
+                "WHERE table_schema = 'public' AND table_name = 'search_outbox'", rs -> {
+            assertEquals(1, rs.getInt(1), "V023 must create search_outbox");
+        });
+        for (String table : new String[] {"questions", "notes", "blog_posts"}) {
+            query("SELECT count(*) FROM information_schema.triggers WHERE trigger_schema='public' " +
+                    "AND event_object_table='" + table + "' AND trigger_name LIKE 'trg_search_outbox_%'", rs -> {
+                assertEquals(3, rs.getInt(1),
+                        table + " must capture INSERT, UPDATE and DELETE");
+            });
+        }
+        // Backfill: the corpus that already exists when the flag is flipped.
+        query("SELECT count(*) FROM search_outbox WHERE processed_at IS NULL", rs -> {
+            assertEquals(0, rs.getInt(1), "backfill runs on an empty schema in this test");
         });
     }
 

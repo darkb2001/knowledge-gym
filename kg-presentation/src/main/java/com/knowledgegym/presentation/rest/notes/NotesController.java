@@ -2,7 +2,8 @@ package com.knowledgegym.presentation.rest.notes;
 
 import com.knowledgegym.notes.application.NotesUseCase;
 import com.knowledgegym.notes.domain.model.Note;
-import com.knowledgegym.notes.domain.model.SearchHit;
+import com.knowledgegym.search.application.GlobalSearchUseCase;
+import com.knowledgegym.shared.domain.model.SearchHit;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,9 +30,11 @@ public class NotesController {
             "{id:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}}";
 
     private final NotesUseCase notes;
+    private final GlobalSearchUseCase search;
 
-    public NotesController(NotesUseCase notes) {
+    public NotesController(NotesUseCase notes, GlobalSearchUseCase search) {
         this.notes = notes;
+        this.search = search;
     }
 
     public record NoteRequest(UUID questionId, UUID moduleId, String noteType, String content, List<String> tags) {}
@@ -92,7 +95,7 @@ public class NotesController {
 
     @GetMapping("/search")
     public List<SearchHitResponse> search(@AuthenticationPrincipal UUID userId, @RequestParam String q) {
-        return notes.search(userId, q).stream().map(SearchHitResponse::of).toList();
+        return search.search(userId, q).stream().map(SearchHitResponse::of).toList();
     }
 
     @GetMapping("/users/me/bookmarks")

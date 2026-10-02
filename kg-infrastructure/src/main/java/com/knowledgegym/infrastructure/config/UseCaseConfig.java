@@ -180,6 +180,25 @@ public class UseCaseConfig {
         return new com.knowledgegym.notes.application.NotesUseCase(noteRepository);
     }
 
+    // ------------------------------------------------------------------ global search (m11)
+
+    /**
+     * The index is injected as an {@link java.util.Optional} so this bean exists whether or not
+     * Elasticsearch is enabled. Search is a read path and the Postgres query already answers it,
+     * so the flag only decides which backend is preferred — not whether the endpoint exists.
+     *
+     * <p>The qualifier matters: when the flag is on both adapters implement {@code SearchQueryPort},
+     * and without it Spring would fail to choose between them.
+     */
+    @Bean
+    com.knowledgegym.search.application.GlobalSearchUseCase globalSearchUseCase(
+            @org.springframework.beans.factory.annotation.Qualifier("postgresSearchQuery")
+            com.knowledgegym.search.domain.port.SearchQueryPort postgresSearch,
+            @org.springframework.beans.factory.annotation.Qualifier("elasticsearchSearchQuery")
+            java.util.Optional<com.knowledgegym.search.domain.port.SearchQueryPort> searchIndex) {
+        return new com.knowledgegym.search.application.GlobalSearchUseCase(postgresSearch, searchIndex);
+    }
+
     // ------------------------------------------------------------------ learning / SRS (m5)
 
     /**
