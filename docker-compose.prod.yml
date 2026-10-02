@@ -1,8 +1,8 @@
 # Knowledge Gym — production stack cho Proxmox LXC 102 (`kg-be`).
 #
 # Khác biệt so với `docker-compose.yml` (dev):
-#   - KHÔNG publish port nào ra host. Entry point duy nhất là cloudflared
-#     (hoặc NPM) trỏ vào nginx qua `expose: 80` trong mạng Docker nội bộ.
+#   - Chỉ nginx lộ ra host, và CHỈ trên loopback (127.0.0.1:80) cho cloudflared.
+#     Data service (db/redis/kafka/es/garage/prometheus/grafana) expose nội bộ.
 #   - Mọi service có mem_limit + `restart: unless-stopped` + log rotation.
 #   - Không có secret mặc định trong file — mọi giá trị nhạy cảm lấy từ `.env`.
 #
@@ -25,9 +25,14 @@ services:
   nginx:
     image: nginx:1.27-alpine
     restart: unless-stopped
-    # Không publish port. Cloudflared/NPM nối qua mạng `kg-edge` bằng tên `nginx:80`.
-    expose:
-      - "80"
+    # CHỈ loopback, không phải 0.0.0.0. cloudflared chạy trên host CT nên cần
+    # host trỏ tới `http://localhost:80`. Bind 127.0.0.1 (không phải "80:80")
+    # để cả LAN 192.168.1.0/24 KHÔNG gọi thẳng API bypass Cloudflare.
+    ports:
+      - "127.0.0.1:80:80"
+    # kg-edge chỉ cần khi chạy cloudflared NHƯ CONTAINER trong project này
+    # (khi đó bỏ block `ports` ở trên — container nối `nginx:80` là đủ).
+    # Entry point duy nhất vẫn là tunnel, không publish ra ngoài.
     networks:
       - kg-edge
       - kg-internal
@@ -302,7 +307,9 @@ services:
       - prometheus
 
 networks:
-  # Entry point cho traffic vào (cloudflared container hoặc NPM CT100).
+  # Chỉ cần khi cloudflared chạy NHƯ CONTAINER trong project này.
+  # Nếu cloudflared chạy trên host CT (khuyến nghị) thì mạng này để trống,
+  # không ảnh hưởng gì.
   kg-edge:
   # Mạng nội bộ cho app + data services. KHÔNG đặt `internal: true`: app cần
   # egress ra internet (Google OAuth, mail SMTP, OpenAI, collector fetch) và
