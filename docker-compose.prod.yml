@@ -84,6 +84,10 @@ services:
       APP_BLOG_WRITER_ENABLED: ${APP_BLOG_WRITER_ENABLED:-false}
       APP_CRON_MODE: ${APP_CRON_MODE:-external}
       CRON_TOKEN: ${CRON_TOKEN:?CRON_TOKEN is required}
+      # ES lifecycle agent on CT102 Docker bridge gateway (not 127.0.0.1).
+      # Empty = admin start/stop returns 501 until kg-es-control is deployed.
+      KG_ES_CONTROL_URL: ${KG_ES_CONTROL_URL:-}
+      KG_ES_CONTROL_TOKEN: ${KG_ES_CONTROL_TOKEN:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       OPENAI_INPUT_USD_PER_MILLION: ${OPENAI_INPUT_USD_PER_MILLION:-0.15}
