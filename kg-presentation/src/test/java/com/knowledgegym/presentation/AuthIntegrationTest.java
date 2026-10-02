@@ -76,7 +76,7 @@ class AuthIntegrationTest {
 
     @Test
     void oauth_redirect_uses_forwarded_https_host_and_context_path() throws Exception {
-        mockMvc.perform(get("/oauth2/authorization/google")
+        mockMvc.perform(get("/api/v1/oauth2/authorization/google")
                         .contextPath("/api/v1")
                         .header("X-Forwarded-Proto", "https")
                         .header("Host", "api.darkb-tech.io.vn")
