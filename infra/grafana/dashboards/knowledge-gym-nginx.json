@@ -1,0 +1,40 @@
+{
+  "uid": "knowledge-gym-nginx",
+  "title": "Knowledge Gym — Nginx gateway",
+  "tags": ["knowledge-gym", "nginx", "production"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Active connections",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [{ "expr": "nginx_connections_active", "legendFormat": "active", "refId": "A" }]
+    },
+    {
+      "id": 2,
+      "title": "Requests per second",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [{ "expr": "rate(nginx_http_requests_total[5m])", "legendFormat": "rps", "refId": "A" }]
+    },
+    {
+      "id": 3,
+      "title": "Reading / writing connections",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "nginx_connections_reading", "legendFormat": "reading", "refId": "A" },
+        { "expr": "nginx_connections_writing", "legendFormat": "writing", "refId": "B" },
+        { "expr": "nginx_connections_waiting", "legendFormat": "waiting", "refId": "C" }
+      ]
+    }
+  ]
+}

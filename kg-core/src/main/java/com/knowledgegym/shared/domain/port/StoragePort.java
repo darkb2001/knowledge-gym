@@ -6,5 +6,9 @@ import java.time.Duration;
 public interface StoragePort {
     PresignedUpload presignPut(String bucket, String objectKey, String contentType, Duration lifetime);
 
-    record PresignedUpload(String bucket, String objectKey, String url, long expiresInSeconds) {}
+    /** Public URL clients use after a successful presigned PUT (path-style S3). */
+    String publicObjectUrl(String bucket, String objectKey);
+
+    record PresignedUpload(String bucket, String objectKey, String url, String publicUrl,
+                           long expiresInSeconds) {}
 }

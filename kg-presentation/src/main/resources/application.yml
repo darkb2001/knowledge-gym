@@ -59,6 +59,10 @@ app:
   cron:
     mode: ${APP_CRON_MODE:embedded}
     token: ${CRON_TOKEN:}
+  ops:
+    backup-script: ${KG_BACKUP_SCRIPT:}
+    es-control-script: ${KG_ES_CONTROL_SCRIPT:}
+    script-timeout-seconds: ${KG_SCRIPT_TIMEOUT_SECONDS:900}
   progress:
     timezone: ${APP_PROGRESS_TIMEZONE:Asia/Ho_Chi_Minh}
   blog:

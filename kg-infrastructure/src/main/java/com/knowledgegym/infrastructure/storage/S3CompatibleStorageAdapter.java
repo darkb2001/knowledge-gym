@@ -17,6 +17,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 @ConditionalOnProperty(name = "storage.s3.enabled", havingValue = "true")
 public final class S3CompatibleStorageAdapter implements StoragePort {
     private final S3Presigner presigner;
+    private final String publicBaseUrl;
 
     /**
      * @param publicEndpoint hostname mà **browser** gọi được, dùng để ký presigned URL.
@@ -36,6 +37,7 @@ public final class S3CompatibleStorageAdapter implements StoragePort {
             throw new IllegalStateException("storage.s3.access-key and storage.s3.secret-key are required");
         }
         String signingEndpoint = publicEndpoint == null || publicEndpoint.isBlank() ? endpoint : publicEndpoint;
+        this.publicBaseUrl = signingEndpoint.replaceAll("/+$", "");
         this.presigner = S3Presigner.builder()
                 .endpointOverride(URI.create(signingEndpoint))
                 .region(Region.of(region))
@@ -57,6 +59,12 @@ public final class S3CompatibleStorageAdapter implements StoragePort {
                 .build();
         var presigned = presigner.presignPutObject(builder -> builder
                 .signatureDuration(lifetime).putObjectRequest(request));
-        return new PresignedUpload(bucket, objectKey, presigned.url().toString(), lifetime.toSeconds());
+        return new PresignedUpload(bucket, objectKey, presigned.url().toString(),
+                publicObjectUrl(bucket, objectKey), lifetime.toSeconds());
+    }
+
+    @Override
+    public String publicObjectUrl(String bucket, String objectKey) {
+        return publicBaseUrl + "/" + bucket + "/" + objectKey;
     }
 }

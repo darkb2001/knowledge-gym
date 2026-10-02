@@ -19,6 +19,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -360,6 +362,40 @@ class AuthIntegrationTest {
                                 {"email":"%s","code":"%s","newPassword":"newPassword123"}
                                 """.formatted(email, code)))
                 .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void usersMe_getAndPatchProfile() throws Exception {
+        String email = "profile+" + System.currentTimeMillis() + "@example.com";
+        String ip = nextIp();
+        mockMvc.perform(post("/auth/register")
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","password":"superSecret123","displayName":"Before"}
+                                """.formatted(email)))
+                .andExpect(status().isCreated());
+        MvcResult login = mockMvc.perform(post("/auth/login")
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","password":"superSecret123"}
+                                """.formatted(email)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String token = readJson(login, "$.accessToken");
+        mockMvc.perform(get("/users/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(email))
+                .andExpect(jsonPath("$.displayName").value("Before"));
+        mockMvc.perform(patch("/users/me")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"displayName":"After","avatarUrl":null}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayName").value("After"));
     }
 
     private String readJson(MvcResult result, String jsonPath) throws Exception {

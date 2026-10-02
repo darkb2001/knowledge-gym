@@ -206,6 +206,27 @@ public class UseCaseConfig {
         return new com.knowledgegym.search.application.SearchModeUseCase(settings);
     }
 
+    @Bean
+    com.knowledgegym.search.application.ElasticsearchLifecycleUseCase elasticsearchLifecycleUseCase(
+            com.knowledgegym.search.application.SearchModeUseCase modes,
+            com.knowledgegym.shared.domain.port.HostScriptPort hostScriptPort) {
+        return new com.knowledgegym.search.application.ElasticsearchLifecycleUseCase(modes, hostScriptPort);
+    }
+
+    @Bean
+    GetCurrentUserUseCase getCurrentUserUseCase(UserRepository userRepository) {
+        return new GetCurrentUserUseCase(userRepository);
+    }
+
+    @Bean
+    UpdateProfileUseCase updateProfileUseCase(UserRepository userRepository,
+            @org.springframework.beans.factory.annotation.Value("${storage.s3.public-endpoint:}") String publicEndpoint) {
+        java.util.Optional<String> prefix = publicEndpoint == null || publicEndpoint.isBlank()
+                ? java.util.Optional.empty()
+                : java.util.Optional.of(publicEndpoint.replaceAll("/+$", "") + "/kg-avatars/");
+        return new UpdateProfileUseCase(userRepository, prefix);
+    }
+
     // ------------------------------------------------------------------ learning / SRS (m5)
 
     /**

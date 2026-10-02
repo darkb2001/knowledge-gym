@@ -90,7 +90,30 @@ else
   echo "  (Garage backup bỏ qua — set GARAGE_BACKUP=1 để bật)"
 fi
 
-# 6. Dọn local dump (giữ 3 file mới nhất)
+# 6. Config snapshot — .env + compose + infra cần để rebuild CT102.
+CONFIG_STAGE="${CONFIG_STAGE:-/var/backups/kg-config}"
+if [ "${CONFIG_BACKUP:-1}" = "1" ]; then
+  mkdir -p "$CONFIG_STAGE"
+  ROOT="${KG_ROOT:-/opt/knowledge-gym}"
+  echo "  → stage config from $ROOT"
+  for item in docker-compose.prod.yml .env.example infra scripts; do
+    if [ -e "$ROOT/$item" ]; then
+      cp -a "$ROOT/$item" "$CONFIG_STAGE/"
+    fi
+  done
+  if [ -f "$ROOT/.env" ]; then
+    cp -a "$ROOT/.env" "$CONFIG_STAGE/.env"
+  fi
+  restic --repo "$RESTIC_BUCKET" backup --tag "kg-config" --tag "daily" \
+    --compression max "$CONFIG_STAGE"
+  echo "  ✓ Config backup uploaded"
+  restic --repo "$RESTIC_BUCKET" forget --tag "kg-config" \
+    --keep-daily "$KEEP_DAILY" --keep-weekly "$KEEP_WEEKLY" --keep-monthly "$KEEP_MONTHLY" --prune
+else
+  echo "  (Config backup bỏ qua — set CONFIG_BACKUP=1 để bật)"
+fi
+
+# 7. Dọn local dump (giữ 3 file mới nhất)
 ls -1t "$BACKUP_DIR"/kg-*.dump | tail -n +4 | xargs -r rm --
 echo "  ✓ Local cleanup (keep last 3)"
 

@@ -112,3 +112,25 @@ jobs:
           vuln-type: os,library
           severity: CRITICAL
           scanners: vuln
+
+  # Deploy prod bằng pull — KHÔNG build trên LXC 8GB.
+  deploy-prod:
+    needs: image-security
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://api.darkb-tech.io.vn
+    steps:
+      - name: Deploy over SSH (pull + up)
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.DEPLOY_ROOT || '/opt/knowledge-gym' }}"
+            docker compose -f docker-compose.prod.yml pull app
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml ps app nginx

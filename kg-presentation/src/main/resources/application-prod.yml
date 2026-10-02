@@ -11,6 +11,9 @@ spring:
     forward-headers-strategy: native
 
 app:
+  ops:
+    backup-script: ${KG_BACKUP_SCRIPT:/opt/knowledge-gym/scripts/backup-db.sh}
+    es-control-script: ${KG_ES_CONTROL_SCRIPT:/opt/knowledge-gym/scripts/es-control.sh}
   email:
     smtp-enabled: true
   security:
