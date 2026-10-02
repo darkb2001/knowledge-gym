@@ -30,6 +30,10 @@ app:
     trust-forwarded-headers: true
     cors:
       allowed-origins: http://localhost:3000
+    oauth2:
+      # Base để trống (prod phải cấp qua env) nên test phải tự set: OAuth2SuccessHandler
+      # validate absolute http(s) lúc khởi tạo và throw nếu nhận chuỗi rỗng.
+      success-redirect-uri: http://localhost:3000/auth/oauth2/success
   email:
     smtp-enabled: false
 
