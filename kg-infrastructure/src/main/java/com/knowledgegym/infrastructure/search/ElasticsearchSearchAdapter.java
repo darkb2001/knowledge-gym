@@ -1,6 +1,7 @@
 package com.knowledgegym.infrastructure.search;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
@@ -33,6 +34,14 @@ import org.springframework.stereotype.Component;
  * the index holds {@code dong bo} (stopword "không" removed, diacritics folded), so sending the
  * raw query "không đồng bộ" would be analysed into {@code khong dong bo} and match nothing. The
  * escalation is cheap and the failure mode is invisible — results just quietly stop matching.
+ *
+ * <p><b>Writes refresh before returning.</b> Elasticsearch is near-real-time: a bulk request
+ * acknowledges before the documents become searchable, and the gap is only on the order of the
+ * index refresh interval (1s). That is invisible in production but it breaks the invariant the
+ * relay relies on — once a row is marked processed, its document must be queryable, otherwise the
+ * read path and the write path disagree for an arbitrary window. Waiting for the refresh costs the
+ * relay at most one refresh interval per tick and runs entirely off the user request path, which is
+ * a very good trade for making delivery synchronous with visibility.
  */
 @Component("elasticsearchSearchQuery")
 @ConditionalOnProperty(name = "app.search.elasticsearch.enabled", havingValue = "true")
@@ -61,7 +70,9 @@ public class ElasticsearchSearchAdapter implements SearchIndexPort, SearchQueryP
                     .document(toSource(document)));
             operations.add(BulkOperation.of(b -> b.index(index)));
         }
-        BulkResponse response = execute(BulkRequest.of(b -> b.operations(operations)));
+        BulkResponse response = execute(BulkRequest.of(b -> b
+                .refresh(Refresh.WaitFor)
+                .operations(operations)));
         if (response.errors()) {
             // Reported failures carry the document id, which is what a human needs to reconcile
             // the index by hand. The message is truncated because ES echoes the whole document.
@@ -85,7 +96,9 @@ public class ElasticsearchSearchAdapter implements SearchIndexPort, SearchQueryP
         for (DocumentRef ref : refs) {
             operations.add(BulkOperation.of(b -> b.delete(d -> d.index(indexName).id(ref.documentId()))));
         }
-        BulkResponse response = execute(BulkRequest.of(b -> b.operations(operations)));
+        BulkResponse response = execute(BulkRequest.of(b -> b
+                .refresh(Refresh.WaitFor)
+                .operations(operations)));
         if (response.errors()) {
             // 404 is not an error here: the document being absent is the desired end state, and
             // the relay would otherwise retry a delete that is already satisfied, forever.

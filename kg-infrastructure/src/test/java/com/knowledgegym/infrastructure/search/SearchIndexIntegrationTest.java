@@ -1,6 +1,7 @@
 package com.knowledgegym.infrastructure.search;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.Conflicts;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.knowledgegym.content.application.SearchText;
@@ -88,7 +89,14 @@ class SearchIndexIntegrationTest {
 
     @BeforeEach
     void seedUser() throws Exception {
-        client.deleteByQuery(d -> d.index(INDEX).query(q -> q.matchAll(m -> m)));
+        // conflicts=proceed and refresh=true because this is a wipe, not a contract: a leftover
+        // document merely pollutes a later assertion, and a version conflict from an
+        // unrefreshed segment must not fail the run. Aborting on conflict is for callers that
+        // care which version they deleted, which is not the case here.
+        client.deleteByQuery(d -> d.index(INDEX)
+                .conflicts(Conflicts.Proceed)
+                .refresh(true)
+                .query(q -> q.matchAll(m -> m)));
         jdbc.update("DELETE FROM search_outbox");
         userId = UUID.randomUUID();
         jdbc.update("INSERT INTO users(id,email,display_name,role) VALUES(?,?,?,'USER')",
