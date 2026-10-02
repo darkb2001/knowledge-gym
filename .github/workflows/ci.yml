@@ -114,8 +114,10 @@ jobs:
           scanners: vuln
 
   # Deploy prod bằng pull — KHÔNG build trên LXC 8GB.
-  # Cần GitHub Environment `production` secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY
-  # (optional DEPLOY_ROOT, mặc định /opt/knowledge-gym). Job skip nếu DEPLOY_HOST trống.
+  # Cần GitHub Environment `production` secrets:
+  # DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY.
+  # Optional DEPLOY_ROOT mặc định /opt/knowledge-gym;
+  # job skip nếu DEPLOY_HOST trống.
   deploy-prod:
     needs: image-security
     if: >-
@@ -136,6 +138,17 @@ jobs:
           script: |
             set -euo pipefail
             cd "${{ secrets.DEPLOY_ROOT || '/opt/knowledge-gym' }}"
+            image="${{ env.IMAGE_NAME }}:latest"
+            rollback="${{ env.IMAGE_NAME }}:rollback"
+            # Preserve exactly one rollback image before moving `latest`.
+            # The tag is replaced on every successful deployment.
+            if docker image inspect "$image" >/dev/null 2>&1; then
+              docker tag "$image" "$rollback"
+            fi
             docker compose -f docker-compose.prod.yml pull app
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
             docker compose -f docker-compose.prod.yml ps app nginx
+            # Remove only dangling layers immediately. The named `rollback`
+            # tag is retained, so this never removes the previous release or
+            # any volume/data image.
+            docker image prune --force
