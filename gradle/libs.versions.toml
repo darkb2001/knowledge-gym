@@ -35,7 +35,7 @@ spring-boot-starter-validation = { module = "org.springframework.boot:spring-boo
 # (starter-aop dừng ở 4.0.0-M2, không có bản GA nào).
 spring-boot-starter-aop = { module = "org.springframework.boot:spring-boot-starter-aspectj" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
-spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
+spring-boot-starter-kafka = { module = "org.springframework.boot:spring-boot-starter-kafka" }
 # version do Spring Boot BOM quản lý (không cần version.ref)
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine" }
 # ES search (M11). Version do Spring Boot BOM quản lý — spring-data-elasticsearch + elasticsearch-java.
