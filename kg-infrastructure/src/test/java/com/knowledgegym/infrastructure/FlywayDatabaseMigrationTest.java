@@ -22,8 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Runs on CI (ubuntu-latest has Docker) and locally when Docker daemon is up.
  *
  * Success criteria:
- * - Flyway migrate sạch 23 migration (V022 AI writer schedule/revisions; V023 search outbox)
- * - Đúng 39 bảng trong schema public (loại flyway_schema_history)
+ * - Flyway migrate sạch 24 migration (V023 search outbox; V024 search runtime settings)
+ * - Đúng 41 bảng trong schema public (loại flyway_schema_history)
  * - 1 materialized view: user_topic_mastery
  * - m4a: unique index `uk_questions_module_sort` + cột `questions.searchable_text` + trigger tsvector
  * - m6a (V016): bảng `quiz_session_questions` + UK `(session_id, question_id)` trên
@@ -51,10 +51,10 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldMigrateAllTwentyThreeMigrations() throws Exception {
+    void shouldMigrateAllTwentyFourMigrations() throws Exception {
         query("SELECT count(*) FROM flyway_schema_history WHERE success = true", rs -> {
-            assertEquals(23, rs.getInt(1),
-                    "Expected 23 successful Flyway migrations (V001–V023)");
+            assertEquals(24, rs.getInt(1),
+                    "Expected 24 successful Flyway migrations (V001–V024)");
         });
     }
 
@@ -130,12 +130,25 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldCreateExactly39Tables() throws Exception {
+    void shouldCreateExactly41Tables() throws Exception {
         query("SELECT count(*) FROM information_schema.tables " +
                 "WHERE table_schema = 'public' AND table_type = 'BASE TABLE' " +
                 "AND table_name != 'flyway_schema_history'", rs -> {
-            assertEquals(39, rs.getInt(1),
-                    "Expected exactly 39 tables excluding flyway_schema_history");
+            assertEquals(41, rs.getInt(1),
+                    "Expected exactly 41 tables excluding flyway_schema_history");
+        });
+    }
+
+    @Test
+    void shouldSeedSearchRuntimeSettingsSingleton() throws Exception {
+        // V024: one row, default POSTGRES — the safe mode until an admin opts into ES.
+        query("SELECT mode, version FROM search_runtime_settings WHERE id = 1", rs -> {
+            assertEquals("POSTGRES", rs.getString(1));
+            assertEquals(0, rs.getLong(2));
+        });
+        query("SELECT count(*) FROM information_schema.tables WHERE table_schema='public' " +
+                "AND table_name IN ('search_runtime_settings','search_runtime_setting_audit')", rs -> {
+            assertEquals(2, rs.getInt(1), "V024 must create settings + audit tables");
         });
     }
 
