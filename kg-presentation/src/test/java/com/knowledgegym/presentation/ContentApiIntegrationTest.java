@@ -1,7 +1,7 @@
 package com.knowledgegym.presentation;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.knowledgegym.content.application.ImportContentUseCase;
 import com.knowledgegym.content.domain.port.ContentImportJob;
 import com.knowledgegym.identity.domain.model.User;

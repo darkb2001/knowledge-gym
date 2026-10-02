@@ -49,7 +49,7 @@ dependencies {
 
     implementation(libs.jsoup)
     implementation(libs.rome)
-    // Boot 4 defaults to Jackson 3 for HTTP; blog/collector code still uses Jackson 2 APIs.
+    // Jackson 3 databind for blog/collector JSON (Boot HTTP mapper is tools.jackson).
     implementation(libs.jackson.databind)
     implementation(libs.resilience4j.spring.boot4)
     implementation(libs.bucket4j.core)

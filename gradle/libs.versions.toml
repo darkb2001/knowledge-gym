@@ -45,11 +45,6 @@ spring-security-test = { module = "org.springframework.security:spring-security-
 aws-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-sdk" }
 aws-auth = { module = "software.amazon.awssdk:auth", version.ref = "aws-sdk" }
 
-# Boot 4 dùng Jackson 3 (`tools.jackson`) làm mặc định cho HTTP, nhưng BOM của nó vẫn
-# quản lý Jackson 2 (`com.fasterxml.jackson:*` = 2.21.5) cho code cũ. Các module dùng
-# `com.fasterxml.jackson` phải khai báo `jackson-databind` tường minh (không cần version)
-# vì starter không còn kéo nó vào compile classpath nữa.
-
 postgresql = { module = "org.postgresql:postgresql" }
 h2 = { module = "com.h2database:h2" }
 
@@ -66,10 +61,9 @@ spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-st
 # nó, nên đây là chỗ duy nhất ép được version.
 parsson = { module = "org.eclipse.parsson:parsson", version.ref = "parsson" }
 
-# Boot 4 không còn kéo Jackson 2 (`com.fasterxml.jackson`) vào compile classpath — nó dùng
-# Jackson 3 (`tools.jackson`) cho HTTP message converter. Code đang parse JSON thủ công vẫn
-# dùng Jackson 2 API nên phải khai báo tường minh. Version do Boot BOM quản lý (2.21.5).
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+# Boot 4 Jackson 3 databind (`tools.jackson`). Version do Boot BOM quản lý (3.1.x).
+# Cần tường minh cho module không kéo spring-boot-starter-jackson (vd. kg-agent).
+jackson-databind = { module = "tools.jackson.core:jackson-databind" }
 
 # Boot 4 tách MockMvc/TestRestTemplate ra khỏi spring-boot-starter-test vào
 # spring-boot-starter-webmvc-test (kéo AutoConfigureMockMvc + TestRestTemplate).

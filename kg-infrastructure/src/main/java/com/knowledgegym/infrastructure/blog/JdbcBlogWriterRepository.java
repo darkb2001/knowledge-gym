@@ -1,6 +1,6 @@
 package com.knowledgegym.infrastructure.blog;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.knowledgegym.blog.domain.model.BlogPost;
 import com.knowledgegym.blog.domain.port.AiWriterPort;
 import com.knowledgegym.blog.domain.port.BlogWriterRepository;

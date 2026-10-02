@@ -1,7 +1,7 @@
 package com.knowledgegym.presentation;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.knowledgegym.content.application.ImportContentUseCase;
 import com.knowledgegym.content.domain.model.Question;
 import com.knowledgegym.content.domain.model.QuestionQuery;
@@ -193,7 +193,7 @@ class QuizApiIntegrationTest {
         assertThat(persisted.get("overallScore").decimalValue()).isEqualByComparingTo(grade.get("keywordScore").decimalValue());
         // V017: history phải trả câu theo đúng thứ tự đã giao, không phải theo UUID của placeholder.
         assertThat(db().queryForList("SELECT question_id::text FROM interview_answers WHERE session_id=? ORDER BY display_order",String.class,UUID.fromString(id)))
-                .isEqualTo(start.get("questions").findValuesAsText("questionId"));
+                .isEqualTo(start.get("questions").findValuesAsString("questionId"));
     }
     @Test @Order(10) void adminCreatedQuestionGetsQuizOptionsImmediately() throws Exception {
         var created=response(postJson("/admin/content/questions",java.util.Map.of("moduleId",moduleId,
@@ -205,7 +205,7 @@ class QuizApiIntegrationTest {
                 Integer.class,UUID.fromString(qid))).isEqualTo(1);
         // Response admin phải mang options vừa sinh — trước đây luôn trả `[]` dù DB đã có.
         assertThat(created.get("options").size()).isGreaterThanOrEqualTo(2);
-        assertThat(created.get("options").findValuesAsText("id")).containsAll(
+        assertThat(created.get("options").findValuesAsString("id")).containsAll(
                 db().queryForList("SELECT id::text FROM question_options WHERE question_id=?",String.class,UUID.fromString(qid)));
         assertThat(created.get("options").findValues("isCorrect").stream().filter(JsonNode::asBoolean).count()).isEqualTo(1);
     }
