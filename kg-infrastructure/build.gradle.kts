@@ -28,6 +28,8 @@ dependencies {
     // Bắt buộc từ Flyway 10: hỗ trợ PostgreSQL tách khỏi flyway-core. Thiếu artifact này thì
     // Flyway 12 không nhận ra dialect và app fail lúc boot.
     implementation(libs.flyway.postgresql)
+    // Boot 4: không có starter này thì Flyway không bao giờ chạy (chỉ nằm im trên classpath).
+    implementation(libs.spring.boot.starter.flyway)
     // Pin CVE-2023-7272: `parsson` đến transitively qua jakarta.json và Boot BOM không quản lý
     // nó, nên đây là chỗ duy nhất ép được version.
     constraints {

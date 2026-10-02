@@ -57,6 +57,10 @@ h2 = { module = "com.h2database:h2" }
 # `flyway-database-postgresql` — chỉ `flyway-core` là KHÔNG đủ và migrate sẽ fail lúc boot.
 flyway-core = { module = "org.flywaydb:flyway-core" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
+# Boot 4: Flyway autoconfig moved out of spring-boot-autoconfigure into this starter.
+# Without it, flyway-core sits on the classpath but never migrates, and Hibernate
+# validate then fails on every missing table.
+spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
 
 # Pin CVE-2023-7272: `parsson` đến transitively qua jakarta.json và Boot BOM không quản lý
 # nó, nên đây là chỗ duy nhất ép được version.
