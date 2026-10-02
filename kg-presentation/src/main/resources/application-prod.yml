@@ -3,17 +3,18 @@ spring:
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
+server:
   # Tomcat đọc X-Forwarded-Proto/Host/Port để dựng redirect_uri của OAuth2 và
   # scheme của URL. Thiếu dòng này (mặc định `none`) thì sau Cloudflare Tunnel
   # Spring vẫn tưởng request là http://api:8080, nên redirect_uri gửi Google
   # không khớp cái đã đăng ký → OAuth login fail.
-  web:
-    forward-headers-strategy: native
+  forward-headers-strategy: native
 
 app:
   ops:
     backup-script: ${KG_BACKUP_SCRIPT:/opt/knowledge-gym/scripts/backup-db.sh}
-    es-control-script: ${KG_ES_CONTROL_SCRIPT:/opt/knowledge-gym/scripts/es-control.sh}
+    es-control-script: >-
+      ${KG_ES_CONTROL_SCRIPT:/opt/knowledge-gym/scripts/es-control.sh}
   email:
     smtp-enabled: true
   security:
@@ -25,7 +26,7 @@ app:
       secure: true
       # FE = app.darkb-tech.io.vn, API = api.darkb-tech.io.vn → cùng registrable
       # domain nên cookie là same-site; Strict bảo vệ CSRF mà không cần None.
-      # (Không dùng None nữa: None là third-party cookie, browser hiện đại chặn.)
+      # Không dùng None nữa: browser hiện đại coi đây là third-party cookie.
       same-site: Strict
     trust-forwarded-headers: true
     cors:

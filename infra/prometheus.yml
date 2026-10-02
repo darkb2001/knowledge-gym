@@ -17,14 +17,10 @@ scrape_configs:
           # provision trong repo nên đổi nhãn không phá gì.
           env: "self-hosted"
 
-  # nginx self-metrics. Cần `stub_status` trong config nginx (đã có trong
-  # infra/nginx.prod.conf tại `location = /stub_status`).
-  # KHÔNG trỏ vào `nginx:80` với path mặc định `/metrics`: nginx không tự expose
-  # Prometheus format, và nó sẽ trả 404 mỗi 15s → target DOWN vĩnh viễn.
+  # nginx-prometheus-exporter chuyển stub_status thành Prometheus format.
   - job_name: "nginx"
-    metrics_path: "/stub_status"
     static_configs:
-      - targets: ["nginx:80"]
+      - targets: ["nginx-exporter:9113"]
 
 alerting:
   alertmanagers: []
@@ -34,7 +30,8 @@ rule_files:
 
 # Offsite metrics (m11b): keep local scrape/dashboards; add Grafana Cloud Free
 # remote_write so history survives host death. Copy
-# infra/prometheus/remote_write.yml.example → host-only secrets file, then either
+# infra/prometheus/remote_write.yml.example → host-only secrets file,
+# then either
 # merge into this file or mount an override. Alert
 # KnowledgeGymPrometheusRemoteSamplesDiscarded fires when Free-tier series limit
 # silently drops samples.

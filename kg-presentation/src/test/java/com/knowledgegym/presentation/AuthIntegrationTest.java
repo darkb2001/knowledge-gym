@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -57,6 +58,7 @@ class AuthIntegrationTest {
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("spring.data.redis.host", REDIS::getHost);
         registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
+        registry.add("server.forward-headers-strategy", () -> "native");
     }
 
     @Autowired MockMvc mockMvc;
@@ -68,6 +70,17 @@ class AuthIntegrationTest {
     /** IP ảo duy nhất cho từng test — cách ly bucket rate limit Redis. */
     private static String nextIp() {
         return "203.0.113." + IP_SEQ.getAndIncrement();
+    }
+
+    @Test
+    void oauth_redirect_uses_forwarded_https_host_and_context_path() throws Exception {
+        mockMvc.perform(get("/oauth2/authorization/google")
+                        .header("X-Forwarded-Proto", "https")
+                        .header("Host", "api.darkb-tech.io.vn")
+                        .header("X-Forwarded-Host", "api.darkb-tech.io.vn"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string("Location", containsString(
+                        "redirect_uri=https%3A%2F%2Fapi.darkb-tech.io.vn%2Fapi%2Fv1%2Flogin%2Foauth2%2Fcode%2Fgoogle")));
     }
 
     @Test

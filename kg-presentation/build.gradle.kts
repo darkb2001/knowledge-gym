@@ -15,6 +15,7 @@ dependencies {
 
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.actuator)
+    implementation(libs.micrometer.registry.prometheus)
     implementation(libs.springdoc.openapi)
     // DataIntegrityViolationException (register TOCTOU → 409)
     implementation("org.springframework:spring-tx")

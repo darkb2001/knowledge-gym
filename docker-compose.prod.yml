@@ -74,8 +74,8 @@ services:
       SPRING_REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
-      # Index search (M11). ES đã nằm trong `depends_on: service_healthy` của app
-      # từ trước, nên bật biến này không thêm ràng buộc khởi động nào; nó chỉ định
+      # Index search (M11). ES đã nằm trong `depends_on: service_healthy`
+      # của app từ trước, nên bật biến này không thêm ràng buộc khởi động nào;
       # tuyến `GET /search` qua ES. Nếu ES chết, search tự fallback về tsvector
       # (GlobalSearchUseCase) nên đây không phải đường làm sập API.
       APP_SEARCH_ES_ENABLED: ${APP_SEARCH_ES_ENABLED:-true}
@@ -313,6 +313,19 @@ services:
       timeout: 5s
       retries: 10
       start_period: 20s
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    restart: unless-stopped
+    networks:
+      - kg-internal
+    command:
+      - --nginx.scrape-uri=http://nginx/stub_status
+    mem_limit: 64m
+    memswap_limit: 64m
+    logging: *default-logging
+    depends_on:
+      - nginx
 
   prometheus:
     image: prom/prometheus:v2.53.0

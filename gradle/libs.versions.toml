@@ -35,6 +35,7 @@ spring-boot-starter-validation = { module = "org.springframework.boot:spring-boo
 # (starter-aop dừng ở 4.0.0-M2, không có bản GA nào).
 spring-boot-starter-aop = { module = "org.springframework.boot:spring-boot-starter-aspectj" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
 spring-boot-starter-kafka = { module = "org.springframework.boot:spring-boot-starter-kafka" }
 # version do Spring Boot BOM quản lý (không cần version.ref)
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine" }
