@@ -120,8 +120,15 @@ app:
       access-secret: ${JWT_ACCESS_SECRET:}
       refresh-secret: ${JWT_REFRESH_SECRET:}
     cookie:
-      secure: true
-      same-site: None
+      # FE (app.darkb-tech.io.vn) và API (api.darkb-tech.io.vn) cùng registrable
+      # domain nên cookie là same-site → Strict, không cần None. None là third-party
+      # cookie và browser hiện đại chặn (xem application-prod.yml).
+      #
+      # Base cố ý KHÔNG hardcode `secure: true`: test profile override secure=false
+      # để chạy trên HTTP, và nếu base giữ same-site=None thì tổ hợp None+insecure
+      # làm RefreshTokenCookie throw lúc khởi tạo context, khiến mọi Spring test chết.
+      secure: ${REFRESH_COOKIE_SECURE:true}
+      same-site: ${REFRESH_COOKIE_SAME_SITE:Strict}
     trust-forwarded-headers: true
     cors:
       allowed-origins: ${CORS_ALLOWED_ORIGINS:}

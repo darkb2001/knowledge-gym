@@ -22,7 +22,10 @@ app:
       access-secret: test-access-secret-minimum-32-characters-for-jwt
       refresh-secret: test-refresh-secret-minimum-32-characters-for-jwt
     cookie:
+      # Test chạy trên HTTP nên secure=false; same-site nêu rõ để profile này tự chứa,
+      # không phụ thuộc default của application.yml.
       secure: false
+      same-site: Strict
     # Tests dùng X-Forwarded-For để cách ly rate-limit buckets giữa các test case
     trust-forwarded-headers: true
     cors:
