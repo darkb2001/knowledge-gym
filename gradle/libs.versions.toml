@@ -65,6 +65,9 @@ parsson = { module = "org.eclipse.parsson:parsson", version.ref = "parsson" }
 # Cần tường minh cho module không kéo spring-boot-starter-jackson (vd. kg-agent).
 jackson-databind = { module = "tools.jackson.core:jackson-databind" }
 
+# Boot 4: RestClient.Builder auto-config moved out of starter-web into this starter.
+spring-boot-starter-restclient = { module = "org.springframework.boot:spring-boot-starter-restclient" }
+
 # Boot 4 tách MockMvc/TestRestTemplate ra khỏi spring-boot-starter-test vào
 # spring-boot-starter-webmvc-test (kéo AutoConfigureMockMvc + TestRestTemplate).
 spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }

@@ -24,6 +24,8 @@ dependencies {
     implementation(libs.spring.boot.starter.actuator)
     // servlet API cần cho JwtAuthenticationFilter, RateLimitFilter, OAuth2SuccessHandler
     implementation(libs.spring.boot.starter.web)
+    // Boot 4: RestClient.Builder bean lives here, not in starter-web (OpenAiWriterAdapter).
+    implementation(libs.spring.boot.starter.restclient)
     implementation(libs.flyway.core)
     // Bắt buộc từ Flyway 10: hỗ trợ PostgreSQL tách khỏi flyway-core. Thiếu artifact này thì
     // Flyway 12 không nhận ra dialect và app fail lúc boot.
