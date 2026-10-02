@@ -9,9 +9,12 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 /**
- * Gửi mã password reset qua Gmail SMTP (App Password).
- * Dev (smtp-enabled=false): log code ra console để test.
- * Prod (smtp-enabled=true): KHÔNG bao giờ log plaintext code — fail loud nếu SMTP lỗi.
+ * Password-reset mail via SMTP (Gmail App Password or Brevo SMTP relay).
+ * Dev (smtp-enabled=false): log code to console.
+ * Prod (smtp-enabled=true): never log plaintext codes — fail loud on SMTP errors.
+ *
+ * Mailu self-host is deferred (ADR-004 / docs/19-m11b-ops.md); this adapter is the
+ * accepted production path until Mailu DNS + RAM budget are ready.
  */
 @Component
 public class GmailEmailService implements EmailService {

@@ -1,0 +1,6 @@
+aws_region         = "ap-southeast-1"
+name_prefix        = "knowledge-gym"
+api_base_url       = "https://api.darkb-tech.io.vn"
+cron_token         = "replace-me"
+budget_usd         = "1"
+budget_alert_email = "you@example.com"

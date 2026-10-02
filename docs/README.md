@@ -29,6 +29,10 @@
 | 14 | [m3-journal.md](./14-m3-journal.md) | **Journal m3** — Auth (JWT/OAuth2/refresh/forgot-password) |
 | 15 | [m4-journal.md](./15-m4-journal.md) | **Journal m4a** — Content Parser + REST API + V014/V015 + cache + Swagger + RBAC |
 | 16 | [m5-journal.md](./16-m5-journal.md) | **Journal m5** — SRS + SM-2 + FlashcardDeck (enroll/due/review + `study_attempts`) |
+| 17 | [es-admin-lifecycle-handoff.md](./17-es-admin-lifecycle-handoff.md) | Admin ES runtime mode + host lifecycle |
+| 19 | [m11b-ops.md](./19-m11b-ops.md) | **m11b** — email interim, backup, ES retention, Grafana Cloud, Lambda |
+| 20 | [backup-restore-drill.md](./20-backup-restore-drill.md) | Restore drill acceptance for restic/B2 |
+| adr | [adr/](./adr/) | ADR-001 modular monolith, ADR-004 infra/backup/email |
 
 ## Quick start
 

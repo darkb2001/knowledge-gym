@@ -31,3 +31,12 @@ alerting:
 
 rule_files:
   - /etc/prometheus/alerts.yml
+
+# Offsite metrics (m11b): keep local scrape/dashboards; add Grafana Cloud Free
+# remote_write so history survives host death. Copy
+# infra/prometheus/remote_write.yml.example → host-only secrets file, then either
+# merge into this file or mount an override. Alert
+# KnowledgeGymPrometheusRemoteSamplesDiscarded fires when Free-tier series limit
+# silently drops samples.
+#
+# remote_write: []

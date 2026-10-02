@@ -1,0 +1,21 @@
+# Optional Grafana Cloud remote_write fragment.
+# Copy to infra/prometheus/remote_write.secrets.yml on the host (do not commit),
+# fill credentials, then append under `remote_write:` in prometheus.yml — or:
+#
+#   cat infra/prometheus.yml infra/prometheus/remote_write.secrets.yml > /tmp/prometheus.yml
+#
+# Prefer a 60s effective send cadence (scrape can stay 15s locally; queue/batch
+# below targets ~1 DPM remote) so Free-tier active series stay under 10k.
+
+remote_write:
+  - url: https://prometheus-prod-XX-XX.grafana.net/api/prom/push
+    basic_auth:
+      username: "<instance-id>"
+      password: "<cloud-access-policy-token>"
+    queue_config:
+      capacity: 10000
+      max_shards: 5
+      max_samples_per_send: 2000
+      batch_send_deadline: 60s
+    metadata_config:
+      send: false

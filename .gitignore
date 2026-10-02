@@ -19,6 +19,9 @@ build/
 .env.*
 !.env.example
 
+# Host-only Prometheus remote_write credentials (m11b)
+infra/prometheus/*.secrets.yml
+
 # Node
 node_modules/
 kg-frontend/.next/
