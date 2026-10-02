@@ -1,22 +1,30 @@
-# Prometheus — thu thập metrics từ Spring Boot Actuator (/actuator/prometheus)
+# Prometheus — thu thập metrics từ Spring Boot Actuator.
+#
+# Scrape đi qua nginx (`nginx:80`) để hưởng allowlist/deny của nó, và vì
+# `server.servlet.context-path=/api/v1` áp dụng cho CẢ management endpoint —
+# thiếu prefix `/api/v1` thì scrape nhận 404 và dashboard im lặng trống.
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
 scrape_configs:
   - job_name: "knowledge-gym"
-    # context-path /api/v1 áp dụng cho management endpoints → phải có prefix,
-    # nếu không scrape sẽ 404 và dashboard im lặng trống.
     metrics_path: "/api/v1/actuator/prometheus"
     static_configs:
-      - targets: ["app:8080"]
+      - targets: ["nginx:80"]
         labels:
-          env: "local"
+          # Trung tính cho cả dev và prod (cùng file). Chưa có dashboard nào
+          # provision trong repo nên đổi nhãn không phá gì.
+          env: "self-hosted"
 
+  # nginx self-metrics. Cần `stub_status` trong config nginx (đã có trong
+  # infra/nginx.prod.conf tại `location = /stub_status`).
+  # KHÔNG trỏ vào `nginx:80` với path mặc định `/metrics`: nginx không tự expose
+  # Prometheus format, và nó sẽ trả 404 mỗi 15s → target DOWN vĩnh viễn.
   - job_name: "nginx"
+    metrics_path: "/stub_status"
     static_configs:
       - targets: ["nginx:80"]
-    # nginx stub_status cần module — optional, bỏ qua nếu không enable
 
 alerting:
   alertmanagers: []

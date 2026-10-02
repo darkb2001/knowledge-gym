@@ -54,6 +54,11 @@ public class SecurityConfig {
             .headers(h -> h.contentSecurityPolicy(c -> c.policyDirectives(contentSecurityPolicy())))
             .authorizeHttpRequests(auth -> {
                 auth.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
+                    // Prometheus scrape không gửi credential. Nếu để `authenticated()`
+                    // thì scrape nhận 401 và dashboard Grafana trống im lặng.
+                    // Lớp chặn ngoài là `allow 172.16.0.0/12; deny all` trong nginx
+                    // (location = /api/v1/actuator/prometheus).
+                    .requestMatchers(HttpMethod.GET, "/actuator/prometheus").permitAll()
                     .requestMatchers(HttpMethod.GET, "/blog/posts", "/blog/posts/**", "/blog/feed.rss").permitAll()
                     .requestMatchers("/auth/register", "/auth/login", "/auth/forgot-password",
                                      "/auth/reset-password", "/auth/refresh", "/auth/logout").permitAll()

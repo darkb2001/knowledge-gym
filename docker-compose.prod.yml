@@ -1,0 +1,320 @@
+# Knowledge Gym — production stack cho Proxmox LXC 102 (`kg-be`).
+#
+# Khác biệt so với `docker-compose.yml` (dev):
+#   - KHÔNG publish port nào ra host. Entry point duy nhất là cloudflared
+#     (hoặc NPM) trỏ vào nginx qua `expose: 80` trong mạng Docker nội bộ.
+#   - Mọi service có mem_limit + `restart: unless-stopped` + log rotation.
+#   - Không có secret mặc định trong file — mọi giá trị nhạy cảm lấy từ `.env`.
+#
+# Tổng mem_limit: 5024 MiB (4.91 GiB) → còn ~2.9 GiB đệm dưới cap 8 GiB của CT.
+#   Hai lớp chặn OOM: lớp 1 = mem_limit từng container, lớp 2 = cap 8 GiB của
+#   CT (cgroup riêng → OOM xảy ra trong cgroup KG trước khi đụng CT101/CT100).
+#
+# Deploy:
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+# Log:   docker compose -f docker-compose.prod.yml logs -f --tail=100
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    # Không publish port. Cloudflared/NPM nối qua mạng `kg-edge` bằng tên `nginx:80`.
+    expose:
+      - "80"
+    networks:
+      - kg-edge
+      - kg-internal
+    volumes:
+      - ./infra/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+    mem_limit: 96m
+    memswap_limit: 96m
+    logging: *default-logging
+    depends_on:
+      - app
+
+  app:
+    # Image build sẵn ở CI (job publish-image) và pull về. KHÔNG `build:` ở đây:
+    # build Gradle trong CT 8GB ngốn 2-3GB RAM đỉnh + tranh I/O với CT100/CT101
+    # trên cùng 1 NVMe. Tag do CI gắn `sha-<short>` và `latest`.
+    image: ${APP_IMAGE:-ghcr.io/darkb2001/knowledge-gym-app:latest}
+    restart: unless-stopped
+    expose:
+      - "8080"
+    networks:
+      - kg-internal
+    volumes:
+      # Nội dung docs (index.html + NN-slug.html) KHÔNG có trong git repo của
+      # knowledge-gym — phải ship riêng lên CT rồi trỏ KG_DOCS_DIR vào đó.
+      # Không set KG_DOCS_DIR thì compose dừng ngay, tránh vô tình mount nhầm
+      # `knowledge-gym/docs` (markdown planning docs, không phải content).
+      - ${KG_DOCS_DIR:?KG_DOCS_DIR is required}:/content/docs:ro
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      # Heap = 65% của mem_limit (1024m) ≈ 666 MiB; non-heap (metaspace, code
+      # cache, thread stack, direct buffer) ~200 MiB → RSS ~850 MiB < 1024m.
+      # ExitOnOutOfMemoryError để `restart: unless-stopped` kéo container lên
+      # thay vì chạy tiếp ở trạng thái hỏng.
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=65 -XX:+ExitOnOutOfMemoryError"
+      CONTENT_DOCS_PATH: /content/docs
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_REDIS_HOST: redis
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+      APP_BLOG_COLLECTOR_ENABLED: ${APP_BLOG_COLLECTOR_ENABLED:-false}
+      APP_BLOG_KAFKA_ENABLED: ${APP_BLOG_KAFKA_ENABLED:-true}
+      APP_BLOG_WRITER_ENABLED: ${APP_BLOG_WRITER_ENABLED:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      OPENAI_INPUT_USD_PER_MILLION: ${OPENAI_INPUT_USD_PER_MILLION:-0.15}
+      OPENAI_OUTPUT_USD_PER_MILLION: ${OPENAI_OUTPUT_USD_PER_MILLION:-0.60}
+      APP_BLOG_WRITER_DAILY_REQUEST_LIMIT: ${APP_BLOG_WRITER_DAILY_REQUEST_LIMIT:-20}
+      APP_BLOG_WRITER_DAILY_TOKEN_LIMIT: ${APP_BLOG_WRITER_DAILY_TOKEN_LIMIT:-80000}
+      APP_BLOG_WRITER_DAILY_COST_LIMIT_USD: ${APP_BLOG_WRITER_DAILY_COST_LIMIT_USD:-10}
+      APP_BLOG_WRITER_MONTHLY_COST_ALERT_USD: ${APP_BLOG_WRITER_MONTHLY_COST_ALERT_USD:-10}
+      # Bắt buộc: `application-prod.yml` không có default cho các biến này.
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET is required}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET is required}
+      # FE ở app.darkb-tech.io.vn — cùng registrable domain với api.* nên CORS
+      # cần đúng origin này; thiếu là FE bị chặn sạch.
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS is required}
+      OAUTH2_SUCCESS_REDIRECT: ${OAUTH2_SUCCESS_REDIRECT:?OAUTH2_SUCCESS_REDIRECT is required}
+      BLOG_CANONICAL_BASE_URL: ${BLOG_CANONICAL_BASE_URL:?BLOG_CANONICAL_BASE_URL is required}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus,info
+      S3_ENDPOINT: http://garage:3900
+      S3_ACCESS_KEY: ${GARAGE_ACCESS_KEY:?GARAGE_ACCESS_KEY is required}
+      S3_SECRET_KEY: ${GARAGE_SECRET_KEY:?GARAGE_SECRET_KEY is required}
+      S3_BUCKET_IMAGES: kg-blog-images
+      S3_BUCKET_AVATARS: kg-avatars
+      S3_BUCKET_EXPORTS: kg-exports
+    mem_limit: 1024m
+    memswap_limit: 1024m
+    logging: *default-logging
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    networks:
+      - kg-internal
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    command: >
+      postgres
+      -c shared_buffers=192MB
+      -c effective_cache_size=384MB
+      -c work_mem=4MB
+      -c max_connections=60
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    shm_size: 128m
+    mem_limit: 576m
+    memswap_limit: 576m
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks:
+      - kg-internal
+    # 128 MiB cho auth token/blacklist/quota/leaderboard. allkeys-lru vẫn là
+    # policy hiện tại — chấp nhận được vì refresh token còn bản ghi PostgreSQL,
+    # eviction chỉ bắt user đăng nhập lại. Theo dõi `evicted_keys` trong Grafana.
+    command: >
+      redis-server
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --appendonly yes
+      --appendfsync everysec
+    volumes:
+      - redis-data:/data
+    mem_limit: 192m
+    memswap_limit: 192m
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  kafka:
+    # Single-node KRaft. Chỉ listener nội bộ — không advertise địa chỉ host
+    # vì prod không publish 9092.
+    image: apache/kafka:3.8.1
+    restart: unless-stopped
+    networks:
+      - kg-internal
+    environment:
+      KAFKA_NODE_ID: "0"
+      KAFKA_PROCESS_ROLES: controller,broker
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://:29092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CLUSTER_ID: "knowledge-gym-prod-cluster"
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx700m"
+      KAFKA_LOG_RETENTION_HOURS: "168"
+      KAFKA_LOG_RETENTION_BYTES: "2147483648"
+    volumes:
+      - kafkadata:/var/lib/kafka/data
+    mem_limit: 1024m
+    memswap_limit: 1024m
+    logging: *default-logging
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:29092 --list || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    restart: unless-stopped
+    networks:
+      - kg-internal
+    environment:
+      discovery.type: single-node
+      # ES chỉ nằm trong mạng Docker nội bộ; không publish 9200. Bật lại security
+      # sẽ cần cấu hình TLS + credential cho app — xem M11 hardening.
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      # Heap 512m + native/page cache. mem_lock TẮT để ES không đòi memlock
+      # (unprivileged LXC không cấp được).
+      bootstrap.memory_lock: "false"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    mem_limit: 1024m
+    memswap_limit: 1024m
+    logging: *default-logging
+    # ES bootstrap check đọc RLIMIT_NOFILE per-process, KHÔNG phải fs.file-max
+    # của host. Thiếu block này ES 8.x từ chối start với "max file descriptors
+    # [1024] ... too low, increase to at least [65535]".
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+
+  garage:
+    image: dxflrs/garage:v2.4.1
+    restart: unless-stopped
+    networks:
+      - kg-internal
+    command: ["/garage", "-c", "/etc/garage.toml", "server", "--single-node", "--default-bucket"]
+    volumes:
+      - garage-data:/data
+      - ./infra/garage.toml:/etc/garage.toml:ro
+    environment:
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:?GARAGE_ADMIN_TOKEN is required}
+      GARAGE_DEFAULT_BUCKET: ${GARAGE_DEFAULT_BUCKET:-kg-local}
+      GARAGE_DEFAULT_ACCESS_KEY: ${GARAGE_ACCESS_KEY:?GARAGE_ACCESS_KEY is required}
+      GARAGE_DEFAULT_SECRET_KEY: ${GARAGE_SECRET_KEY:?GARAGE_SECRET_KEY is required}
+    mem_limit: 320m
+    memswap_limit: 320m
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "/garage", "-c", "/etc/garage.toml", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    restart: unless-stopped
+    networks:
+      - kg-internal
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=3GB
+    volumes:
+      - ./infra/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - promdata:/prometheus
+    mem_limit: 512m
+    memswap_limit: 512m
+    logging: *default-logging
+    depends_on:
+      - app
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    restart: unless-stopped
+    networks:
+      - kg-internal
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:?GF_SECURITY_ADMIN_PASSWORD is required}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      # Grafana không publish port; chỉ vào được qua tunnel/SSH port-forward.
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3001}
+    volumes:
+      - grafanadata:/var/lib/grafana
+    mem_limit: 256m
+    memswap_limit: 256m
+    logging: *default-logging
+    depends_on:
+      - prometheus
+
+networks:
+  # Entry point cho traffic vào (cloudflared container hoặc NPM CT100).
+  kg-edge:
+  # Mạng nội bộ cho app + data services. KHÔNG đặt `internal: true`: app cần
+  # egress ra internet (Google OAuth, mail SMTP, OpenAI, collector fetch) và
+  # container cần pull image. Cách ly ingress được đảm bảo bằng việc không
+  # service nào publish port — chỉ nginx expose trong mạng Docker.
+  kg-internal:
+
+volumes:
+  pgdata:
+  redis-data:
+  kafkadata:
+  esdata:
+  garage-data:
+  promdata:
+  grafanadata:
