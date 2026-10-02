@@ -4,6 +4,8 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.mapping.Property;
 import co.elastic.clients.elasticsearch.indices.IndexSettings;
 import com.knowledgegym.search.domain.model.SearchDocument;
+import com.knowledgegym.search.domain.port.SearchModeSettingsPort;
+import com.knowledgegym.search.domain.port.SearchModeSettingsPort.Mode;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -34,6 +36,10 @@ import org.springframework.stereotype.Component;
  * created since the last restart — and content written while the feature was disabled would be
  * absent permanently. Re-running the enqueue is harmless: documents are addressed by id and
  * upserts are idempotent.
+ *
+ * <p>When runtime mode is {@code POSTGRES} or the cluster is unreachable, reindex is skipped so
+ * an app restart with Elasticsearch stopped does not stall boot or enqueue a useless backlog
+ * that nothing will drain until the next start.
  */
 @Component
 @ConditionalOnProperty(name = "app.search.elasticsearch.enabled", havingValue = "true")
@@ -43,14 +49,17 @@ public class SearchIndexInitializer {
 
     private final ElasticsearchClient client;
     private final JdbcTemplate jdbc;
+    private final SearchModeSettingsPort settings;
     private final String indexName;
     private final boolean reindexOnStartup;
 
     public SearchIndexInitializer(ElasticsearchClient client, JdbcTemplate jdbc,
+                                 SearchModeSettingsPort settings,
                                  @Value("${app.search.elasticsearch.index:knowledge-gym-search}") String indexName,
                                  @Value("${app.search.elasticsearch.reindex-on-startup:true}") boolean reindexOnStartup) {
         this.client = client;
         this.jdbc = jdbc;
+        this.settings = settings;
         this.indexName = indexName;
         this.reindexOnStartup = reindexOnStartup;
     }
@@ -62,6 +71,15 @@ public class SearchIndexInitializer {
     @EventListener(ApplicationReadyEvent.class)
     public void initialise() {
         try {
+            if (settings.current().mode() == Mode.POSTGRES) {
+                log.info("Search mode is POSTGRES; skipping Elasticsearch index initialise/reindex");
+                return;
+            }
+            if (!clusterReachable()) {
+                log.warn("Elasticsearch unreachable; skipping index initialise/reindex "
+                        + "(search stays on PostgreSQL fallback)");
+                return;
+            }
             boolean created = false;
             if (!client.indices().exists(e -> e.index(indexName)).value()) {
                 client.indices().create(c -> c
@@ -87,6 +105,16 @@ public class SearchIndexInitializer {
             // to Postgres until the index exists.
             log.warn("Search index '{}' not initialised; search will use the PostgreSQL fallback "
                     + "until the index exists", indexName, e);
+        }
+    }
+
+    private boolean clusterReachable() {
+        try {
+            client.ping();
+            return true;
+        } catch (Exception e) {
+            log.debug("Elasticsearch ping failed", e);
+            return false;
         }
     }
 

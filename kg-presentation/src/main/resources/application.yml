@@ -33,6 +33,9 @@ spring:
       timeout: 2000ms
   elasticsearch:
     uris: ${SPRING_ELASTICSEARCH_URIS:http://localhost:9200}
+    # Short timeouts so AUTO/ELASTICSEARCH mode falls back to Postgres quickly when ES is down.
+    connection-timeout: ${SPRING_ELASTICSEARCH_CONNECTION_TIMEOUT:2s}
+    socket-timeout: ${SPRING_ELASTICSEARCH_SOCKET_TIMEOUT:2s}
   mail:
     host: smtp.gmail.com
     port: 587
@@ -60,6 +63,10 @@ app:
     mode: ${APP_CRON_MODE:embedded}
     token: ${CRON_TOKEN:}
   ops:
+    # Prefer HTTP agent on Docker bridge gateway (CT102). App containers cannot reach 127.0.0.1.
+    es-control-url: ${KG_ES_CONTROL_URL:}
+    es-control-token: ${KG_ES_CONTROL_TOKEN:}
+    # Legacy fallback: ProcessBuilder to a script on the same host as the JVM (not the app container).
     backup-script: ${KG_BACKUP_SCRIPT:}
     es-control-script: ${KG_ES_CONTROL_SCRIPT:}
     script-timeout-seconds: ${KG_SCRIPT_TIMEOUT_SECONDS:900}

@@ -8,19 +8,19 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Keeps {@code search_outbox} bounded by deleting rows older than a retention window.
+ * Keeps {@code search_outbox} bounded by deleting <em>processed</em> rows older than a retention
+ * window.
  *
  * <p>Runs unconditionally, not behind {@code app.search.elasticsearch.enabled}. The capture
- * triggers write rows whether or not anything is draining them, so with the feature disabled the
- * table would otherwise grow without limit — and unbounded growth on a transactional write path is
- * a worse failure than the feature being absent.
+ * triggers write rows whether or not anything is draining them.
  *
- * <p>The cut-off is on {@code occurred_at} and applies to pending rows too, not only processed
- * ones. A row still pending after the whole retention window means no relay is draining (flag off,
- * or the relay is wedged); keeping it would defeat the point. This is safe because the index is
- * rebuilt from the source tables on startup, so a purged row is recoverable — the outbox is a
- * bounded work queue, never the source of truth. Normal operation processes rows within seconds,
- * so the window is orders of magnitude larger than the real backlog.
+ * <p><b>Only rows with {@code processed_at IS NOT NULL} are deleted.</b> While runtime mode is
+ * {@code POSTGRES} the relay does not drain; pending rows must survive until Elasticsearch is
+ * started again (or a full reindex runs). Deleting pending by age would permanently desync the
+ * index from Postgres whenever reindex-on-startup is skipped because the cluster is down.
+ *
+ * <p>The outbox is still not the source of truth — a full reindex can rebuild from source tables —
+ * but pending rows are the cheapest catch-up path after a long POSTGRES window.
  */
 @Component
 public class SearchOutboxPruner {
@@ -40,10 +40,12 @@ public class SearchOutboxPruner {
     public void prune() {
         try {
             int deleted = jdbc.update(
-                    "DELETE FROM search_outbox WHERE occurred_at < NOW() - make_interval(days => ?)",
+                    "DELETE FROM search_outbox "
+                            + "WHERE processed_at IS NOT NULL "
+                            + "AND processed_at < NOW() - make_interval(days => ?)",
                     retentionDays);
             if (deleted > 0) {
-                log.debug("Pruned {} rows from search_outbox", deleted);
+                log.debug("Pruned {} processed rows from search_outbox", deleted);
             }
         } catch (RuntimeException e) {
             // Housekeeping must not take the app down or spam: the next tick tries again.

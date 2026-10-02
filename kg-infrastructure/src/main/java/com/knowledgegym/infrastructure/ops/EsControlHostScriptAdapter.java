@@ -5,9 +5,13 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnExpression("!'${app.ops.es-control-script:}'.blank")
+@ConditionalOnMissingBean(HostScriptPort.class)
 public class EsControlHostScriptAdapter implements HostScriptPort {
     private static final Set<String> ALLOWED = Set.of("status", "start", "stop");
     private final Path script;

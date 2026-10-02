@@ -75,7 +75,8 @@ class SearchIndexIntegrationTest {
         String address = ELASTICSEARCH.getHttpHostAddress();
         final String host = address.startsWith("http") ? address : "http://" + address;
         client = ElasticsearchClient.of(b -> b.host(host));
-        var initializer = new SearchIndexInitializer(client, jdbc, INDEX, false);
+        var initializer = new SearchIndexInitializer(
+                client, jdbc, settings(SearchModeSettingsPort.Mode.ELASTICSEARCH), INDEX, false);
         initializer.initialise();
 
         adapter = new ElasticsearchSearchAdapter(client, initializer);
