@@ -1,4 +1,5 @@
 "use client";
+import { useLocale } from "@/components/locale";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,6 +15,7 @@ import { ApiError } from "@/lib/api-client";
 import { register, startGoogleLogin } from "@/lib/auth";
 
 export default function RegisterPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -27,7 +29,7 @@ export default function RegisterPage() {
     setError(null);
     try {
       await register(email.trim(), password, displayName.trim());
-      router.replace("/questions");
+      router.replace("/learn");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Đăng ký thất bại");
     } finally {
@@ -36,9 +38,9 @@ export default function RegisterPage() {
   }
 
   return (
-    <AuthShell title="Tạo tài khoản" subtitle="Email + mật khẩu ít nhất 8 ký tự.">
+    <AuthShell title={t("Tạo tài khoản")} subtitle={t("Email + mật khẩu ít nhất 8 ký tự.")}>
       <form onSubmit={onSubmit} className="animate-fade-up-delay">
-        <Field label="Tên hiển thị">
+        <Field label={t("Tên hiển thị")}>
           <input
             className={inputClass}
             required
@@ -47,7 +49,7 @@ export default function RegisterPage() {
             onChange={(e) => setDisplayName(e.target.value)}
           />
         </Field>
-        <Field label="Email">
+        <Field label={t("Email")}>
           <input
             className={inputClass}
             type="email"
@@ -57,7 +59,7 @@ export default function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </Field>
-        <Field label="Mật khẩu">
+        <Field label={t("Mật khẩu")}>
           <input
             className={inputClass}
             type="password"
@@ -70,24 +72,22 @@ export default function RegisterPage() {
           />
         </Field>
         {error ? (
-          <p className="mb-4 text-sm text-ember-400" role="alert">
-            {error}
+          <p className="mb-4 text-sm text-warning" role="alert">
+            {t(error)}
           </p>
         ) : null}
         <button type="submit" className={primaryBtnClass} disabled={busy}>
-          {busy ? "Đang tạo…" : "Đăng ký"}
+          {busy ? t("Đang tạo…") : t("Đăng ký")}
         </button>
       </form>
 
       <button type="button" className={`${ghostBtnClass} mt-3`} onClick={startGoogleLogin}>
-        Đăng ký với Google
-      </button>
+        {t("Đăng ký với Google")}</button>
 
-      <p className="mt-6 text-sm text-ink-400">
-        Đã có tài khoản?{" "}
-        <Link href="/login" className="text-moss-400 hover:underline">
-          Đăng nhập
-        </Link>
+      <p className="mt-6 text-sm text-subtle">
+        {t("Đã có tài khoản?")}{" "}
+        <Link href="/login" className="text-positive underline underline-offset-4 hover:text-strong">
+          {t("Đăng nhập")}</Link>
       </p>
     </AuthShell>
   );

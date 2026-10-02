@@ -1,4 +1,5 @@
 "use client";
+import { useLocale } from "@/components/locale";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,6 +15,7 @@ import { ApiError } from "@/lib/api-client";
 import { login, startGoogleLogin } from "@/lib/auth";
 
 export default function LoginPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +28,7 @@ export default function LoginPage() {
     setError(null);
     try {
       await login(email.trim(), password);
-      router.replace("/questions");
+      router.replace("/learn");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Đăng nhập thất bại");
     } finally {
@@ -35,9 +37,9 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthShell title="Đăng nhập" subtitle="Tiếp tục buổi tập với tài khoản của bạn.">
+    <AuthShell title={t("Đăng nhập")} subtitle={t("Tiếp tục buổi tập với tài khoản của bạn.")}>
       <form onSubmit={onSubmit} className="animate-fade-up-delay">
-        <Field label="Email">
+        <Field label={t("Email")}>
           <input
             className={inputClass}
             type="email"
@@ -47,7 +49,7 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </Field>
-        <Field label="Mật khẩu">
+        <Field label={t("Mật khẩu")}>
           <input
             className={inputClass}
             type="password"
@@ -58,28 +60,25 @@ export default function LoginPage() {
           />
         </Field>
         {error ? (
-          <p className="mb-4 text-sm text-ember-400" role="alert">
-            {error}
+          <p className="mb-4 text-sm text-warning" role="alert">
+            {t(error)}
           </p>
         ) : null}
         <button type="submit" className={primaryBtnClass} disabled={busy}>
-          {busy ? "Đang vào…" : "Vào phòng tập"}
+          {busy ? t("Đang vào…") : t("Vào phòng tập")}
         </button>
       </form>
 
       <button type="button" className={`${ghostBtnClass} mt-3`} onClick={startGoogleLogin}>
-        Tiếp tục với Google
-      </button>
+        {t("Tiếp tục với Google")}</button>
 
-      <div className="mt-6 flex flex-col gap-2 text-sm text-ink-400">
-        <Link href="/forgot-password" className="hover:text-ember-300">
-          Quên mật khẩu?
-        </Link>
+      <div className="mt-6 flex flex-col gap-2 text-sm text-subtle">
+        <Link href="/forgot-password" className="hover:text-warning">
+          {t("Quên mật khẩu?")}</Link>
         <p>
-          Chưa có tài khoản?{" "}
-          <Link href="/register" className="text-moss-400 hover:underline">
-            Đăng ký
-          </Link>
+          {t("Chưa có tài khoản?")}{" "}
+          <Link href="/register" className="text-positive underline underline-offset-4 hover:text-strong">
+            {t("Đăng ký")}</Link>
         </p>
       </div>
     </AuthShell>

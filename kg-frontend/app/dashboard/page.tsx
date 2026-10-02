@@ -1,42 +1,39 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { RequireAuth } from "@/components/ui";
+import { ArrowRightIcon as ArrowRight, FireIcon as Fire, MedalIcon as Medal } from "@phosphor-icons/react";
+import { RequireAuth, PageHeading } from "@/components/ui";
+import { useLocale } from "@/components/locale";
 import KnowledgeRadar from "@/components/KnowledgeRadar";
 import HeatmapCalendar from "@/components/HeatmapCalendar";
 import Leaderboard from "@/components/Leaderboard";
 import { loadDashboard, type DashboardData } from "@/lib/dashboard";
 
 function Dashboard() {
+  const { t, formatLocale } = useLocale();
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
-
   useEffect(() => {
     const controller = new AbortController();
-    loadDashboard(controller.signal).then((value) => {
-      if (!controller.signal.aborted) { setData(value); setError(""); }
-    }).catch((reason: unknown) => {
-      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Không tải được dashboard");
-    });
+    loadDashboard(controller.signal).then(value => { if (!controller.signal.aborted) { setData(value); setError(""); } }).catch(reason => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Không tải được dashboard"); });
     return () => controller.abort();
   }, [reload]);
-
-  return <div className="space-y-7">
-    <div className="flex flex-wrap items-end justify-between gap-3">
-      <div><p className="text-xs uppercase tracking-[0.2em] text-ember-400">Tiến độ học tập</p><h1 className="font-display text-3xl text-ink-50">Dashboard</h1></div>
-      <div className="flex items-center gap-3"><a href="/mindmap" className="rounded-sm border border-ink-700 px-3 py-2 text-sm hover:border-moss-500">Mindmap</a><a href="/notes" className="rounded-sm border border-ink-700 px-3 py-2 text-sm hover:border-moss-500">Ghi chú</a><a href="/blog" className="rounded-sm border border-ink-700 px-3 py-2 text-sm hover:border-moss-500">Blog</a><a href="/admin/writer" className="rounded-sm border border-ember-500/70 px-3 py-2 text-sm text-ember-300 hover:border-ember-400">AI Writer · Admin</a><a href="/admin/search" className="rounded-sm border border-ember-500/70 px-3 py-2 text-sm text-ember-300 hover:border-ember-400">Search · Admin</a>{data && <div className="rounded-sm border border-moss-600/60 px-4 py-2 text-sm text-moss-300">🔥 {data.stats.currentStreak} ngày liên tiếp · {data.stats.xp.toLocaleString("vi-VN")} XP</div>}</div>
-    </div>
-    {error && <div role="alert" className="rounded-sm border border-ember-500/50 p-4 text-ember-300">{error}<button onClick={() => setReload((n) => n + 1)} className="ml-3 underline">Thử lại</button></div>}
-    {!data && !error && <p className="animate-soft-pulse text-ink-400">Đang tải tiến độ…</p>}
+  return <div>
+    <PageHeading title="Tiến độ học tập" description="Nhìn lại những gì bạn đã học và chọn điều muốn luyện tiếp." action={<Link href="/learn" className="kg-secondary">{t("Tiếp tục khám phá")}<ArrowRight size={18} aria-hidden /></Link>} />
+    {error && <div role="alert">{t(error)}<button type="button" onClick={() => setReload(value => value + 1)} className="ml-4 underline">{t("Thử lại")}</button></div>}
+    {!data && !error && <p role="status" className="kg-panel text-subtle">{t("Đang tải tiến độ…")}</p>}
     {data && <>
-      <div className="grid gap-5 lg:grid-cols-2">
-        <section className="space-y-3 rounded-sm border border-ink-700 bg-ink-900/50 p-5"><h2 className="font-display text-xl">Mastery theo module</h2><KnowledgeRadar modules={data.radar} /></section>
-        <section className="space-y-4 rounded-sm border border-ink-700 bg-ink-900/50 p-5"><h2 className="font-display text-xl">Hoạt động · 90 ngày</h2><HeatmapCalendar days={data.heatmap} /></section>
+      <div className="mb-8 flex flex-wrap gap-x-9 gap-y-4 border-y border-line/70 py-5 text-sm">
+        <div className="flex items-center gap-3"><Fire size={22} className="text-warning" aria-hidden /><span className="text-subtle">{t("Ngày liên tiếp")}</span><strong className="tabular-nums text-strong">{data.stats.currentStreak.toLocaleString(formatLocale)}</strong></div>
+        <div className="flex items-center gap-3"><Medal size={22} className="text-accent" aria-hidden /><span className="text-subtle">{t("Kinh nghiệm tích lũy")}</span><strong className="tabular-nums text-strong">{data.stats.xp.toLocaleString(formatLocale)} XP</strong></div>
       </div>
-      <section className="space-y-4 rounded-sm border border-ink-700 bg-ink-900/50 p-5"><div><h2 className="font-display text-xl">Bảng xếp hạng</h2><p className="text-xs text-ink-400">Top người học theo XP</p></div><Leaderboard users={data.leaderboard} /></section>
+      <div className="grid items-start gap-6 xl:grid-cols-[1.15fr_1fr]">
+        <section className="kg-panel"><h2 className="text-xl">{t("Mastery theo module")}</h2><KnowledgeRadar modules={data.radar} /></section>
+        <div className="space-y-6"><section className="kg-panel"><h2 className="mb-6 text-xl">{t("Hoạt động · 90 ngày")}</h2><HeatmapCalendar days={data.heatmap} /></section><section className="kg-panel"><h2 className="text-xl">{t("Bảng xếp hạng")}</h2><p className="mb-5 mt-1 text-sm text-subtle">{t("Top người học theo XP")}</p><Leaderboard users={data.leaderboard} /></section></div>
+      </div>
     </>}
   </div>;
 }
-
 export default function DashboardPage() { return <RequireAuth><Dashboard /></RequireAuth>; }

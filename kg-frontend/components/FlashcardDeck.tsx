@@ -1,9 +1,11 @@
 "use client";
+import { useLocale } from "@/components/locale";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@/lib/api-client";
 import { sanitizeAnswerHtml } from "@/lib/sanitize-html";
 import { QUALITY, reviewCard, type DueCard } from "@/lib/srs";
+import { formatReviewInterval } from "@/lib/i18n";
 
 type Rating = {
   label: string;
@@ -18,25 +20,25 @@ const RATINGS: Rating[] = [
     label: "Again",
     quality: QUALITY.AGAIN,
     hint: "Quên — reset về 1 ngày",
-    tone: "border-ember-500/60 text-ember-300 hover:bg-ember-500/10",
+    tone: "border-accent/60 text-warning hover:bg-accent/10",
   },
   {
     label: "Hard",
     quality: QUALITY.HARD,
     hint: "Nhớ nhưng khó",
-    tone: "border-ink-600 text-ink-200 hover:border-ember-400 hover:text-ember-300",
+    tone: "border-line text-body hover:border-accent hover:text-warning",
   },
   {
     label: "Good",
     quality: QUALITY.GOOD,
     hint: "Nhớ bình thường",
-    tone: "border-moss-600/60 text-moss-400 hover:bg-moss-600/10",
+    tone: "border-accent/60 text-positive hover:bg-accent/10",
   },
   {
     label: "Easy",
     quality: QUALITY.EASY,
     hint: "Quá dễ",
-    tone: "border-moss-500 text-moss-400 hover:bg-moss-500/15",
+    tone: "border-accent text-positive hover:bg-accent/15",
   },
 ];
 
@@ -46,13 +48,6 @@ export type ReviewSummary = {
   intervalDays: number;
   nextReview: string;
 };
-
-function formatInterval(days: number): string {
-  if (days <= 1) return "1 ngày";
-  if (days < 30) return `${days} ngày`;
-  const months = Math.round(days / 30);
-  return months < 12 ? `${months} tháng` : `${(days / 365).toFixed(1)} năm`;
-}
 
 function ratingLabel(quality: number): string {
   return RATINGS.find((r) => r.quality === quality)?.label ?? String(quality);
@@ -72,6 +67,7 @@ export function FlashcardDeck({
   cards: DueCard[];
   onFinished?: (summaries: ReviewSummary[]) => void;
 }) {
+  const { t, locale } = useLocale();
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -155,20 +151,19 @@ export function FlashcardDeck({
 
   if (!card) {
     return (
-      <div className="rounded-sm border border-ink-700 bg-ink-900/50 p-8 text-center">
-        <p className="font-display text-xl text-moss-400">Hết thẻ trong phiên</p>
-        <p className="mt-2 text-sm text-ink-400">
-          Đã ôn {summaries.length} thẻ. Quay lại sau khi thẻ đến hạn.
-        </p>
+      <div className="rounded-sm border border-line bg-surface/50 p-8 text-center">
+        <p className="font-display text-xl text-positive">{t("Hết thẻ trong phiên")}</p>
+        <p className="mt-2 text-sm text-subtle">
+          {t("Đã ôn ")}{summaries.length} {t(" thẻ. Quay lại sau khi thẻ đến hạn.")}</p>
       </div>
     );
   }
 
   return (
     <div className="animate-fade-up">
-      <div className="mb-3 flex items-baseline justify-between gap-4 text-xs uppercase tracking-[0.18em] text-ink-400">
+      <div className="mb-3 flex items-baseline justify-between gap-4 text-xs uppercase tracking-[0.18em] text-subtle">
         <span>
-          Thẻ {index + 1} / {cards.length}
+          {t("Thẻ ")}{index + 1} {t(" / ")}{cards.length}
         </span>
         {card.moduleSlug ? <span>{card.moduleSlug}</span> : null}
       </div>
@@ -177,9 +172,9 @@ export function FlashcardDeck({
       <div
         role="button"
         tabIndex={0}
-        aria-label={flipped ? "Lật về mặt câu hỏi" : "Lật xem đáp án"}
+        aria-label={flipped ? t("Lật về mặt câu hỏi") : t("Lật xem đáp án")}
         onClick={() => setFlipped((value) => !value)}
-        className="group relative min-h-[22rem] cursor-pointer rounded-sm border border-ink-700 bg-ink-900/60 transition hover:border-moss-600/60 [perspective:1600px]"
+        className="group relative min-h-[22rem] cursor-pointer rounded-sm border border-line bg-surface/60 transition hover:border-accent/60 [perspective:1600px]"
       >
         <div
           className={`absolute inset-0 transition-transform duration-500 [transform-style:preserve-3d] ${
@@ -198,11 +193,11 @@ export function FlashcardDeck({
               flipped ? "invisible" : ""
             }`}
           >
-            <p className="text-xs uppercase tracking-[0.18em] text-ink-400">
+            <p className="text-xs uppercase tracking-[0.18em] text-subtle">
               {card.difficulty ?? "—"}
             </p>
-            <p className="mt-4 font-display text-2xl text-ink-50 sm:text-3xl">{card.title}</p>
-            <p className="mt-10 text-sm text-ink-400">Nhấn để lật card — hoặc dùng Space</p>
+            <p className="mt-4 font-display text-2xl text-strong sm:text-3xl">{card.title}</p>
+            <p className="mt-10 text-sm text-subtle">{t("Nhấn để lật card — hoặc dùng Space")}</p>
           </div>
 
           <div
@@ -211,10 +206,10 @@ export function FlashcardDeck({
               flipped ? "" : "invisible"
             }`}
           >
-            <p className="text-xs uppercase tracking-[0.18em] text-moss-400">Đáp án</p>
-            <p className="mt-3 font-display text-xl text-ink-50">{card.title}</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-positive">{t("Đáp án")}</p>
+            <p className="mt-3 font-display text-xl text-strong">{card.title}</p>
             <div
-              className="answer-html mt-6 border-t border-ink-800 pt-6"
+              className="answer-html mt-6 border-t border-line pt-6"
               dangerouslySetInnerHTML={{ __html: sanitizeAnswerHtml(card.answerHtml) }}
             />
           </div>
@@ -222,8 +217,8 @@ export function FlashcardDeck({
       </div>
 
       {error ? (
-        <p className="mt-4 text-sm text-ember-400" role="alert">
-          {error}
+        <p className="mt-4 text-sm text-warning" role="alert">
+          {t(error)}
         </p>
       ) : null}
 
@@ -236,25 +231,23 @@ export function FlashcardDeck({
             onClick={() => void submit(rating.quality)}
             className={`rounded-sm border px-3 py-3 text-left transition disabled:opacity-50 ${rating.tone}`}
           >
-            <span className="block font-display text-base">{rating.label}</span>
-            <span className="mt-0.5 block text-xs text-ink-400">{rating.hint}</span>
+            <span className="block font-display text-base">{t(rating.label)}</span>
+            <span className="mt-0.5 block text-xs text-subtle">{t(rating.hint)}</span>
           </button>
         ))}
       </div>
 
-      <p className="mt-3 text-xs text-ink-400">
+      <p className="mt-3 text-xs text-subtle">
         {flipped
-          ? "Chấm mức độ nhớ — phím 1–4 cũng dùng được."
-          : "Chưa lật card vẫn chấm được, nhưng thời gian phản hồi sẽ phản ánh điều đó."}
+          ? t("Chấm mức độ nhớ — phím 1–4 cũng dùng được.")
+          : t("Chưa lật card vẫn chấm được, nhưng thời gian phản hồi sẽ phản ánh điều đó.")}
       </p>
 
       {summaries.length > 0 ? (
-        <ul className="mt-8 space-y-1 border-t border-ink-800 pt-4 text-xs text-ink-400">
+        <ul className="mt-8 space-y-1 border-t border-line pt-4 text-xs text-subtle">
           {summaries.slice(-5).reverse().map((summary) => (
             <li key={summary.cardId}>
-              {ratingLabel(summary.quality)} · lần sau sau {formatInterval(summary.intervalDays)} (
-              {summary.nextReview})
-            </li>
+              {t(ratingLabel(summary.quality))} {t(" · lần sau sau ")}{formatReviewInterval(summary.intervalDays, locale)} {t(" (")}{summary.nextReview}{t(")")}</li>
           ))}
         </ul>
       ) : null}

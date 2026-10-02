@@ -1,9 +1,11 @@
 "use client";
+import { useLocale } from "@/components/locale";
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { RequireAuth, inputClass } from "@/components/ui";
+import { RequireAuth, inputClass, PageHeading, ContentLanguageNotice } from "@/components/ui";
+import { ArrowRightIcon as ArrowRight, MagnifyingGlassIcon as MagnifyingGlass } from "@phosphor-icons/react";
 import { ApiError } from "@/lib/api-client";
 import { listModules, listQuestions, listTopics } from "@/lib/questions";
 import type { Module, QuestionSummary, Topic } from "@/lib/types";
@@ -11,11 +13,11 @@ import type { Module, QuestionSummary, Topic } from "@/lib/types";
 function difficultyTone(d: string): string {
   switch (d) {
     case "JUNIOR":
-      return "text-moss-400 border-moss-600/50";
+      return "text-positive border-accent/50";
     case "SENIOR":
-      return "text-ember-400 border-ember-500/40";
+      return "text-warning border-accent/40";
     default:
-      return "text-ink-200 border-ink-600";
+      return "text-body border-line";
   }
 }
 
@@ -24,6 +26,7 @@ function isAbortError(err: unknown): boolean {
 }
 
 function QuestionsBrowser() {
+  const { t } = useLocale();
   const searchParams = useSearchParams();
   const moduleParam = searchParams.get("moduleId") ?? "";
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -116,7 +119,7 @@ function QuestionsBrowser() {
     const ac = new AbortController();
     void load(ac.signal);
     return () => ac.abort();
-  }, [load]);
+  }, [load, catalogTick]);
 
   const tagSuggestions = useMemo(() => {
     const set = new Set<string>();
@@ -130,189 +133,43 @@ function QuestionsBrowser() {
     setQ(qDraft.trim());
   }
 
-  return (
-    <div className="animate-fade-up">
-      <header className="mb-8">
-        <p className="font-display text-3xl text-ink-50 sm:text-4xl">Knowledge Gym</p>
-        <p className="mt-2 max-w-xl text-ink-400">
-          Lọc theo module / độ khó / tag, tìm full-text — mở câu để đọc đáp án đã sanitize.
-        </p>
-      </header>
-
-      <form
-        onSubmit={onSearch}
-        className="mb-6 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end"
-      >
-        <label className="block text-sm">
-          <span className="mb-1.5 block text-ink-200">Tìm kiếm</span>
-          <input
-            className={inputClass}
-            placeholder="vd: heap, bo nho, equals…"
-            value={qDraft}
-            onChange={(e) => setQDraft(e.target.value)}
-          />
-        </label>
-        <button
-          type="submit"
-          className="rounded-sm bg-ember-500 px-5 py-2.5 font-medium text-ink-950 transition hover:bg-ember-400"
-        >
-          Tìm
-        </button>
-      </form>
-
-      <div className="mb-8 grid gap-3 sm:grid-cols-3">
-        <label className="block text-sm">
-          <span className="mb-1.5 block text-ink-200">Module</span>
-          <select
-            className={inputClass}
-            value={moduleId}
-            onChange={(e) => {
-              setPage(1);
-              setModuleId(e.target.value);
-            }}
-          >
-            <option value="">Tất cả</option>
-            {modules.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.slug} · {m.name} ({m.questionCount})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-sm">
-          <span className="mb-1.5 block text-ink-200">Độ khó</span>
-          <select
-            className={inputClass}
-            value={difficulty}
-            onChange={(e) => {
-              setPage(1);
-              setDifficulty(e.target.value);
-            }}
-          >
-            <option value="">Tất cả</option>
-            <option value="JUNIOR">JUNIOR</option>
-            <option value="MID">MID</option>
-            <option value="SENIOR">SENIOR</option>
-          </select>
-        </label>
-        <label className="block text-sm">
-          <span className="mb-1.5 block text-ink-200">Tag</span>
-          <input
-            className={inputClass}
-            list="tag-suggestions"
-            placeholder="slug section…"
-            value={tagDraft}
-            onChange={(e) => setTagDraft(e.target.value)}
-          />
-          <datalist id="tag-suggestions">
-            {tagSuggestions.map((t) => (
-              <option key={t} value={t} />
-            ))}
-          </datalist>
-        </label>
+  const selectedModule = modules.find(module => module.id === moduleId);
+  function clearFilters() {
+    setPage(1); setModuleId(""); setDifficulty(""); setTag(""); setTagDraft(""); setQ(""); setQDraft("");
+  }
+  return <div>
+    <PageHeading title="Thư viện câu hỏi" description="Tìm câu hỏi theo module, độ khó hoặc từ khóa." action={<Link href="/learn" className="kg-secondary">{t("Chọn chủ đề")}<ArrowRight size={18} aria-hidden /></Link>} />
+    <form onSubmit={onSearch} className="kg-panel mb-7">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <label className="block text-sm font-medium"><span className="mb-2 block">{t("Tìm kiếm")}</span><div className="relative"><MagnifyingGlass size={20} aria-hidden className="pointer-events-none absolute left-4 top-3.5 text-subtle" /><input className={inputClass + " pl-12"} placeholder={t("Ví dụ: heap, bộ nhớ, equals…")} value={qDraft} onChange={event => setQDraft(event.target.value)} /></div></label>
+        <button type="submit" className="kg-button">{t("Tìm")}</button>
       </div>
-
-      {catalogError ? (
-        <p className="mb-4 text-sm text-ember-400" role="alert">
-          {catalogError}{" "}
-          <button
-            type="button"
-            className="underline"
-            onClick={() => setCatalogTick((n) => n + 1)}
-          >
-            Thử lại
-          </button>
-        </p>
-      ) : null}
-
-      <Link href="/mock-interview" className="mb-6 mr-4 inline-flex rounded-sm border border-ink-600 px-4 py-2 text-sm">Mock Interview →</Link>
-      {moduleId ? <Link href={`/quiz/${encodeURIComponent(moduleId)}`} className="mb-6 mr-4 inline-flex rounded-sm border border-ember-400 px-4 py-2 text-sm text-ember-400">Làm quiz module này →</Link> : null}
-      {moduleId ? (
-        <Link
-          href={`/flashcard/${encodeURIComponent(moduleId)}`}
-          className="mb-6 inline-flex items-center gap-2 rounded-sm border border-moss-600/60 px-4 py-2 text-sm text-moss-400 transition hover:bg-moss-600/10"
-        >
-          Ôn flashcard module này →
-        </Link>
-      ) : null}
-
-      <p className="mb-4 text-xs uppercase tracking-[0.18em] text-ink-400">
-        {topics.length} topics · {modules.length} modules · {totalElements} hits
-      </p>
-
-      {error ? (
-        <p className="mb-4 text-sm text-ember-400" role="alert">
-          {error}
-        </p>
-      ) : null}
-
-      {loading ? (
-        <p className="animate-soft-pulse text-ink-400">Đang tải…</p>
-      ) : items.length === 0 ? (
-        <p className="text-ink-400">Không có câu hỏi khớp bộ lọc.</p>
-      ) : (
-        <ul className="divide-y divide-ink-800 border-y border-ink-800">
-          {items.map((item, index) => (
-            <li
-              key={item.id}
-              className="animate-fade-up py-4"
-              style={{ animationDelay: `${Math.min(index, 8) * 30}ms` }}
-            >
-              <Link
-                href={`/questions/${item.id}`}
-                className="group block transition hover:translate-x-0.5"
-              >
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <span
-                    className={`rounded-sm border px-1.5 py-0.5 text-[10px] uppercase tracking-wider ${difficultyTone(item.difficulty)}`}
-                  >
-                    {item.difficulty}
-                  </span>
-                  <span className="text-xs text-ink-400">{item.moduleSlug}</span>
-                </div>
-                <p className="mt-1 font-display text-lg text-ink-50 group-hover:text-ember-300">
-                  {item.title}
-                </p>
-                {item.tags.length > 0 ? (
-                  <p className="mt-1 text-xs text-ink-400">{item.tags.join(" · ")}</p>
-                ) : null}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="mt-8 flex items-center justify-between gap-4 text-sm">
-        <button
-          type="button"
-          disabled={page <= 1 || loading}
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          className="rounded-sm border border-ink-600 px-3 py-1.5 disabled:opacity-40"
-        >
-          Trước
-        </button>
-        <span className="text-ink-400">
-          Trang {page} / {totalPages}
-        </span>
-        <button
-          type="button"
-          disabled={page >= totalPages || loading}
-          onClick={() => setPage((p) => p + 1)}
-          className="rounded-sm border border-ink-600 px-3 py-1.5 disabled:opacity-40"
-        >
-          Sau
-        </button>
+      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+        <label className="block text-sm"><span className="mb-2 block font-medium">{t("Module")}</span><select className={inputClass} value={moduleId} onChange={event => { setPage(1); setModuleId(event.target.value); }}><option value="">{t("Tất cả")}</option>{modules.map(module => <option key={module.id} value={module.id}>{module.name} ({module.questionCount})</option>)}</select></label>
+        <label className="block text-sm"><span className="mb-2 block font-medium">{t("Độ khó")}</span><select className={inputClass} value={difficulty} onChange={event => { setPage(1); setDifficulty(event.target.value); }}><option value="">{t("Tất cả")}</option><option value="JUNIOR">Junior</option><option value="MID">Mid</option><option value="SENIOR">Senior</option></select></label>
+        <label className="block text-sm"><span className="mb-2 block font-medium">{t("Tag")}</span><input className={inputClass} list="tag-suggestions" placeholder={t("Ví dụ: collections")} value={tagDraft} onChange={event => setTagDraft(event.target.value)} /><datalist id="tag-suggestions">{tagSuggestions.map(tag => <option key={tag} value={tag} />)}</datalist></label>
       </div>
+    </form>
+    {catalogError && <p role="alert" className="mb-5">{t(catalogError)}<button type="button" className="ml-4 underline" onClick={() => setCatalogTick(value => value + 1)}>{t("Thử lại")}</button></p>}
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div><h2 className="text-xl">{selectedModule?.name ?? t("Câu hỏi")}</h2><p className="mt-1 text-sm tabular-nums text-subtle">{totalElements} {t("câu hỏi")}<span className="mx-2" aria-hidden>·</span>{topics.length} {t("Chủ đề").toLowerCase()}</p></div>
+      <div className="flex flex-wrap gap-2"><Link href="/mock-interview" className="kg-secondary">{t("Luyện phỏng vấn")}</Link>{moduleId && <><Link href={`/quiz/${encodeURIComponent(moduleId)}`} className="kg-secondary">{t("Làm quiz module này")}</Link><Link href={`/flashcard/${encodeURIComponent(moduleId)}`} className="kg-button">{t("Ôn flashcard module này")}</Link></>}</div>
     </div>
-  );
+    {error ? <p role="alert">{t(error)}<button type="button" className="ml-4 underline" onClick={() => setCatalogTick(value => value + 1)}>{t("Thử lại")}</button></p> : loading ? <p role="status" className="kg-panel text-subtle">{t("Đang tải…")}</p> : items.length === 0 ? <div className="kg-panel py-10"><p className="text-subtle">{t("Không có câu hỏi khớp bộ lọc.")}</p><button type="button" className="kg-secondary mt-5" onClick={clearFilters}>{t("Xóa bộ lọc")}</button></div> : <ul className="overflow-hidden rounded-2xl border border-line/80 bg-surface">
+      {items.map(item => <li key={item.id} className="border-b border-line/60 last:border-b-0"><Link href={`/questions/${item.id}`} className="group flex items-center gap-4 px-5 py-5 transition-colors hover:bg-muted/45 sm:px-6"><span className="min-w-0 flex-1"><span className="flex flex-wrap items-center gap-2"><span className={`rounded-md border px-2 py-1 text-[11px] font-medium ${difficultyTone(item.difficulty)}`}>{item.difficulty}</span><span className="text-xs text-subtle">{item.moduleSlug}</span></span><span className="mt-2 block break-words text-lg font-medium text-strong group-hover:text-accent">{item.title}</span>{item.tags.length > 0 && <span className="mt-2 block text-xs text-subtle">{item.tags.join(", ")}</span>}</span><ArrowRight size={19} aria-hidden className="shrink-0 text-subtle group-hover:text-accent" /></Link></li>)}
+    </ul>}
+    <div className="mt-6 flex items-center justify-between gap-4 text-sm"><button type="button" disabled={page <= 1 || loading} onClick={() => setPage(value => Math.max(1, value - 1))} className="kg-secondary">{t("Trước")}</button><span className="tabular-nums text-subtle">{t("Trang")} {page} / {totalPages}</span><button type="button" disabled={page >= totalPages || loading} onClick={() => setPage(value => value + 1)} className="kg-secondary">{t("Sau")}</button></div>
+    <ContentLanguageNotice />
+  </div>;
 }
 
 export default function QuestionsPage() {
+  const { t } = useLocale();
   // `useSearchParams` opts the route into client-side rendering — Next requires a Suspense
   // boundary so the shell can still be prerendered.
   return (
     <RequireAuth>
-      <Suspense fallback={<p className="animate-soft-pulse text-ink-400">Đang tải…</p>}>
+      <Suspense fallback={<p className="animate-soft-pulse text-subtle">{t("Đang tải…")}</p>}>
         <QuestionsBrowser />
       </Suspense>
     </RequireAuth>

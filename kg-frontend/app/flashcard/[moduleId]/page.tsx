@@ -1,4 +1,5 @@
 "use client";
+import { useLocale } from "@/components/locale";
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -35,6 +36,7 @@ function tally(summaries: ReviewSummary[]) {
 }
 
 function FlashcardSession() {
+  const { t } = useLocale();
   const params = useParams<{ moduleId: string }>();
   const moduleId = params.moduleId;
   const [session, setSession] = useState<Session>({ phase: "loading" });
@@ -79,7 +81,7 @@ function FlashcardSession() {
   if (session.phase === "loading") {
     return (
       <div className="animate-fade-up">
-        <p className="animate-soft-pulse text-ink-400">Đang chuẩn bị phiên ôn…</p>
+        <p className="animate-soft-pulse text-subtle">{t("Đang chuẩn bị phiên ôn…")}</p>
       </div>
     );
   }
@@ -87,23 +89,21 @@ function FlashcardSession() {
   if (session.phase === "error") {
     return (
       <div className="animate-fade-up">
-        <p className="text-ember-400" role="alert">
-          {session.message}
+        <p className="text-warning" role="alert">
+          {t(session.message)}
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
           <button
             type="button"
             onClick={reload}
-            className="rounded-sm border border-ink-600 px-3 py-1.5 hover:border-ember-400 hover:text-ember-300"
+            className="rounded-sm border border-line px-3 py-1.5 hover:border-accent hover:text-warning"
           >
-            Thử lại
-          </button>
+            {t("Thử lại")}</button>
           <Link
             href={`/questions?moduleId=${encodeURIComponent(moduleId)}`}
-            className="text-ink-400 hover:text-ember-300"
+            className="text-subtle hover:text-warning"
           >
-            ← Danh sách câu hỏi
-          </Link>
+            {t("← Danh sách câu hỏi")}</Link>
         </div>
       </div>
     );
@@ -113,23 +113,21 @@ function FlashcardSession() {
     return (
       <div className="animate-fade-up">
         <header className="mb-6">
-          <p className="text-xs uppercase tracking-[0.18em] text-ink-400">
+          <p className="text-xs uppercase tracking-[0.18em] text-subtle">
             {session.moduleName}
           </p>
-          <h1 className="mt-2 font-display text-3xl text-ink-50">Ôn flashcard</h1>
+          <h1 className="mt-2 font-display text-3xl text-strong">{t("Ôn flashcard")}</h1>
         </header>
-        <div className="rounded-sm border border-ink-700 bg-ink-900/50 p-8 text-center">
-          <p className="font-display text-xl text-moss-400">Không có thẻ nào đến hạn</p>
-          <p className="mt-2 text-sm text-ink-400">
-            Các thẻ của module này chưa đến hạn ôn. SM-2 sẽ nhắc lại đúng lúc.
-          </p>
+        <div className="rounded-sm border border-line bg-surface/50 p-8 text-center">
+          <p className="font-display text-xl text-positive">{t("Không có thẻ nào đến hạn")}</p>
+          <p className="mt-2 text-sm text-subtle">
+            {t("Các thẻ của module này chưa đến hạn ôn. SM-2 sẽ nhắc lại đúng lúc.")}</p>
         </div>
         <Link
           href={`/questions?moduleId=${encodeURIComponent(moduleId)}`}
-          className="mt-6 inline-block text-sm text-moss-400 hover:underline"
+          className="mt-6 inline-block text-sm text-positive hover:underline"
         >
-          ← Danh sách câu hỏi
-        </Link>
+          {t("← Danh sách câu hỏi")}</Link>
       </div>
     );
   }
@@ -139,26 +137,25 @@ function FlashcardSession() {
     return (
       <div className="animate-fade-up">
         <header className="mb-6">
-          <p className="text-xs uppercase tracking-[0.18em] text-ink-400">
+          <p className="text-xs uppercase tracking-[0.18em] text-subtle">
             {session.moduleName}
           </p>
-          <h1 className="mt-2 font-display text-3xl text-ink-50">Hết thẻ trong phiên</h1>
+          <h1 className="mt-2 font-display text-3xl text-strong">{t("Hết thẻ trong phiên")}</h1>
         </header>
-        <div className="rounded-sm border border-ink-700 bg-ink-900/50 p-8">
-          <p className="font-display text-xl text-moss-400">
-            Đã ôn {session.summaries.length} thẻ
-          </p>
+        <div className="rounded-sm border border-line bg-surface/50 p-8">
+          <p className="font-display text-xl text-positive">
+            {t("Đã ôn ")}{session.summaries.length} {t(" thẻ")}</p>
           <dl className="mt-6 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
             {(
               [
-                ["Again", stats.again, "text-ember-300"],
-                ["Hard", stats.hard, "text-ink-100"],
-                ["Good", stats.good, "text-moss-400"],
-                ["Easy", stats.easy, "text-moss-400"],
+                ["Again", stats.again, "text-warning"],
+                ["Hard", stats.hard, "text-strong"],
+                ["Good", stats.good, "text-positive"],
+                ["Easy", stats.easy, "text-positive"],
               ] as const
             ).map(([label, value, tone]) => (
-              <div key={label} className="rounded-sm border border-ink-800 px-3 py-2">
-                <dt className="text-xs uppercase tracking-[0.18em] text-ink-400">{label}</dt>
+              <div key={label} className="rounded-sm border border-line px-3 py-2">
+                <dt className="text-xs font-medium text-subtle">{t(label)}</dt>
                 <dd className={`mt-1 font-display text-2xl ${tone}`}>{value}</dd>
               </div>
             ))}
@@ -168,16 +165,14 @@ function FlashcardSession() {
           <button
             type="button"
             onClick={reload}
-            className="rounded-sm border border-ink-600 px-3 py-1.5 hover:border-moss-400 hover:text-moss-400"
+            className="rounded-sm border border-line px-3 py-1.5 hover:border-accent hover:text-positive"
           >
-            Kiểm tra thẻ đến hạn
-          </button>
+            {t("Kiểm tra thẻ đến hạn")}</button>
           <Link
             href={`/questions?moduleId=${encodeURIComponent(moduleId)}`}
-            className="text-ink-400 hover:text-ember-300"
+            className="text-subtle hover:text-warning"
           >
-            ← Danh sách câu hỏi
-          </Link>
+            {t("← Danh sách câu hỏi")}</Link>
         </div>
       </div>
     );
@@ -186,12 +181,11 @@ function FlashcardSession() {
   return (
     <div className="animate-fade-up">
       <header className="mb-6">
-        <p className="text-xs uppercase tracking-[0.18em] text-ink-400">{session.moduleName}</p>
-        <h1 className="mt-2 font-display text-3xl text-ink-50">Ôn flashcard</h1>
+        <p className="text-xs uppercase tracking-[0.18em] text-subtle">{session.moduleName}</p>
+        <h1 className="mt-2 font-display text-3xl text-strong">{t("Ôn flashcard")}</h1>
         {session.created > 0 ? (
-          <p className="mt-2 text-sm text-ink-400">
-            Đã thêm {session.created} thẻ mới vào lịch ôn.
-          </p>
+          <p className="mt-2 text-sm text-subtle">
+            {t("Đã thêm ")}{session.created} {t(" thẻ mới vào lịch ôn.")}</p>
         ) : null}
       </header>
 
@@ -204,10 +198,9 @@ function FlashcardSession() {
 
       <Link
         href={`/questions?moduleId=${encodeURIComponent(moduleId)}`}
-        className="mt-8 inline-block text-sm text-ink-400 hover:text-ember-300"
+        className="mt-8 inline-block text-sm text-subtle hover:text-warning"
       >
-        ← Danh sách câu hỏi
-      </Link>
+        {t("← Danh sách câu hỏi")}</Link>
     </div>
   );
 }

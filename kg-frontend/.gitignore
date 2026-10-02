@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+# Local browser evidence; durable reports live in docs/design.
+/.impeccable/review/
 
 # next.js
 /.next/

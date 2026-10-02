@@ -1,0 +1,33 @@
+{
+  "scope": "kg-frontend npm dependency audit; not a backend or whole-application security assessment",
+  "before": {
+    "info": 0,
+    "low": 0,
+    "moderate": 3,
+    "high": 5,
+    "critical": 3,
+    "total": 11
+  },
+  "beforeAffectedPackages": [
+    "@next/eslint-plugin-next",
+    "@vitest/coverage-v8",
+    "@vitest/mocker",
+    "esbuild",
+    "eslint-config-next",
+    "glob",
+    "next",
+    "postcss",
+    "vite",
+    "vite-node",
+    "vitest"
+  ],
+  "after": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "afterAffectedPackages": []
+}

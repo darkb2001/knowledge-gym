@@ -1,4 +1,5 @@
 "use client";
+import { useLocale } from "@/components/locale";
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
@@ -9,6 +10,7 @@ import { forgotPassword, resetPassword } from "@/lib/auth";
 type Step = 1 | 2 | 3;
 
 export default function ForgotPasswordPage() {
+  const { t } = useLocale();
   const [step, setStep] = useState<Step>(1);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -62,25 +64,24 @@ export default function ForgotPasswordPage() {
 
   const subtitle =
     step === 1
-      ? "Bước 1/3 — nhập email để nhận mã 6 số."
+      ? "Nhập email để nhận mã 6 số."
       : step === 2
-        ? "Bước 2/3 — nhập mã trong email."
-        : "Bước 3/3 — đặt mật khẩu mới.";
+        ? "Nhập mã trong email."
+        : "Đặt mật khẩu mới.";
 
   return (
-    <AuthShell title="Quên mật khẩu" subtitle={subtitle}>
+    <AuthShell title={t("Quên mật khẩu")} subtitle={subtitle}>
       {message && step === 1 ? (
-        <p className="mb-4 rounded-sm border border-moss-600/40 bg-moss-600/10 px-3 py-2 text-sm text-moss-400">
-          {message} —{" "}
+        <p className="mb-4 rounded-sm border border-accent/40 bg-accent/10 px-3 py-2 text-sm text-positive">
+          {t(message)}{" "}
           <Link href="/login" className="underline">
-            về đăng nhập
-          </Link>
+            {t("về đăng nhập")}</Link>
         </p>
       ) : null}
 
       {step === 1 ? (
         <form onSubmit={onRequestCode} className="animate-fade-up-delay">
-          <Field label="Email">
+          <Field label={t("Email")}>
             <input
               className={inputClass}
               type="email"
@@ -90,20 +91,20 @@ export default function ForgotPasswordPage() {
             />
           </Field>
           {error ? (
-            <p className="mb-4 text-sm text-ember-400" role="alert">
-              {error}
+            <p className="mb-4 text-sm text-warning" role="alert">
+              {t(error)}
             </p>
           ) : null}
           <button type="submit" className={primaryBtnClass} disabled={busy}>
-            {busy ? "Đang gửi…" : "Gửi mã"}
+            {busy ? t("Đang gửi…") : t("Gửi mã")}
           </button>
         </form>
       ) : null}
 
       {step === 2 ? (
         <form onSubmit={onConfirmCode} className="animate-fade-up-delay">
-          <p className="mb-4 text-sm text-ink-400">{message}</p>
-          <Field label="Mã 6 số">
+          <p className="mb-4 text-sm text-subtle">{t(message)}</p>
+          <Field label={t("Mã 6 số")}>
             <input
               className={inputClass}
               inputMode="numeric"
@@ -115,19 +116,18 @@ export default function ForgotPasswordPage() {
             />
           </Field>
           {error ? (
-            <p className="mb-4 text-sm text-ember-400" role="alert">
-              {error}
+            <p className="mb-4 text-sm text-warning" role="alert">
+              {t(error)}
             </p>
           ) : null}
           <button type="submit" className={primaryBtnClass}>
-            Tiếp tục
-          </button>
+            {t("Tiếp tục")}</button>
         </form>
       ) : null}
 
       {step === 3 ? (
         <form onSubmit={onReset} className="animate-fade-up-delay">
-          <Field label="Mật khẩu mới">
+          <Field label={t("Mật khẩu mới")}>
             <input
               className={inputClass}
               type="password"
@@ -140,20 +140,19 @@ export default function ForgotPasswordPage() {
             />
           </Field>
           {error ? (
-            <p className="mb-4 text-sm text-ember-400" role="alert">
-              {error}
+            <p className="mb-4 text-sm text-warning" role="alert">
+              {t(error)}
             </p>
           ) : null}
           <button type="submit" className={primaryBtnClass} disabled={busy}>
-            {busy ? "Đang lưu…" : "Đặt lại mật khẩu"}
+            {busy ? t("Đang lưu…") : t("Đặt lại mật khẩu")}
           </button>
         </form>
       ) : null}
 
-      <p className="mt-6 text-sm text-ink-400">
-        <Link href="/login" className="hover:text-ember-300">
-          ← Quay lại đăng nhập
-        </Link>
+      <p className="mt-6 text-sm text-subtle">
+        <Link href="/login" className="hover:text-warning">
+          {t("← Quay lại đăng nhập")}</Link>
       </p>
     </AuthShell>
   );

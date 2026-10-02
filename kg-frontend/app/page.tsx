@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Landing: send learners to the question browser (auth gate lives client-side). */
+/** Topic-first entry; session restoration remains in the client-side auth gate. */
 export default function HomePage() {
-  redirect("/questions");
+  redirect("/learn");
 }

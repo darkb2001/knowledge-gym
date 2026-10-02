@@ -1,9 +1,10 @@
 "use client";
+import { useLocale } from "@/components/locale";
 
 import { useCallback, useEffect, useState } from "react";
 import DOMPurify from "isomorphic-dompurify";
 import { apiRequest } from "@/lib/api-client";
-import { RequireAuth } from "@/components/ui";
+import { RequireAuth, PageHeading, ContentLanguageNotice } from "@/components/ui";
 
 type Settings = { enabled: boolean; localTime: string; timezone: string; dailyLimit: number; policy: "MANUAL_REVIEW" | "AUTO_PUBLISH_QUALIFIED"; qualityThreshold: number; lastScheduledDate: string | null; lastRunAt: string | null };
 type WriterRun = { id: string; status: string; attempts: number; errorMessage: string | null };
@@ -15,7 +16,9 @@ type Draft = { title: string; body: string; excerpt: string };
 const initial: Settings = { enabled: false, localTime: "06:00:00", timezone: "Asia/Jakarta", dailyLimit: 1, policy: "MANUAL_REVIEW", qualityThreshold: 85, lastScheduledDate: null, lastRunAt: null };
 
 function WriterAdmin() {
+  const { t, formatLocale } = useLocale();
   const [settings, setSettings] = useState<Settings>(initial);
+  const [loaded, setLoaded] = useState(false);
   const [configured, setConfigured] = useState(false);
   const [writerEnabled, setWriterEnabled] = useState(false);
   const [nextRunAt, setNextRunAt] = useState<string | null>(null);
@@ -44,7 +47,7 @@ function WriterAdmin() {
       setConfigured(settingsResponse.apiKeyConfigured);
       setWriterEnabled(settingsResponse.writerEnabled);
       setNextRunAt(settingsResponse.nextRunAt);
-      setPosts(queue);
+      setPosts(queue); setLoaded(true);
       setStats(usageResponse.stats);setMonthlyAlert(usageResponse.monthlyCostAlertUsd);
       if (selected?.id) {
         const current = queue.find((item) => item.id === selected.id);
@@ -85,7 +88,7 @@ function WriterAdmin() {
     setBusy(true); setError("");
     try {
       const queued = await apiRequest<WriterRun>("/admin/blog/writer/runs", { method: "POST", body: { topic: topic.trim() || null, requestId: crypto.randomUUID() } });
-      setRun(queued); setMessage(`Đã đưa lượt tạo vào hàng đợi (${queued.status}, ${queued.id}). Hàng chờ duyệt tự cập nhật.`); setTopic("");
+      setRun(queued); setMessage("Đã đưa lượt tạo vào hàng đợi. Hàng chờ duyệt tự cập nhật."); setTopic("");
     } catch (e) { setError(e instanceof Error ? e.message : "Không thể tạo bài"); }
     finally { setBusy(false); }
   }
@@ -110,7 +113,8 @@ function WriterAdmin() {
     finally { setBusy(false); }
   }
   async function action(path: string, success: string) {
-    if (!selected) return;
+    if (!selected || busy) return;
+    if (!window.confirm(t(path.endsWith("/publish") ? "Xuất bản bài viết này?" : "Từ chối bài viết này?"))) return;
     setBusy(true);
     try { await apiRequest(path, { method: "POST" }); setMessage(success); setSelected(null); setRevisions([]); await load(); }
     catch (e) { setError(e instanceof Error ? e.message : "Thao tác thất bại"); }
@@ -120,43 +124,61 @@ function WriterAdmin() {
     if (!selected) return;
     try {
       await apiRequest(`/admin/blog/writer/posts/${selected.id}/revisions/${version}/restore`, { method: "POST" });
-      const post=await apiRequest<BlogPost>(`/admin/blog/writer/posts/${selected.id}`);await choose(post);setMessage(`Đã khôi phục nội dung phiên bản ${version} thành phiên bản mới.`);
+      const post=await apiRequest<BlogPost>(`/admin/blog/writer/posts/${selected.id}`);await choose(post);setMessage("Đã khôi phục nội dung thành phiên bản mới.");
     } catch (e) { setError(e instanceof Error ? e.message : "Không khôi phục được phiên bản"); }
   }
 
-  return <main className="mx-auto max-w-7xl space-y-7 p-6">
-    <header className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs uppercase tracking-[0.2em] text-ember-400">Quản trị nội dung</p><h1 className="font-display text-3xl text-ink-50">AI Writer</h1></div><a href="/dashboard" className="rounded-sm border border-ink-700 px-3 py-2 text-sm">Dashboard</a></header>
-    {!configured && <p role="status" className="rounded-sm border border-ember-500/50 p-3 text-ember-300">OPENAI_API_KEY chưa được cấu hình ở backend. Không gửi khóa bí mật từ trình duyệt.</p>}
-    {configured && !writerEnabled && <p role="status" className="rounded-sm border border-ember-500/50 p-3 text-ember-300">Worker AI writer đang tắt (`app.blog.writer.enabled=false`). Lượt Generate now sẽ bị từ chối cho đến khi bật worker.</p>}
-    {error && <p role="alert" className="rounded-sm border border-ember-500/50 p-3 text-ember-300">{error}</p>}{message && <p role="status" className="rounded-sm border border-moss-600 p-3 text-moss-300">{message}</p>}
-    <section className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-      <div className="space-y-4 rounded-sm border border-ink-700 bg-ink-900/50 p-5">
-        <h2 className="font-display text-xl">Lịch và chính sách xuất bản</h2>
-        <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={settings.enabled} onChange={(e)=>setSettings({...settings,enabled:e.target.checked})}/> Bật tạo bài tự động mỗi ngày</label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="space-y-1 text-sm">Giờ địa phương<input className="w-full rounded-sm border border-ink-700 bg-ink-950 p-2" type="time" value={settings.localTime.slice(0,5)} onChange={(e)=>setSettings({...settings,localTime:e.target.value+":00"})}/></label>
-          <label className="space-y-1 text-sm">Múi giờ IANA<input className="w-full rounded-sm border border-ink-700 bg-ink-950 p-2" value={settings.timezone} onChange={(e)=>setSettings({...settings,timezone:e.target.value})} placeholder="Asia/Jakarta"/></label>
-          <label className="space-y-1 text-sm">Số bài tối đa mỗi ngày<input className="w-full rounded-sm border border-ink-700 bg-ink-950 p-2" type="number" min={1} max={10} value={settings.dailyLimit} onChange={(e)=>setSettings({...settings,dailyLimit:Number(e.target.value)})}/></label>
-          <label className="space-y-1 text-sm">Ngưỡng chất lượng auto-publish<input className="w-full rounded-sm border border-ink-700 bg-ink-950 p-2" type="number" min={0} max={100} value={settings.qualityThreshold} onChange={(e)=>setSettings({...settings,qualityThreshold:Number(e.target.value)})}/></label>
+  if (!loaded) return <div><PageHeading title="Quản trị nội dung" description="Theo dõi lịch tạo bài, duyệt nội dung và quản lý các phiên bản." />{error ? <p role="alert">{t(error)}<button type="button" onClick={() => void load()} className="ml-4 underline">{t("Thử lại")}</button></p> : <p role="status">{t("Đang tải cấu hình…")}</p>}</div>;
+  return <div className="space-y-7">
+    <PageHeading title="Quản trị nội dung" description="Theo dõi lịch tạo bài, duyệt nội dung và quản lý các phiên bản." />
+    {!configured && <p className="kg-notice text-warning">{t("OPENAI_API_KEY chưa được cấu hình ở backend. Không gửi khóa bí mật từ trình duyệt.")}</p>}
+    {configured && !writerEnabled && <p className="kg-notice text-warning">{t("Worker AI writer đang tắt (`app.blog.writer.enabled=false`). Lượt Generate now sẽ bị từ chối cho đến khi bật worker.")}</p>}
+    {error && <p role="alert">{t(error)}</p>}
+    {message && <p role="status">{t(message)}</p>}
+    {stats && <dl className="grid grid-cols-2 gap-x-6 gap-y-5 border-y border-line/70 py-5 sm:grid-cols-3 xl:grid-cols-6">{[
+      ["Chờ duyệt", stats.pendingReview], ["Lượt AI hôm nay", stats.generatedToday], ["Tokens hôm nay", stats.tokensToday.toLocaleString(formatLocale)], ["Chi phí hôm nay", `$${stats.costToday.toFixed(4)}`], ["Chi phí tháng này", `$${stats.costThisMonth.toFixed(2)}`], ["Run lỗi", stats.failedJobs],
+    ].map(([label, value]) => <div key={String(label)}><dt className="text-xs text-subtle">{t(String(label))}</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-strong">{value}</dd></div>)}</dl>}
+    {stats && stats.costThisMonth > monthlyAlert && <p role="alert">{t("Chi phí AI tháng này đã vượt ngưỡng cảnh báo $")}{monthlyAlert.toFixed(2)}.</p>}
+    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.8fr)]">
+      <details className="kg-panel">
+        <summary className="text-lg text-strong">{t("Lịch và công cụ tạo bài")}</summary>
+        <div className="mt-5 space-y-5">
+        <h2 className="text-xl">{t("Lịch và chính sách xuất bản")}</h2>
+        <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={settings.enabled} onChange={event => setSettings({ ...settings, enabled: event.target.checked })} />{t("Bật tạo bài tự động mỗi ngày")}</label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block text-sm">{t("Giờ địa phương")}<input className="kg-field" type="time" value={settings.localTime.slice(0, 5)} onChange={event => setSettings({ ...settings, localTime: event.target.value + ":00" })} /></label>
+          <label className="block text-sm">{t("Múi giờ IANA")}<input className="kg-field" value={settings.timezone} onChange={event => setSettings({ ...settings, timezone: event.target.value })} placeholder="Asia/Jakarta" /></label>
+          <label className="block text-sm">{t("Số bài tối đa mỗi ngày")}<input className="kg-field" type="number" min={1} max={10} value={settings.dailyLimit} onChange={event => setSettings({ ...settings, dailyLimit: Number(event.target.value) })} /></label>
+          <label className="block text-sm">{t("Ngưỡng chất lượng auto-publish")}<input className="kg-field" type="number" min={0} max={100} value={settings.qualityThreshold} onChange={event => setSettings({ ...settings, qualityThreshold: Number(event.target.value) })} /></label>
         </div>
-        <label className="block space-y-1 text-sm">Chính sách bài mới<select className="w-full rounded-sm border border-ink-700 bg-ink-950 p-2" value={settings.policy} onChange={(e)=>setSettings({...settings,policy:e.target.value as Settings["policy"]})}><option value="MANUAL_REVIEW">Duyệt thủ công · xem preview và chỉnh AI</option><option value="AUTO_PUBLISH_QUALIFIED">Tự xuất bản bài đạt điều kiện</option></select></label>
-        <p className="text-xs text-ink-400">Chính sách áp dụng cho lượt mới và được đọc lại trước khi auto-publish. Bài không đạt điều kiện sẽ vào hàng chờ duyệt.</p>
-        <button disabled={busy} onClick={()=>void updateSettings()} className="rounded-sm bg-moss-600 px-4 py-2 text-sm text-white disabled:opacity-50">Lưu cài đặt</button>
-        <div className="border-t border-ink-700 pt-4"><h3 className="mb-2 font-display">Tạo ngay</h3><div className="flex flex-wrap gap-2"><input className="min-w-60 flex-1 rounded-sm border border-ink-700 bg-ink-950 p-2" value={topic} onChange={(e)=>setTopic(e.target.value)} placeholder="Chủ đề (để trống để AI chọn từ kho tri thức)"/><button disabled={busy||!configured||!writerEnabled} onClick={()=>void generateNow()} className="rounded-sm border border-ember-500 px-4 py-2 text-sm text-ember-300 disabled:opacity-50">Đưa vào hàng đợi</button></div></div>
-        <p className="text-xs text-ink-400">Lượt chạy gần nhất: {settings.lastRunAt ? new Date(settings.lastRunAt).toLocaleString() : "chưa chạy"} · Lịch kế tiếp: {nextRunAt ? new Date(nextRunAt).toLocaleString() : "đang tắt"}</p>
-        {run&&<p className={`text-xs ${run.status==="FAILED"?"text-ember-300":"text-moss-300"}`}>Lượt tạo ngay {run.id}: {run.status}{run.errorMessage?` · ${run.errorMessage}`:""}</p>}
-      </div>
-      <div className="space-y-3 rounded-sm border border-ink-700 bg-ink-900/50 p-5"><h2 className="font-display text-xl">Hàng chờ duyệt ({posts.length})</h2>{posts.length===0&&<p className="text-sm text-ink-400">Chưa có bài cần duyệt.</p>}{posts.map((post)=><button key={post.id} onClick={()=>void choose(post)} className={`block w-full rounded-sm border p-3 text-left ${selected?.id===post.id?"border-moss-500":"border-ink-700 hover:border-ink-500"}`}><span className="block font-medium text-ink-100">{post.title}</span><span className="text-xs text-ink-400">{post.status} · {new Date(post.createdAt).toLocaleString()}</span></button>)}</div>
-    </section>
-    {stats&&<section className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">{[["Chờ duyệt",stats.pendingReview],["Lượt AI hôm nay",stats.generatedToday],["Tokens hôm nay",stats.tokensToday.toLocaleString("vi-VN")],["Chi phí hôm nay",`$${stats.costToday.toFixed(4)}`],["Chi phí tháng này",`$${stats.costThisMonth.toFixed(2)}`],["Run lỗi",stats.failedJobs]].map(([label,value])=><div key={String(label)} className="rounded-sm border border-ink-700 bg-ink-900/50 p-3"><p className="text-xs text-ink-400">{label}</p><p className="font-display text-lg">{value}</p></div>)}</section>}
-    {stats&&stats.costThisMonth>monthlyAlert&&<p role="alert" className="rounded-sm border border-ember-500/50 p-3 text-ember-300">Chi phí AI tháng này đã vượt ngưỡng cảnh báo ${monthlyAlert.toFixed(2)}.</p>}
-    {selected&&<section className="grid gap-5 xl:grid-cols-2">
-      <div className="space-y-3 rounded-sm border border-ink-700 bg-ink-900/50 p-5"><h2 className="font-display text-xl">Preview · phiên bản #{revisions.at(-1)?.version ?? 1}</h2><label className="block space-y-1 text-sm">Tiêu đề<input className="w-full rounded-sm border border-ink-700 bg-ink-950 p-2" value={draft.title} onChange={(e)=>setDraft({...draft,title:e.target.value})}/></label><label className="block space-y-1 text-sm">Nội dung HTML<textarea className="h-72 w-full rounded-sm border border-ink-700 bg-ink-950 p-2 font-mono text-xs" value={draft.body} onChange={(e)=>setDraft({...draft,body:e.target.value})}/></label><label className="block space-y-1 text-sm">Tóm tắt<input className="w-full rounded-sm border border-ink-700 bg-ink-950 p-2" value={draft.excerpt} onChange={(e)=>setDraft({...draft,excerpt:e.target.value})}/></label><div className="flex flex-wrap gap-2"><button disabled={busy} onClick={()=>void saveEdit()} className="rounded-sm border border-ink-600 px-3 py-2 text-sm">Lưu chỉnh sửa</button><button disabled={busy} onClick={()=>void action(`/admin/blog/writer/posts/${selected.id}/publish`,"Đã xuất bản bài viết.")} className="rounded-sm bg-moss-600 px-3 py-2 text-sm text-white">Duyệt & xuất bản</button><button disabled={busy} onClick={()=>void action(`/admin/blog/writer/posts/${selected.id}/reject`,"Đã từ chối bài viết.")} className="rounded-sm border border-ember-500 px-3 py-2 text-sm text-ember-300">Từ chối</button></div><article className="prose prose-invert max-w-none rounded-sm border border-ink-700 bg-ink-950 p-4" dangerouslySetInnerHTML={{__html:DOMPurify.sanitize(draft.body)}}/></div>
-      <div className="space-y-4 rounded-sm border border-ink-700 bg-ink-900/50 p-5"><h2 className="font-display text-xl">Yêu cầu AI chỉnh sửa</h2><textarea className="h-24 w-full rounded-sm border border-ink-700 bg-ink-950 p-2" value={instruction} onChange={(e)=>setInstruction(e.target.value)} placeholder="Ví dụ: giải thích rõ hơn transaction isolation và thêm ví dụ code…"/><button disabled={busy||!configured||!instruction.trim()} onClick={()=>void revise()} className="rounded-sm border border-ember-500 px-4 py-2 text-sm text-ember-300 disabled:opacity-50">Tạo bản chỉnh sửa</button><div className="space-y-2 border-t border-ink-700 pt-4"><h3 className="font-display">Lịch sử phiên bản (không ghi đè)</h3>{revisions.map((revision)=><div key={revision.id} className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-ink-700 p-3"><div><p className="text-sm">#{revision.version} · score {revision.qualityScore ?? "—"} · {revision.tokensUsed ?? 0} tokens · ${revision.costUsd?.toFixed(4) ?? "0.0000"}</p><p className="text-xs text-ink-400">{revision.instruction ?? "Initial generation"} · {new Date(revision.createdAt).toLocaleString()}</p></div><div className="flex gap-3">{revision.version!==(revisions.at(-1)?.version)&&<><button onClick={()=>setCompareRevision(revision)} className="text-xs text-ink-200 underline">So sánh</button><button onClick={()=>void restore(revision.version)} className="text-xs text-moss-300 underline">Khôi phục</button></>}</div></div>)}</div>
-        {compareRevision&&<div className="space-y-2 border-t border-ink-700 pt-4"><h3 className="font-display">So sánh bản hiện tại với #{compareRevision.version}</h3><div className="grid gap-3 md:grid-cols-2"><article className="prose prose-invert max-h-96 overflow-auto rounded-sm border border-ink-700 p-3" dangerouslySetInnerHTML={{__html:DOMPurify.sanitize(draft.body)}}/><article className="prose prose-invert max-h-96 overflow-auto rounded-sm border border-ink-700 p-3" dangerouslySetInnerHTML={{__html:DOMPurify.sanitize(compareRevision.body)}}/></div></div>}
-      </div>
-    </section>}
-  </main>;
+        <label className="block text-sm">{t("Chính sách bài mới")}<select className="kg-field" value={settings.policy} onChange={event => setSettings({ ...settings, policy: event.target.value as Settings["policy"] })}><option value="MANUAL_REVIEW">{t("Duyệt thủ công · xem preview và chỉnh AI")}</option><option value="AUTO_PUBLISH_QUALIFIED">{t("Tự xuất bản bài đạt điều kiện")}</option></select></label>
+        <p className="text-xs leading-relaxed text-subtle">{t("Chính sách áp dụng cho lượt mới và được đọc lại trước khi auto-publish. Bài không đạt điều kiện sẽ vào hàng chờ duyệt.")}</p>
+        <button type="button" disabled={busy} onClick={() => void updateSettings()} className="kg-button">{t("Lưu cài đặt")}</button>
+        <div className="border-t border-line pt-5">
+          <h3 className="mb-3 text-lg">{t("Tạo ngay")}</h3><label htmlFor="writer-topic" className="sr-only">{t("Chủ đề")}</label><input id="writer-topic" className="kg-field" value={topic} onChange={event => setTopic(event.target.value)} placeholder={t("Chủ đề (để trống để AI chọn từ kho tri thức)")} /><button type="button" disabled={busy || !configured || !writerEnabled} onClick={() => void generateNow()} className="kg-secondary mt-3">{t("Đưa vào hàng đợi")}</button>
+          <dl className="mt-5 grid gap-3 text-xs text-subtle"><div><dt className="inline">{t("Lượt chạy gần nhất:")} </dt><dd className="inline">{settings.lastRunAt ? new Date(settings.lastRunAt).toLocaleString(formatLocale) : t("chưa chạy")}</dd></div><div><dt className="inline">{t("Lịch kế tiếp:")} </dt><dd className="inline">{nextRunAt ? new Date(nextRunAt).toLocaleString(formatLocale) : t("đang tắt")}</dd></div></dl>
+          {run && <p className="mt-3 break-words text-xs text-body">{t("Lượt tạo ngay")} {run.status}<span className="mt-1 block font-mono text-subtle">{run.id}</span>{run.errorMessage && <span className="mt-1 block text-danger">{run.errorMessage}</span>}</p>}
+        </div>
+        </div>
+      </details>
+      <section className="kg-panel"><h2 className="mb-4 text-xl">{t("Hàng chờ duyệt")} <span className="text-subtle">({posts.length})</span></h2>{posts.length === 0 ? <p className="py-5 text-sm text-subtle">{t("Chưa có bài cần duyệt.")}</p> : <div className="space-y-2">{posts.map(post => <button type="button" key={post.id} onClick={() => void choose(post)} aria-pressed={selected?.id === post.id} className={`block w-full rounded-xl border p-4 text-left ${selected?.id === post.id ? "border-positive/40 bg-sage/60" : "border-line hover:bg-muted/50"}`}><span className="block font-medium text-strong">{post.title}</span><span className="mt-2 block text-xs text-subtle">{post.status} · {new Date(post.createdAt).toLocaleString(formatLocale)}</span></button>)}</div>}</section>
+    </div>
+    {selected && <>
+      <section className="kg-panel"><h2 className="mb-6 text-xl">{t("Biên tập bài viết")}</h2><div className="grid items-start gap-7 xl:grid-cols-2">
+        <div className="min-w-0 space-y-4">
+          <label className="block text-sm">{t("Tiêu đề")}<input className="kg-field" value={draft.title} onChange={event => setDraft({ ...draft, title: event.target.value })} /></label>
+          <label className="block text-sm">{t("Nội dung HTML")}<textarea className="kg-field min-h-72 font-mono text-xs" value={draft.body} onChange={event => setDraft({ ...draft, body: event.target.value })} /></label>
+          <label className="block text-sm">{t("Tóm tắt")}<input className="kg-field" value={draft.excerpt} onChange={event => setDraft({ ...draft, excerpt: event.target.value })} /></label>
+          <div className="flex flex-wrap gap-2"><button type="button" disabled={busy} onClick={() => void saveEdit()} className="kg-secondary">{t("Lưu chỉnh sửa")}</button><button type="button" disabled={busy} onClick={() => void action(`/admin/blog/writer/posts/${selected.id}/publish`, "Đã xuất bản bài viết.")} className="kg-button">{t("Duyệt & xuất bản")}</button><button type="button" disabled={busy} onClick={() => void action(`/admin/blog/writer/posts/${selected.id}/reject`, "Đã từ chối bài viết.")} className="kg-secondary text-danger">{t("Từ chối")}</button></div>
+          <div className="border-t border-line pt-5"><label htmlFor="revision-instruction" className="mb-2 block text-sm font-medium">{t("Yêu cầu AI chỉnh sửa")}</label><textarea id="revision-instruction" className="kg-field min-h-28" value={instruction} onChange={event => setInstruction(event.target.value)} placeholder={t("Ví dụ: giải thích rõ hơn transaction isolation và thêm ví dụ code…")} /><button type="button" disabled={busy || !configured || !instruction.trim()} onClick={() => void revise()} className="kg-secondary mt-3">{t("Tạo bản chỉnh sửa")}</button></div>
+        </div>
+        <div className="min-w-0"><h3 className="mb-4 text-base">{t("Preview · phiên bản #")}{revisions.at(-1)?.version ?? 1}</h3><article className="answer-html rounded-xl bg-muted/45 p-5" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(draft.body) }} /><ContentLanguageNotice /></div>
+      </div></section>
+      <section className="kg-panel"><h2 className="mb-5 text-xl">{t("Lịch sử phiên bản (không ghi đè)")}</h2><div className="space-y-3">{revisions.map(revision => <div key={revision.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-line/70 pb-4 last:border-b-0"><div><p className="text-sm font-medium text-strong">#{revision.version} · {t("Điểm")} {revision.qualityScore ?? "-"} · {revision.tokensUsed ?? 0} tokens · ${revision.costUsd?.toFixed(4) ?? "0.0000"}</p><p className="mt-1 text-xs text-subtle">{revision.instruction ?? t("Bản tạo đầu tiên")} · {new Date(revision.createdAt).toLocaleString(formatLocale)}</p></div>{revision.version !== revisions.at(-1)?.version && <div className="flex gap-2"><button type="button" onClick={() => setCompareRevision(revision)} className="kg-secondary">{t("So sánh")}</button><button type="button" disabled={busy} onClick={() => void restore(revision.version)} className="kg-secondary">{t("Khôi phục")}</button></div>}</div>)}</div>
+        {compareRevision && <div className="mt-5 border-t border-line pt-5"><h3 className="mb-4 text-lg">{t("So sánh bản hiện tại với #")}{compareRevision.version}</h3><div className="grid gap-5 md:grid-cols-2"><article aria-label={t("Bản hiện tại")} className="answer-html max-h-96 overflow-auto rounded-xl bg-muted/40 p-5" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(draft.body) }} /><article aria-label={t("Bản trước")} className="answer-html max-h-96 overflow-auto rounded-xl bg-muted/40 p-5" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(compareRevision.body) }} /></div></div>}
+      </section>
+    </>}
+  </div>;
 }
 
 export default function AdminWriterPage(){return <RequireAuth><WriterAdmin/></RequireAuth>;}

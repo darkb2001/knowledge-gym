@@ -1,15 +1,17 @@
 "use client";
+import { useLocale } from "@/components/locale";
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { RequireAuth } from "@/components/ui";
+import { RequireAuth, ContentLanguageNotice } from "@/components/ui";
 import { ApiError } from "@/lib/api-client";
 import { getQuestion } from "@/lib/questions";
 import { sanitizeAnswerHtml } from "@/lib/sanitize-html";
 import type { QuestionDetail } from "@/lib/types";
 
 function QuestionDetailView() {
+  const { t } = useLocale();
   const params = useParams<{ id: string }>();
   const id = params.id;
   const [question, setQuestion] = useState<QuestionDetail | null>(null);
@@ -38,35 +40,34 @@ function QuestionDetailView() {
   if (error) {
     return (
       <div>
-        <p className="text-ember-400" role="alert">
-          {error}
+        <p className="text-warning" role="alert">
+          {t(error)}
         </p>
-        <Link href="/questions" className="mt-4 inline-block text-sm text-moss-400 hover:underline">
-          ← Danh sách
-        </Link>
+        <Link href="/questions" className="mt-4 inline-block text-sm text-positive hover:underline">
+          {t("← Danh sách")}</Link>
       </div>
     );
   }
 
   if (!question) {
-    return <p className="animate-soft-pulse text-ink-400">Đang mở đáp án…</p>;
+    return <p className="animate-soft-pulse text-subtle">{t("Đang mở đáp án…")}</p>;
   }
 
   return (
-    <article className="animate-fade-up">
-      <Link href="/questions" className="text-sm text-ink-400 hover:text-ember-300">
-        ← Danh sách
-      </Link>
-      <p className="mt-6 text-xs uppercase tracking-[0.18em] text-ink-400">
-        {question.moduleSlug} · {question.difficulty}
+    <article className="kg-reading">
+      <Link href="/questions" className="text-sm text-subtle hover:text-warning">
+        {t("← Danh sách")}</Link>
+      <p className="mt-6 text-sm text-subtle">
+        {question.moduleSlug} {t(" · ")}{question.difficulty}
       </p>
-      <h1 className="mt-2 font-display text-3xl text-ink-50 sm:text-4xl">{question.title}</h1>
+      <h1 className="mt-2 font-display text-3xl text-strong sm:text-4xl">{question.title}</h1>
       {question.tags.length > 0 ? (
-        <p className="mt-3 text-sm text-ink-400">{question.tags.join(" · ")}</p>
+        <p className="mt-3 text-sm text-subtle">{question.tags.join(" · ")}</p>
       ) : null}
 
+      <ContentLanguageNotice />
       <div
-        className="answer-html mt-10 border-t border-ink-800 pt-8"
+        className="answer-html mt-8 border-t border-line pt-8"
         // Server Jsoup Safelist + client DOMPurify (defense-in-depth).
         dangerouslySetInnerHTML={{ __html: sanitizeAnswerHtml(question.answerHtml) }}
       />

@@ -1,0 +1,431 @@
+{
+  "fixtureNotice": "All API data and write responses in these screenshots are synthetic browser fixtures, not production data or integration evidence.",
+  "checks": [
+    {
+      "device": "desktop",
+      "label": "registration uses original token contract and topic-first destination"
+    },
+    {
+      "device": "desktop",
+      "label": "password recovery preserves six-digit code and reset payload"
+    },
+    {
+      "device": "desktop",
+      "label": "login leads to topic-first entry; selecting module reveals practice actions"
+    },
+    {
+      "device": "desktop",
+      "label": "accent-insensitive topic search"
+    },
+    {
+      "device": "desktop",
+      "label": "English preference survives reload and updates document language"
+    },
+    {
+      "device": "desktop",
+      "label": "question search preserves module deep link and filtering"
+    },
+    {
+      "device": "desktop",
+      "label": "answer HTML remains sanitized"
+    },
+    {
+      "device": "desktop",
+      "label": "notes save uses unchanged API content"
+    },
+    {
+      "device": "desktop",
+      "label": "profile PATCH updates display name and shell immediately"
+    },
+    {
+      "device": "desktop",
+      "label": "avatar upload persists its URL and clears busy on failure/retry"
+    },
+    {
+      "device": "desktop",
+      "label": "flashcard keyboard rating keeps quality 0–3 mapping"
+    },
+    {
+      "device": "desktop",
+      "label": "quiz generation and submission preserve answer contract"
+    },
+    {
+      "device": "desktop",
+      "label": "interview answer and finish contracts preserved"
+    },
+    {
+      "device": "desktop",
+      "label": "search admin confirmation, optimistic version and error/retry"
+    },
+    {
+      "device": "desktop",
+      "label": "ES lifecycle is preserved; stop needs confirmation; unavailable engines stay disabled"
+    },
+    {
+      "device": "desktop",
+      "label": "writer review loads sanitized preview and confirms publishing"
+    },
+    {
+      "device": "desktop",
+      "label": "topic-first layout also holds at small laptop/narrow mobile sizes"
+    },
+    {
+      "device": "desktop",
+      "label": "learner navigation excludes administrator links"
+    },
+    {
+      "device": "desktop",
+      "label": "logout and denied refresh do not bypass authentication"
+    },
+    {
+      "device": "mobile",
+      "label": "registration uses original token contract and topic-first destination"
+    },
+    {
+      "device": "mobile",
+      "label": "password recovery preserves six-digit code and reset payload"
+    },
+    {
+      "device": "mobile",
+      "label": "login leads to topic-first entry; selecting module reveals practice actions"
+    },
+    {
+      "device": "mobile",
+      "label": "accent-insensitive topic search"
+    },
+    {
+      "device": "mobile",
+      "label": "English preference survives reload and updates document language"
+    },
+    {
+      "device": "mobile",
+      "label": "question search preserves module deep link and filtering"
+    },
+    {
+      "device": "mobile",
+      "label": "answer HTML remains sanitized"
+    },
+    {
+      "device": "mobile",
+      "label": "notes save uses unchanged API content"
+    },
+    {
+      "device": "mobile",
+      "label": "profile PATCH updates display name and shell immediately"
+    },
+    {
+      "device": "mobile",
+      "label": "avatar upload persists its URL and clears busy on failure/retry"
+    },
+    {
+      "device": "mobile",
+      "label": "flashcard keyboard rating keeps quality 0–3 mapping"
+    },
+    {
+      "device": "mobile",
+      "label": "quiz generation and submission preserve answer contract"
+    },
+    {
+      "device": "mobile",
+      "label": "interview answer and finish contracts preserved"
+    },
+    {
+      "device": "mobile",
+      "label": "search admin confirmation, optimistic version and error/retry"
+    },
+    {
+      "device": "mobile",
+      "label": "ES lifecycle is preserved; stop needs confirmation; unavailable engines stay disabled"
+    },
+    {
+      "device": "mobile",
+      "label": "writer review loads sanitized preview and confirms publishing"
+    },
+    {
+      "device": "mobile",
+      "label": "mobile navigation closes on route selection"
+    },
+    {
+      "device": "mobile",
+      "label": "topic-first layout also holds at small laptop/narrow mobile sizes"
+    },
+    {
+      "device": "mobile",
+      "label": "learner navigation excludes administrator links"
+    },
+    {
+      "device": "mobile",
+      "label": "logout and denied refresh do not bypass authentication"
+    }
+  ],
+  "accessibility": [
+    {
+      "device": "desktop",
+      "name": "register",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "forgot-password",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "login",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "learn",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "learn-en",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "questions-en",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "answer",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "notes",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "profile",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "profile-en",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "flashcard",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "quiz",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "interview",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "dashboard",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "mindmap",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "blog",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "article",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "search-admin",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "search-admin-en",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "writer-admin",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "writer-admin-en",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "name": "learn-laptop",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "register",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "forgot-password",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "login",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "learn",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "learn-en",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "questions-en",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "answer",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "notes",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "profile",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "profile-en",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "flashcard",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "quiz",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "interview",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "dashboard",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "mindmap",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "blog",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "article",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "search-admin",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "search-admin-en",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "writer-admin",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "writer-admin-en",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "name": "learn-narrow",
+      "violations": []
+    }
+  ],
+  "pageErrors": [],
+  "unmatchedRequests": [],
+  "screenshots": [
+    "desktop-register.png",
+    "desktop-forgot-password.png",
+    "desktop-login.png",
+    "desktop-learn.png",
+    "desktop-learn-en.png",
+    "desktop-questions-en.png",
+    "desktop-answer.png",
+    "desktop-notes.png",
+    "desktop-profile.png",
+    "desktop-profile-en.png",
+    "desktop-flashcard.png",
+    "desktop-quiz.png",
+    "desktop-interview.png",
+    "desktop-dashboard.png",
+    "desktop-mindmap.png",
+    "desktop-blog.png",
+    "desktop-article.png",
+    "desktop-search-admin.png",
+    "desktop-search-admin-en.png",
+    "desktop-writer-admin.png",
+    "desktop-writer-admin-en.png",
+    "desktop-learn-laptop.png",
+    "mobile-register.png",
+    "mobile-forgot-password.png",
+    "mobile-login.png",
+    "mobile-learn.png",
+    "mobile-learn-en.png",
+    "mobile-questions-en.png",
+    "mobile-answer.png",
+    "mobile-notes.png",
+    "mobile-profile.png",
+    "mobile-profile-en.png",
+    "mobile-flashcard.png",
+    "mobile-quiz.png",
+    "mobile-interview.png",
+    "mobile-dashboard.png",
+    "mobile-mindmap.png",
+    "mobile-blog.png",
+    "mobile-article.png",
+    "mobile-search-admin.png",
+    "mobile-search-admin-en.png",
+    "mobile-writer-admin.png",
+    "mobile-writer-admin-en.png",
+    "mobile-learn-narrow.png"
+  ]
+}

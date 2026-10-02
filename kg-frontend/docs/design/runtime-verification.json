@@ -1,0 +1,43 @@
+{
+  "hosts": [
+    {
+      "hostname": "localhost",
+      "status": 200,
+      "title": "Knowledge Gym"
+    },
+    {
+      "hostname": "127.0.0.1",
+      "status": 200,
+      "title": "Knowledge Gym"
+    },
+    {
+      "hostname": "[::1]",
+      "status": 200,
+      "title": "Knowledge Gym"
+    }
+  ],
+  "views": [
+    {
+      "device": "desktop",
+      "route": "login",
+      "violations": []
+    },
+    {
+      "device": "desktop",
+      "route": "learn",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "route": "login",
+      "violations": []
+    },
+    {
+      "device": "mobile",
+      "route": "learn",
+      "violations": []
+    }
+  ],
+  "pageErrors": [],
+  "failedAssets": []
+}

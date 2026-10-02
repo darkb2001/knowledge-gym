@@ -1,4 +1,5 @@
 "use client";
+import { useLocale } from "@/components/locale";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,6 +12,7 @@ import { applyOAuthHash, storeUser } from "@/lib/auth";
  * Hash is never sent to the server — read client-side only.
  */
 export default function OAuthSuccessPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +30,7 @@ export default function OAuthSuccessPage() {
         displayName: "Google",
         role: parsed.role,
       });
-      router.replace("/questions");
+      router.replace("/learn");
     } finally {
       // Always clear hash so a failed parse cannot leave the token in history.
       window.history.replaceState(null, "", window.location.pathname);
@@ -36,13 +38,13 @@ export default function OAuthSuccessPage() {
   }, [router]);
 
   return (
-    <AuthShell title="Google" subtitle="Đang hoàn tất đăng nhập…">
+    <AuthShell title={t("Google")} subtitle={t("Đang hoàn tất đăng nhập…")}>
       {error ? (
-        <p className="text-sm text-ember-400" role="alert">
-          {error}
+        <p className="text-sm text-warning" role="alert">
+          {t(error)}
         </p>
       ) : (
-        <p className="animate-soft-pulse text-ink-300">Nhận token…</p>
+        <p className="animate-soft-pulse text-body">{t("Nhận token…")}</p>
       )}
     </AuthShell>
   );
