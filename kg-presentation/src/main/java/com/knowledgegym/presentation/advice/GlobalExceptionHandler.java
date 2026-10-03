@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import com.knowledgegym.search.application.ElasticsearchLifecycleUseCase;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -25,6 +28,11 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private final ObjectMapper objectMapper;
+
+    public GlobalExceptionHandler(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<Map<String, Object>> handleAuthException(AuthException ex) {
@@ -92,6 +100,18 @@ public class GlobalExceptionHandler {
         return problem(HttpStatus.PAYLOAD_TOO_LARGE, "payload_too_large", "File vượt quá kích thước cho phép");
     }
 
+    @ExceptionHandler(ElasticsearchLifecycleUseCase.HostOperationException.class)
+    public ResponseEntity<Map<String, Object>> handleHostOperation(
+            ElasticsearchLifecycleUseCase.HostOperationException ex) {
+        HostScriptResultView result = HostScriptResultView.from(ex.result(), objectMapper);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("success", false);
+        body.put("exitCode", result.exitCode());
+        body.put("output", result.output());
+        body.put("settings", null);
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(body);
+    }
+
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {
         log.warn("Infrastructure operation failed: {}", ex.getMessage());
@@ -113,6 +133,23 @@ public class GlobalExceptionHandler {
                 .reduce((a, b) -> a + "; " + b)
                 .orElse("Validation failed");
         return problem(HttpStatus.BAD_REQUEST, "validation_error", detail);
+    }
+
+    private record HostScriptResultView(int exitCode, Object output) {
+        static HostScriptResultView from(
+                com.knowledgegym.shared.domain.port.HostScriptPort.Result result,
+                ObjectMapper objectMapper) {
+            Object output = result.output();
+            if (result.output() != null && !result.output().isBlank()) {
+                try {
+                    JsonNode json = objectMapper.readTree(result.output());
+                    output = json;
+                } catch (RuntimeException ignored) {
+                    // Keep non-JSON helper output as text.
+                }
+            }
+            return new HostScriptResultView(result.exitCode(), output);
+        }
     }
 
     private ResponseEntity<Map<String, Object>> problem(HttpStatus status, String code, String detail) {

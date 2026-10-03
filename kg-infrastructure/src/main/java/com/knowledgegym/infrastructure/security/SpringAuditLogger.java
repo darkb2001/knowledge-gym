@@ -28,7 +28,11 @@ public class SpringAuditLogger implements SearchAuditPort {
 
     @Override
     public void record(UUID actorId, String action, String details) {
-        save(actorId, action, null, "{\"output\":\"" + escape(details) + "\"}");
+        String payload = details == null || details.isBlank()
+                ? null
+                : details.trim().startsWith("{") ? details :
+                "{\"output\":\"" + escape(details) + "\"}";
+        save(actorId, action, null, payload);
     }
 
     private void save(UUID userId, String action, String ipAddress, String details) {

@@ -43,7 +43,7 @@ The current Compose file publishes PostgreSQL 5432, Redis 6379, Kafka 9092, Elas
 ### Explicitly configured in the repo
 
 - Redis maxmemory: **128 MB**.
-- Elasticsearch JVM heap: **512 MB**. Elasticsearch also needs memory outside the Java heap for native memory and the OS page cache.
+- Elasticsearch JVM heap: **768 MB** with a **2048 MB** container limit. Elasticsearch also needs memory outside the Java heap for native memory and the OS page cache.
 - The Compose file has **no CPU or memory limits** for any container.
 - PostgreSQL, Kafka, Garage, Prometheus, Grafana, Nginx and the backend have no explicit container-level RAM/CPU limits in Compose.
 - The Dockerfile does not set JVM heap or container CPU settings for the backend.
@@ -63,7 +63,7 @@ Before starting Elasticsearch, the operator requires these host-level settings p
 
 ### Proposed Compose memory/resource and exposure changes
 
-The operator proposes per-container memory limits: nginx 96 MB, app 1.25 GB, PostgreSQL 640 MB, Redis 192 MB, Kafka 1.25 GB, Elasticsearch 1.25 GB, Garage 384 MB, Prometheus 512 MB and Grafana 320 MB (about 5.98 GB total, depending on units/rounding). Additional runtime settings proposed: app JVM `-XX:MaxRAMPercentage=65`; PostgreSQL `shared_buffers=256MB`; Redis `maxmemory 128mb`, `allkeys-lru`, AOF; Kafka `KAFKA_HEAP_OPTS=-Xms512m -Xmx1g`; Elasticsearch heap `-Xms512m -Xmx512m` and `bootstrap.memory_lock=false`; Prometheus retention 15 days. These are proposed deployment settings, not yet confirmed in Compose. Validate Docker Compose limit semantics and leave enough room for process overhead, native memory and page cache; a memory limit is not a guarantee that the workload fits safely.
+The operator proposes per-container memory limits: nginx 96 MB, app 1.25 GB, PostgreSQL 640 MB, Redis 192 MB, Kafka 1.25 GB, Elasticsearch 1.25 GB, Garage 384 MB, Prometheus 512 MB and Grafana 320 MB (about 5.98 GB total, depending on units/rounding). Additional runtime settings proposed: app JVM `-XX:MaxRAMPercentage=65`; PostgreSQL `shared_buffers=256MB`; Redis `maxmemory 128mb`, `allkeys-lru`, AOF; Kafka `KAFKA_HEAP_OPTS=-Xms512m -Xmx1g`; Elasticsearch heap `-Xms768m -Xmx768m` and `bootstrap.memory_lock=false`; Prometheus retention 15 days. These are proposed deployment settings, not yet confirmed in Compose. Validate Docker Compose limit semantics and leave enough room for process overhead, native memory and page cache; a memory limit is not a guarantee that the workload fits safely.
 
 Production credentials must not use the repository's local `postgres` / `postgres` defaults; use uncommitted secret configuration (for example, a protected `.env` file). Keep PostgreSQL, Redis, Kafka, Elasticsearch, Garage and Grafana off public host ports; expose only Nginx :80 on the proposed CT. Confirm the Compose changes and firewall/network behavior before go-live.
 

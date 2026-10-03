@@ -27,23 +27,48 @@ public final class ElasticsearchLifecycleUseCase {
         return host.run("status");
     }
 
-    public Settings stop(UUID actorId) {
+    public StopResult stop(UUID actorId) {
         Settings current = modes.current();
         HostScriptPort.Result result = host.run("stop");
         if (!result.success()) {
-            throw new IllegalStateException("Failed to stop Elasticsearch: exit "
-                    + result.exitCode() + ": " + result.output());
+            audit.record(actorId, "ES_STOP_FAILED", auditDetails(result));
+            throw new HostOperationException("stop", result);
         }
         Settings updated = modes.update(Mode.POSTGRES, current.version(), actorId);
-        audit.record(actorId, "ES_STOP", result.output());
-        return updated;
+        audit.record(actorId, "ES_STOP", auditDetails(result));
+        return new StopResult(updated, result);
     }
 
     public HostScriptPort.Result start(UUID actorId) {
         HostScriptPort.Result result = host.run("start");
-        if (result.success()) {
-            audit.record(actorId, "ES_START", result.output());
-        }
+        audit.record(actorId, result.success() ? "ES_START" : "ES_START_FAILED", auditDetails(result));
         return result;
+    }
+
+    private static String auditDetails(HostScriptPort.Result result) {
+        String output = result.output() == null ? "" : result.output()
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n")
+                .replace("\t", "\\t");
+        return "{\"exitCode\":" + result.exitCode() + ",\"output\":\"" + output + "\"}";
+    }
+
+    public record StopResult(Settings settings, HostScriptPort.Result hostResult) {}
+
+    public static final class HostOperationException extends IllegalStateException {
+        private final String action;
+        private final HostScriptPort.Result result;
+
+        public HostOperationException(String action, HostScriptPort.Result result) {
+            super("Failed to " + action + " Elasticsearch: exit "
+                    + result.exitCode() + ": " + result.output());
+            this.action = action;
+            this.result = result;
+        }
+
+        public String action() { return action; }
+        public HostScriptPort.Result result() { return result; }
     }
 }

@@ -49,6 +49,7 @@ jobs:
     outputs:
       image-digest: ${{ steps.build.outputs.digest }}
       image-short-sha: sha-${{ steps.release.outputs.short_sha }}
+      source-sha: ${{ github.sha }}
     permissions:
       contents: read
       packages: write
@@ -133,9 +134,11 @@ jobs:
   # DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_ROOT, TS_AUTHKEY.
   # job skip nếu DEPLOY_ENABLED không phải true.
   #
-  # Đường mạng: runner GitHub không vào được LAN nhà (WAN CGNAT, không port-forward).
+  # Đường mạng: runner GitHub không vào LAN nhà (WAN CGNAT,
+  # không port-forward).
   # CT100 (192.168.1.14) quảng bá route 192.168.1.15/32 trong tailnet nên runner
-  # chỉ cần join tailnet là SSH thẳng tới CT102 (action tự truyền --accept-routes).
+  # chỉ cần join tailnet là SSH thẳng tới CT102 (action tự truyền
+  # --accept-routes).
   deploy-prod:
     needs: [image-security, publish-image]
     if: >-
@@ -166,11 +169,13 @@ jobs:
           set -uo pipefail
           echo "tailnet ip: $(tailscale ip -4 2>/dev/null || echo none)"
           for attempt in $(seq 1 30); do
-            if timeout 5 bash -c "exec 3<>/dev/tcp/${TARGET_HOST}/22" 2>/dev/null; then
+            if timeout 5 bash -c \
+                "exec 3<>/dev/tcp/${TARGET_HOST}/22" 2>/dev/null; then
               echo "TCP ${TARGET_HOST}:22 reachable after ${attempt} attempt(s)"
               exit 0
             fi
-            echo "attempt ${attempt}: ${TARGET_HOST}:22 unreachable, retry in 5s"
+            echo "attempt ${attempt}: ${TARGET_HOST}:22 unreachable,"
+            echo "retry in 5s"
             sleep 5
           done
           echo "::error::${TARGET_HOST}:22 unreachable after 30 attempts"
@@ -179,15 +184,29 @@ jobs:
 
       - name: Deploy over SSH (pull + up)
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          SOURCE_SHA: ${{ needs.publish-image.outputs.source-sha }}
+          RELEASE_TAG: ${{ needs.publish-image.outputs.image-short-sha }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: SOURCE_SHA,RELEASE_TAG
           script: |
             set -euo pipefail
             cd "${{ secrets.DEPLOY_ROOT || '/opt/kg' }}"
-            image="${{ env.IMAGE_NAME }}:${{ needs.publish-image.outputs.image-short-sha }}"
-            rollback="${{ env.IMAGE_NAME }}:rollback"
+            test -n "$SOURCE_SHA"
+            git fetch --prune origin main
+            git reset --hard "$SOURCE_SHA"
+            test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+            git rev-parse HEAD
+            image="ghcr.io/darkb2001/knowledge-gym-app:${RELEASE_TAG}"
+            rollback="ghcr.io/darkb2001/knowledge-gym-app:rollback"
+            if grep -q '^APP_IMAGE=' .env 2>/dev/null; then
+              sed -i "s#^APP_IMAGE=.*#APP_IMAGE=$image#" .env
+            else
+              printf '\nAPP_IMAGE=%s\n' "$image" >> .env
+            fi
             export APP_IMAGE="$image"
             compose=(docker compose -f docker-compose.prod.yml)
             marker="${KG_ES_STOP_MARKER:-$PWD/run/elasticsearch.stopped}"

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/admin/search")
@@ -24,13 +26,16 @@ public class AdminSearchController {
     private final SearchModeUseCase modes;
     private final ElasticsearchLifecycleUseCase lifecycle;
     private final Optional<SearchQueryPort> elasticsearch;
+    private final ObjectMapper objectMapper;
 
     public AdminSearchController(SearchModeUseCase modes,
                                  ElasticsearchLifecycleUseCase lifecycle,
+                                 ObjectMapper objectMapper,
                                  @Qualifier("elasticsearchSearchQuery") Optional<SearchQueryPort> elasticsearch) {
         this.modes = modes;
         this.lifecycle = lifecycle;
         this.elasticsearch = elasticsearch;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping("/settings")
@@ -50,20 +55,38 @@ public class AdminSearchController {
     }
 
     @PostMapping("/elasticsearch/stop")
-    public SearchSettings stopElasticsearch(
+    public LifecycleResponse stopElasticsearch(
             @org.springframework.security.core.annotation.AuthenticationPrincipal UUID actorId) {
-        return SearchSettings.from(lifecycle.stop(actorId), elasticsearch.isPresent());
+        ElasticsearchLifecycleUseCase.StopResult result = lifecycle.stop(actorId);
+        return LifecycleResponse.from(result.hostResult(),
+                SearchSettings.from(result.settings(), elasticsearch.isPresent()), objectMapper);
     }
 
     @PostMapping("/elasticsearch/start")
-    public HostScriptPort.Result startElasticsearch(
+    public LifecycleResponse startElasticsearch(
             @org.springframework.security.core.annotation.AuthenticationPrincipal UUID actorId) {
         HostScriptPort.Result result = lifecycle.start(actorId);
         if (!result.success()) {
-            throw new IllegalStateException("Failed to start Elasticsearch: exit "
-                    + result.exitCode() + ": " + result.output());
+            throw new ElasticsearchLifecycleUseCase.HostOperationException("start", result);
         }
-        return result;
+        return LifecycleResponse.from(result, null, objectMapper);
+    }
+
+    public record LifecycleResponse(boolean success, int exitCode, Object output,
+                                    SearchSettings settings) {
+        static LifecycleResponse from(HostScriptPort.Result result, SearchSettings settings,
+                                      ObjectMapper objectMapper) {
+            Object parsed = result.output();
+            if (result.output() != null && !result.output().isBlank()) {
+                try {
+                    JsonNode json = objectMapper.readTree(result.output());
+                    parsed = json;
+                } catch (RuntimeException ignored) {
+                    // Host script output is still returned as text when not JSON.
+                }
+            }
+            return new LifecycleResponse(result.success(), result.exitCode(), parsed, settings);
+        }
     }
 
     public record UpdateRequest(Mode mode, long version) {}
