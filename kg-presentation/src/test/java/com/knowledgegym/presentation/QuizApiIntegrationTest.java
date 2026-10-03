@@ -59,6 +59,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class QuizApiIntegrationTest {
@@ -256,7 +257,9 @@ class QuizApiIntegrationTest {
         assertThat(db().queryForObject("SELECT count(*) FROM interview_answers WHERE question_id=?",Integer.class,UUID.fromString(qid))).isZero();
     }
     private UUID register(String email) throws Exception {
-        response(postJson("/auth/register",java.util.Map.of("email",email,"password","superSecret123","displayName","Quiz Tester"),""),201);
+        String code = RegistrationTestSupport.code(mockMvc, email);
+        response(postJson("/auth/register",java.util.Map.of("email",email,"password","superSecret123","confirmPassword","superSecret123","displayName","Quiz Tester","verificationCode",code),"")
+                .header("X-Forwarded-For", RegistrationTestSupport.nextIp()),201);
         return userRepository.findByEmail(email).orElseThrow().getId();
     }
 }

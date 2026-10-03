@@ -59,6 +59,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureTestRestTemplate
 @ActiveProfiles("test")
+@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ContentApiIntegrationTest {
@@ -643,10 +644,11 @@ class ContentApiIntegrationTest {
     private void register(String email) {
         try {
             mockMvc.perform(post("/auth/register")
+                            .header("X-Forwarded-For", RegistrationTestSupport.nextIp())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
-                                    {"email":"%s","password":"superSecret123","displayName":"Content Tester"}
-                                    """.formatted(email)))
+                                    {"email":"%s","password":"superSecret123","confirmPassword":"superSecret123","displayName":"Content Tester","verificationCode":"%s"}
+                                    """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
                     .andExpect(status().isCreated());
         } catch (Exception e) {
             throw new IllegalStateException("register failed for " + email, e);

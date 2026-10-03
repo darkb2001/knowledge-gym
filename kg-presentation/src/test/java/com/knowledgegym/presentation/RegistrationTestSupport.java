@@ -9,9 +9,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 final class RegistrationTestSupport {
     private static final AtomicInteger SEQUENCE = new AtomicInteger();
 
+    /** Per-request forwarded IP: `ClientIpResolver` trusts XFF in the `test` profile, so
+     *  the per-IP buckets of `/auth/register` (10/hour) and `/auth/*` (100/min) never
+     *  spill between neighbouring tests. */
+    static String nextIp() {
+        return "198.51.100." + (1 + SEQUENCE.incrementAndGet() % 250);
+    }
+
     static String code(MockMvc mvc, String email) throws Exception {
         mvc.perform(post("/auth/email-verification/request")
-                        .header("X-Forwarded-For", "198.51.100." + (1 + SEQUENCE.incrementAndGet() % 250))
+                        .header("X-Forwarded-For", nextIp())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\"}"))
                 .andExpect(status().isOk());

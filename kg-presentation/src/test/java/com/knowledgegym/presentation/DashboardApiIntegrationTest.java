@@ -66,6 +66,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class DashboardApiIntegrationTest {
@@ -529,10 +530,11 @@ class DashboardApiIntegrationTest {
 
     private UUID register(String email, String displayName) throws Exception {
         mockMvc.perform(post("/auth/register")
+                        .header("X-Forwarded-For", RegistrationTestSupport.nextIp())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"email":"%s","password":"superSecret123","displayName":"%s"}
-                                """.formatted(email, displayName)))
+                                {"email":"%s","password":"superSecret123","confirmPassword":"superSecret123","displayName":"%s","verificationCode":"%s"}
+                                """.formatted(email, displayName, RegistrationTestSupport.code(mockMvc, email))))
                 .andExpect(status().isCreated());
         User user = userRepository.findByEmail(email).orElseThrow();
         return user.getId();
