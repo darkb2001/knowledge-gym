@@ -156,6 +156,27 @@ jobs:
           version: '1.98.10'
           hostname: kg-ci-deploy
 
+      # CT100 (subnet router) đôi lúc mất kết nối tới control plane vài phút
+      # (journal có warnable not-in-map-poll) — chờ route sẵn sàng thay vì để
+      # bước SSH fail ngay.
+      - name: Wait for CT102 route over tailnet
+        env:
+          TARGET_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          set -uo pipefail
+          echo "tailnet ip: $(tailscale ip -4 2>/dev/null || echo none)"
+          for attempt in $(seq 1 30); do
+            if timeout 5 bash -c "exec 3<>/dev/tcp/${TARGET_HOST}/22" 2>/dev/null; then
+              echo "TCP ${TARGET_HOST}:22 reachable after ${attempt} attempt(s)"
+              exit 0
+            fi
+            echo "attempt ${attempt}: ${TARGET_HOST}:22 unreachable, retry in 5s"
+            sleep 5
+          done
+          echo "::error::${TARGET_HOST}:22 unreachable after 30 attempts"
+          tailscale status 2>&1 | head -20 || true
+          exit 1
+
       - name: Deploy over SSH (pull + up)
         uses: appleboy/ssh-action@v1.2.0
         with:
