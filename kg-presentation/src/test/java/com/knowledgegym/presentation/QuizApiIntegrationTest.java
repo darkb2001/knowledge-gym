@@ -127,7 +127,11 @@ class QuizApiIntegrationTest {
         importContentUseCase.execute(fixtureDocsPath());
         userId=register("quiz@example.com");userToken=tokenService.generateAccessToken(userId,"USER");
         otherUserToken=tokenService.generateAccessToken(register("quiz-other@example.com"),"USER");
-        adminToken=tokenService.generateAccessToken(register("quiz-admin@example.com"),"ADMIN");
+        UUID adminId=register("quiz-admin@example.com");
+        User admin=userRepository.findById(adminId).orElseThrow();
+        admin.setRole(com.knowledgegym.shared.domain.model.UserRole.ADMIN);
+        userRepository.save(admin);
+        adminToken=tokenService.generateAccessToken(adminId,"ADMIN");
         var module=moduleRepository.findBySlug("01-java-core").orElseThrow();moduleId=module.getId().toString();topicId=module.getTopicId().toString();
     }
     @Test @Order(2) void generateSubmitHistoryAndPracticeScores() throws Exception {
@@ -255,6 +259,11 @@ class QuizApiIntegrationTest {
         assertThat(db().queryForObject("SELECT count(*) FROM quiz_sessions WHERE id=?",Integer.class,UUID.fromString(id))).isEqualTo(1);
         assertThat(db().queryForObject("SELECT count(*) FROM interview_sessions WHERE id=?",Integer.class,UUID.fromString(interviewId))).isEqualTo(1);
         assertThat(db().queryForObject("SELECT count(*) FROM interview_answers WHERE question_id=?",Integer.class,UUID.fromString(qid))).isGreaterThanOrEqualTo(1);
+    }
+    @Test @Order(12) void adminClaimCannotElevateAUserWhoseDatabaseRoleIsUser() throws Exception {
+        UUID ordinaryUser=userRepository.findByEmail("quiz-other@example.com").orElseThrow().getId();
+        String staleOrForgedAdminClaim=tokenService.generateAccessToken(ordinaryUser,"ADMIN");
+        response(get("/admin/content/questions").header("Authorization","Bearer "+staleOrForgedAdminClaim),403);
     }
     private UUID register(String email) throws Exception {
         String code = RegistrationTestSupport.code(mockMvc, email);

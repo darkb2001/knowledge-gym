@@ -443,15 +443,13 @@ class SrsApiIntegrationTest {
 
     // ------------------------------------------------------------------ content deletion vs FK (C1)
     //
-    // `srs_cards.question_id` và `study_attempts.question_id` là FK `NO ACTION` (V004): m5 là phase
-    // đầu ghi row vào hai bảng đó, nên từ đây xoá câu hỏi (re-import hoặc admin xoá) sẽ nổ FK nếu
-    // không dọn dependent trước. Hai test dưới cố định hành vi đó — trước khi fix, cả hai đỏ bằng
-    // Postgres `violates foreign key constraint`.
+    // Referenced questions must not be removed by admin hard-delete or re-import.
+    // The guard returns a domain conflict rather than deleting study history to satisfy FKs.
 
-    /** Admin xoá 1 câu đã có người enroll + ôn phải thành công, và dọn sạch thẻ/attempt của câu đó. */
+    /** Hard-delete refuses enrolled/reviewed questions and preserves their cards and attempts. */
     @Test
     @Order(18)
-    void deletingEnrolledQuestionCleansDependentsInsteadOfFailingFk() throws Exception {
+    void deletingEnrolledQuestionIsRejectedWithoutRemovingHistory() throws Exception {
         UUID questionUuid = UUID.fromString(firstQuestionIdOfModule());
         mockMvc.perform(post("/srs/enroll")
                         .header("Authorization", bearer(userToken))
@@ -471,21 +469,20 @@ class SrsApiIntegrationTest {
                 .andExpect(status().isOk());
         assertThat(attemptsFor(questionUuid)).as("tiền đề: có attempt trỏ tới câu này").isNotEmpty();
 
-        // Không còn ném `DataIntegrityViolationException` nhờ `QuestionDependentsDao`.
-        questionRepository.deleteById(questionUuid);
+        var attemptsBefore = attemptsFor(questionUuid);
+        var cardsBefore = cardIdsFor(questionUuid);
+        assertThatThrownBy(() -> questionRepository.deleteById(questionUuid))
+                .isInstanceOf(com.knowledgegym.shared.application.ConflictException.class);
 
-        assertThat(questionRepository.findById(questionUuid)).as("câu hỏi đã bị xoá").isEmpty();
-        assertThat(attemptsFor(questionUuid)).as("attempt của câu bị xoá cũng bị dọn").isEmpty();
-        assertThat(cardIdsFor(questionUuid)).as("thẻ SRS của câu bị xoá cũng bị dọn").isEmpty();
+        assertThat(questionRepository.findById(questionUuid)).as("câu hỏi được giữ lại").isPresent();
+        assertThat(attemptsFor(questionUuid)).containsExactlyInAnyOrderElementsOf(attemptsBefore);
+        assertThat(cardIdsFor(questionUuid)).containsExactlyInAnyOrderElementsOf(cardsBefore);
     }
 
-    /**
-     * Re-import xoá câu không còn trong docs cũng phải dọn dependent — đi qua đúng đường
-     * `deleteAbsentSortOrders` mà `ImportContentUseCase` gọi (không cần sửa fixture).
-     */
+    /** Re-import removal uses the same guard and cannot erase existing study data. */
     @Test
     @Order(19)
-    void reimportDeletingModuleQuestionsCleansDependents() throws Exception {
+    void reimportCannotRemoveModuleQuestionsWithLearningHistory() throws Exception {
         UUID moduleUuid = UUID.fromString(moduleId);
         // Thẻ + attempt của các test trước vẫn trỏ tới câu trong module này.
         assertThat(cardIdsForModule(moduleUuid)).as("tiền đề: module còn thẻ SRS cần dọn").isNotEmpty();
@@ -493,10 +490,14 @@ class SrsApiIntegrationTest {
                 new QuestionQuery(moduleUuid, null, null, null, 1, QuestionQuery.MAX_SIZE))
                 .totalElements();
 
-        int deleted = questionRepository.deleteAbsentSortOrders(moduleUuid, List.of());
+        var cardsBefore = cardIdsForModule(moduleUuid);
+        assertThatThrownBy(() -> questionRepository.deleteAbsentSortOrders(moduleUuid, List.of()))
+                .isInstanceOf(com.knowledgegym.shared.application.ConflictException.class);
 
-        assertThat((long) deleted).as("xoá toàn bộ câu còn lại của module").isEqualTo(questionsBefore);
-        assertThat(cardIdsForModule(moduleUuid)).as("không còn thẻ mồ côi sau re-import").isEmpty();
+        assertThat(questionRepository.search(
+                new QuestionQuery(moduleUuid, null, null, null, 1, QuestionQuery.MAX_SIZE)).totalElements())
+                .isEqualTo(questionsBefore);
+        assertThat(cardIdsForModule(moduleUuid)).containsExactlyInAnyOrderElementsOf(cardsBefore);
     }
 
     /**

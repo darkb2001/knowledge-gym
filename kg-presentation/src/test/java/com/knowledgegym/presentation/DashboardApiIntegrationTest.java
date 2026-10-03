@@ -344,8 +344,8 @@ class DashboardApiIntegrationTest {
     @Test
     @Order(10)
     void streakSurvivesWhileTheCurrentDayIsStillOpen() throws Exception {
-        UUID yesterday = UUID.randomUUID();
-        seedAttemptAt(userId, questionIds.get(5), LocalDate.now().minusDays(1)
+        // CI runs in UTC; choose the date in the same timezone used by progress queries.
+        seedAttemptAt(userId, questionIds.get(5), LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh")).minusDays(1)
                 .atStartOfDay(java.time.ZoneId.of("Asia/Ho_Chi_Minh")).toInstant());
 
         assertThat(streakFromStats(userToken))
