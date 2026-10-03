@@ -130,9 +130,12 @@ jobs:
 
   # Deploy prod bằng pull — KHÔNG build trên LXC 8GB.
   # Cần GitHub Environment `production` secrets:
-  # DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY.
-  # Optional DEPLOY_ROOT mặc định /opt/kg;
+  # DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_ROOT, TS_AUTHKEY.
   # job skip nếu DEPLOY_ENABLED không phải true.
+  #
+  # Đường mạng: runner GitHub không vào được LAN nhà (WAN CGNAT, không port-forward).
+  # CT100 (192.168.1.14) quảng bá route 192.168.1.15/32 trong tailnet nên runner
+  # chỉ cần join tailnet là SSH thẳng tới CT102 (action tự truyền --accept-routes).
   deploy-prod:
     needs: image-security
     if: >-
@@ -144,6 +147,15 @@ jobs:
       name: production
       url: https://api.darkb-tech.io.vn
     steps:
+      # Runner GitHub ở ngoài internet; WAN nhà là CGNAT nên không port-forward.
+      # CT100 quảng bá 192.168.1.15/32 trong tailnet → join tailnet là SSH được.
+      - name: Join tailnet (accept-routes)
+        uses: tailscale/github-action@v2
+        with:
+          authkey: ${{ secrets.TS_AUTHKEY }}
+          version: '1.98.10'
+          hostname: kg-ci-deploy
+
       - name: Deploy over SSH (pull + up)
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -161,7 +173,11 @@ jobs:
 
             # Preserve the exact image currently used by the app. This keeps
             # one rollback release even when `latest` has moved in GHCR.
-            current_id="$(docker inspect --format '{{.Image}}' app \
+            # Tên container do compose sinh (kg-app-1) nên tra theo service id
+            # thay vì hardcode "app".
+            current_app="$(docker compose -f docker-compose.prod.yml ps -q app \
+              2>/dev/null | head -1)"
+            current_id="$(docker inspect --format '{{.Image}}' "$current_app" \
               2>/dev/null || true)"
             if [ -n "$current_id" ]; then
               docker tag "$current_id" "$rollback"
