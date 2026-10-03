@@ -16,13 +16,14 @@ import java.time.Instant;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Flyway migration integration test — Testcontainers PostgreSQL.
  * Runs on CI (ubuntu-latest has Docker) and locally when Docker daemon is up.
  *
  * Success criteria:
- * - Flyway migrate sạch 29 migration (through V032 question content lifecycle)
+ * - Flyway migrate sạch TOÀN BỘ file migration trên classpath (test tự đếm file, không hard-code số)
  * - Đúng 48 bảng trong schema public (loại flyway_schema_history)
  * - 1 materialized view: user_topic_mastery
  * - m4a: unique index `uk_questions_module_sort` + cột `questions.searchable_text` + trigger tsvector
@@ -47,10 +48,24 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldMigrateAllTwentyNineMigrations() throws Exception {
+    void shouldApplyEveryMigrationOnClasspath() throws Exception {
+        long files = migrationFileCount();
         query("SELECT count(*) FROM flyway_schema_history WHERE success = true", rs -> {
-            assertEquals(33, rs.getInt(1), "Expected 33 successful Flyway migrations through V033");
+            assertEquals(files, (long) rs.getInt(1),
+                    "Mọi file migration trên classpath phải applied đúng 1 lần — thêm migration mới thì test tự theo");
         });
+        query("SELECT count(*) FROM flyway_schema_history WHERE success = false", rs ->
+                assertEquals(0, rs.getInt(1), "Không được có migration failed"));
+        assertTrue(files >= 33, "V001..V033 phải còn nguyên, hiện có " + files);
+    }
+
+    /** Đếm file migration thật trên classpath — không hard-code số, để thêm V0xx mới không phải sửa test. */
+    private static long migrationFileCount() throws Exception {
+        var url = FlywayDatabaseMigrationTest.class.getClassLoader().getResource("db/migration");
+        if (url == null) throw new IllegalStateException("classpath:db/migration không tồn tại");
+        try (var paths = java.nio.file.Files.list(java.nio.file.Path.of(url.toURI()))) {
+            return paths.filter(p -> p.getFileName().toString().matches("V\\d+__[A-Za-z0-9_]+\\.sql")).count();
+        }
     }
 
     @Test
