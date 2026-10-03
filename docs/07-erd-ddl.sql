@@ -472,7 +472,6 @@ CREATE TABLE interview_sessions (
                         CHECK (mode IN ('TEXT', 'AUDIO')),
     status              VARCHAR(20)    NOT NULL DEFAULT 'ACTIVE'
                         CHECK (status IN ('ACTIVE', 'FINISHED')),
-    overall_score       NUMERIC(5, 2),
     started_at          TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     finished_at         TIMESTAMPTZ
 );
@@ -481,11 +480,10 @@ CREATE TABLE interview_answers (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id          UUID           NOT NULL REFERENCES interview_sessions(id) ON DELETE CASCADE,
     question_id         UUID           NOT NULL REFERENCES questions(id),
-    user_answer         TEXT,
+    user_answer         TEXT,                                                  -- NULL = placeholder membership
+    display_order       INT            NOT NULL,
     audio_url           TEXT,                                                  -- Garage
-    keyword_score       NUMERIC(5, 2),
-    feedback            TEXT,
-    sample_answer       TEXT,
+    answer_html         TEXT,                                                  -- đáp án mẫu trả cho user (V035)
     attempted_at        TIMESTAMPTZ    NOT NULL DEFAULT NOW()
 );
 

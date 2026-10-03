@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -32,9 +31,6 @@ public class InterviewSessionJpaEntity {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
-    @Column(name = "overall_score", precision = 5, scale = 2)
-    private BigDecimal overallScore;
-
     @Column(name = "started_at", nullable = false, updatable = false)
     private Instant startedAt;
 
@@ -53,8 +49,6 @@ public class InterviewSessionJpaEntity {
     public void setMode(String mode) { this.mode = mode; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-    public BigDecimal getOverallScore() { return overallScore; }
-    public void setOverallScore(BigDecimal overallScore) { this.overallScore = overallScore; }
     public Instant getStartedAt() { return startedAt; }
     public void setStartedAt(Instant startedAt) { this.startedAt = startedAt; }
     public Instant getFinishedAt() { return finishedAt; }

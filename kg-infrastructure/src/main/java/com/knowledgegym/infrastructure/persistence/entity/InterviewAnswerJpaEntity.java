@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -29,14 +28,8 @@ public class InterviewAnswerJpaEntity {
     @Column(name = "audio_url", columnDefinition = "TEXT")  // Garage
     private String audioUrl;
 
-    @Column(name = "keyword_score", precision = 5, scale = 2)
-    private BigDecimal keywordScore;
-
-    @Column(name = "feedback", columnDefinition = "TEXT")
-    private String feedback;
-
-    @Column(name = "sample_answer", columnDefinition = "TEXT")
-    private String sampleAnswer;
+    @Column(name = "answer_html", columnDefinition = "TEXT")
+    private String answerHtml;
 
     @Column(name = "attempted_at", nullable = false, updatable = false)
     private Instant attemptedAt;
@@ -55,12 +48,8 @@ public class InterviewAnswerJpaEntity {
     public void setUserAnswer(String userAnswer) { this.userAnswer = userAnswer; }
     public String getAudioUrl() { return audioUrl; }
     public void setAudioUrl(String audioUrl) { this.audioUrl = audioUrl; }
-    public BigDecimal getKeywordScore() { return keywordScore; }
-    public void setKeywordScore(BigDecimal keywordScore) { this.keywordScore = keywordScore; }
-    public String getFeedback() { return feedback; }
-    public void setFeedback(String feedback) { this.feedback = feedback; }
-    public String getSampleAnswer() { return sampleAnswer; }
-    public void setSampleAnswer(String sampleAnswer) { this.sampleAnswer = sampleAnswer; }
+    public String getAnswerHtml() { return answerHtml; }
+    public void setAnswerHtml(String answerHtml) { this.answerHtml = answerHtml; }
     public Instant getAttemptedAt() { return attemptedAt; }
     public void setAttemptedAt(Instant attemptedAt) { this.attemptedAt = attemptedAt; }
     public Integer getDisplayOrder() { return displayOrder; }

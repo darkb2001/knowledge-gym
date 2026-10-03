@@ -41,10 +41,12 @@ public class UserController {
     public record UpdateProfileRequest(String displayName, String avatarUrl) {}
 
     public record ProfileResponse(UUID id, String email, String displayName, String avatarUrl,
-                                  String role, String authProvider, DashboardResponses.Stats stats) {
+                                  String role, String authProvider, boolean hasPassword,
+                                  DashboardResponses.Stats stats) {
         static ProfileResponse of(User user, QueryProgressUseCase.Stats stats) {
             return new ProfileResponse(user.getId(), user.getEmail(), user.getDisplayName(),
                     user.getAvatarUrl(), user.getRole().name(), user.getAuthProvider().name(),
+                    user.getPasswordHash() != null,
                     DashboardResponses.Stats.of(stats));
         }
     }

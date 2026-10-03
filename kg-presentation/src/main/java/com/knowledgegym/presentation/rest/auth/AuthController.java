@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -29,6 +30,9 @@ public class AuthController {
     private final LogoutUseCase logoutUseCase;
     private final ForgotPasswordUseCase forgotPasswordUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
+    private final ChangePasswordUseCase changePasswordUseCase;
+    private final SetPasswordUseCase setPasswordUseCase;
+    private final GetCurrentUserUseCase currentUser;
     private final RefreshTokenCookie refreshCookie;
     private final ClientIpResolver clientIpResolver;
 
@@ -38,6 +42,9 @@ public class AuthController {
                            LogoutUseCase logoutUseCase,
                            ForgotPasswordUseCase forgotPasswordUseCase,
                            ResetPasswordUseCase resetPasswordUseCase,
+                           ChangePasswordUseCase changePasswordUseCase,
+                           SetPasswordUseCase setPasswordUseCase,
+                           GetCurrentUserUseCase currentUser,
                            RefreshTokenCookie refreshCookie,
                            ClientIpResolver clientIpResolver) {
         this.registerUseCase = registerUseCase;
@@ -46,6 +53,9 @@ public class AuthController {
         this.logoutUseCase = logoutUseCase;
         this.forgotPasswordUseCase = forgotPasswordUseCase;
         this.resetPasswordUseCase = resetPasswordUseCase;
+        this.changePasswordUseCase = changePasswordUseCase;
+        this.setPasswordUseCase = setPasswordUseCase;
+        this.currentUser = currentUser;
         this.refreshCookie = refreshCookie;
         this.clientIpResolver = clientIpResolver;
     }
@@ -135,6 +145,87 @@ public class AuthController {
     public Map<String, String> resetPassword(@Valid @RequestBody ResetPasswordRequest req) {
         resetPasswordUseCase.execute(req.email(), req.code(), req.newPassword());
         return Map.of("message", "Đặt lại mật khẩu thành công");
+    }
+
+    // ----------------------------------------------------- đổi / đặt mật khẩu khi ĐÃ đăng nhập
+
+    public record ChangePasswordRequest(
+            @jakarta.validation.constraints.NotBlank String currentPassword,
+            @jakarta.validation.constraints.NotBlank
+            @jakarta.validation.constraints.Size(min = 8, max = 72) String newPassword,
+            @jakarta.validation.constraints.NotBlank String confirmPassword) {
+        @jakarta.validation.constraints.AssertTrue(message = "Passwords do not match")
+        public boolean isPasswordConfirmed() {
+            return newPassword != null && newPassword.equals(confirmPassword);
+        }
+
+        @Override
+        public String toString() {
+            return "ChangePasswordRequest[passwords=[REDACTED]]";
+        }
+    }
+
+    public record SetPasswordRequest(
+            @jakarta.validation.constraints.NotBlank
+            @jakarta.validation.constraints.Pattern(regexp = "[0-9]{6}") String code,
+            @jakarta.validation.constraints.NotBlank
+            @jakarta.validation.constraints.Size(min = 8, max = 72) String newPassword,
+            @jakarta.validation.constraints.NotBlank String confirmPassword) {
+        @jakarta.validation.constraints.AssertTrue(message = "Passwords do not match")
+        public boolean isPasswordConfirmed() {
+            return newPassword != null && newPassword.equals(confirmPassword);
+        }
+
+        @Override
+        public String toString() {
+            return "SetPasswordRequest[code=[REDACTED], passwords=[REDACTED]]";
+        }
+    }
+
+    /**
+     * Gửi mã 6 số để ĐẶT mật khẩu lần đầu (tài khoản Google chưa có mật khẩu).
+     * Email lấy từ phiên đăng nhập — không nhận email từ body (tránh gửi mã cho người khác).
+     */
+    @PostMapping("/password-code/request")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public Map<String, String> requestPasswordCode(@AuthenticationPrincipal java.util.UUID userId) {
+        requireAuthenticated(userId);
+        String email = currentUser.execute(userId).getEmail();
+        return Map.of("message", forgotPasswordUseCase.execute(email));
+    }
+
+    /**
+     * Đổi mật khẩu (đã đăng nhập): mật khẩu hiện tại + mật khẩu mới + xác nhận.
+     * Giữ phiên hiện tại, đăng xuất mọi phiên khác, ghi audit + gửi mail thông báo.
+     */
+    @PostMapping("/change-password")
+    public Map<String, String> changePassword(@AuthenticationPrincipal java.util.UUID userId,
+                                              @Valid @RequestBody ChangePasswordRequest req,
+                                              HttpServletRequest httpRequest) {
+        requireAuthenticated(userId);
+        changePasswordUseCase.execute(userId, req.currentPassword(), req.newPassword(),
+                refreshCookie.read(httpRequest), clientIpResolver.resolve(httpRequest));
+        return Map.of("message", "Đổi mật khẩu thành công. Các thiết bị khác đã được đăng xuất.");
+    }
+
+    /**
+     * Đặt mật khẩu lần đầu cho tài khoản OAuth (Google) — cần mã 6 số gửi về email.
+     * Sau bước này tài khoản đăng nhập được cả Google lẫn email + mật khẩu.
+     */
+    @PostMapping("/set-password")
+    public Map<String, String> setPassword(@AuthenticationPrincipal java.util.UUID userId,
+                                           @Valid @RequestBody SetPasswordRequest req,
+                                           HttpServletRequest httpRequest) {
+        requireAuthenticated(userId);
+        setPasswordUseCase.execute(userId, req.code(), req.newPassword(),
+                clientIpResolver.resolve(httpRequest));
+        return Map.of("message", "Đặt mật khẩu thành công. Bạn có thể đăng nhập bằng email và mật khẩu này.");
+    }
+
+    private static void requireAuthenticated(java.util.UUID userId) {
+        if (userId == null) {
+            throw new AuthException(AuthException.Kind.UNAUTHORIZED, "Yêu cầu đăng nhập");
+        }
     }
 
     private TokenResponse buildTokenResponse(LoginUseCase.AuthResult auth, java.util.UUID userId,

@@ -54,6 +54,30 @@ public class GmailEmailService implements EmailService {
     }
 
     @Override
+    public void sendPasswordChangedNotice(String email) {
+        if (!smtpEnabled) {
+            throw new IllegalStateException("SMTP must be enabled to deliver password change notices");
+        }
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromAddress);
+            message.setTo(email);
+            message.setSubject("Knowledge Gym — Mật khẩu đã được thay đổi");
+            message.setText("""
+                    Mật khẩu của tài khoản Knowledge Gym này vừa được thay đổi.
+
+                    Nếu là bạn: không cần làm gì thêm. Mọi phiên đăng nhập khác đã được đăng xuất.
+                    Nếu KHÔNG phải bạn: hãy dùng ngay chức năng "Quên mật khẩu" để đặt lại và kiểm tra thiết bị của bạn.
+                    """);
+            mailSender.send(message);
+            log.info("Password change notice sent to {}", email);
+        } catch (Exception e) {
+            log.error("Failed to send password change notice to {}", email, e);
+            throw new IllegalStateException("Unable to send password change notice", e);
+        }
+    }
+
+    @Override
     public void sendPasswordResetCode(String email, String code) {
         if (!smtpEnabled) {
             throw new IllegalStateException("SMTP must be enabled to deliver password reset codes");

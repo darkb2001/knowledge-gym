@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.time.Instant;
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Repository
@@ -46,12 +45,12 @@ public class InterviewSessionRepositoryAdapter implements InterviewSessionReposi
             var end = rs.getTimestamp("finished_at");
             return new Row(rs.getObject("id", UUID.class), rs.getObject("user_id", UUID.class),
                     rs.getObject("topic_id", UUID.class), rs.getInt("question_count"),
-                    rs.getString("mode"), rs.getString("status"), rs.getBigDecimal("overall_score"),
+                    rs.getString("mode"), rs.getString("status"),
                     rs.getTimestamp("started_at").toInstant(), end == null ? null : end.toInstant());
         }, args);
         Map<UUID, List<UUID>> membership = membershipOf(rows.stream().map(Row::id).toList());
         return rows.stream().map(row -> new InterviewSession(row.id(), row.userId(), row.topicId(),
-                row.questionCount(), row.mode(), row.status(), row.overallScore(), row.startedAt(),
+                row.questionCount(), row.mode(), row.status(), row.startedAt(),
                 row.finishedAt(), membership.getOrDefault(row.id(), List.of()))).toList();
     }
 
@@ -72,7 +71,7 @@ public class InterviewSessionRepositoryAdapter implements InterviewSessionReposi
     }
 
     private record Row(UUID id, UUID userId, UUID topicId, int questionCount, String mode, String status,
-                       BigDecimal overallScore, Instant startedAt, Instant finishedAt) {
+                       Instant startedAt, Instant finishedAt) {
     }
 
     @Override
@@ -97,28 +96,19 @@ public class InterviewSessionRepositoryAdapter implements InterviewSessionReposi
         // `display_order` chỉ có ý nghĩa với row placeholder do `save()` tạo; ON CONFLICT không cập nhật
         // cột này nên thứ tự giao câu được giữ nguyên. Row không có placeholder rơi về 0.
         db.update("""
-                INSERT INTO interview_answers(session_id, question_id, user_answer, keyword_score, feedback,
-                                              sample_answer, attempted_at, display_order)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+                INSERT INTO interview_answers(session_id, question_id, user_answer, answer_html,
+                                              attempted_at, display_order)
+                VALUES (?, ?, ?, ?, ?, 0)
                 ON CONFLICT(session_id, question_id) DO UPDATE SET
-                    user_answer = excluded.user_answer, keyword_score = excluded.keyword_score,
-                    feedback = excluded.feedback, sample_answer = excluded.sample_answer,
+                    user_answer = excluded.user_answer, answer_html = excluded.answer_html,
                     attempted_at = excluded.attempted_at
-                """, answer.sessionId(), answer.questionId(), answer.userAnswer(), answer.keywordScore(),
-                answer.feedback(), answer.sampleAnswer(), Timestamp.from(answer.attemptedAt()));
+                """, answer.sessionId(), answer.questionId(), answer.userAnswer(),
+                answer.answerHtml(), Timestamp.from(answer.attemptedAt()));
     }
 
     @Override
-    public List<InterviewAnswer> findSubmittedAnswers(UUID sessionId) {
-        return db.query("SELECT * FROM interview_answers WHERE session_id = ? AND keyword_score IS NOT NULL",
-                (rs, row) -> new InterviewAnswer(sessionId, rs.getObject("question_id", UUID.class),
-                        rs.getString("user_answer"), rs.getBigDecimal("keyword_score"), rs.getString("feedback"),
-                        rs.getString("sample_answer"), rs.getTimestamp("attempted_at").toInstant()), sessionId);
-    }
-
-    @Override
-    public void finish(UUID sessionId, BigDecimal score, Instant now) {
-        db.update("UPDATE interview_sessions SET status = 'FINISHED', overall_score = ?, finished_at = ? WHERE id = ?",
-                score, Timestamp.from(now), sessionId);
+    public void finish(UUID sessionId, Instant now) {
+        db.update("UPDATE interview_sessions SET status = 'FINISHED', finished_at = ? WHERE id = ?",
+                Timestamp.from(now), sessionId);
     }
 }

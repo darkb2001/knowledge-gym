@@ -21,7 +21,7 @@ public class JdbcAdminLearningAdapter implements AdminLearningPort {
         String query = switch(kind) {
             case QUIZ -> "SELECT id,strategy AS label,CASE WHEN finished_at IS NULL THEN 'ACTIVE' ELSE 'FINISHED' END AS status,score::numeric AS score,total,NULL::date AS due,started_at AS occurred FROM quiz_sessions WHERE user_id=?";
             case SRS -> "SELECT c.id,q.title AS label,'ENROLLED' AS status,NULL::numeric AS score,c.repetitions AS total,c.next_review AS due,c.last_reviewed_at AS occurred FROM srs_cards c JOIN questions q ON q.id=c.question_id WHERE c.user_id=?";
-            case INTERVIEW -> "SELECT s.id,t.name AS label,s.status,s.overall_score AS score,s.question_count AS total,NULL::date AS due,s.started_at AS occurred FROM interview_sessions s JOIN topics t ON t.id=s.topic_id WHERE s.user_id=?";
+            case INTERVIEW -> "SELECT s.id,t.name AS label,s.status,NULL::numeric AS score,s.question_count AS total,NULL::date AS due,s.started_at AS occurred FROM interview_sessions s JOIN topics t ON t.id=s.topic_id WHERE s.user_id=?";
             case PROGRESS -> "SELECT p.id,m.name AS label,'RECORDED' AS status,p.mastery_pct AS score,p.total_attempts AS total,NULL::date AS due,p.last_active_at AS occurred FROM user_progress p JOIN modules m ON m.id=p.module_id WHERE p.user_id=?";
         };
         long total = jdbc.queryForObject("SELECT count(*) FROM " + table + " WHERE user_id=?",Long.class,userId);

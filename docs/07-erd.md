@@ -59,8 +59,8 @@
 | `quiz_sessions` | **V013** | `id PK` | `strategy (RANDOM/WEAKNESS/INTERVIEW/SPACED)` |
 | `quiz_session_questions` | **V016** | `PK (session_id, question_id)` | Ordered membership, cả 2 FK CASCADE |
 | `quiz_answers` | **V013**, **V016** | `id PK`, `UK (session_id, question_id)` | `selected_option_id` FK NULL (`ON DELETE SET NULL`) + `answer_text` = snapshot nội dung option đã chọn, giữ được lựa chọn của user khi option bị sinh lại |
-| `interview_sessions` | **V013** | `id PK` | `mode (TEXT/AUDIO)`, `status (ACTIVE/FINISHED)`, `overall_score` |
-| `interview_answers` | **V013**, **V016**, **V017** | `id PK`, `UK (session_id, question_id)`, `display_order NOT NULL` | Hai vai trò trên cùng bảng: placeholder membership (`keyword_score NULL`, `display_order` = thứ tự giao câu) và row kết quả sau khi chấm. `audio_url` cho speech mode |
+| `interview_sessions` | **V013** | `id PK` | `mode (TEXT/AUDIO)`, `status (ACTIVE/FINISHED)` — **không còn cột điểm** (`overall_score` bỏ ở V035) |
+| `interview_answers` | **V013**, **V016**, **V017**, **V035** | `id PK`, `UK (session_id, question_id)`, `display_order NOT NULL` | Hai vai trò trên cùng bảng: placeholder membership (`user_answer NULL`, `display_order` = thứ tự giao câu) và row đã nộp (`answer_html` = đáp án mẫu trả cho user). `audio_url` cho speech mode |
 | `notifications` | **V013** | `id PK` | `metadata JSONB` chứa entity refs (vd. `questionId`) |
 | `daily_challenge_assignments` | **V013** | `id PK`, `UK (user_id, challenge_date)` | `status (PENDING/COMPLETED/SKIPPED)` — nút "Skip hôm nay" |
 
@@ -135,9 +135,17 @@ insert trong cùng transaction nên `attempted_at` bằng nhau — không có c�
 attempted_at, id` trả về thứ tự UUID ngẫu nhiên thay vì thứ tự đã giao.
 Flyway hiện có 18 migration / 33 bảng. V018 là data backfill, không đổi schema.
 
-`interview_answers` mang vai trò kép: placeholder membership (`keyword_score` NULL, `display_order`
-theo thứ tự giao) và row kết quả sau khi chấm. `answer()` upsert nội dung chấm, **không** đụng
-`display_order`; xoá câu thì xoá row, session giữ nguyên.
+`interview_answers` mang vai trò kép: placeholder membership (`user_answer` NULL, `display_order`
+theo thứ tự giao) và row đã nộp. `answer()` upsert nội dung người học trả lời + `answer_html`
+(đáp án mẫu), **không** đụng `display_order`; xoá câu thì xoá row, session giữ nguyên.
+
+### V035 — Bỏ chấm điểm mock interview
+
+`interview_sessions.overall_score`, `interview_answers.keyword_score`, `feedback`,
+`sample_answer` bị drop; thêm `interview_answers.answer_html TEXT` (đáp án mẫu HTML đã sanitize,
+cùng nguồn với question detail). Lý do: điểm từ khóa không phản ánh chất lượng câu trả lời và
+farm được bằng cách lặp từ khoá; sản phẩm chuyển sang "nộp câu trả lời → xem đáp án mẫu để tự
+đối chiếu". `KeywordGrader` (kg-core) đã xoá. Không có cột/tham số điểm nào còn lại trong API.
 
 ```mermaid
 erDiagram
@@ -145,7 +153,7 @@ erDiagram
     questions ||--o{ quiz_session_questions : included
     quiz_sessions ||--o{ quiz_answers : records
     question_options ||--o{ quiz_answers : selects
-    interview_sessions ||--o{ interview_answers : assigns_and_grades
+    interview_sessions ||--o{ interview_answers : assigns_and_answers
     questions ||--o{ interview_answers : answers
 ```
 

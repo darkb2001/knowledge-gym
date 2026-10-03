@@ -48,13 +48,32 @@ POST   /auth/forgot-password    Request password reset — 6-digit code (Gmail d
 POST   /auth/reset-password     Xác nhận mã + đặt mật khẩu mới
        Body:    { email, code, newPassword }
        Returns: 200 { message }  — revoke toàn bộ refresh token family
+
+POST   /auth/change-password    Đổi mật khẩu khi ĐÃ đăng nhập (cần mật khẩu hiện tại)
+       Headers: Authorization: Bearer ***    Cookie: refreshToken (phiên đang gọi — được GIỮ lại)
+       Body:    { currentPassword, newPassword, confirmPassword }
+       Returns: 200 { message }  — thu hồi refresh family của MỌI phiên khác, phiên hiện tại vẫn dùng được
+       Lỗi:     400 sai mật khẩu hiện tại, mật khẩu mới trùng mật khẩu cũ, 2 lần nhập lệch nhau,
+                     hoặc mật khẩu mới ngoài 8..72 ký tự
+                409 tài khoản chưa có mật khẩu (đăng nhập Google) → dùng /auth/set-password
+
+POST   /auth/password-code/request   Gửi mã 6 số tới email của chính phiên đang đăng nhập
+       Headers: Authorization: Bearer ***   (không nhận email trong body — lấy từ JWT)
+       Returns: 202 { message }   — dùng cho luồng set-password của tài khoản OAuth
+
+POST   /auth/set-password       Đặt mật khẩu LẦN ĐẦU cho tài khoản đăng nhập Google
+       Headers: Authorization: Bearer ***
+       Body:    { code, newPassword, confirmPassword }
+       Returns: 200 { message }  — vẫn đăng nhập Google được, đồng thời bật đăng nhập email + mật khẩu
+       Lỗi:     400 mã sai / hết hạn / quá 5 lần thử, 409 tài khoản đã có mật khẩu (→ /auth/change-password)
 ```
 
 ## User Endpoints
 
 ```
 GET    /users/me                Get current user profile
-       Returns: { id, email, displayName, avatarUrl, role, authProvider, xp, stats }
+       Returns: { id, email, displayName, avatarUrl, role, authProvider, hasPassword, xp, stats }
+       hasPassword=false → tài khoản chỉ đăng nhập Google (password_hash NULL): FE hiện luồng ĐẶT mật khẩu
 
 PATCH  /users/me                Update profile
        Body:    { displayName?, avatarUrl? }
@@ -237,12 +256,12 @@ POST /admin/content/questions/generate-options → { questions, eligible, option
 POST /mock-interview/start → 201
 Body: { topicId, questionCount (1..20), mode: "TEXT" }
 Response: { session: { id, userId, topicId, questionCount, mode, status,
-                      overallScore, startedAt, finishedAt, questionIds },
+                      startedAt, finishedAt, questionIds },
             questions: [{ questionId, title }] }
 
 POST /mock-interview/{id}/answer → 200
 Body: { questionId, userAnswer }
-Response: { sessionId, questionId, userAnswer, keywordScore, feedback, sampleAnswer, attemptedAt }
+Response: { sessionId, questionId, userAnswer, answerHtml, attemptedAt }
 
 POST /mock-interview/{id}/finish → 200, session với status=FINISHED
 GET /mock-interview/history?page=1&size=20 → { items, page, size, totalElements, totalPages }
@@ -250,16 +269,18 @@ GET /mock-interview/history?page=1&size=20 → { items, page, size, totalElement
 
 TEXT-only; AUDIO → 400. userAnswer phải có nội dung, tối đa 20.000 ký tự.
 Câu hỏi chọn qua topic → modules → questions; số thực tế có thể thấp hơn questionCount.
-Tập câu được giao persist thành placeholder `interview_answers` có `keyword_score=NULL`:
+Tập câu được giao persist thành placeholder `interview_answers` (`user_answer IS NULL`):
 không thêm bảng membership thứ hai. Answer chỉ chấp nhận câu được giao và upsert theo
 UK `(session_id, question_id)`, đúng 1 row/câu; cột DB là `user_answer`.
-Keyword grader thuần Java so khớp từ nguyên vẹn, chuẩn hoá hoa/thường và dấu tiếng Việt.
-Finish lấy trung bình **chỉ answer đã nộp** (`keyword_score IS NOT NULL`), không answer → 0.
+**Không chấm điểm:** nộp câu trả lời trả về ngay đáp án mẫu của câu hỏi (`answerHtml`, HTML đã
+sanitize — cùng nguồn với question detail) để người học tự đối chiếu. Không có `keywordScore`,
+`overallScore`, `feedback`; bảng `interview_answers` lưu `answer_html` thay cho
+`keyword_score`/`feedback`/`sample_answer` (V035).
 Row lock serialize answer/finish; phiên đã FINISHED → 409, phiên user khác → 404.
 `questionIds` trong session giữ **đúng thứ tự đã giao** (`interview_answers.display_order`, V017).
 Response đi qua DTO (`rest/interview/dto`) nên không lộ trường nội bộ của domain.
-Xoá câu dọn answer nhưng giữ interview session (và điểm đã chốt); FK topic giữ nguyên.
-FE `/mock-interview` có text editor, chấm từ khóa, sửa answer, sample answer, finish và lịch sử.
+Xoá câu dọn answer nhưng giữ interview session; FK topic giữ nguyên.
+FE `/mock-interview` có text editor, hiện đáp án tham khảo sau khi lưu, sửa answer, finish và lịch sử.
 
 ## Code Challenge Endpoints
 

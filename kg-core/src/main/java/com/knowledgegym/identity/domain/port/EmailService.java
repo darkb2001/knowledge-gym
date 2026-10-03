@@ -10,4 +10,11 @@ public interface EmailService {
     default void sendEmailVerificationCode(String email, String code) {
         throw new IllegalStateException("Email verification delivery is not configured");
     }
+
+    /**
+     * Thông báo "mật khẩu đã thay đổi" (chuẩn mọi app: mail cảnh báo để user kịp phản ứng nếu không phải mình).
+     * Best-effort — adapter không hỗ trợ thì no-op, người dùng vẫn đổi được mật khẩu.
+     */
+    default void sendPasswordChangedNotice(String email) {
+    }
 }

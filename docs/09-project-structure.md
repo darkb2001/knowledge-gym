@@ -127,7 +127,9 @@ knowledge-gym/
 │       │   └── application/
 │       │       ├── RegisterUseCase.java
 │       │       ├── LoginUseCase.java
-│       │       └── RefreshTokenUseCase.java
+│       │       ├── RefreshTokenUseCase.java
+│       │       ├── ForgotPasswordUseCase.java, ResetPasswordUseCase.java
+│       │       └── ChangePasswordUseCase.java, SetPasswordUseCase.java, PasswordResetCodeVerifier.java
 │       │
 │       ├── content/                        # (m4a) Context: Question, Topic, Parser
 │       │   ├── domain/model/Question.java, QuestionOption.java, Topic.java, ModuleRef.java,
@@ -161,7 +163,7 @@ knowledge-gym/
 │       │       │   ├── WeaknessFocusedStrategy.java
 │       │       │   ├── InterviewSimulatorStrategy.java
 │       │       │   └── SpacedRepetitionStrategy.java
-│       │       └── SubmitMockAnswerUseCase.java           # keyword grading
+│       │       └── MockInterviewUseCase.java              # mock interview TEXT, không chấm điểm
 │       │
 │       ├── progress/
 │       │   ├── domain/model/UserProgress.java

@@ -88,6 +88,27 @@ public class UseCaseConfig {
                 refreshTokenRepository, cache);
     }
 
+    @Bean
+    ChangePasswordUseCase changePasswordUseCase(UserRepository userRepository,
+                                               PasswordHasher passwordHasher,
+                                               RefreshTokenRepository refreshTokenRepository,
+                                               RefreshTokenCachePort cache,
+                                               EmailService emailService,
+                                               SecurityEventPort securityEvents) {
+        return new ChangePasswordUseCase(userRepository, passwordHasher, refreshTokenRepository,
+                cache, emailService, securityEvents);
+    }
+
+    @Bean
+    SetPasswordUseCase setPasswordUseCase(UserRepository userRepository,
+                                          PasswordResetCodeRepository codeRepository,
+                                          PasswordHasher passwordHasher,
+                                          EmailService emailService,
+                                          SecurityEventPort securityEvents) {
+        return new SetPasswordUseCase(userRepository, codeRepository, passwordHasher,
+                emailService, securityEvents);
+    }
+
     // ------------------------------------------------------------------ content (m4)
 
     @Bean

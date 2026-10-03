@@ -104,8 +104,9 @@
 └─────────────────────────────────────────────┘
 ```
 
-- **2 chế độ chấm**: Rule-based (keyword matching) hoặc AI (GPT/Claude API)
-- **Speech mode**: Ghi âm nói → speech-to-text → chấm (thực tế hơn cho onsite interview)
+- **Không chấm điểm**: nộp câu trả lời → hiện đáp án mẫu để tự đối chiếu (V035). Chấm điểm bằng
+  AI/rule-based là hạng mục deferred (m10), không có trong API hiện tại
+- **Speech mode**: Ghi âm nói → speech-to-text → đối chiếu đáp án mẫu (deferred)
 
 ---
 

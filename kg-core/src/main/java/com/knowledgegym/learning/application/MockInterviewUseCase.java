@@ -2,12 +2,10 @@ package com.knowledgegym.learning.application;
 
 import com.knowledgegym.content.domain.port.*;
 import com.knowledgegym.content.domain.model.Question;
-import com.knowledgegym.content.domain.service.PlainText;
 import com.knowledgegym.learning.application.strategy.QuizCandidatePool;
 import com.knowledgegym.learning.domain.model.InterviewAnswer;
 import com.knowledgegym.learning.domain.model.InterviewSession;
 import com.knowledgegym.learning.domain.port.InterviewSessionRepository;
-import com.knowledgegym.learning.domain.service.KeywordGrader;
 import com.knowledgegym.learning.domain.service.RandomOrder;
 import com.knowledgegym.shared.application.ConflictException;
 import com.knowledgegym.shared.application.NotFoundException;
@@ -17,8 +15,6 @@ import java.util.List;
 import java.util.UUID;
 import java.time.Clock;
 import java.time.Instant;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.concurrent.ThreadLocalRandom;
 
 /** TEXT interview lifecycle; session row locks serialize edits with finish. */
@@ -58,7 +54,7 @@ public class MockInterviewUseCase {
                 .limit(count).toList();
         if (selected.isEmpty()) throw new ConflictException("Topic chưa có câu hỏi");
         var session = new InterviewSession(UUID.randomUUID(), user, topic, selected.size(), mode,
-                "ACTIVE", null, Instant.now(clock), null, selected.stream().map(Question::getId).toList());
+                "ACTIVE", Instant.now(clock), null, selected.stream().map(Question::getId).toList());
         return new Started(sessions.save(session), selected.stream()
                 .map(q -> new QuestionPrompt(q.getId(), q.getTitle())).toList());
     }
@@ -81,10 +77,8 @@ public class MockInterviewUseCase {
         }
         var question = questions.findById(questionId)
                 .orElseThrow(() -> new NotFoundException("Câu hỏi đã bị xoá"));
-        String sample = PlainText.of(question.getAnswerHtml());
-        var grade = KeywordGrader.grade(sample, answer);
-        var result = new InterviewAnswer(id, questionId, answer, grade.score(), grade.feedback(),
-                sample, Instant.now(clock));
+        // Không chấm điểm: submit xong trả luôn đáp án mẫu (answerHtml) để user tự đối chiếu.
+        var result = new InterviewAnswer(id, questionId, answer, question.getAnswerHtml(), Instant.now(clock));
         sessions.upsertAnswer(result);
         return result;
     }
@@ -92,15 +86,10 @@ public class MockInterviewUseCase {
     @Transactional
     public InterviewSession finish(UUID user, UUID id) {
         var session = active(user, id);
-        // Placeholders have NULL score and are excluded by the repository.
-        var answers = sessions.findSubmittedAnswers(id);
-        BigDecimal score = answers.isEmpty() ? BigDecimal.ZERO : answers.stream()
-                .map(InterviewAnswer::keywordScore).reduce(BigDecimal.ZERO, BigDecimal::add)
-                .divide(BigDecimal.valueOf(answers.size()), 2, RoundingMode.HALF_UP);
         Instant now = Instant.now(clock);
-        sessions.finish(id, score, now);
+        sessions.finish(id, now);
         return new InterviewSession(session.id(), session.userId(), session.topicId(),
-                session.questionCount(), session.mode(), "FINISHED", score, session.startedAt(),
+                session.questionCount(), session.mode(), "FINISHED", session.startedAt(),
                 now, session.questionIds());
     }
 

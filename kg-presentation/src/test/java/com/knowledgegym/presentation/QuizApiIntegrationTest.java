@@ -177,17 +177,23 @@ class QuizApiIntegrationTest {
         var detail=response(get("/questions/"+qid).header("Authorization","Bearer "+userToken),200);
         assertThat(detail.get("options").size()).isGreaterThanOrEqualTo(2);assertThat(detail.get("options").get(0).has("isCorrect")).isFalse();
     }
-    @Test @Order(6) void mockInterviewUpsertsAnswersAveragesOnlySubmittedAndScopesOwnership() throws Exception {
+    @Test @Order(6) void mockInterviewReturnsSampleAnswerOnSubmitAndScopesOwnership() throws Exception {
         var start=response(postJson("/mock-interview/start",java.util.Map.of("topicId",topicId,"questionCount",3,"mode","TEXT"),userToken),201);
         String id=start.get("session").get("id").asText();String qid=start.get("questions").get(0).get("questionId").asText();
         response(postJson("/mock-interview/"+id+"/answer",java.util.Map.of("questionId",qid,"userAnswer","thread lock"),otherUserToken),404);
         response(post("/mock-interview/"+id+"/finish").header("Authorization","Bearer "+otherUserToken),404);
         String sample=questionRepository.findById(UUID.fromString(qid)).orElseThrow().getAnswerHtml();
-        response(postJson("/mock-interview/"+id+"/answer",java.util.Map.of("questionId",qid,"userAnswer","unknown"),userToken),200);
-        var grade=response(postJson("/mock-interview/"+id+"/answer",java.util.Map.of("questionId",qid,"userAnswer",com.knowledgegym.content.domain.service.PlainText.of(sample)),userToken),200);
+        // Không chấm điểm: mọi câu trả lời đều trả về đáp án mẫu (answerHtml) ngay khi lưu.
+        var first=response(postJson("/mock-interview/"+id+"/answer",java.util.Map.of("questionId",qid,"userAnswer","unknown"),userToken),200);
+        assertThat(first.get("answerHtml").asText()).isEqualTo(sample);
+        assertThat(first.has("keywordScore")).isFalse();assertThat(first.has("feedback")).isFalse();
+        var edited=response(postJson("/mock-interview/"+id+"/answer",java.util.Map.of("questionId",qid,"userAnswer","thread lock và lock striping"),userToken),200);
+        assertThat(edited.get("userAnswer").asText()).isEqualTo("thread lock và lock striping");
+        assertThat(edited.get("answerHtml").asText()).isEqualTo(sample);
         assertThat(db().queryForObject("SELECT count(*) FROM interview_answers WHERE session_id=? AND question_id=?",Integer.class,UUID.fromString(id),UUID.fromString(qid))).isEqualTo(1);
+        assertThat(db().queryForObject("SELECT answer_html FROM interview_answers WHERE session_id=? AND question_id=?",String.class,UUID.fromString(id),UUID.fromString(qid))).isEqualTo(sample);
         var finish=response(post("/mock-interview/"+id+"/finish").header("Authorization","Bearer "+userToken),200);
-        assertThat(finish.get("status").asText()).isEqualTo("FINISHED");assertThat(finish.get("overallScore").decimalValue()).isEqualByComparingTo(grade.get("keywordScore").decimalValue());
+        assertThat(finish.get("status").asText()).isEqualTo("FINISHED");assertThat(finish.has("overallScore")).isFalse();
         response(postJson("/mock-interview/"+id+"/answer",java.util.Map.of("questionId",qid,"userAnswer","edited"),userToken),409);
         response(postJson("/mock-interview/start",java.util.Map.of("topicId",topicId,"questionCount",1,"mode","AUDIO"),userToken),400);
         for(int count:new int[]{0,21})response(postJson("/mock-interview/start",java.util.Map.of("topicId",topicId,"questionCount",count,"mode","TEXT"),userToken),400);
@@ -195,7 +201,7 @@ class QuizApiIntegrationTest {
         var persisted=history.get("items").get(0);
         assertThat(persisted.get("status").asText()).isEqualTo("FINISHED");
         assertThat(persisted.get("questionIds")).hasSize(3);
-        assertThat(persisted.get("overallScore").decimalValue()).isEqualByComparingTo(grade.get("keywordScore").decimalValue());
+        assertThat(persisted.has("overallScore")).isFalse();
         // V017: history phải trả câu theo đúng thứ tự đã giao, không phải theo UUID của placeholder.
         assertThat(db().queryForList("SELECT question_id::text FROM interview_answers WHERE session_id=? ORDER BY display_order",String.class,UUID.fromString(id)))
                 .isEqualTo(start.get("questions").findValuesAsString("questionId"));

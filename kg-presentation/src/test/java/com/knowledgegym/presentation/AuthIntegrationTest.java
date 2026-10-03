@@ -479,6 +479,167 @@ class AuthIntegrationTest {
                 .andExpect(jsonPath("$.displayName").value("After"));
     }
 
+    @Autowired com.knowledgegym.identity.domain.port.TokenService tokenService;
+
+    /** Đổi mật khẩu khi đã đăng nhập: xác minh mật khẩu hiện tại, giữ phiên hiện tại, thu hồi phiên khác. */
+    @Test
+    void changePassword_requiresCurrentPassword_andRevokesOtherSessions() throws Exception {
+        String email = "chpw+" + System.currentTimeMillis() + "@example.com";
+        String ip = nextIp();
+        MvcResult reg = mockMvc.perform(post("/auth/register")
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","password":"oldPassword123","confirmPassword":"oldPassword123","displayName":"Chpw","verificationCode":"%s"}
+                                """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
+                .andExpect(status().isCreated()).andReturn();
+        String otherSessionRefresh = reg.getResponse().getCookie("refreshToken").getValue();
+
+        MvcResult login = mockMvc.perform(post("/auth/login")
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","password":"oldPassword123"}
+                                """.formatted(email)))
+                .andExpect(status().isOk()).andReturn();
+        String token = readJson(login, "$.accessToken");
+        String currentSessionRefresh = login.getResponse().getCookie("refreshToken").getValue();
+
+        mockMvc.perform(get("/users/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hasPassword").value(true));
+
+        // Sai mật khẩu hiện tại → 400
+        mockMvc.perform(post("/auth/change-password")
+                        .header("Authorization", "Bearer " + token)
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"wrongPassword\",\"newPassword\":\"brandNew123\",\"confirmPassword\":\"brandNew123\"}"))
+                .andExpect(status().isBadRequest());
+        // Xác nhận không khớp → 400
+        mockMvc.perform(post("/auth/change-password")
+                        .header("Authorization", "Bearer " + token)
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"oldPassword123\",\"newPassword\":\"brandNew123\",\"confirmPassword\":\"otherNew123\"}"))
+                .andExpect(status().isBadRequest());
+        // Trùng mật khẩu cũ → 400
+        mockMvc.perform(post("/auth/change-password")
+                        .header("Authorization", "Bearer " + token)
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"oldPassword123\",\"newPassword\":\"oldPassword123\",\"confirmPassword\":\"oldPassword123\"}"))
+                .andExpect(status().isBadRequest());
+        // Chưa xác thực → 401 (endpoint không nằm trong permitAll)
+        mockMvc.perform(post("/auth/change-password")
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"oldPassword123\",\"newPassword\":\"brandNew123\",\"confirmPassword\":\"brandNew123\"}"))
+                .andExpect(status().isUnauthorized());
+
+        // Đổi thành công (kèm cookie phiên hiện tại)
+        mockMvc.perform(post("/auth/change-password")
+                        .header("Authorization", "Bearer " + token)
+                        .header("X-Forwarded-For", ip)
+                        .cookie(new jakarta.servlet.http.Cookie("refreshToken", currentSessionRefresh))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"oldPassword123\",\"newPassword\":\"brandNew123\",\"confirmPassword\":\"brandNew123\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").exists());
+
+        // Phiên hiện tại vẫn dùng được
+        mockMvc.perform(post("/auth/refresh")
+                        .header("X-Forwarded-For", ip)
+                        .cookie(new jakarta.servlet.http.Cookie("refreshToken", currentSessionRefresh)))
+                .andExpect(status().isOk());
+        // Thiết bị khác bị đăng xuất
+        mockMvc.perform(post("/auth/refresh")
+                        .header("X-Forwarded-For", ip)
+                        .cookie(new jakarta.servlet.http.Cookie("refreshToken", otherSessionRefresh)))
+                .andExpect(status().isUnauthorized());
+        // Mật khẩu cũ hết hiệu lực, mật khẩu mới dùng được
+        mockMvc.perform(post("/auth/login")
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"password\":\"oldPassword123\"}"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/auth/login")
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"password\":\"brandNew123\"}"))
+                .andExpect(status().isOk());
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM audit_logs WHERE action='PASSWORD_CHANGED'", Integer.class))
+                .isGreaterThanOrEqualTo(1);
+    }
+
+    /** Tài khoản Google (password_hash NULL): đặt mật khẩu lần đầu bằng mã xác minh email, sau đó login email/mật khẩu được. */
+    @Test
+    void googleUser_setsPasswordWithEmailCode_thenEmailLoginWorks() throws Exception {
+        String email = "guser+" + System.currentTimeMillis() + "@example.com";
+        String ip = nextIp();
+        var googleUser = com.knowledgegym.identity.domain.model.User.createGoogleUser(email, "Google User", "google-sub-" + System.currentTimeMillis());
+        googleUser.verifyEmail();
+        userRepository.save(googleUser);
+        String token = tokenService.generateAccessToken(googleUser.getId(), "USER");
+
+        mockMvc.perform(get("/users/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.authProvider").value("GOOGLE"))
+                .andExpect(jsonPath("$.hasPassword").value(false));
+
+        // Đổi mật khẩu khi chưa có mật khẩu → 409 (client phải dùng luồng đặt mật khẩu)
+        mockMvc.perform(post("/auth/change-password")
+                        .header("Authorization", "Bearer " + token)
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"anything123\",\"newPassword\":\"brandNew123\",\"confirmPassword\":\"brandNew123\"}"))
+                .andExpect(status().isConflict());
+
+        // Gửi mã tới email của chính phiên đang đăng nhập
+        mockMvc.perform(post("/auth/password-code/request")
+                        .header("Authorization", "Bearer " + token)
+                        .header("X-Forwarded-For", ip))
+                .andExpect(status().isAccepted());
+        String code = TestEmailServiceConfig.LAST_CODES.get(email.toLowerCase());
+        assertThat(code).as("password code captured").hasSize(6);
+
+        // Sai mã → 400
+        mockMvc.perform(post("/auth/set-password")
+                        .header("Authorization", "Bearer " + token)
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"000000\",\"newPassword\":\"brandNew123\",\"confirmPassword\":\"brandNew123\"}"))
+                .andExpect(status().isBadRequest());
+
+        // Đặt mật khẩu thành công
+        mockMvc.perform(post("/auth/set-password")
+                        .header("Authorization", "Bearer " + token)
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"" + code + "\",\"newPassword\":\"brandNew123\",\"confirmPassword\":\"brandNew123\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").exists());
+
+        mockMvc.perform(get("/users/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hasPassword").value(true));
+        // Login bằng email + mật khẩu vừa đặt
+        mockMvc.perform(post("/auth/login")
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"password\":\"brandNew123\"}"))
+                .andExpect(status().isOk());
+        // Gọi lại set-password khi đã có mật khẩu → 409
+        mockMvc.perform(post("/auth/set-password")
+                        .header("Authorization", "Bearer " + token)
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"" + code + "\",\"newPassword\":\"anotherNew123\",\"confirmPassword\":\"anotherNew123\"}"))
+                .andExpect(status().isConflict());
+        assertThat(userRepository.findByEmail(com.knowledgegym.identity.domain.model.User.normalizeEmail(email))
+                .orElseThrow().getPasswordHash()).isNotBlank();
+    }
+
     private String readJson(MvcResult result, String jsonPath) throws Exception {
         // jsonPath dạng "$.accessToken" → Jackson pointer "/accessToken"
         JsonNode node = objectMapper.readTree(result.getResponse().getContentAsString())

@@ -91,6 +91,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             // Anti-takeover: không silent-link LOCAL → GOOGLE
             if (user.getAuthProvider() == AuthProvider.LOCAL
                     || (user.getOauthId() == null && user.getPasswordHash() != null)) {
+                // Audit cả nhánh thất bại: đây là dấu hiệu account-takeover / user nhầm phương thức.
+                auditLogger.oauthEmailConflict(email, clientIpResolver.resolve(request));
                 response.sendError(HttpServletResponse.SC_CONFLICT,
                         "Account exists with password login. Sign in with email/password, then link Google from settings.");
                 return;

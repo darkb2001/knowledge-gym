@@ -13,7 +13,7 @@ The owner approved full website administration plus an AI knowledge-intake syste
 
 ## Existing learning model
 
-Quiz, SRS flashcards and TEXT mock interviews currently reuse the topic/module/question bank. Users start quiz/interview sessions or enroll SRS cards; they do not populate the shared knowledge bank. Fixed authored quiz sets, independent flashcard decks and curated interview scenarios are additional modeling work, not existing capabilities. Current interview scoring uses keywords, not an AI interviewer.
+Quiz, SRS flashcards and TEXT mock interviews currently reuse the topic/module/question bank. Users start quiz/interview sessions or enroll SRS cards; they do not populate the shared knowledge bank. Fixed authored quiz sets, independent flashcard decks and curated interview scenarios are additional modeling work, not existing capabilities. Future interview work is deferred: mock interviews record answers and show the authored sample answer; there is no keyword or AI scoring (V035 removed it), and an AI interviewer does not exist yet.
 
 ## Initial checkpoint: account administration backend (historical)
 
