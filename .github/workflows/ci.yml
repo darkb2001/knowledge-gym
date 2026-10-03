@@ -155,6 +155,7 @@ jobs:
             cd "${{ secrets.DEPLOY_ROOT || '/opt/kg' }}"
             image="${{ env.IMAGE_NAME }}:sha-${GITHUB_SHA:0:7}"
             rollback="${{ env.IMAGE_NAME }}:rollback"
+            export APP_IMAGE="$image"
             compose=(docker compose -f docker-compose.prod.yml)
             marker="${KG_ES_STOP_MARKER:-$PWD/run/elasticsearch.stopped}"
 
@@ -169,8 +170,8 @@ jobs:
               docker tag "${{ env.IMAGE_NAME }}:latest" "$rollback"
             fi
 
-            APP_IMAGE="$image" "${compose[@]}" pull app
-            APP_IMAGE="$image" "${compose[@]}" up -d --remove-orphans
+            "${compose[@]}" pull app
+            "${compose[@]}" up -d --remove-orphans
 
             # An intentional ES stop must survive compose up.
             if [ -f "$marker" ]; then

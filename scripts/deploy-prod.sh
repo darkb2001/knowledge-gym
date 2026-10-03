@@ -8,10 +8,11 @@ COMPOSE_FILE="${KG_COMPOSE_FILE:-$ROOT/docker-compose.prod.yml}"
 ES_STOP_MARKER="${KG_ES_STOP_MARKER:-$ROOT/run/elasticsearch.stopped}"
 
 cd "$ROOT"
-APP_IMAGE="${APP_IMAGE:-ghcr.io/darkb2001/knowledge-gym-app:latest}"
+APP_IMAGE="${APP_IMAGE:?APP_IMAGE must be pinned to a release tag}"
+export APP_IMAGE
 
-APP_IMAGE="$APP_IMAGE" docker compose -f "$COMPOSE_FILE" pull app
-APP_IMAGE="$APP_IMAGE" docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
+docker compose -f "$COMPOSE_FILE" pull app
+docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
 
 # `up -d` would otherwise start elasticsearch again even after an intentional stop
 # (restart: unless-stopped does not block an explicit compose up).

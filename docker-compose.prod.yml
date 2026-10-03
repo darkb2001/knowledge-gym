@@ -48,7 +48,8 @@ services:
     # Image build sẵn ở CI (job publish-image) và pull về. KHÔNG `build:` ở đây:
     # build Gradle trong CT 8GB ngốn 2-3GB RAM đỉnh + tranh I/O với CT100/CT101
     # trên cùng 1 NVMe. Tag do CI gắn `sha-<short>` và `latest`.
-    image: ${APP_IMAGE:-ghcr.io/darkb2001/knowledge-gym-app:latest}
+    # Production deploy must provide an immutable sha-* tag via APP_IMAGE.
+    image: ${APP_IMAGE:?APP_IMAGE must be pinned to a release tag}
     restart: unless-stopped
     expose:
       - "8080"
