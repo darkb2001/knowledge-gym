@@ -123,6 +123,10 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_SMTP_ENABLED: ${MAIL_SMTP_ENABLED:-false}
       MAIL_HEALTH_ENABLED: ${MAIL_HEALTH_ENABLED:-false}
+      # From hiển thị của thư hệ thống. Gmail SMTP REWRITE header From thành địa
+      # chỉ tài khoản khi giá trị không phải alias đã verify → chỉ đổi giá trị này
+      # khi chuyển sang relay có domain riêng (Brevo / SMTP domain).
+      APP_EMAIL_FROM: ${APP_EMAIL_FROM:-no-reply@knowledgegym.dev}
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus,info
       STORAGE_S3_ENABLED: "true"
       S3_ENDPOINT: http://garage:3900

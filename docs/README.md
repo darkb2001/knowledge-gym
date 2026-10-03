@@ -35,6 +35,7 @@
 | 21 | [proxmox-ops-bot-handoff.md](./21-proxmox-ops-bot-handoff.md) | Handoff PVE ops bot: quyền, phạm vi, quy trình |
 | 22 | [es-control-ops-bot-reply.md](./22-es-control-ops-bot-reply.md) | Trả lời ops bot: ES lifecycle qua host control |
 | 23 | [23-alertmanager-ops.md](./23-alertmanager-ops.md) | Alertmanager project `kgops`: dựng lại + nghiệm thu |
+| 24 | [24-mail-prod.md](./24-mail-prod.md) | Mail transactional prod: bật SMTP, nghiệm thu end-to-end, bẫy `MAIL_SMTP_ENABLED=false` |
 | adr | [adr/](./adr/) | ADR-001 modular monolith, ADR-004 infra/backup/email |
 
 ## Quick start
