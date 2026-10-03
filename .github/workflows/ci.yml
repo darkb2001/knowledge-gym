@@ -137,7 +137,7 @@ jobs:
   # CT100 (192.168.1.14) quảng bá route 192.168.1.15/32 trong tailnet nên runner
   # chỉ cần join tailnet là SSH thẳng tới CT102 (action tự truyền --accept-routes).
   deploy-prod:
-    needs: image-security
+    needs: [image-security, publish-image]
     if: >-
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
@@ -165,7 +165,7 @@ jobs:
           script: |
             set -euo pipefail
             cd "${{ secrets.DEPLOY_ROOT || '/opt/kg' }}"
-            image="${{ env.IMAGE_NAME }}:sha-${GITHUB_SHA:0:7}"
+            image="${{ env.IMAGE_NAME }}:${{ needs.publish-image.outputs.image-short-sha }}"
             rollback="${{ env.IMAGE_NAME }}:rollback"
             export APP_IMAGE="$image"
             compose=(docker compose -f docker-compose.prod.yml)
