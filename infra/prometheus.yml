@@ -23,7 +23,13 @@ scrape_configs:
       - targets: ["nginx-exporter:9113"]
 
 alerting:
-  alertmanagers: []
+  # Alertmanager là ops stack riêng (ops/docker-compose.ops.yml, project `kgops`)
+  # nằm cùng network Docker với app nên resolve được bằng DNS alias `alertmanager`.
+  # Lưu ý: compose project `kg` (app) KHÔNG quản lý container này — đừng thêm nó
+  # vào docker-compose.prod.yml, vì mỗi lần deploy sẽ bị --remove-orphans xoá.
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
 
 rule_files:
   - /etc/prometheus/alerts.yml

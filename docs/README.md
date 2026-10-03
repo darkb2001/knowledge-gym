@@ -32,6 +32,9 @@
 | 17 | [es-admin-lifecycle-handoff.md](./17-es-admin-lifecycle-handoff.md) | Admin ES runtime mode + host lifecycle |
 | 19 | [m11b-ops.md](./19-m11b-ops.md) | **m11b** — email interim, backup, ES retention, Grafana Cloud, Lambda |
 | 20 | [backup-restore-drill.md](./20-backup-restore-drill.md) | Restore drill acceptance for restic/B2 |
+| 21 | [proxmox-ops-bot-handoff.md](./21-proxmox-ops-bot-handoff.md) | Handoff PVE ops bot: quyền, phạm vi, quy trình |
+| 22 | [es-control-ops-bot-reply.md](./22-es-control-ops-bot-reply.md) | Trả lời ops bot: ES lifecycle qua host control |
+| 23 | [23-alertmanager-ops.md](./23-alertmanager-ops.md) | Alertmanager project `kgops`: dựng lại + nghiệm thu |
 | adr | [adr/](./adr/) | ADR-001 modular monolith, ADR-004 infra/backup/email |
 
 ## Quick start

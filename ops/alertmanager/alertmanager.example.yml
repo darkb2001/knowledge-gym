@@ -1,0 +1,44 @@
+# Alertmanager — BẢN MẪU (không chứa secret).
+# Cách dùng trên host (CT102):
+#   cd /opt/kg/ops/alertmanager
+#   cp alertmanager.example.yml alertmanager.yml
+#   sed -i 's/REPLACE_ME_SMTP_APP_PASSWORD/<gmail-app-password>/' alertmanager.yml
+#   chown root:nogroup alertmanager.yml && chmod 0640 alertmanager.yml   # container chay uid nobody (65534)
+# alertmanager.yml bi .gitignore nen secret khong bao gio vao git.
+# Luu y: KHONG bat --config.expand-env cho file nay.
+
+# Alertmanager — project ops riêng (kgops), KHÔNG nằm trong docker-compose.prod.yml
+# để lần `docker compose up -d --remove-orphans` của CI không xoá nó.
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'mtpquangbao@gmail.com'
+  smtp_auth_username: 'mtpquangbao@gmail.com'
+  smtp_auth_password: REPLACE_ME_SMTP_APP_PASSWORD
+  smtp_require_tls: true
+
+route:
+  receiver: email-ops
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers: ['severity="critical"']
+      receiver: email-ops
+      group_wait: 10s
+      repeat_interval: 1h
+
+# App chết thì đừng spam thêm warning về heap/5xx của chính app đó.
+inhibit_rules:
+  - source_matchers: ['severity="critical"']
+    target_matchers: ['severity="warning"']
+    equal: ['job']
+
+receivers:
+  - name: email-ops
+    email_configs:
+      - to: 'mtpquangbao@gmail.com'
+        send_resolved: true
+        headers:
+          Subject: '{{ if eq .Status "firing" }}[FIRING]{{ else }}[RESOLVED]{{ end }} Knowledge Gym - {{ .CommonLabels.alertname }}'

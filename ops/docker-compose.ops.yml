@@ -1,0 +1,30 @@
+# Ops stack cho CT102 — chạy project riêng `kgops` để độc lập hoàn toàn với
+# pipeline deploy của app (project `kg`). Thêm service ops khác vào đây.
+services:
+  alertmanager:
+    image: quay.io/prometheus/alertmanager:v0.27.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+      - --log.level=debug
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    networks:
+      kg-internal:
+        aliases:
+          - alertmanager
+    mem_limit: 192m
+    memswap_limit: 192m
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+
+networks:
+  kg-internal:
+    external: true
+    name: kg_kg-internal
+
+volumes:
+  alertmanager-data:

@@ -22,6 +22,11 @@ build/
 # Host-only Prometheus remote_write credentials (m11b)
 infra/prometheus/*.secrets.yml
 
+# Ops stack (kgops) — bản thật chứa secret (SMTP app password), chỉ nằm trên host.
+# Bản mẫu an toàn để commit: ops/alertmanager/alertmanager.example.yml
+ops/alertmanager/alertmanager.yml
+ops/*.env
+
 # Node
 node_modules/
 kg-frontend/.next/
