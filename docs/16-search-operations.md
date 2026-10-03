@@ -15,7 +15,7 @@ tắt thì UI không cho chọn Elasticsearch.
 ## Lifecycle trên host
 
 Không mount `/var/run/docker.sock` vào app. Host operator cài
-`scripts/es-control.sh` tại `/opt/knowledge-gym/scripts/es-control.sh` và giới hạn quyền
+`scripts/es-control.sh` tại `/opt/kg/scripts/es-control.sh` và giới hạn quyền
 qua sudoers/systemd. Script chỉ nhận ba action:
 
 ```bash

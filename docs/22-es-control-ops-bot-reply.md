@@ -11,7 +11,7 @@
   - `docker-compose.prod.yml` — service name **`elasticsearch`**
   - `.env.example`
   - `scripts/es-control.sh` (legacy; sẽ bị thay bởi HTTP agent của bạn)
-- **Path trên CT102:** repo default docs/scripts dùng `/opt/knowledge-gym`. Nếu live của bạn là `/opt/kg`, **giữ `/opt/kg`** — hardcode agent theo path thật, báo lại trong inventory để app `.env` khớp:
+- **Path trên CT102:** repo và production dùng `/opt/kg` làm path chuẩn — hardcode agent theo path thật, báo lại trong inventory để app `.env` khớp:
   - `KG_ES_CONTROL_URL=http://172.18.0.1:9377` (hoặc bridge gw thật bạn đo)
   - `KG_ES_CONTROL_TOKEN=...`
   - `KG_COMPOSE_FILE=/opt/kg/docker-compose.prod.yml` (nếu script còn dùng)

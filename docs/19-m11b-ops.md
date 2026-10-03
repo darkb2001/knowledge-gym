@@ -47,7 +47,7 @@ Host env (outside `.env` secrets files):
 Cron (host, preferred until Lambda is live):
 
 ```cron
-0 3 * * * GARAGE_BACKUP=1 CONFIG_BACKUP=1 /opt/knowledge-gym/scripts/backup-db.sh >> /var/log/kg-backup.log 2>&1
+0 3 * * * GARAGE_BACKUP=1 CONFIG_BACKUP=1 /opt/kg/scripts/backup-db.sh >> /var/log/kg-backup.log 2>&1
 ```
 
 Or `POST /api/v1/internal/backup` with `X-Cron-Token` when `KG_BACKUP_SCRIPT` is set
@@ -63,7 +63,7 @@ log table after a successful dry-run restore.
 - Index: single `knowledge-gym-search` (no dated rollover). Nightly host job:
 
 ```cron
-15 4 * * * ES_URL=http://127.0.0.1:9200 /opt/knowledge-gym/scripts/es-retention.sh >> /var/log/kg-es-retention.log 2>&1
+15 4 * * * ES_URL=http://elasticsearch:9200 /opt/kg/scripts/es-retention.sh >> /var/log/kg-es-retention.log 2>&1
 ```
 
 The script: deletes legacy `<prefix>-YYYY.MM.DD` indices if any; reports store

@@ -10,7 +10,7 @@
 #   5. Set env: B2_KEY_ID, B2_APP_KEY, RESTIC_PASSWORD_FILE
 #
 # Crontab (host):
-#   0 3 * * *  /opt/knowledge-gym/scripts/backup-db.sh >> /var/log/kg-backup.log 2>&1
+#   0 3 * * *  /opt/kg/scripts/backup-db.sh >> /var/log/kg-backup.log 2>&1
 
 set -euo pipefail
 
@@ -22,6 +22,20 @@ PG_USER="${PG_USER:-postgres}"
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/kg-db}"
 RESTIC_BUCKET="${RESTIC_BUCKET:-b2:kg-db-backups}"
 RESTIC_PASSWORD_FILE="${RESTIC_PASSWORD_FILE:-/etc/kg-backup/restic.pw}"
+
+# Fail before pg_dump if the offsite backup cannot be encrypted/uploaded.
+# B2_APPLICATION_KEY is the production .env name; restic/B2 expects B2_APP_KEY.
+: "${B2_KEY_ID:?B2_KEY_ID is required for offsite backup}"
+: "${B2_APPLICATION_KEY:?B2_APPLICATION_KEY is required for offsite backup}"
+if [ ! -r "$RESTIC_PASSWORD_FILE" ]; then
+  echo "RESTIC_PASSWORD_FILE is not readable: $RESTIC_PASSWORD_FILE" >&2
+  exit 2
+fi
+export B2_APPLICATION_KEY
+export B2_APP_KEY="$B2_APPLICATION_KEY"
+export B2_ACCOUNT_ID="$B2_KEY_ID"
+export B2_ACCOUNT_KEY="$B2_APPLICATION_KEY"
+
 KEEP_DAILY=7
 KEEP_WEEKLY=4
 KEEP_MONTHLY=6
@@ -94,7 +108,7 @@ fi
 CONFIG_STAGE="${CONFIG_STAGE:-/var/backups/kg-config}"
 if [ "${CONFIG_BACKUP:-1}" = "1" ]; then
   mkdir -p "$CONFIG_STAGE"
-  ROOT="${KG_ROOT:-/opt/knowledge-gym}"
+  ROOT="${KG_ROOT:-/opt/kg}"
   echo "  → stage config from $ROOT"
   for item in docker-compose.prod.yml .env.example infra scripts; do
     if [ -e "$ROOT/$item" ]; then

@@ -46,6 +46,9 @@ jobs:
     needs: build-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-short-sha: sha-${{ steps.release.outputs.short_sha }}
     permissions:
       contents: read
       packages: write
@@ -72,6 +75,7 @@ jobs:
             type=sha,format=short
 
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -83,6 +87,17 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Publish image metadata
+        id: release
+        run: |
+          echo "short_sha=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Published image"
+            echo "- Tag: \`${IMAGE_NAME}:sha-${GITHUB_SHA:0:7}\`"
+            echo "- Tag: \`${IMAGE_NAME}:latest\`"
+            echo "- Digest: \`${{ steps.build.outputs.digest }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   image-security:
     needs: publish-image
@@ -116,8 +131,8 @@ jobs:
   # Deploy prod bằng pull — KHÔNG build trên LXC 8GB.
   # Cần GitHub Environment `production` secrets:
   # DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY.
-  # Optional DEPLOY_ROOT mặc định /opt/knowledge-gym;
-  # job skip nếu DEPLOY_HOST trống.
+  # Optional DEPLOY_ROOT mặc định /opt/kg;
+  # job skip nếu DEPLOY_ENABLED không phải true.
   deploy-prod:
     needs: image-security
     if: >-
@@ -137,18 +152,63 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             set -euo pipefail
-            cd "${{ secrets.DEPLOY_ROOT || '/opt/knowledge-gym' }}"
-            image="${{ env.IMAGE_NAME }}:latest"
+            cd "${{ secrets.DEPLOY_ROOT || '/opt/kg' }}"
+            image="${{ env.IMAGE_NAME }}:sha-${GITHUB_SHA:0:7}"
             rollback="${{ env.IMAGE_NAME }}:rollback"
-            # Preserve exactly one rollback image before moving `latest`.
-            # The tag is replaced on every successful deployment.
-            if docker image inspect "$image" >/dev/null 2>&1; then
-              docker tag "$image" "$rollback"
+            compose=(docker compose -f docker-compose.prod.yml)
+            marker="${KG_ES_STOP_MARKER:-$PWD/run/elasticsearch.stopped}"
+
+            # Preserve the exact image currently used by the app. This keeps
+            # one rollback release even when `latest` has moved in GHCR.
+            current_id="$(docker inspect --format '{{.Image}}' app \
+              2>/dev/null || true)"
+            if [ -n "$current_id" ]; then
+              docker tag "$current_id" "$rollback"
+            elif docker image inspect \
+                "${{ env.IMAGE_NAME }}:latest" >/dev/null 2>&1; then
+              docker tag "${{ env.IMAGE_NAME }}:latest" "$rollback"
             fi
-            docker compose -f docker-compose.prod.yml pull app
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            docker compose -f docker-compose.prod.yml ps app nginx
-            # Remove only dangling layers immediately. The named `rollback`
-            # tag is retained, so this never removes the previous release or
-            # any volume/data image.
+
+            APP_IMAGE="$image" "${compose[@]}" pull app
+            APP_IMAGE="$image" "${compose[@]}" up -d --remove-orphans
+
+            # An intentional ES stop must survive compose up.
+            if [ -f "$marker" ]; then
+              "${compose[@]}" stop elasticsearch
+            fi
+
+            healthy=false
+            for attempt in $(seq 1 18); do
+              if curl --fail --silent --show-error \
+                  --max-time 5 \
+                  http://127.0.0.1/api/v1/actuator/health \
+                  | grep -q '"status":"UP"'; then
+                healthy=true
+                break
+              fi
+              sleep 5
+            done
+
+            if [ "$healthy" != true ]; then
+              echo "Health check failed; rolling back to $rollback" >&2
+              APP_IMAGE="$rollback" "${compose[@]}" up -d app nginx
+              docker image rm "$image" >/dev/null 2>&1 || true
+              exit 1
+            fi
+
+            # Make the verified release the only current tag. Remove every
+            # old sha tag so the host retains exactly latest + rollback.
+            docker tag "$image" "${{ env.IMAGE_NAME }}:latest"
+            docker image ls "${{ env.IMAGE_NAME }}" \
+              --format '{{.Repository}}:{{.Tag}}' \
+              | grep -E ':sha-[0-9a-f]+$' \
+              | while IFS= read -r old_tag; do
+                  docker image rm "$old_tag" >/dev/null 2>&1 || true
+                done
+
+            "${compose[@]}" ps app nginx
+            echo "Deployed $image"
+            docker image inspect "$image" \
+              --format='image={{index .RepoDigests 0}}' || true
+            # Remove only dangling layers; retain latest/rollback and volumes.
             docker image prune --force

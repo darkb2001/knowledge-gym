@@ -63,4 +63,16 @@ class ApplicationSmokeTest {
                 .as("health body: %s", result.getResponse().getContentAsString())
                 .isEqualTo(200);
     }
+
+    @Test
+    void actuatorPrometheusReturnsTextMetrics() throws Exception {
+        var result = mockMvc.perform(get("/actuator/prometheus")).andReturn();
+        org.assertj.core.api.Assertions.assertThat(result.getResponse().getStatus())
+                .as("prometheus body: %s", result.getResponse().getContentAsString())
+                .isEqualTo(200);
+        org.assertj.core.api.Assertions.assertThat(result.getResponse().getContentType())
+                .contains("text/plain");
+        org.assertj.core.api.Assertions.assertThat(result.getResponse().getContentAsString())
+                .contains("jvm_memory_used_bytes");
+    }
 }

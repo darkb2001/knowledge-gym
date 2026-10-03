@@ -6,7 +6,7 @@
 #   - Mọi service có mem_limit + `restart: unless-stopped` + log rotation.
 #   - Không có secret mặc định trong file — mọi giá trị nhạy cảm lấy từ `.env`.
 #
-# Tổng mem_limit: 5024 MiB (4.91 GiB) → còn ~2.9 GiB đệm dưới cap 8 GiB của CT.
+# Tổng mem_limit: 5600 MiB (5.47 GiB) → còn ~2.5 GiB đệm dưới cap 8 GiB của CT.
 #   Hai lớp chặn OOM: lớp 1 = mem_limit từng container, lớp 2 = cap 8 GiB của
 #   CT (cgroup riêng → OOM xảy ra trong cgroup KG trước khi đụng CT101/CT100).
 #
@@ -115,6 +115,8 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       MAIL_USERNAME: ${MAIL_USERNAME:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SMTP_ENABLED: ${MAIL_SMTP_ENABLED:-false}
+      MAIL_HEALTH_ENABLED: ${MAIL_HEALTH_ENABLED:-false}
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus,info
       STORAGE_S3_ENABLED: "true"
       S3_ENDPOINT: http://garage:3900
@@ -254,14 +256,16 @@ services:
       # ES chỉ nằm trong mạng Docker nội bộ; không publish 9200. Bật lại
       # security sẽ cần cấu hình TLS + credential cho app — xem M11 hardening.
       xpack.security.enabled: "false"
+      # Keep heap at 512m; the larger container limit leaves headroom for native
+      # memory and the filesystem cache observed during reindex.
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
       # Heap 512m + native/page cache. mem_lock TẮT để ES không đòi memlock
       # (unprivileged LXC không cấp được).
       bootstrap.memory_lock: "false"
     volumes:
       - esdata:/usr/share/elasticsearch/data
-    mem_limit: 1024m
-    memswap_limit: 1024m
+    mem_limit: 1536m
+    memswap_limit: 2048m
     logging: *default-logging
     # ES bootstrap check đọc RLIMIT_NOFILE per-process, KHÔNG phải fs.file-max
     # của host. Thiếu block này ES 8.x từ chối start với "max file descriptors

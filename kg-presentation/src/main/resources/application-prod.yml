@@ -12,11 +12,13 @@ server:
 
 app:
   ops:
-    backup-script: ${KG_BACKUP_SCRIPT:/opt/knowledge-gym/scripts/backup-db.sh}
+    backup-script: ${KG_BACKUP_SCRIPT:/opt/kg/scripts/backup-db.sh}
     es-control-script: >-
-      ${KG_ES_CONTROL_SCRIPT:/opt/knowledge-gym/scripts/es-control.sh}
+      ${KG_ES_CONTROL_SCRIPT:/opt/kg/scripts/es-control.sh}
   email:
-    smtp-enabled: true
+    # SMTP is opt-in in production. Set MAIL_SMTP_ENABLED=true only when
+    # MAIL_USERNAME and MAIL_PASSWORD are configured.
+    smtp-enabled: ${MAIL_SMTP_ENABLED:false}
   security:
     swagger-enabled: false
     jwt:
@@ -44,6 +46,9 @@ management:
   endpoint:
     health:
       show-details: never
+  health:
+    mail:
+      enabled: ${MAIL_HEALTH_ENABLED:false}
 
 logging:
   level:

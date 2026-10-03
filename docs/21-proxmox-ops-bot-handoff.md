@@ -67,7 +67,7 @@ net.core.somaxconn=4096
 
 ```bash
 pct enter 102   # hoặc ssh vào CT102
-cd /opt/knowledge-gym   # hoặc DEPLOY_ROOT thật
+cd /opt/kg   # hoặc DEPLOY_ROOT thật
 docker compose -f docker-compose.prod.yml ps
 curl -si http://127.0.0.1/api/v1/actuator/health | head -40
 curl -si http://127.0.0.1/ | head -20   # expect 404 by design
@@ -95,8 +95,8 @@ Pull image mới nếu cần (GHCR `ghcr.io/darkb2001/knowledge-gym-app:latest`)
 Trên **CT102 host** (nơi có `docker`, `pg_dump`, `restic`):
 
 ```cron
-0 3 * * *  GARAGE_BACKUP=1 CONFIG_BACKUP=1 /opt/knowledge-gym/scripts/backup-db.sh >> /var/log/kg-backup.log 2>&1
-15 4 * * * ES_URL=http://127.0.0.1:9200 /opt/knowledge-gym/scripts/es-retention.sh >> /var/log/kg-es-retention.log 2>&1
+0 3 * * *  GARAGE_BACKUP=1 CONFIG_BACKUP=1 /opt/kg/scripts/backup-db.sh >> /var/log/kg-backup.log 2>&1
+15 4 * * * ES_URL=http://elasticsearch:9200 /opt/kg/scripts/es-retention.sh >> /var/log/kg-es-retention.log 2>&1
 ```
 
 Cài `restic`, `postgresql-client` nếu thiếu. **Không** mount `docker.sock` vào container `app`.
@@ -107,7 +107,7 @@ Với B2 + restic đã cấu hình:
 
 ```bash
 # tạo DB scratch knowledgegym_restore
-SKIP_PG_RESTORE=0 /opt/knowledge-gym/scripts/restore-drill.sh
+SKIP_PG_RESTORE=0 /opt/kg/scripts/restore-drill.sh
 ```
 
 Ghi kết quả vào bảng log trong `docs/20-backup-restore-drill.md` (date, snapshot id, pass/fail).  

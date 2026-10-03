@@ -4,7 +4,7 @@
 # this script is for host/agent use. Do not mount the Docker socket into the app.
 set -euo pipefail
 
-COMPOSE_FILE="${KG_COMPOSE_FILE:-/opt/knowledge-gym/docker-compose.prod.yml}"
+COMPOSE_FILE="${KG_COMPOSE_FILE:-/opt/kg/docker-compose.prod.yml}"
 ROOT="$(dirname "$COMPOSE_FILE")"
 ES_STOP_MARKER="${KG_ES_STOP_MARKER:-$ROOT/run/elasticsearch.stopped}"
 
