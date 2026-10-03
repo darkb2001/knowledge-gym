@@ -40,6 +40,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final RefreshTokenCachePort cache;
     private final RefreshTokenCookie refreshCookie;
     private final ClientIpResolver clientIpResolver;
+    private final SpringAuditLogger auditLogger;
     private final String successRedirectBase;
 
     public OAuth2SuccessHandler(UserRepository userRepository,
@@ -48,6 +49,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                                 RefreshTokenCachePort cache,
                                 RefreshTokenCookie refreshCookie,
                                 ClientIpResolver clientIpResolver,
+                                SpringAuditLogger auditLogger,
                                 @Value("${app.security.oauth2.success-redirect-uri:http://localhost:3000/auth/oauth2/success}")
                                 String successRedirectBase) {
         this.userRepository = userRepository;
@@ -56,6 +58,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         this.cache = cache;
         this.refreshCookie = refreshCookie;
         this.clientIpResolver = clientIpResolver;
+        this.auditLogger = auditLogger;
         this.successRedirectBase = successRedirectBase;
         validateRedirectBase(successRedirectBase);
     }
@@ -115,6 +118,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         cache.store(refreshHash, user.getId(), familyId, RefreshToken.TTL);
 
         refreshCookie.write(response, rawRefresh);
+        auditLogger.oauthSuccess(user.getId(), clientIpResolver.resolve(request));
 
         String redirect = successRedirectBase
                 + "#accessToken=" + java.net.URLEncoder.encode(accessToken, StandardCharsets.UTF_8)

@@ -27,17 +27,20 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final RateLimitFilter rateLimitFilter;
     private final OAuth2SuccessHandler oauth2SuccessHandler;
+    private final OAuth2FailureHandler oauth2FailureHandler;
     private final List<String> allowedOrigins;
     private final boolean swaggerEnabled;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter,
                           RateLimitFilter rateLimitFilter,
                           OAuth2SuccessHandler oauth2SuccessHandler,
+                          OAuth2FailureHandler oauth2FailureHandler,
                           @Value("${app.security.cors.allowed-origins:http://localhost:3000}") String origins,
                           @Value("${app.security.swagger-enabled:false}") boolean swaggerEnabled) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.rateLimitFilter = rateLimitFilter;
         this.oauth2SuccessHandler = oauth2SuccessHandler;
+        this.oauth2FailureHandler = oauth2FailureHandler;
         this.allowedOrigins = Arrays.stream(origins.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
@@ -74,6 +77,7 @@ public class SecurityConfig {
             .oauth2Login(oauth2 -> oauth2
                 .authorizationEndpoint(a -> a.baseUri("/oauth2/authorization"))
                 .successHandler(oauth2SuccessHandler)
+                .failureHandler(oauth2FailureHandler)
             )
             .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> {
                 res.setStatus(401);
