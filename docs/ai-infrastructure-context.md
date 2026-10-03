@@ -31,7 +31,7 @@ All nine services share the Compose host/LXC unless the deployment is changed.
 | `db` | `postgres:16-alpine` | Primary relational database | Named volume `pgdata`; local Compose credentials are `postgres` / `postgres` and must not be reused for production |
 | `redis` | `redis:7-alpine` | Cache and token/session-related support | Named volume `redis-data`; configured maxmemory 128 MB, `allkeys-lru`, AOF enabled |
 | `kafka` | `apache/kafka:3.8.1` | Event backbone, single-node KRaft broker/controller | Named volume `kafkadata`; replication factor 1, so this is not HA |
-| `elasticsearch` | `elasticsearch:9.1.5` | Search | Named volume `esdata`; single-node, security disabled for local Compose; JVM heap explicitly 512 MB (`-Xms512m -Xmx512m`) |
+| `elasticsearch` | `elasticsearch:9.1.5` | Search | Named volume `esdata`; single-node, security disabled for local Compose; JVM heap explicitly 768 MB (`-Xms768m -Xmx768m`) |
 | `garage` | `dxflrs/garage:v2.4.1` | S3-compatible object storage | Named volume `garage-data`; single node; S3 API 3900, admin/metrics 3901, web 3902 |
 | `prometheus` | `prom/prometheus:v2.53.0` | Metrics collection | Named volume `promdata`; scrape config from `infra/prometheus.yml` |
 | `grafana` | `grafana/grafana:11.1.0` | Dashboards | Named volume `grafanadata`; port 3001 on host |

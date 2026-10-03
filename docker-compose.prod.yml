@@ -92,7 +92,7 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-${AI_9ROUTER_API_KEY:-}}
       OPENAI_BASE_URL: >-
         ${OPENAI_BASE_URL:-${AI_9ROUTER_BASE_URL:-https://api.openai.com/v1}}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      OPENAI_MODEL: ${OPENAI_MODEL:-vibe-daily}
       OPENAI_INPUT_USD_PER_MILLION: ${OPENAI_INPUT_USD_PER_MILLION:-0.15}
       OPENAI_OUTPUT_USD_PER_MILLION: ${OPENAI_OUTPUT_USD_PER_MILLION:-0.60}
       APP_BLOG_WRITER_DAILY_REQUEST_LIMIT: >-
@@ -262,9 +262,9 @@ services:
       # ES chỉ nằm trong mạng Docker nội bộ; không publish 9200. Bật lại
       # security sẽ cần cấu hình TLS + credential cho app — xem M11 hardening.
       xpack.security.enabled: "false"
-      # Keep heap at 512m; the larger container limit leaves headroom for native
-      # memory and the filesystem cache observed during reindex.
-      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      # 768m is ~50% of the 1536m limit; retain headroom for native memory and
+      # filesystem cache while allowing larger reindex/aggregation workloads.
+      ES_JAVA_OPTS: "-Xms768m -Xmx768m"
       # Heap 512m + native/page cache. mem_lock TẮT để ES không đòi memlock
       # (unprivileged LXC không cấp được).
       bootstrap.memory_lock: "false"

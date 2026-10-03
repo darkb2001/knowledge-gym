@@ -59,6 +59,11 @@ log table after a successful dry-run restore.
 
 ## 4. Elasticsearch retention
 
+Production Elasticsearch uses `-Xms768m -Xmx768m` with a `1536m` container
+limit. This leaves roughly half the limit for native memory and filesystem cache
+while avoiding the observed reindex pressure at a 512m heap. Recheck RSS after
+large reindex operations; do not increase the heap without measuring the CT.
+
 - Outbox: `SearchOutboxPruner` (`app.search.outbox.retention-days`, default 7).
 - Index: single `knowledge-gym-search` (no dated rollover). Nightly host job:
 

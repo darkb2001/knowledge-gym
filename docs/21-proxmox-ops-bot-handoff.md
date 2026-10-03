@@ -128,6 +128,10 @@ Ghi kết quả vào bảng log trong `docs/20-backup-restore-drill.md` (date, s
 
 - User SSH deploy trên CT102 (non-root, key-only, sudo hạn chế compose)
 - Báo public key để operator dán GitHub secrets + `DEPLOY_ENABLED=true`
+- Deploy hiện recreate một app container nên có khoảng 20–25 giây gián đoạn
+  trong lúc health gate chờ app `UP`. Đây là downtime chấp nhận được của topology
+  single-node Compose; không tuyên bố zero-downtime cho đến khi triển khai blue-green
+  hoặc hai app replicas với upstream/resolver đã được kiểm thử.
 
 ---
 

@@ -131,7 +131,7 @@ blog_ai_budget_reservations    ← atomic daily request/token/cost caps (V022)
 
 ## Cost Tracking
 
-Usage and estimated provider cost are recorded per generation/revision in `agent_runs` and immutable revisions. The configurable defaults currently match the provider's published GPT-4o mini rates ([model page](https://developers.openai.com/api/docs/models/gpt-4o-mini)); update the environment values if the model or provider rates change.
+Usage and estimated provider cost are recorded per generation/revision in `agent_runs` and immutable revisions. The model and endpoint are configurable through `OPENAI_MODEL` and `OPENAI_BASE_URL`; production currently uses 9router's `vibe-daily` model. Update the per-million environment values when the provider's billing changes.
 
 ## Agent Dashboard (Admin)
 

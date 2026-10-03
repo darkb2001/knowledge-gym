@@ -78,7 +78,8 @@ app:
       enabled: ${APP_BLOG_WRITER_ENABLED:false}
       api-key: ${OPENAI_API_KEY:}
       base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
-      model: ${OPENAI_MODEL:gpt-4o-mini}
+      # 9router custom model; override OPENAI_MODEL for another provider.
+      model: ${OPENAI_MODEL:vibe-daily}
       input-usd-per-million: ${OPENAI_INPUT_USD_PER_MILLION:0.15}
       output-usd-per-million: ${OPENAI_OUTPUT_USD_PER_MILLION:0.60}
       daily-request-limit: ${APP_BLOG_WRITER_DAILY_REQUEST_LIMIT:20}

@@ -34,7 +34,7 @@ public class OpenAiWriterAdapter implements AiWriterPort {
     public OpenAiWriterAdapter(RestClient.Builder builder,ObjectMapper json,
             @Value("${app.blog.writer.api-key:}") String apiKey,
             @Value("${app.blog.writer.base-url:https://api.openai.com/v1}") String baseUrl,
-            @Value("${app.blog.writer.model:gpt-4o-mini}") String model,
+            @Value("${app.blog.writer.model:vibe-daily}") String model,
             @Value("${app.blog.writer.enabled:false}") boolean writerEnabled,
             @Value("${app.blog.writer.input-usd-per-million:0.15}") double inputUsdPerMillion,
             @Value("${app.blog.writer.output-usd-per-million:0.60}") double outputUsdPerMillion) {
