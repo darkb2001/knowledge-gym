@@ -37,7 +37,17 @@ Contract agent (đồng ý gần như nguyên §3 của bạn):
 - Allowlist body/path: `status` | `start` | `stop` only; service name hardcode `elasticsearch`; compose dir hardcode
 - `stop`: `docker compose stop elasticsearch` (SIGTERM, **không** kill) → chờ `exited` → ghi marker file để deploy sau không kéo ES lên lại (xem dưới) → 200
 - `start`: xoá marker → `up -d elasticsearch` → poll `_cluster/health` tới **green hoặc yellow**, ưu tiên green trên single-node 0 replica; timeout 180s
-- Mode gate: **app** đã `PUT` mode → `POSTGRES` trước khi gọi `stop` (code hiện tại). Agent **không bắt buộc** đọc DB; nếu muốn defense-in-depth, agent chỉ cần marker/`es.desired=stopped` — tránh coupling Postgres từ user `kgctl`.
+- Mode gate: app gọi bridge `stop` trước; chỉ khi bridge thành công mới đổi mode sang
+  `POSTGRES`. Agent không cần đọc DB và không được đổi mode thay app.
+
+Host bootstrap sau mỗi lần dựng CT hoặc thay đổi ownership:
+
+```bash
+apt-get install -y acl
+KG_ROOT=/opt/kg scripts/setup-host-acl.sh
+```
+
+Script cấp đúng hai ACL bắt buộc: `kgctl:r` trên `.env` và `kgctl:rwx` trên `run/`.
 
 App side (sắp sửa trong repo): `EsControlHttpAdapter` gọi `POST/GET` agent với token; ProcessBuilder script chỉ còn fallback local/dev.
 
@@ -55,7 +65,7 @@ Chỉ chạy trên CT102 nếu bạn muốn debug flaky integration — khi đó
 
 ---
 
-## Xác nhận các lỗ hổng bạn nêu (code sẽ sửa)
+## Xác nhận các lỗ hổng bạn nêu (đã sửa trong code)
 
 | # | Issue | Verdict | Action |
 |---|---|---|---|

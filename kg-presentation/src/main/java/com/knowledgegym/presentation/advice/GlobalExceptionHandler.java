@@ -92,6 +92,12 @@ public class GlobalExceptionHandler {
         return problem(HttpStatus.PAYLOAD_TOO_LARGE, "payload_too_large", "File vượt quá kích thước cho phép");
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {
+        log.warn("Infrastructure operation failed: {}", ex.getMessage());
+        return problem(HttpStatus.BAD_GATEWAY, "bad_gateway", ex.getMessage());
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
         String detail = ex.getMessage() != null && ex.getMessage().contains("@")

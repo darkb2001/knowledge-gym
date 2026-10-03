@@ -202,15 +202,17 @@ public class UseCaseConfig {
 
     @Bean
     com.knowledgegym.search.application.SearchModeUseCase searchModeUseCase(
-            com.knowledgegym.search.domain.port.SearchModeSettingsPort settings) {
-        return new com.knowledgegym.search.application.SearchModeUseCase(settings);
+            com.knowledgegym.search.domain.port.SearchModeSettingsPort settings,
+            com.knowledgegym.search.domain.port.SearchAuditPort audit) {
+        return new com.knowledgegym.search.application.SearchModeUseCase(settings, audit);
     }
 
     @Bean
     com.knowledgegym.search.application.ElasticsearchLifecycleUseCase elasticsearchLifecycleUseCase(
             com.knowledgegym.search.application.SearchModeUseCase modes,
-            com.knowledgegym.shared.domain.port.HostScriptPort hostScriptPort) {
-        return new com.knowledgegym.search.application.ElasticsearchLifecycleUseCase(modes, hostScriptPort);
+            com.knowledgegym.shared.domain.port.HostScriptPort hostScriptPort,
+            com.knowledgegym.search.domain.port.SearchAuditPort audit) {
+        return new com.knowledgegym.search.application.ElasticsearchLifecycleUseCase(modes, hostScriptPort, audit);
     }
 
     @Bean

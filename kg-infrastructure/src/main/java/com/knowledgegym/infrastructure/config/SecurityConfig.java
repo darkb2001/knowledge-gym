@@ -56,7 +56,8 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .headers(h -> h.contentSecurityPolicy(c -> c.policyDirectives(contentSecurityPolicy())))
             .authorizeHttpRequests(auth -> {
-                auth.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
+                auth.requestMatchers("/error").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
                     // Prometheus scrape không gửi credential. Nếu để `authenticated()`
                     // thì scrape nhận 401 và dashboard Grafana trống im lặng.
                     // Lớp chặn ngoài là `allow 172.16.0.0/12; deny all` trong nginx
