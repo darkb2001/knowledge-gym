@@ -53,8 +53,16 @@ public class ForgotPasswordUseCase {
 
             String code = String.format("%06d", RNG.nextInt(1_000_000));
             String hash = HashUtils.sha256Hex(code);
-            repository.save(new PasswordResetCode(user.getId(), hash));
-            emailService.sendPasswordResetCode(user.getEmail(), code);
+            PasswordResetCode pending = new PasswordResetCode(user.getId(), hash);
+            repository.save(pending);
+            try {
+                emailService.sendPasswordResetCode(user.getEmail(), code);
+            } catch (RuntimeException deliveryFailure) {
+                // Do not leave a usable reset code when the outbox/SMTP handoff failed.
+                pending.markUsed();
+                repository.save(pending);
+                throw deliveryFailure;
+            }
         });
         return "Đã gửi mã tới email";
     }

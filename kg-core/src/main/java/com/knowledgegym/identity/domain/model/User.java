@@ -22,6 +22,7 @@ public class User extends BaseEntity {
     private UserRole role;
     private AuthProvider authProvider;
     private String oauthId;
+    private boolean emailVerified;
 
     public User() {
         super();
@@ -46,6 +47,7 @@ public class User extends BaseEntity {
         u.displayName = displayName != null ? displayName : email;
         u.authProvider = AuthProvider.GOOGLE;
         u.oauthId = Objects.requireNonNull(googleSub, "googleSub");
+        u.verifyEmail();
         return u;
     }
 
@@ -60,6 +62,9 @@ public class User extends BaseEntity {
     public static String normalizeEmail(String email) {
         return Objects.requireNonNull(email, "email").trim().toLowerCase();
     }
+
+    public boolean isEmailVerified() { return emailVerified; }
+    public void verifyEmail() { emailVerified = true; touch(); }
 
     public boolean isAdmin() {
         return role == UserRole.ADMIN;

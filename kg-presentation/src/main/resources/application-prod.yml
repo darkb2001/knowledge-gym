@@ -19,6 +19,7 @@ app:
     # SMTP is opt-in in production. Set MAIL_SMTP_ENABLED=true only when
     # MAIL_USERNAME and MAIL_PASSWORD are configured.
     smtp-enabled: ${MAIL_SMTP_ENABLED:false}
+    kafka-enabled: ${MAIL_KAFKA_ENABLED:false}
   security:
     swagger-enabled: false
     jwt:

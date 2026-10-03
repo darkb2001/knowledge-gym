@@ -132,7 +132,14 @@ public class GlobalExceptionHandler {
                 .map(f -> f.getField() + ": " + f.getDefaultMessage())
                 .reduce((a, b) -> a + "; " + b)
                 .orElse("Validation failed");
-        return problem(HttpStatus.BAD_REQUEST, "validation_error", detail);
+        var response = problem(HttpStatus.BAD_REQUEST, "validation_error", detail);
+        var body = new LinkedHashMap<>(response.getBody());
+        body.put("fieldErrors", ex.getBindingResult().getFieldErrors().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        org.springframework.validation.FieldError::getField,
+                        error -> error.getDefaultMessage() == null ? "Invalid value" : error.getDefaultMessage(),
+                        (first, second) -> first, LinkedHashMap::new)));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     private record HostScriptResultView(int exitCode, Object output) {

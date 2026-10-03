@@ -18,7 +18,8 @@ import java.util.concurrent.TimeUnit;
  * then deliver outside the transaction and mark published in a follow-up TX.
  */
 @Component
-@ConditionalOnProperty(name = "app.blog.kafka.enabled", havingValue = "true")
+@org.springframework.boot.autoconfigure.condition.ConditionalOnExpression(
+        "'${app.blog.kafka.enabled:false}' == 'true' or '${app.email.kafka-enabled:false}' == 'true'")
 public class OutboxKafkaPublisher {
     private final JdbcTemplate jdbc;
     private final KafkaTemplate<String, String> kafka;
@@ -45,7 +46,7 @@ public class OutboxKafkaPublisher {
                 continue;
             }
             try {
-                String topic = row.eventType().startsWith("collector.") ? "blog.collected" : "blog.published";
+                String topic = topicFor(row.eventType());
                 kafka.send(topic, row.aggregateId().toString(), row.payload()).get(5, TimeUnit.SECONDS);
                 markPublished(row.id());
             } catch (Exception error) {
@@ -77,6 +78,14 @@ public class OutboxKafkaPublisher {
             }
             return rows;
         });
+    }
+
+    private String topicFor(String eventType) {
+        return switch (eventType) {
+            case "email.verification" -> "email.verification";
+            case "email.password-reset" -> "email.password-reset";
+            default -> eventType.startsWith("collector.") ? "blog.collected" : "blog.published";
+        };
     }
 
     private void markPublished(UUID id) {

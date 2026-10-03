@@ -65,7 +65,8 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/actuator/prometheus").permitAll()
                     .requestMatchers(HttpMethod.GET, "/blog/posts", "/blog/posts/**", "/blog/feed.rss").permitAll()
                     .requestMatchers("/auth/register", "/auth/login", "/auth/forgot-password",
-                                     "/auth/reset-password", "/auth/refresh", "/auth/logout").permitAll()
+                                     "/auth/reset-password", "/auth/refresh", "/auth/logout",
+                                     "/auth/email-verification/request", "/auth/verify-email").permitAll()
                     .requestMatchers("/login/**", "/oauth2/**").permitAll()
                     // Internal cron endpoints authenticate with their own shared token.
                     .requestMatchers(HttpMethod.POST, "/internal/**").permitAll();

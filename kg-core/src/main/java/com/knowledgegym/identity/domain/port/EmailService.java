@@ -6,4 +6,8 @@ package com.knowledgegym.identity.domain.port;
  */
 public interface EmailService {
     void sendPasswordResetCode(String email, String code);
+
+    default void sendEmailVerificationCode(String email, String code) {
+        throw new IllegalStateException("Email verification delivery is not configured");
+    }
 }

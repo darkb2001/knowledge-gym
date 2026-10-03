@@ -82,6 +82,10 @@ public class RefreshTokenUseCase {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("User no longer exists"));
 
+        if (!user.isEmailVerified()) {
+            throw new AuthException("Email verification required");
+        }
+
         String newAccessToken = tokenService.generateAccessToken(user.getId(), user.getRole().name());
         String newRawRefresh = tokenService.generateRefreshToken(user.getId(), familyId);
         String newHash = HashUtils.sha256Hex(newRawRefresh);

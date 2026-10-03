@@ -42,6 +42,10 @@ public class LoginUseCase {
             throw new AuthException("Invalid email or password");
         }
 
+        if (!user.isEmailVerified()) {
+            throw new AuthException("Email verification required");
+        }
+
         String accessToken = tokenService.generateAccessToken(user.getId(), user.getRole().name());
         UUID familyId = UUID.randomUUID();
         String rawRefresh = tokenService.generateRefreshToken(user.getId(), familyId);

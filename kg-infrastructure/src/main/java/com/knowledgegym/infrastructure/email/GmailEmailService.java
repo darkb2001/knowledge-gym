@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Password-reset mail via SMTP (Gmail App Password or Brevo SMTP relay).
- * Dev (smtp-enabled=false): log code to console.
- * Prod (smtp-enabled=true): never log plaintext codes — fail loud on SMTP errors.
+ * SMTP disabled: fail closed, never pretend an email was delivered.
+ * Never log plaintext codes; tests use a dedicated capture adapter.
  *
  * Mailu self-host is deferred (ADR-004 / docs/19-m11b-ops.md); this adapter is the
  * accepted production path until Mailu DNS + RAM budget are ready.
@@ -35,10 +35,28 @@ public class GmailEmailService implements EmailService {
     }
 
     @Override
+    public void sendEmailVerificationCode(String email, String code) {
+        if (!smtpEnabled) {
+            throw new IllegalStateException("SMTP must be enabled to verify email ownership");
+        }
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromAddress);
+        message.setTo(email);
+        message.setSubject("Knowledge Gym — Xác minh email");
+        message.setText("Mã xác minh email của bạn: " + code
+                + "\nMã có hiệu lực trong 10 phút. Nếu không yêu cầu, hãy bỏ qua email này.");
+        try {
+            mailSender.send(message);
+        } catch (RuntimeException ex) {
+            log.error("Email verification delivery failed");
+            throw new IllegalStateException("Unable to send email verification code");
+        }
+    }
+
+    @Override
     public void sendPasswordResetCode(String email, String code) {
         if (!smtpEnabled) {
-            log.warn("[DEV-FALLBACK] Password reset code for {}: {}", email, code);
-            return;
+            throw new IllegalStateException("SMTP must be enabled to deliver password reset codes");
         }
         try {
             SimpleMailMessage message = new SimpleMailMessage();

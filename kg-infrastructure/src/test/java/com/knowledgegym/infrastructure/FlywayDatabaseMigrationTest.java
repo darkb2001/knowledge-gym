@@ -22,8 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Runs on CI (ubuntu-latest has Docker) and locally when Docker daemon is up.
  *
  * Success criteria:
- * - Flyway migrate sạch 24 migration (V023 search outbox; V024 search runtime settings)
- * - Đúng 41 bảng trong schema public (loại flyway_schema_history)
+ * - Flyway migrate sạch 25 migration (V026 registration email challenges)
+ * - Đúng 42 bảng trong schema public (loại flyway_schema_history)
  * - 1 materialized view: user_topic_mastery
  * - m4a: unique index `uk_questions_module_sort` + cột `questions.searchable_text` + trigger tsvector
  * - m6a (V016): bảng `quiz_session_questions` + UK `(session_id, question_id)` trên
@@ -51,10 +51,10 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldMigrateAllTwentyFourMigrations() throws Exception {
+    void shouldMigrateAllTwentyFiveMigrations() throws Exception {
         query("SELECT count(*) FROM flyway_schema_history WHERE success = true", rs -> {
-            assertEquals(24, rs.getInt(1),
-                    "Expected 24 successful Flyway migrations (V001–V024)");
+            assertEquals(25, rs.getInt(1),
+                    "Expected 25 successful Flyway migrations through V026 (V025 is optional content work)");
         });
     }
 
@@ -130,12 +130,12 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldCreateExactly41Tables() throws Exception {
+    void shouldCreateExactly42Tables() throws Exception {
         query("SELECT count(*) FROM information_schema.tables " +
                 "WHERE table_schema = 'public' AND table_type = 'BASE TABLE' " +
                 "AND table_name != 'flyway_schema_history'", rs -> {
-            assertEquals(41, rs.getInt(1),
-                    "Expected exactly 41 tables excluding flyway_schema_history");
+            assertEquals(42, rs.getInt(1),
+                    "Expected exactly 42 tables excluding flyway_schema_history");
         });
     }
 

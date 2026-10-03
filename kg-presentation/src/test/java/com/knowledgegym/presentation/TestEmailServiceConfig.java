@@ -15,10 +15,21 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TestEmailServiceConfig {
 
     public static final ConcurrentHashMap<String, String> LAST_CODES = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<String, String> VERIFICATION_CODES = new ConcurrentHashMap<>();
 
     @Bean
     @Primary
     public EmailService testEmailService() {
-        return (email, code) -> LAST_CODES.put(email.toLowerCase(), code);
+        return new EmailService() {
+            @Override
+            public void sendPasswordResetCode(String email, String code) {
+                LAST_CODES.put(email.toLowerCase(), code);
+            }
+
+            @Override
+            public void sendEmailVerificationCode(String email, String code) {
+                VERIFICATION_CODES.put(email.toLowerCase(), code);
+            }
+        };
     }
 }

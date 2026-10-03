@@ -65,6 +65,7 @@ class AuthIntegrationTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
+    @Autowired com.knowledgegym.identity.domain.port.UserRepository userRepository;
 
     private static final java.util.concurrent.atomic.AtomicInteger IP_SEQ =
             new java.util.concurrent.atomic.AtomicInteger(10);
@@ -87,20 +88,84 @@ class AuthIntegrationTest {
     }
 
     @Test
+    void registrationRejectsMissingOrMismatchedConfirmationWithoutCreatingUser() throws Exception {
+        for (String confirmation : new String[] {"", ",\"confirmPassword\":\"different123\""}) {
+            String email = "confirm+" + java.util.UUID.randomUUID() + "@example.com";
+            String payload = "{\"email\":\"" + email
+                    + "\",\"password\":\"password123\",\"verificationCode\":\"123456\",\"displayName\":\"User\"" + confirmation + "}";
+            mockMvc.perform(post("/auth/register")
+                            .header("X-Forwarded-For", nextIp())
+                            .contentType(MediaType.APPLICATION_JSON).content(payload))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(cookie().doesNotExist("refreshToken"));
+            assertThat(userRepository.findByEmail(email)).isEmpty();
+        }
+    }
+
+    @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
+    @Autowired com.knowledgegym.identity.domain.port.EmailVerificationPort verification;
+
+    @Test
+    void verificationChallengeIsSingleUseExpiresAndLimitsAttempts() throws Exception {
+        String email = "otp+" + java.util.UUID.randomUUID() + "@example.com";
+        String code = RegistrationTestSupport.code(mockMvc, email);
+        String hash = com.knowledgegym.identity.application.HashUtils.sha256Hex(code);
+        String wrongHash = com.knowledgegym.identity.application.HashUtils.sha256Hex("not-a-code");
+        for (int attempt = 0; attempt < 5; attempt++) {
+            assertThat(verification.consume(email, wrongHash)).isFalse();
+        }
+        assertThat(verification.consume(email, hash)).isFalse();
+        assertThat(jdbc.queryForObject("SELECT attempts FROM registration_email_challenges WHERE email=?",
+                Integer.class, email)).isEqualTo(5);
+        jdbc.update("UPDATE registration_email_challenges SET attempts=0, expires_at=now()-interval '1 second' WHERE email=?", email);
+        assertThat(verification.consume(email, hash)).isFalse();
+        jdbc.update("UPDATE registration_email_challenges SET expires_at=now()+interval '10 minutes' WHERE email=?", email);
+        assertThat(verification.consume(email, hash)).isTrue();
+        assertThat(verification.consume(email, hash)).isFalse();
+    }
+
+    @Test
+    void unverifiedLocalUserMustVerifyBeforeLogin() throws Exception {
+        String email = "legacy+" + java.util.UUID.randomUUID() + "@example.com";
+        String code = RegistrationTestSupport.code(mockMvc, email);
+        userRepository.save(new com.knowledgegym.identity.domain.model.User(email,
+                new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().encode("password123"), "Legacy"));
+        String login = "{\"email\":\"" + email + "\",\"password\":\"password123\"}";
+        mockMvc.perform(post("/auth/login").header("X-Forwarded-For", nextIp())
+                        .contentType(MediaType.APPLICATION_JSON).content(login))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/auth/verify-email").header("X-Forwarded-For", nextIp())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"code\":\"" + code
+                                + "\",\"newPassword\":\"ownerPassword123\",\"confirmPassword\":\"ownerPassword123\"}"))
+                .andExpect(status().isOk())
+                .andExpect(cookie().doesNotExist("refreshToken"));
+        mockMvc.perform(post("/auth/login").header("X-Forwarded-For", nextIp())
+                        .contentType(MediaType.APPLICATION_JSON).content(login))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/auth/login").header("X-Forwarded-For", nextIp())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"password\":\"ownerPassword123\"}"))
+                .andExpect(status().isOk());
+        assertThat(userRepository.findByEmail(email).orElseThrow().isEmailVerified()).isTrue();
+    }
+
+    @Test
     void register_login_refresh_logout_flow() throws Exception {
         String email = "test+" + System.currentTimeMillis() + "@example.com";
         String ip = nextIp();
 
         // 1. Register
         String registerBody = """
-                {"email":"%s","password":"superSecret123","displayName":"Tester"}
-                """.formatted(email);
+                {"email":"%s","password":"superSecret123","confirmPassword":"superSecret123","displayName":"Tester","verificationCode":"%s"}
+                """.formatted(email, RegistrationTestSupport.code(mockMvc, email));
         MvcResult registerResult = mockMvc.perform(post("/auth/register")
                         .header("X-Forwarded-For", ip)
                         .contentType(MediaType.APPLICATION_JSON).content(registerBody))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.accessToken").exists())
                 .andExpect(jsonPath("$.user.email").value(email))
+                .andExpect(jsonPath("$.user.role").value("USER"))
                 .andExpect(cookie().exists("refreshToken"))
                 .andReturn();
 
@@ -150,8 +215,8 @@ class AuthIntegrationTest {
                         .header("X-Forwarded-For", ip)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"email":"%s","password":"goodPassword123","displayName":"X"}
-                                """.formatted(email)))
+                                {"email":"%s","password":"goodPassword123","confirmPassword":"goodPassword123","displayName":"X","verificationCode":"%s"}
+                                """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
                 .andExpect(status().isCreated());
 
         // Wrong password
@@ -169,8 +234,8 @@ class AuthIntegrationTest {
         String email = "dup+" + System.currentTimeMillis() + "@example.com";
         String ip = nextIp();
         String body = """
-                {"email":"%s","password":"goodPassword123","displayName":"X"}
-                """.formatted(email);
+                {"email":"%s","password":"goodPassword123","confirmPassword":"goodPassword123","displayName":"X","verificationCode":"%s"}
+                """.formatted(email, RegistrationTestSupport.code(mockMvc, email));
         mockMvc.perform(post("/auth/register")
                         .header("X-Forwarded-For", ip)
                         .contentType(MediaType.APPLICATION_JSON).content(body))
@@ -187,8 +252,8 @@ class AuthIntegrationTest {
         String email = "reuse+" + System.currentTimeMillis() + "@example.com";
         String ip = nextIp();
         String registerBody = """
-                {"email":"%s","password":"superSecret123","displayName":"ReuseTester"}
-                """.formatted(email);
+                {"email":"%s","password":"superSecret123","confirmPassword":"superSecret123","displayName":"ReuseTester","verificationCode":"%s"}
+                """.formatted(email, RegistrationTestSupport.code(mockMvc, email));
         MvcResult reg = mockMvc.perform(post("/auth/register")
                         .header("X-Forwarded-For", ip)
                         .contentType(MediaType.APPLICATION_JSON).content(registerBody))
@@ -216,8 +281,8 @@ class AuthIntegrationTest {
                         .header("X-Forwarded-For", ip)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"email":"%s","password":"goodPassword123","displayName":"X"}
-                                """.formatted(email)))
+                                {"email":"%s","password":"goodPassword123","confirmPassword":"goodPassword123","displayName":"X","verificationCode":"%s"}
+                                """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
                 .andExpect(status().isCreated());
 
         // 5 lần login sai liên tiếp
@@ -257,8 +322,8 @@ class AuthIntegrationTest {
                         .header("X-Forwarded-For", ip)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"email":"%s","password":"goodPassword123","displayName":"X"}
-                                """.formatted(email)))
+                                {"email":"%s","password":"goodPassword123","confirmPassword":"goodPassword123","displayName":"X","verificationCode":"%s"}
+                                """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
                 .andExpect(status().isCreated());
         mockMvc.perform(post("/auth/forgot-password")
                         .header("X-Forwarded-For", ip)
@@ -274,8 +339,8 @@ class AuthIntegrationTest {
                         .header("X-Forwarded-For", nextIp())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"email":"%s","password":"goodPassword123","displayName":"X"}
-                                """.formatted(email)))
+                                {"email":"%s","password":"goodPassword123","confirmPassword":"goodPassword123","displayName":"X","verificationCode":"%s"}
+                                """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
                 .andExpect(status().isCreated()).andReturn();
         var cookie = reg.getResponse().getCookie("refreshToken");
         assertThat(cookie).isNotNull();
@@ -292,8 +357,8 @@ class AuthIntegrationTest {
                         .header("X-Forwarded-For", ip)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"email":"%s","password":"oldPassword123","displayName":"X"}
-                                """.formatted(email)))
+                                {"email":"%s","password":"oldPassword123","confirmPassword":"oldPassword123","displayName":"X","verificationCode":"%s"}
+                                """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
                 .andExpect(status().isCreated()).andReturn();
         String oldRefresh = reg.getResponse().getCookie("refreshToken").getValue();
 
@@ -347,8 +412,8 @@ class AuthIntegrationTest {
                         .header("X-Forwarded-For", ip)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"email":"%s","password":"goodPassword123","displayName":"X"}
-                                """.formatted(email)))
+                                {"email":"%s","password":"goodPassword123","confirmPassword":"goodPassword123","displayName":"X","verificationCode":"%s"}
+                                """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/auth/forgot-password")
@@ -388,8 +453,8 @@ class AuthIntegrationTest {
                         .header("X-Forwarded-For", ip)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"email":"%s","password":"superSecret123","displayName":"Before"}
-                                """.formatted(email)))
+                                {"email":"%s","password":"superSecret123","confirmPassword":"superSecret123","displayName":"Before","verificationCode":"%s"}
+                                """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
                 .andExpect(status().isCreated());
         MvcResult login = mockMvc.perform(post("/auth/login")
                         .header("X-Forwarded-For", ip)

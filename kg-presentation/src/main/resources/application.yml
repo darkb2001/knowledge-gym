@@ -3,6 +3,13 @@ spring:
     name: knowledge-gym
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      properties:
+        enable.idempotence: true
+        acks: all
+        delivery.timeout.ms: 120000
+    consumer:
+      enable-auto-commit: false
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/knowledgegym}
     username: ${DB_USER:postgres}
@@ -33,7 +40,7 @@ spring:
       timeout: 2000ms
   elasticsearch:
     uris: ${SPRING_ELASTICSEARCH_URIS:http://localhost:9200}
-    # Short timeouts so AUTO/ELASTICSEARCH mode falls back to Postgres quickly when ES is down.
+    # Short timeouts let AUTO/ELASTICSEARCH fall back to Postgres quickly.
     connection-timeout: ${SPRING_ELASTICSEARCH_CONNECTION_TIMEOUT:2s}
     socket-timeout: ${SPRING_ELASTICSEARCH_SOCKET_TIMEOUT:2s}
   mail:
@@ -63,10 +70,12 @@ app:
     mode: ${APP_CRON_MODE:embedded}
     token: ${CRON_TOKEN:}
   ops:
-    # Prefer HTTP agent on Docker bridge gateway (CT102). App containers cannot reach 127.0.0.1.
+    # Prefer HTTP agent on Docker bridge gateway (CT102).
+    # App containers cannot reach 127.0.0.1.
     es-control-url: ${KG_ES_CONTROL_URL:}
     es-control-token: ${KG_ES_CONTROL_TOKEN:}
-    # Legacy fallback: ProcessBuilder to a script on the same host as the JVM (not the app container).
+    # Legacy fallback: ProcessBuilder to a script on the JVM host.
+    # It is not executed in the app container.
     backup-script: ${KG_BACKUP_SCRIPT:}
     es-control-script: ${KG_ES_CONTROL_SCRIPT:}
     script-timeout-seconds: ${KG_SCRIPT_TIMEOUT_SECONDS:900}
@@ -102,7 +111,8 @@ app:
       enabled: ${APP_SEARCH_ES_ENABLED:false}
       index: ${APP_SEARCH_ES_INDEX:knowledge-gym-search}
       poll-ms: ${APP_SEARCH_ES_POLL_MS:5000}
-      # Re-seed index từ bảng nguồn mỗi lần khởi động. Trigger chỉ bắt được write,
+      # Re-seed index từ bảng nguồn mỗi lần khởi động.
+      # Trigger chỉ bắt được write,
       # nên content tạo lúc tính năng đang tắt sẽ thiếu vĩnh viễn nếu không làm.
       # Upsert theo id nên idempotent; tắt chỉ khi chủ động muốn giữ index cũ.
       reindex-on-startup: ${APP_SEARCH_ES_REINDEX_ON_STARTUP:true}
@@ -114,6 +124,7 @@ app:
       prune-ms: ${APP_SEARCH_OUTBOX_PRUNE_MS:3600000}
   email:
     smtp-enabled: false
+    kafka-enabled: ${MAIL_KAFKA_ENABLED:false}
     from: no-reply@knowledgegym.dev
   content:
     # `docs/` nằm ngoài git root của repo (knowledge-gym/) — CI không có.
@@ -134,12 +145,15 @@ app:
       refresh-secret: ${JWT_REFRESH_SECRET:}
     cookie:
       # FE (app.darkb-tech.io.vn) và API (api.darkb-tech.io.vn) cùng registrable
-      # domain nên cookie là same-site → Strict, không cần None. None là third-party
+      # domain nên cookie là same-site → Strict, không cần None.
+      # None là third-party
       # cookie và browser hiện đại chặn (xem application-prod.yml).
       #
-      # Base cố ý KHÔNG hardcode `secure: true`: test profile override secure=false
-      # để chạy trên HTTP, và nếu base giữ same-site=None thì tổ hợp None+insecure
-      # làm RefreshTokenCookie throw lúc khởi tạo context, khiến mọi Spring test chết.
+      # Base cố ý không hardcode `secure: true`:
+      # test profile override secure=false
+      # để chạy trên HTTP. Nếu base giữ same-site=None thì tổ hợp
+      # làm RefreshTokenCookie throw lúc khởi tạo context, khiến mọi Spring
+      # test chết.
       secure: ${REFRESH_COOKIE_SECURE:true}
       same-site: ${REFRESH_COOKIE_SAME_SITE:Strict}
     trust-forwarded-headers: true
@@ -198,8 +212,9 @@ management:
     mail:
       enabled: ${MAIL_HEALTH_ENABLED:false}
     elasticsearch:
-      # Tắt health indicator ES: search chủ ý degrade sang PostgreSQL khi ES chết.
-      # (xem GlobalSearchUseCase), nên ES down không phải là app unhealthy — để nguyên
+      # Tắt health indicator ES: search degrade sang PostgreSQL khi ES chết.
+      # (xem GlobalSearchUseCase), nên ES down không phải là app unhealthy —
+      # để nguyên
       # sẽ khiến /actuator/health trả DOWN và mọi probe/alert báo động sai.
       enabled: ${APP_SEARCH_ES_HEALTH_ENABLED:false}
 

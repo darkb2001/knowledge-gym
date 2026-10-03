@@ -60,6 +60,8 @@ public class ResetPasswordUseCase {
         }
 
         // Success: update password (domain method gọi touch()) + single-use code
+        // A valid reset code also proves ownership of this account's mailbox.
+        user.verifyEmail();
         user.changePassword(passwordHasher.hash(newPassword));
         userRepository.save(user);
 

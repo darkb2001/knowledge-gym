@@ -122,6 +122,8 @@ services:
       MAIL_USERNAME: ${MAIL_USERNAME:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_SMTP_ENABLED: ${MAIL_SMTP_ENABLED:-false}
+      # Enable only together with working SMTP credentials and Kafka.
+      MAIL_KAFKA_ENABLED: ${MAIL_KAFKA_ENABLED:-false}
       MAIL_HEALTH_ENABLED: ${MAIL_HEALTH_ENABLED:-false}
       # From hiển thị của thư hệ thống. Gmail SMTP REWRITE header From thành địa
       # chỉ tài khoản khi giá trị không phải alias đã verify → chỉ đổi giá trị này

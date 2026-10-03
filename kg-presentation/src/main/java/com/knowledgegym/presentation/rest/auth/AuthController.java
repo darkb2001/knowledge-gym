@@ -23,7 +23,7 @@ public class AuthController {
     private static final long ACCESS_TOKEN_TTL_SECONDS = 900L; // 15 minutes
     private static final int USER_AGENT_MAX_LEN = 500;
 
-    private final RegisterUseCase registerUseCase;
+    private final VerifiedRegistrationUseCase registerUseCase;
     private final LoginUseCase loginUseCase;
     private final RefreshTokenUseCase refreshTokenUseCase;
     private final LogoutUseCase logoutUseCase;
@@ -32,7 +32,7 @@ public class AuthController {
     private final RefreshTokenCookie refreshCookie;
     private final ClientIpResolver clientIpResolver;
 
-    public AuthController(RegisterUseCase registerUseCase,
+    public AuthController(VerifiedRegistrationUseCase registerUseCase,
                            LoginUseCase loginUseCase,
                            RefreshTokenUseCase refreshTokenUseCase,
                            LogoutUseCase logoutUseCase,
@@ -54,12 +54,44 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public TokenResponse register(@Valid @RequestBody RegisterRequest req,
                                    HttpServletRequest httpRequest, HttpServletResponse response) {
-        User user = registerUseCase.execute(req.email(), req.password(), req.displayName());
+        User user = registerUseCase.register(req.email(), req.password(), req.displayName(), req.verificationCode());
         LoginUseCase.AuthResult auth = loginUseCase.execute(user.getEmail(), req.password(),
                 clientIpResolver.resolve(httpRequest),
                 clientIpResolver.userAgent(httpRequest, USER_AGENT_MAX_LEN));
         refreshCookie.write(response, auth.refreshToken());
         return buildTokenResponse(auth, user.getId(), user.getEmail(), user.getDisplayName(), user.getRole().name());
+    }
+
+    public record VerificationEmailRequest(
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Email String email) {}
+
+    public record VerifyEmailRequest(
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Email String email,
+            @jakarta.validation.constraints.NotBlank
+            @jakarta.validation.constraints.Pattern(regexp = "[0-9]{6}") String code,
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(min = 8, max = 72) String newPassword,
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(min = 8, max = 72) String confirmPassword) {
+        @jakarta.validation.constraints.AssertTrue(message = "Passwords do not match")
+        public boolean isPasswordConfirmed() {
+            return newPassword != null && newPassword.equals(confirmPassword);
+        }
+
+        @Override
+        public String toString() {
+            return "VerifyEmailRequest[email=" + email + ", code=[REDACTED], passwords=[REDACTED]]";
+        }
+    }
+
+    @PostMapping("/email-verification/request")
+    public Map<String, String> requestVerification(@Valid @RequestBody VerificationEmailRequest req) {
+        registerUseCase.requestCode(req.email());
+        return Map.of("message", "Nếu yêu cầu hợp lệ, mã xác minh đã được gửi. Mã có hiệu lực 10 phút.");
+    }
+
+    @PostMapping("/verify-email")
+    public Map<String, String> verifyEmail(@Valid @RequestBody VerifyEmailRequest req) {
+        registerUseCase.verifyExisting(req.email(), req.code(), req.newPassword());
+        return Map.of("message", "Email đã xác minh. Vui lòng đăng nhập.");
     }
 
     @PostMapping("/login")
