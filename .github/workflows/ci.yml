@@ -249,6 +249,10 @@ jobs:
             if [ "$healthy" != true ]; then
               echo "Health check failed; rolling back to $rollback" >&2
               APP_IMAGE="$rollback" "${compose[@]}" up -d app nginx
+              # Keep .env in step with what is actually running: otherwise a
+              # later manual `docker compose up -d` would re-pull the failed
+              # sha tag (and start the broken release again).
+              sed -i "s#^APP_IMAGE=.*#APP_IMAGE=$rollback#" .env
               docker image rm "$image" >/dev/null 2>&1 || true
               exit 1
             fi
