@@ -96,16 +96,16 @@ public final class BlogWriterAdminUseCase {
     public void manualEdit(UUID postId, UUID actor, String title, String body, String excerpt,
                            BlogPostsUseCase.HtmlSanitizer sanitizer) {
         var post = writer.findPost(postId).orElseThrow(() -> new IllegalArgumentException("Post not found"));
-        if (!"REVIEW".equals(post.status())) {
-            throw new IllegalArgumentException("Only review drafts can be edited");
+        if (!java.util.Set.of("DRAFT", "REVIEW").contains(post.status())) {
+            throw new IllegalArgumentException("Only DRAFT/REVIEW posts can be edited; restore removed posts first");
         }
         if (title == null || title.isBlank() || title.length() > 200 || body == null || body.length() > 250_000
                 || (excerpt != null && excerpt.length() > 300)) {
             throw new IllegalArgumentException("Invalid edit");
         }
         String safe = sanitizer.sanitize(body);
-        if (safe.length() < 100 || !safe.toLowerCase().contains("<h2")) {
-            throw new IllegalArgumentException("Content must keep section headings after sanitization");
+        if (safe == null || safe.isBlank()) {
+            throw new IllegalArgumentException("Content must not be empty after sanitization");
         }
         var history = writer.revisions(postId);
         var ids = history.isEmpty() ? java.util.List.<UUID>of() : history.getLast().sourceIds();

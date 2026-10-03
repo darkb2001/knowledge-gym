@@ -5,6 +5,7 @@ import com.knowledgegym.blog.application.CollectItemsUseCase;
 import com.knowledgegym.blog.application.GenerateBlogUseCase;
 import com.knowledgegym.blog.application.ReviseBlogDraftUseCase;
 import com.knowledgegym.blog.application.BlogWriterAdminUseCase;
+import com.knowledgegym.blog.application.ManageKnowledgeIntakeUseCase;
 import com.knowledgegym.blog.application.template.BlogTemplate;
 import com.knowledgegym.blog.application.template.DeepDiveTemplate;
 import com.knowledgegym.blog.application.template.ComparisonTemplate;
@@ -15,6 +16,7 @@ import com.knowledgegym.blog.domain.port.BlogWriterRepository;
 import com.knowledgegym.blog.domain.service.QualityScorer;
 import com.knowledgegym.blog.domain.port.CollectorFeed;
 import com.knowledgegym.blog.domain.port.CollectorRepository;
+import com.knowledgegym.blog.domain.port.KnowledgeIntakePort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +24,19 @@ import java.util.List;
 
 @Configuration
 public class BlogUseCaseConfiguration {
+    @Bean com.knowledgegym.blog.application.ModerateBlogUseCase moderateBlogUseCase(
+            com.knowledgegym.blog.domain.port.AdminModerationPort moderation) {
+        return new com.knowledgegym.blog.application.ModerateBlogUseCase(moderation);
+    }
+    @Bean ManageKnowledgeIntakeUseCase manageKnowledgeIntakeUseCase(KnowledgeIntakePort intake) {
+        return new ManageKnowledgeIntakeUseCase(intake);
+    }
+    @Bean com.knowledgegym.blog.application.GenerateLearningDraftUseCase generateLearningDraftUseCase(
+            com.knowledgegym.blog.domain.port.LearningContentDraftPort drafts,
+            com.knowledgegym.blog.domain.port.LearningContentAiPort ai,
+            com.knowledgegym.blog.domain.port.LearningDraftMaterializerPort materializer) {
+        return new com.knowledgegym.blog.application.GenerateLearningDraftUseCase(drafts, ai, materializer);
+    }
     @Bean CollectItemsUseCase collectItemsUseCase(CollectorRepository repository, CollectorFeed feed) {
         return new CollectItemsUseCase(repository, feed);
     }

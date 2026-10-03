@@ -38,7 +38,12 @@ public class ManageQuestionsUseCase {
     public record CreateCommand(UUID moduleId, String title, String answerHtml,
                                 Difficulty difficulty, List<String> tags, Integer sortOrder) {}
 
-    public record UpdateCommand(String title, String answerHtml, Difficulty difficulty, List<String> tags) {}
+    public record UpdateCommand(String title, String answerHtml, Difficulty difficulty, List<String> tags,
+                                UUID moduleId, Integer sortOrder, List<String> searchKeywords) {
+        public UpdateCommand(String title, String answerHtml, Difficulty difficulty, List<String> tags) {
+            this(title, answerHtml, difficulty, tags, null, null, null);
+        }
+    }
 
     public Question create(CreateCommand command) {
         moduleRepository.findById(command.moduleId())
@@ -71,6 +76,20 @@ public class ManageQuestionsUseCase {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Câu hỏi không tồn tại: " + id));
 
+        UUID destination = command.moduleId() == null ? question.getModuleId() : command.moduleId();
+        if (command.moduleId() != null) moduleRepository.findById(destination)
+                .orElseThrow(() -> new NotFoundException("Module không tồn tại: " + destination));
+        int order = command.sortOrder() == null
+                ? (destination.equals(question.getModuleId()) ? question.getSortOrder() : questionRepository.nextSortOrder(destination))
+                : command.sortOrder();
+        if (order < 0) throw new IllegalArgumentException("sortOrder phải >= 0");
+        if (!destination.equals(question.getModuleId()) || order != question.getSortOrder()) {
+            questionRepository.findByModuleIdAndSortOrder(destination, order).ifPresent(other -> {
+                if (!other.getId().equals(id)) throw new ConflictException("sortOrder đã tồn tại trong module");
+            });
+        }
+        question.setModuleId(destination);
+        question.setSortOrder(order);
         boolean contentChanged = false;
         if (command.title() != null) {
             question.setTitle(requireText(command.title(), "title"));
@@ -88,10 +107,21 @@ public class ManageQuestionsUseCase {
             question.setTags(command.tags());
             contentChanged = true;
         }
-        if (contentChanged) {
+        if (command.searchKeywords() != null) {
+            if (command.searchKeywords().stream().anyMatch(k -> k == null || k.isBlank()))
+                throw new IllegalArgumentException("searchKeywords không được chứa giá trị rỗng");
+            question.setSearchKeywords(command.searchKeywords());
+        } else if (contentChanged) {
             question.setSearchKeywords(keywordsFor(question));
         }
         return questionRepository.save(question);
+    }
+
+    public Question changeStatus(UUID actor, UUID id, Question.ContentStatus status, String reason) {
+        if (actor == null || status == null || reason == null || reason.isBlank() || reason.length() > 500) throw new IllegalArgumentException("status/reason không hợp lệ");
+        Question current = questionRepository.findById(id).orElseThrow(() -> new NotFoundException("Câu hỏi không tồn tại: " + id));
+        if (status == Question.ContentStatus.PUBLISHED && (current.getAnswerHtml() == null || SearchText.stripHtml(current.getAnswerHtml()).isBlank())) throw new IllegalArgumentException("Câu hỏi chưa có đáp án");
+        return questionRepository.updateContentStatus(id, status, actor, reason.trim());
     }
 
     public void delete(UUID id) {

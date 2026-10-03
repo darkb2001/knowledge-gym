@@ -1,12 +1,16 @@
 package com.knowledgegym.blog.domain.port;
 
 import com.knowledgegym.blog.domain.model.BlogPost;
+import com.knowledgegym.shared.domain.model.PageResult;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface BlogPostRepository {
     List<BlogPost> findPublished(int offset, int limit, String tag);
+    default PageResult<BlogPost> searchAdmin(String status, UUID moduleId, String q, int page, int size) {
+        throw new UnsupportedOperationException();
+    }
     Optional<BlogPost> findPublishedBySlug(String slug);
     Optional<BlogPost> findById(UUID id);
     BlogPost createDraft(UUID authorId, String title, String slug, String body, String excerpt,

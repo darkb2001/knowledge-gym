@@ -21,6 +21,11 @@ public class QueryQuestionsUseCase {
         this.questionRepository = questionRepository;
     }
 
+    public PageResult<Question> executeAdmin(QuestionQuery query) {
+        String normalized = SearchText.normalizeQuery(query.q());
+        return questionRepository.searchAdmin(query.withQuery(normalized.isEmpty() ? null : normalized));
+    }
+
     public PageResult<Question> execute(QuestionQuery query) {
         String normalized = SearchText.normalizeQuery(query.q());
         QuestionQuery effective = query.withQuery(normalized.isEmpty() ? null : normalized);

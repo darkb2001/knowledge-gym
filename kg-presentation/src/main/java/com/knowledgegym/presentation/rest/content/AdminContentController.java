@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
@@ -103,7 +104,10 @@ public class AdminContentController {
     public record QuestionUpdateRequest(String title,
                                         String answerHtml,
                                         String difficulty,
-                                        List<String> tags) {}
+                                        List<String> tags,
+                                        UUID moduleId,
+                                        Integer sortOrder,
+                                        List<String> searchKeywords) {}
 
     @PostMapping("/questions")
     @ResponseStatus(HttpStatus.CREATED)
@@ -122,10 +126,20 @@ public class AdminContentController {
     public AdminQuestionDTO update(@PathVariable UUID id,
                                    @Valid @RequestBody QuestionUpdateRequest request) {
         Question updated = manageQuestionsUseCase.update(id, new ManageQuestionsUseCase.UpdateCommand(
-                request.title(), request.answerHtml(), parseDifficulty(request.difficulty()), request.tags()));
+                request.title(), request.answerHtml(), parseDifficulty(request.difficulty()), request.tags(),
+                request.moduleId(), request.sortOrder(), request.searchKeywords()));
         // Sửa `answer_html` đổi đáp án đúng, nên option phải sinh lại; nội dung không đổi thì
         // `replaceOptions` giữ nguyên IDs (không phá answer của quiz cũ).
         return AdminQuestionDTO.from(updated, options.generateFor(updated.getModuleId(), updated.getId()));
+    }
+
+    public record StatusRequest(@NotNull Question.ContentStatus status, @NotBlank @jakarta.validation.constraints.Size(max=500) String reason) {}
+    @PatchMapping("/questions/{id}/status")
+    @CacheEvict(value = {"questions", "topics", "modules"}, allEntries = true)
+    public AdminQuestionDTO changeStatus(@org.springframework.security.core.annotation.AuthenticationPrincipal UUID actor, @PathVariable UUID id, @Valid @RequestBody StatusRequest request) {
+        Question updated = manageQuestionsUseCase.changeStatus(actor, id, request.status(), request.reason());
+        // Lifecycle changes must not regenerate quiz options or call a provider.
+        return AdminQuestionDTO.from(updated, List.of());
     }
 
     @DeleteMapping("/questions/{id}")

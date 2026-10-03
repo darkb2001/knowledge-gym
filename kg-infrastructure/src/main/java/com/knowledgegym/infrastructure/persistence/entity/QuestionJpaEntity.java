@@ -31,6 +31,9 @@ public class QuestionJpaEntity {
     @Column(name = "difficulty", nullable = false, length = 20)
     private String difficulty;
 
+    @Column(name = "content_status", nullable = false, length = 20)
+    private String contentStatus = "PUBLISHED";
+
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "tags", columnDefinition = "TEXT[]", nullable = false)
     private String[] tags;
@@ -66,6 +69,8 @@ public class QuestionJpaEntity {
     public void setAnswerHtml(String answerHtml) { this.answerHtml = answerHtml; }
     public String getDifficulty() { return difficulty; }
     public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
+    public String getContentStatus() { return contentStatus; }
+    public void setContentStatus(String contentStatus) { this.contentStatus = contentStatus; }
     public String[] getTags() { return tags; }
     public void setTags(String[] tags) { this.tags = tags; }
     public String getHints() { return hints; }

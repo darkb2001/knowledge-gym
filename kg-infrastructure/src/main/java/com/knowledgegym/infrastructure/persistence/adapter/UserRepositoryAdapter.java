@@ -84,6 +84,7 @@ public class UserRepositoryAdapter implements UserRepository {
         user.setRole(UserRole.valueOf(entity.getRole()));
         user.setAuthProvider(AuthProvider.fromDb(entity.getAuthProvider()));
         user.setOauthId(entity.getOauthId());
+        user.setBlocked(entity.isBlocked());
         if (entity.isEmailVerified()) user.verifyEmail();
         user.setCreatedAt(entity.getCreatedAt());
         user.setUpdatedAt(entity.getUpdatedAt());

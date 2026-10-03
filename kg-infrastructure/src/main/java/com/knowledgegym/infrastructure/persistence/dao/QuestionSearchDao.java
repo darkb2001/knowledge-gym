@@ -28,13 +28,16 @@ public class QuestionSearchDao {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<QuestionJpaEntity> search(QuestionQuery query) {
+    public List<QuestionJpaEntity> search(QuestionQuery query) { return search(query, false); }
+
+    public List<QuestionJpaEntity> search(QuestionQuery query, boolean admin) {
         StringBuilder sql = new StringBuilder("SELECT q.* ").append(BASE_FROM);
-        StringBuilder where = new StringBuilder(" WHERE 1 = 1 ");
+        StringBuilder where = new StringBuilder(admin ? " WHERE 1=1 " : " WHERE q.content_status = 'PUBLISHED' ");
 
         if (query.moduleId() != null) {
             where.append(" AND q.module_id = :moduleId ");
         }
+        if (query.topicId() != null) where.append(" AND m.topic_id = :topicId ");
         if (query.difficulty() != null) {
             where.append(" AND q.difficulty = :difficulty ");
         }
@@ -49,9 +52,9 @@ public class QuestionSearchDao {
 
         if (query.hasFullText()) {
             sql.append(" ORDER BY ts_rank(q.search_vector, plainto_tsquery('simple', :q)) DESC,")
-               .append(" m.display_order, q.sort_order ");
+               .append(" m.display_order, q.sort_order, q.id ");
         } else {
-            sql.append(" ORDER BY m.display_order, q.sort_order ");
+            sql.append(" ORDER BY m.display_order, q.sort_order, q.id ");
         }
         sql.append(" LIMIT :limit OFFSET :offset ");
 
@@ -68,12 +71,15 @@ public class QuestionSearchDao {
         return rows;
     }
 
-    public long count(QuestionQuery query) {
+    public long count(QuestionQuery query) { return count(query, false); }
+
+    public long count(QuestionQuery query, boolean admin) {
         StringBuilder countSql = new StringBuilder("SELECT count(*) ").append(BASE_FROM);
-        StringBuilder where = new StringBuilder(" WHERE 1 = 1 ");
+        StringBuilder where = new StringBuilder(admin ? " WHERE 1=1 " : " WHERE q.content_status = 'PUBLISHED' ");
         if (query.moduleId() != null) {
             where.append(" AND q.module_id = :moduleId ");
         }
+        if (query.topicId() != null) where.append(" AND m.topic_id = :topicId ");
         if (query.difficulty() != null) {
             where.append(" AND q.difficulty = :difficulty ");
         }
@@ -94,6 +100,7 @@ public class QuestionSearchDao {
         if (query.moduleId() != null) {
             target.setParameter("moduleId", query.moduleId());
         }
+        if (query.topicId() != null) target.setParameter("topicId", query.topicId());
         if (query.difficulty() != null) {
             target.setParameter("difficulty", query.difficulty().name());
         }
@@ -107,7 +114,7 @@ public class QuestionSearchDao {
 
     /** Dùng cho test/debug — đếm nhanh theo module. */
     public long countByModule(UUID moduleId) {
-        Query q = entityManager.createNativeQuery("SELECT count(*) FROM questions WHERE module_id = :moduleId");
+        Query q = entityManager.createNativeQuery("SELECT count(*) FROM questions WHERE module_id = :moduleId AND content_status = 'PUBLISHED'");
         q.setParameter("moduleId", moduleId);
         return ((Number) q.getSingleResult()).longValue();
     }

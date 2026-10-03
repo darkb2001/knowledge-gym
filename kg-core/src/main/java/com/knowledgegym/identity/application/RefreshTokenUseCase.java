@@ -82,6 +82,9 @@ public class RefreshTokenUseCase {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("User no longer exists"));
 
+        if (user.isBlocked()) {
+            throw new AuthException("Account is blocked");
+        }
         if (!user.isEmailVerified()) {
             throw new AuthException("Email verification required");
         }

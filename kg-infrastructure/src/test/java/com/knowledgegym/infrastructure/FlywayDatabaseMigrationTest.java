@@ -22,26 +22,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Runs on CI (ubuntu-latest has Docker) and locally when Docker daemon is up.
  *
  * Success criteria:
- * - Flyway migrate sạch 25 migration (V026 registration email challenges)
- * - Đúng 42 bảng trong schema public (loại flyway_schema_history)
+ * - Flyway migrate sạch 29 migration (through V032 question content lifecycle)
+ * - Đúng 48 bảng trong schema public (loại flyway_schema_history)
  * - 1 materialized view: user_topic_mastery
  * - m4a: unique index `uk_questions_module_sort` + cột `questions.searchable_text` + trigger tsvector
  * - m6a (V016): bảng `quiz_session_questions` + UK `(session_id, question_id)` trên
  *   `quiz_answers`/`interview_answers` — hàng rào chống double-submit ở DB, không phụ thuộc Redis
  * - m6c (V017): `interview_answers.display_order` giữ thứ tự câu đã giao
  */
-@Testcontainers
 class FlywayDatabaseMigrationTest {
 
-    @Container
-    static final PostgreSQLContainer<?> POSTGRES =
-            new PostgreSQLContainer<>("postgres:16-alpine")
-                    .withDatabaseName("knowledgegym_test")
-                    .withUsername("test")
-                    .withPassword("test");
+    static final TestPostgres POSTGRES = new TestPostgres();
+    @org.junit.jupiter.api.AfterAll static void stop() { POSTGRES.close(); }
 
     @BeforeAll
     static void migrate() {
+        POSTGRES.start();
         Flyway.configure()
                 .dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
                 .locations("classpath:db/migration")
@@ -51,10 +47,24 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldMigrateAllTwentyFiveMigrations() throws Exception {
+    void shouldMigrateAllTwentyNineMigrations() throws Exception {
         query("SELECT count(*) FROM flyway_schema_history WHERE success = true", rs -> {
-            assertEquals(25, rs.getInt(1),
-                    "Expected 25 successful Flyway migrations through V026 (V025 is optional content work)");
+            assertEquals(33, rs.getInt(1), "Expected 33 successful Flyway migrations through V033");
+        });
+    }
+
+    @Test
+    void shouldInstallKnowledgeIntakeControlPlane() throws Exception {
+        query("SELECT count(*) FROM information_schema.tables WHERE table_schema='public' " +
+                "AND table_name IN ('knowledge_goals','knowledge_intake_runs','knowledge_intake_audit')", rs -> assertEquals(3, rs.getInt(1)));
+        query("SELECT count(*) FROM pg_constraint WHERE connamespace='public'::regnamespace AND conname='knowledge_goals_status_check'", rs -> assertEquals(1, rs.getInt(1)));
+    }
+
+    @Test
+    void shouldInstallAdminAccountSecurityColumns() throws Exception {
+        query("SELECT count(*) FROM information_schema.columns WHERE table_schema='public' " +
+                "AND table_name='users' AND column_name IN ('blocked','tokens_invalid_before')", rs -> {
+            assertEquals(2, rs.getInt(1), "V027 account security columns must exist");
         });
     }
 
@@ -89,7 +99,7 @@ class FlywayDatabaseMigrationTest {
         });
         for (String constraint : new String[]{
                 "uk_quiz_answers_session_question", "uk_interview_answers_session_question"}) {
-            query("SELECT count(*) FROM pg_constraint WHERE conname = '" + constraint + "'", rs -> {
+            query("SELECT count(*) FROM pg_constraint WHERE connamespace='public'::regnamespace AND conname = '" + constraint + "'", rs -> {
                 assertEquals(1, rs.getInt(1), constraint + " must exist (V016)");
             });
         }
@@ -120,7 +130,7 @@ class FlywayDatabaseMigrationTest {
             assertEquals(1, rs.getInt(1), "questions.searchable_text must exist (V015)");
         });
         query("SELECT count(*) FROM pg_trigger " +
-                "WHERE tgname = 'trg_questions_search' AND NOT tgisinternal", rs -> {
+                "WHERE tgname = 'trg_questions_search' AND tgrelid='public.questions'::regclass AND NOT tgisinternal", rs -> {
             assertEquals(1, rs.getInt(1), "trg_questions_search must exist (V015)");
         });
         query("SELECT count(*) FROM pg_indexes " +
@@ -134,8 +144,8 @@ class FlywayDatabaseMigrationTest {
         query("SELECT count(*) FROM information_schema.tables " +
                 "WHERE table_schema = 'public' AND table_type = 'BASE TABLE' " +
                 "AND table_name != 'flyway_schema_history'", rs -> {
-            assertEquals(42, rs.getInt(1),
-                    "Expected exactly 42 tables excluding flyway_schema_history");
+            assertEquals(48, rs.getInt(1),
+                    "Expected exactly 48 tables excluding flyway_schema_history through V031");
         });
     }
 

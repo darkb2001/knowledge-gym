@@ -55,11 +55,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * Chạy theo thứ tự: import trước, các test đọc sau — dùng chung 1 context/DB.
  */
+@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @AutoConfigureTestRestTemplate
 @ActiveProfiles("test")
-@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ContentApiIntegrationTest {

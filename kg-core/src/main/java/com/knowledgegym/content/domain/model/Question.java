@@ -23,6 +23,8 @@ public class Question {
     private int sortOrder;
     private Instant createdAt;
     private Instant updatedAt;
+    private ContentStatus contentStatus = ContentStatus.PUBLISHED;
+    public enum ContentStatus { DRAFT, PUBLISHED, HIDDEN, ARCHIVED }
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -46,4 +48,6 @@ public class Question {
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public ContentStatus getContentStatus() { return contentStatus; }
+    public void setContentStatus(ContentStatus contentStatus) { this.contentStatus = contentStatus == null ? ContentStatus.PUBLISHED : contentStatus; }
 }

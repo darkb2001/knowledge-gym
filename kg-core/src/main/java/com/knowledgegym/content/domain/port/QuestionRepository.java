@@ -31,6 +31,9 @@ public interface QuestionRepository {
 
     PageResult<Question> search(QuestionQuery query);
 
+    /** Nonpublic content is readable only through the ADMIN controller. Fail closed in other adapters. */
+    default PageResult<Question> searchAdmin(QuestionQuery query) { throw new UnsupportedOperationException(); }
+
     /** Insert mới hoặc update theo natural key `(moduleId, sortOrder)`. @return số dòng ghi. */
     int saveOrUpdateByNaturalKey(List<Question> questions);
 
@@ -50,4 +53,5 @@ public interface QuestionRepository {
 
     /** sort_order kế tiếp trong module — dùng khi admin tạo câu mới. */
     int nextSortOrder(UUID moduleId);
+    default Question updateContentStatus(UUID id, Question.ContentStatus status, UUID actor, String reason) { throw new UnsupportedOperationException(); }
 }

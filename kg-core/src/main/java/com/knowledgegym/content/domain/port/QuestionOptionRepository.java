@@ -36,4 +36,6 @@ public interface QuestionOptionRepository {
      * @return số option đã ghi
      */
     int replaceOptions(UUID questionId, List<QuestionOption> options);
+    List<QuestionOption> saveManual(UUID questionId, List<QuestionOption> options);
+    boolean isManual(UUID questionId);
 }

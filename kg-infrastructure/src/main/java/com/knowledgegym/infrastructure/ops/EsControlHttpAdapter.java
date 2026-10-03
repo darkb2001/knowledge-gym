@@ -8,9 +8,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Component;
 
 /**
  * Calls the CT102 {@code kg-es-control} HTTP agent on the Docker bridge gateway.
@@ -18,10 +15,10 @@ import org.springframework.stereotype.Component;
  * <p>App containers cannot reach {@code 127.0.0.1} on the LXC host. Bind the agent to the
  * compose bridge gateway (e.g. {@code 172.18.0.1:9377}) and set {@code app.ops.es-control-url}.
  * Never mount {@code docker.sock} into the app.
+ *
+ * <p>Constructed by {@link HostScriptPortConfig} — not a {@code @Component}.
  */
-@Component
-@ConditionalOnExpression("!'${app.ops.es-control-url:}'.blank")
-public class EsControlHttpAdapter implements HostScriptPort {
+public final class EsControlHttpAdapter implements HostScriptPort {
     private static final Set<String> ALLOWED = Set.of("status", "start", "stop");
 
     private final HttpClient http;
@@ -29,10 +26,7 @@ public class EsControlHttpAdapter implements HostScriptPort {
     private final String token;
     private final Duration timeout;
 
-    public EsControlHttpAdapter(
-            @Value("${app.ops.es-control-url}") String baseUrl,
-            @Value("${app.ops.es-control-token:}") String token,
-            @Value("${app.ops.script-timeout-seconds:180}") long timeoutSeconds) {
+    public EsControlHttpAdapter(String baseUrl, String token, long timeoutSeconds) {
         this.base = URI.create(baseUrl.endsWith("/") ? baseUrl : baseUrl + "/");
         this.token = token == null ? "" : token;
         this.timeout = Duration.ofSeconds(Math.max(10, timeoutSeconds));

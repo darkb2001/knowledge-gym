@@ -24,14 +24,21 @@ public final class CollectItemsUseCase {
         this.feed = feed;
     }
 
-    public Result execute() {
-        UUID runId = repository.startRun("due collector sources");
+    public Result execute() { return executeInternal(repository.findDueSources(), "due collector sources"); }
+
+    public Result executeForDomains(List<String> domains) {
+        if (domains == null || domains.isEmpty()) throw new IllegalArgumentException("domains bắt buộc");
+        return executeInternal(repository.findDueSourcesForDomains(domains), "knowledge goal domains=" + domains);
+    }
+
+    private Result executeInternal(List<CollectorSource> dueSources, String summary) {
+        UUID runId = repository.startRun(summary);
         int sources = 0;
         int inserted = 0;
         int failed = 0;
         StringBuilder failures = new StringBuilder();
         try {
-            for (CollectorSource source : repository.findDueSources()) {
+            for (CollectorSource source : dueSources) {
                 sources++;
                 try {
                     List<CollectedItem> items = feed.fetch(source).stream()

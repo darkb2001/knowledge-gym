@@ -51,6 +51,11 @@ public class UserJpaEntity {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified;
 
+    @Column(name = "blocked", nullable = false)
+    private boolean blocked;
+
+    public boolean isBlocked() { return blocked; }
+
     @Column(name = "email_verified_at")
     private Instant emailVerifiedAt;
 

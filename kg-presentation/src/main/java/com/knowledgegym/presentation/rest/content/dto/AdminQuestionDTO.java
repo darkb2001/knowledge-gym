@@ -21,6 +21,7 @@ public record AdminQuestionDTO(UUID id,
                                int sortOrder,
                                Instant createdAt,
                                Instant updatedAt,
+                               String contentStatus,
                                List<AdminQuestionOptionDTO> options) {
 
     /**
@@ -39,7 +40,7 @@ public record AdminQuestionDTO(UUID id,
         return new AdminQuestionDTO(question.getId(), question.getModuleId(), question.getTitle(),
                 question.getAnswerHtml(), question.getDifficulty().name(), question.getTags(),
                 question.getSearchKeywords(), question.getSortOrder(), question.getCreatedAt(),
-                question.getUpdatedAt(),
+                question.getUpdatedAt(), question.getContentStatus().name(),
                 options == null ? List.of() : options.stream().map(AdminQuestionOptionDTO::of).toList());
     }
 }

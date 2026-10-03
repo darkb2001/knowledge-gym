@@ -41,10 +41,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * m8 notes + PG full-text search — ownership, export routing, convert idempotency.
  */
+@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class NotesApiIntegrationTest {

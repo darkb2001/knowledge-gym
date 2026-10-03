@@ -32,13 +32,13 @@ public class JdbcBlogWriterRepository implements BlogWriterRepository {
     public int appendRevision(UUID postId, AiWriterPort.Completion c, List<UUID> sourceIds, String instruction, int score, UUID actor) {
         // Lock the draft row so concurrent revise/edit cannot race on version numbers.
         Integer locked = jdbc.query(
-                "SELECT 1 FROM blog_posts WHERE id=? AND status='REVIEW' FOR UPDATE",
+                "SELECT 1 FROM blog_posts WHERE id=? AND status IN ('DRAFT','REVIEW') FOR UPDATE",
                 (rs, n) -> rs.getInt(1), postId).stream().findFirst().orElse(null);
         if (locked == null) throw new IllegalArgumentException("Only review drafts can be revised");
         int version = jdbc.queryForObject(
                 "SELECT COALESCE(MAX(version),0)+1 FROM blog_draft_revisions WHERE post_id=?", Integer.class, postId);
         int updated = jdbc.update(
-                "UPDATE blog_posts SET title=?,body=?,excerpt=?,quality_score=?,seo_title=COALESCE(?::text,seo_title),seo_description=COALESCE(?::text,seo_description),seo_keywords=COALESCE(?::text[],seo_keywords),ai_model=? WHERE id=? AND status='REVIEW'",
+                "UPDATE blog_posts SET title=?,body=?,excerpt=?,quality_score=?,seo_title=COALESCE(?::text,seo_title),seo_description=COALESCE(?::text,seo_description),seo_keywords=COALESCE(?::text[],seo_keywords),ai_model=? WHERE id=? AND status IN ('DRAFT','REVIEW')",
                 c.title(), c.bodyHtml(), c.excerpt(), score, c.seoTitle(), c.seoDescription(),
                 c.seoKeywords().isEmpty() ? null : c.seoKeywords().toArray(String[]::new), c.model(), postId);
         if (updated == 0) throw new IllegalArgumentException("Only review drafts can be revised");

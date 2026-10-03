@@ -56,10 +56,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * <p>Dùng chung context/DB nên chạy theo `@Order`: import fixture trước, các test sau dùng dữ liệu.
  */
+@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class QuizApiIntegrationTest {
@@ -245,16 +245,16 @@ class QuizApiIntegrationTest {
             assertThat(db().queryForObject("SELECT count(*) FROM study_attempts WHERE user_id=? AND attempted_at=(SELECT finished_at FROM quiz_sessions WHERE id=?)",Integer.class,userId,id)).isEqualTo(2);
         }finally{executor.shutdownNow();}
     }
-    @Test @Order(9) void deletingQuestionCleansQuizAndKeepsInterviewSession() throws Exception {
+    @Test @Order(9) void deletingReferencedQuestionIsRejectedAndPreservesHistory() throws Exception {
         var quiz=generate(1);String id=quiz.get("id").asText();String qid=quiz.get("questions").get(0).get("questionId").asText();
         response(postJson("/quiz/"+id+"/submit",java.util.Map.of("answers",List.of(answer(quiz,0,true))),userToken),200);
         var start=response(postJson("/mock-interview/start",java.util.Map.of("topicId",topicId,"questionCount",20,"mode","TEXT"),userToken),201);
         String interviewId=start.get("session").get("id").asText();
         response(postJson("/mock-interview/"+interviewId+"/answer",java.util.Map.of("questionId",qid,"userAnswer","java"),userToken),200);
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/admin/content/questions/"+qid).header("Authorization","Bearer "+adminToken)).andExpect(status().isNoContent());
-        assertThat(db().queryForObject("SELECT count(*) FROM quiz_sessions WHERE id=?",Integer.class,UUID.fromString(id))).isZero();
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/admin/content/questions/"+qid).header("Authorization","Bearer "+adminToken)).andExpect(status().isConflict());
+        assertThat(db().queryForObject("SELECT count(*) FROM quiz_sessions WHERE id=?",Integer.class,UUID.fromString(id))).isEqualTo(1);
         assertThat(db().queryForObject("SELECT count(*) FROM interview_sessions WHERE id=?",Integer.class,UUID.fromString(interviewId))).isEqualTo(1);
-        assertThat(db().queryForObject("SELECT count(*) FROM interview_answers WHERE question_id=?",Integer.class,UUID.fromString(qid))).isZero();
+        assertThat(db().queryForObject("SELECT count(*) FROM interview_answers WHERE question_id=?",Integer.class,UUID.fromString(qid))).isGreaterThanOrEqualTo(1);
     }
     private UUID register(String email) throws Exception {
         String code = RegistrationTestSupport.code(mockMvc, email);

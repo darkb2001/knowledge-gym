@@ -37,6 +37,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
                     .addLimit(Bandwidth.builder().capacity(10).refillGreedy(10, Duration.ofHours(1)).build()).build(),
             "/auth/forgot-password", () -> BucketConfiguration.builder()
                     .addLimit(Bandwidth.builder().capacity(3).refillGreedy(3, Duration.ofMinutes(1)).build()).build(),
+            "/auth/email-verification/request", () -> BucketConfiguration.builder()
+                    .addLimit(Bandwidth.builder().capacity(3).refillGreedy(3, Duration.ofMinutes(1)).build()).build(),
+            "/auth/verify-email", () -> BucketConfiguration.builder()
+                    .addLimit(Bandwidth.builder().capacity(5).refillGreedy(5, Duration.ofMinutes(1)).build()).build(),
             "/auth/reset-password", () -> BucketConfiguration.builder()
                     .addLimit(Bandwidth.builder().capacity(5).refillGreedy(5, Duration.ofMinutes(1)).build()).build()
     );
@@ -45,7 +49,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
             .addLimit(Bandwidth.builder().capacity(100).refillGreedy(100, Duration.ofMinutes(1)).build()).build();
 
     private static final Set<String> ENDPOINT_LIMIT_PATHS =
-            Set.of("/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password");
+            Set.of("/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password",
+                    "/auth/email-verification/request", "/auth/verify-email");
 
     public RateLimitFilter(LettuceBasedProxyManager<String> proxyManager, ClientIpResolver clientIpResolver) {
         this.proxyManager = proxyManager;

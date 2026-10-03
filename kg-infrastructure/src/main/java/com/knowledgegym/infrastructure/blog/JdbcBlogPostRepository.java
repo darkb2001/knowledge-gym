@@ -4,6 +4,7 @@ import tools.jackson.databind.ObjectMapper;
 import com.knowledgegym.blog.domain.model.BlogPost;
 import com.knowledgegym.blog.domain.port.BlogPostRepository;
 import com.knowledgegym.shared.application.NotFoundException;
+import com.knowledgegym.shared.domain.model.PageResult;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -32,6 +33,22 @@ public class JdbcBlogPostRepository implements BlogPostRepository {
     @Override public List<BlogPost> findPublished(int offset, int limit, String tag) {
         return jdbc.query("SELECT " + COLUMNS + " FROM blog_posts WHERE status='PUBLISHED' AND (?::text IS NULL OR ?=ANY(tags)) ORDER BY published_at DESC OFFSET ? LIMIT ?",
                 this::map, tag, tag, offset, limit);
+    }
+    @Override public PageResult<BlogPost> searchAdmin(String status, UUID moduleId, String q, int page, int size) {
+        if (status != null && !java.util.Set.of("DRAFT", "REVIEW", "PUBLISHED", "ARCHIVED", "HIDDEN", "DELETED").contains(status))
+            throw new IllegalArgumentException("status không hợp lệ");
+        if (page < 1 || page > 10_000_000 || size < 1 || size > 100)
+            throw new IllegalArgumentException("page phải >= 1, size phải trong khoảng 1-100");
+        String term = q == null || q.isBlank() ? null : "%" + q.trim().toLowerCase(java.util.Locale.ROOT)
+                .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+        String where = " FROM blog_posts WHERE (?::text IS NULL OR status=?) "
+                + "AND (?::uuid IS NULL OR source_module_id=?) "
+                + "AND (?::text IS NULL OR LOWER(title) LIKE ? ESCAPE '\\' OR LOWER(COALESCE(excerpt,'')) LIKE ? ESCAPE '\\')";
+        long total = jdbc.queryForObject("SELECT count(*)" + where, Long.class,
+                status, status, moduleId, moduleId, term, term, term);
+        var items = jdbc.query("SELECT " + COLUMNS + where + " ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?",
+                this::map, status, status, moduleId, moduleId, term, term, term, size, (long)(page - 1) * size);
+        return new PageResult<>(items, page, size, total);
     }
     @Override public Optional<BlogPost> findPublishedBySlug(String slug) {
         return jdbc.query("SELECT " + COLUMNS + " FROM blog_posts WHERE slug=? AND status='PUBLISHED'", this::map, slug).stream().findFirst();
@@ -69,12 +86,15 @@ public class JdbcBlogPostRepository implements BlogPostRepository {
     }
 
     @Override public List<Comment> comments(UUID postId) {
-        return jdbc.query("SELECT id,post_id,user_id,parent_id,content,created_at FROM blog_comments WHERE post_id=? ORDER BY created_at ASC",
+        return jdbc.query("SELECT id,post_id,user_id,parent_id,content,created_at FROM blog_comments WHERE post_id=? AND status='VISIBLE' ORDER BY created_at ASC,id ASC",
                 (rs,n)->new Comment(rs.getObject("id",UUID.class),rs.getObject("post_id",UUID.class),rs.getObject("user_id",UUID.class),rs.getObject("parent_id",UUID.class),rs.getString("content"),rs.getTimestamp("created_at").toInstant()),postId);
     }
     @Override @Transactional
     public Comment addComment(UUID postId, UUID userId, UUID parentId, String body) {
-        if (parentId != null && jdbc.queryForObject("SELECT count(*) FROM blog_comments WHERE id=? AND post_id=?",Long.class,parentId,postId)==0)
+        if (jdbc.query("SELECT id FROM blog_posts WHERE id=? AND status='PUBLISHED' FOR SHARE",
+                (rs,n)->rs.getObject(1,UUID.class),postId).isEmpty())
+            throw new NotFoundException("Bài viết không tồn tại");
+        if (parentId != null && jdbc.queryForObject("SELECT count(*) FROM blog_comments WHERE id=? AND post_id=? AND status='VISIBLE'",Long.class,parentId,postId)==0)
             throw new IllegalArgumentException("parentId không thuộc bài viết này");
         UUID id=UUID.randomUUID();
         jdbc.update("INSERT INTO blog_comments(id,post_id,user_id,parent_id,content) VALUES(?,?,?,?,?)",id,postId,userId,parentId,body);

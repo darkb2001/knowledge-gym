@@ -63,10 +63,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *   <li>Leaderboard rebuild từ `users.xp` sau khi flush Redis.</li>
  * </ul>
  */
+@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class DashboardApiIntegrationTest {

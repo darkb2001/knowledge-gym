@@ -33,9 +33,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String PREFIX = "Bearer ";
 
     private final SecretKey accessKey;
+    private final JdbcAccessTokenGuard accountGuard;
 
-    public JwtAuthenticationFilter(@Value("${app.security.jwt.access-secret}") String secret) {
+    public JwtAuthenticationFilter(@Value("${app.security.jwt.access-secret}") String secret,
+                                   JdbcAccessTokenGuard accountGuard) {
         this.accessKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.accountGuard = accountGuard;
     }
 
     @Override
@@ -52,8 +55,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .parseSignedClaims(token)
                         .getPayload();
                 UUID userId = UUID.fromString(claims.getSubject());
-                String role = claims.get(JwtTokenService.CLAIM_ROLE, String.class);
-                UserRole roleEnum = UserRole.valueOf(role);
+                var role = accountGuard.authorizedRole(userId,
+                        claims.getIssuedAt() == null ? null : claims.getIssuedAt().toInstant());
+                if (role.isEmpty()) {
+                    SecurityContextHolder.clearContext();
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"unauthorized\",\"message\":\"Session invalidated\"}");
+                    return;
+                }
+                UserRole roleEnum = role.get();
 
                 List<SimpleGrantedAuthority> authorities = List.of(
                         new SimpleGrantedAuthority("ROLE_" + roleEnum.name()));

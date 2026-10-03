@@ -88,6 +88,15 @@ class QueryQuestionsUseCaseTest {
         assertThat(repository.captured().q()).isEqualTo("heap");
     }
 
+    @Test
+    void adminSearchIsExplicitAndKeepsNormalizedFilters() {
+        var port = org.mockito.Mockito.mock(QuestionRepository.class);
+        var query = new QuestionQuery(UUID.randomUUID(), Difficulty.MID, "java", "không đồng bộ", 2, 10);
+        new QueryQuestionsUseCase(port).executeAdmin(query);
+        org.mockito.Mockito.verify(port).searchAdmin(query.withQuery("dong bo"));
+        org.mockito.Mockito.verify(port, org.mockito.Mockito.never()).search(org.mockito.ArgumentMatchers.any());
+    }
+
     /** Repository nhận gì, để assert trực tiếp thay vì suy đoán từ kết quả. */
     private static final class CapturingQuestionRepository implements QuestionRepository {
         private final AtomicReference<QuestionQuery> lastQuery = new AtomicReference<>();

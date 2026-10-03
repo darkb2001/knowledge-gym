@@ -4,22 +4,14 @@ import com.knowledgegym.shared.domain.port.HostScriptPort;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.stereotype.Component;
 
-@Component
-@ConditionalOnExpression("!'${app.ops.es-control-script:}'.blank")
-@ConditionalOnMissingBean(HostScriptPort.class)
-public class EsControlHostScriptAdapter implements HostScriptPort {
+/** ProcessBuilder fallback when the JVM shares the CT102 host (not the app container). */
+public final class EsControlHostScriptAdapter implements HostScriptPort {
     private static final Set<String> ALLOWED = Set.of("status", "start", "stop");
     private final Path script;
     private final Duration timeout;
 
-    public EsControlHostScriptAdapter(
-            @Value("${app.ops.es-control-script:}") String scriptPath,
-            @Value("${app.ops.script-timeout-seconds:120}") long timeoutSeconds) {
+    public EsControlHostScriptAdapter(String scriptPath, long timeoutSeconds) {
         this.script = scriptPath == null || scriptPath.isBlank() ? null : Path.of(scriptPath);
         this.timeout = Duration.ofSeconds(Math.max(10, timeoutSeconds));
     }

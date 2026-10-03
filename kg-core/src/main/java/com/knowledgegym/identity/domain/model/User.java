@@ -23,6 +23,10 @@ public class User extends BaseEntity {
     private AuthProvider authProvider;
     private String oauthId;
     private boolean emailVerified;
+    private boolean blocked;
+
+    public boolean isBlocked() { return blocked; }
+    public void setBlocked(boolean blocked) { this.blocked = blocked; }
 
     public User() {
         super();

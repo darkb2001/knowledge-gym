@@ -1,72 +1,54 @@
 package com.knowledgegym.infrastructure.persistence.dao;
 
+import com.knowledgegym.shared.application.ConflictException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Xoá các bảng tham chiếu `questions(id)` bằng `NO ACTION` (V004) trước khi xoá câu hỏi.
- *
- * <p>Lý do tồn tại: `srs_cards.question_id` và `study_attempts.question_id` được khai báo
- * `NOT NULL REFERENCES questions(id)` **không** kèm `ON DELETE`, nên Postgres chặn xoá câu hỏi
- * còn thẻ/attempt trỏ tới. Trước m5 hai bảng này luôn rỗng nên re-import xoá câu vô hại; m5 là
- * phase đầu tiên ghi row vào đó, biến re-import (và `DELETE /admin/content/questions/{id}`) thành
- * lỗi FK 500 ngay khi có người đã enroll. QueryDueUseCase đã chịu được thẻ mồ côi, nên xoá thẻ
- * theo câu bị bỏ là hành vi đúng: câu không còn thì thẻ ôn nó cũng vô nghĩa.
- *
- * <p>Native SQL vì cần `DELETE ... WHERE question_id IN (SELECT ... FROM questions ...)` — cùng
- * một tiêu chí chọn câu mà `deleteAbsentSortOrders` sắp xoá. `keepSortOrders` truyền dạng literal
- * `{1,2,3}` rồi cast `int[]`: bind một `Collection` vào native query phụ thuộc hành vi mở rộng
- * tham số của Hibernate, còn literal thì không (đúng cách `QuestionRepositoryAdapter` xử lý `tags`).
- *
- * <p>m6 xoá toàn bộ quiz session chứa câu bị xoá để score/total/membership không lệch nhau.
- * Interview chỉ xoá answer; session giữ nguyên và điểm đã chốt là lịch sử tại thời điểm finish.
- * Daily assignment cũng được dọn để re-import không bị chặn bởi FK.
- */
+/** Guards legacy hard-delete/import paths. Never delete learning history to satisfy a FK. */
 @Component
 public class QuestionDependentsDao {
-
     @PersistenceContext
     private EntityManager entityManager;
 
-    /**
-     * Xoá thẻ SRS + attempt của mọi câu trong module sẽ bị xoá theo cùng tiêu chí
-     * {@code keepSortOrders} của {@code deleteAbsentSortOrders}: rỗng/null → cả module, ngược lại
-     * chỉ những câu có `sort_order` không được giữ.
-     */
+    /** Compatibility method name; now validates rather than deleting dependencies. Caller owns the transaction. */
     public void deleteForModule(UUID moduleId, Collection<Integer> keepSortOrders) {
-        boolean wholeModule = keepSortOrders == null || keepSortOrders.isEmpty();
-        String doomed = wholeModule
-                ? "SELECT id FROM questions WHERE module_id = :moduleId"
-                : "SELECT id FROM questions WHERE module_id = :moduleId "
-                        + "AND sort_order <> ALL(cast(:keepSortOrders as int[]))";
-        String keepLiteral = wholeModule ? null : toPgIntArrayLiteral(keepSortOrders);
+        boolean whole = keepSortOrders == null || keepSortOrders.isEmpty();
+        String doomed = "SELECT id FROM questions WHERE module_id = :moduleId"
+                + (whole ? "" : " AND sort_order <> ALL(cast(:keepSortOrders as int[]))");
+        guard(doomed, "moduleId", moduleId, whole ? null : toPgIntArrayLiteral(keepSortOrders));
+    }
 
-        for (String table : new String[]{"quiz_sessions", "interview_answers", "daily_challenge_assignments", "study_attempts", "srs_cards"}) {
-            String sql = table.equals("quiz_sessions")
-                ? "DELETE FROM quiz_sessions WHERE id IN (SELECT session_id FROM quiz_session_questions WHERE question_id IN (" + doomed + "))"
-                : "DELETE FROM " + table + " WHERE question_id IN (" + doomed + ")";
-            Query query = entityManager.createNativeQuery(sql).setParameter("moduleId", moduleId);
-            if (keepLiteral != null) query.setParameter("keepSortOrders", keepLiteral);
-            query.executeUpdate();
+    public void deleteForQuestion(UUID questionId) {
+        guard("SELECT id FROM questions WHERE id=:id", "id", questionId, null);
+    }
+
+    private void guard(String doomed, String parameter, UUID id, String keep) {
+        // Serialize with new FK references before checking even ON DELETE CASCADE / SET NULL links.
+        bind(entityManager.createNativeQuery(doomed + " FOR UPDATE"), parameter, id, keep).getResultList();
+        for (String table : new String[]{"srs_cards", "study_attempts", "quiz_session_questions",
+                "interview_answers", "daily_challenge_assignments", "notes", "learning_draft_materializations", "blog_posts"}) {
+            String column = table.equals("blog_posts") ? "source_question_id" : "question_id";
+            Number count = (Number) bind(entityManager.createNativeQuery(
+                    "SELECT count(*) FROM " + table + " WHERE " + column + " IN (" + doomed + ")"), parameter, id, keep).getSingleResult();
+            if (count.longValue() > 0) {
+                throw new ConflictException("Câu hỏi có dữ liệu học hoặc nội dung tham chiếu. Hãy ẩn câu hỏi thay vì xóa/re-import loại bỏ lịch sử.");
+            }
         }
     }
-    public void deleteForQuestion(UUID questionId) {
-        entityManager.createNativeQuery("DELETE FROM quiz_sessions WHERE id IN (SELECT session_id FROM quiz_session_questions WHERE question_id=:id)").setParameter("id", questionId).executeUpdate();
-        for (String table : new String[]{"interview_answers", "daily_challenge_assignments", "study_attempts", "srs_cards"})
-            entityManager.createNativeQuery("DELETE FROM " + table + " WHERE question_id=:id").setParameter("id",questionId).executeUpdate();
+
+    private static Query bind(Query query, String parameter, UUID id, String keep) {
+        query.setParameter(parameter, id);
+        if (keep != null) query.setParameter("keepSortOrders", keep);
+        return query;
     }
 
-    /** Mảng PostgreSQL dạng literal `{1,2,3}`; phần tử là `int` nên chỉ cần lọc ký tự số và dấu `-`. */
     static String toPgIntArrayLiteral(Collection<Integer> values) {
-        return values.stream()
-                .map(String::valueOf)
-                .filter(value -> value.matches("-?\\d+"))
+        return values.stream().map(String::valueOf).filter(value -> value.matches("-?\\d+"))
                 .collect(Collectors.joining(",", "{", "}"));
     }
 }

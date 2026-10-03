@@ -23,7 +23,12 @@ public record QuestionQuery(UUID moduleId,
                             String tag,
                             String q,
                             int page,
-                            int size) {
+                            int size,
+                            UUID topicId) {
+
+    public QuestionQuery(UUID moduleId, Difficulty difficulty, String tag, String q, int page, int size) {
+        this(moduleId, difficulty, tag, q, page, size, null);
+    }
 
     public static final int MAX_SIZE = 100;
     public static final int DEFAULT_SIZE = 20;
@@ -46,7 +51,7 @@ public record QuestionQuery(UUID moduleId,
 
     /** Bản sao đã chuẩn hoá `q` — dùng bởi application layer sau khi áp {@code SearchText}. */
     public QuestionQuery withQuery(String normalizedQ) {
-        return new QuestionQuery(moduleId, difficulty, tag, normalizedQ, page, size);
+        return new QuestionQuery(moduleId, difficulty, tag, normalizedQ, page, size, topicId);
     }
 
     public boolean hasFullText() {

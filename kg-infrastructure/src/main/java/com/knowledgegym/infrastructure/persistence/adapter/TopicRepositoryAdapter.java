@@ -26,6 +26,26 @@ public class TopicRepositoryAdapter implements TopicRepository {
         return springData.findBySlug(slug).map(TopicRepositoryAdapter::toDomain);
     }
 
+    @Override public Optional<Topic> findById(UUID id) {
+        return springData.findById(id).map(TopicRepositoryAdapter::toDomain);
+    }
+
+    @Override public Topic save(Topic topic) {
+        TopicJpaEntity entity = topic.getId() == null ? new TopicJpaEntity() : springData.findById(topic.getId()).orElseThrow();
+        if (entity.getId() == null) {
+            entity.setId(UUID.randomUUID());
+            entity.setCreatedAt(Instant.now());
+        }
+        entity.setName(topic.getName());
+        entity.setSlug(topic.getSlug());
+        entity.setDescription(topic.getDescription());
+        entity.setActive(topic.isActive());
+        entity.setDisplayOrder(topic.getDisplayOrder());
+        return toDomain(springData.saveAndFlush(entity));
+    }
+
+    @Override public void deleteById(UUID id) { springData.deleteById(id); springData.flush(); }
+
     @Override
     public Topic saveOrUpdateBySlug(Topic topic) {
         TopicJpaEntity entity = springData.findBySlug(topic.getSlug()).orElseGet(() -> {

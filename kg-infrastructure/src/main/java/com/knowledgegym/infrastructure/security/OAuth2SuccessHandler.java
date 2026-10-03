@@ -106,6 +106,16 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             }
         }
 
+        if (user.isBlocked()) {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Account is blocked");
+            return;
+        }
+        if (!user.isEmailVerified()) {
+            user.verifyEmail();
+            user = userRepository.save(user);
+        }
+
         UUID familyId = UUID.randomUUID();
         String accessToken = tokenService.generateAccessToken(user.getId(), user.getRole().name());
         String rawRefresh = tokenService.generateRefreshToken(user.getId(), familyId);

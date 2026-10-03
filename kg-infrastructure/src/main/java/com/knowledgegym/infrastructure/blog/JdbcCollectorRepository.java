@@ -25,6 +25,19 @@ public class JdbcCollectorRepository implements CollectorRepository {
     }
 
     @Override
+    public List<CollectorSource> findDueSourcesForDomains(List<String> domains) {
+        if (domains == null || domains.isEmpty()) return List.of();
+        String placeholders = String.join(",", java.util.Collections.nCopies(domains.size(), "?"));
+        return jdbc.query("SELECT id,name,type,url,config::text,fetch_interval_sec,last_fetched_at FROM collector_sources " +
+                "WHERE active AND url ~ '^https://' AND lower(regexp_replace(url,'^https://([^/]+).*','\\1')) IN (" + placeholders + ") " +
+                "AND (last_fetched_at IS NULL OR last_fetched_at + make_interval(secs => fetch_interval_sec) <= NOW()) ORDER BY name",
+                (rs, row) -> new CollectorSource(rs.getObject("id", UUID.class), rs.getString("name"),
+                        CollectorSource.Type.valueOf(rs.getString("type")), rs.getString("url"), rs.getString("config"),
+                        rs.getInt("fetch_interval_sec"), rs.getTimestamp("last_fetched_at") == null ? null : rs.getTimestamp("last_fetched_at").toInstant()),
+                domains.stream().map(String::toLowerCase).toArray());
+    }
+
+    @Override
     public List<CollectorSource> findDueSources() {
         return jdbc.query("SELECT id,name,type,url,config::text,fetch_interval_sec,last_fetched_at FROM collector_sources " +
                         "WHERE active AND (last_fetched_at IS NULL OR last_fetched_at + make_interval(secs => fetch_interval_sec) <= NOW()) ORDER BY name",

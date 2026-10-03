@@ -56,10 +56,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * <p>Dùng chung context/DB nên chạy theo `@Order`: import fixture trước, các test sau dùng dữ liệu.
  */
+@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SrsApiIntegrationTest {

@@ -100,6 +100,10 @@ app:
     collector:
       enabled: ${APP_BLOG_COLLECTOR_ENABLED:false}
       poll-ms: ${APP_BLOG_COLLECTOR_POLL_MS:600000}
+    knowledge-intake:
+      enabled: ${APP_BLOG_KNOWLEDGE_INTAKE_ENABLED:false}
+      poll-ms: ${APP_BLOG_KNOWLEDGE_INTAKE_POLL_MS:30000}
+      initial-delay-ms: ${APP_BLOG_KNOWLEDGE_INTAKE_INITIAL_DELAY_MS:20000}
     kafka:
       enabled: ${APP_BLOG_KAFKA_ENABLED:false}
     outbox:

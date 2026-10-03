@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 @Repository
 public class QuestionRepositoryAdapter implements QuestionRepository {
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
     private final SpringDataQuestionRepository springData;
     private final QuestionSearchDao searchDao;
     private final QuestionDependentsDao dependentsDao;
@@ -66,6 +68,12 @@ public class QuestionRepositoryAdapter implements QuestionRepository {
     }
 
     @Override
+    public PageResult<Question> searchAdmin(QuestionQuery query) {
+        var items = searchDao.search(query, true).stream().map(QuestionRepositoryAdapter::toDomain).toList();
+        return new PageResult<>(items, query.page(), query.size(), searchDao.count(query, true));
+    }
+
+    @Override
     @Transactional
     public int saveOrUpdateByNaturalKey(List<Question> questions) {
         if (questions.isEmpty()) {
@@ -90,8 +98,7 @@ public class QuestionRepositoryAdapter implements QuestionRepository {
     @Override
     @Transactional
     public int deleteAbsentSortOrders(UUID moduleId, Collection<Integer> keepSortOrders) {
-        // Xoá thẻ SRS + attempt trước: `question_id` FK là NO ACTION (V004), để lại thì câu lệnh
-        // DELETE bên dưới nổ FK ngay khi có user đã enroll (m5 là phase đầu ghi row vào đó).
+        // Fail closed when removal would erase/detach learning or authored content history.
         dependentsDao.deleteForModule(moduleId, keepSortOrders);
         if (keepSortOrders == null || keepSortOrders.isEmpty()) {
             long before = springData.countByModuleId(moduleId);
@@ -115,6 +122,7 @@ public class QuestionRepositoryAdapter implements QuestionRepository {
         entity.setTitle(question.getTitle());
         entity.setAnswerHtml(question.getAnswerHtml());
         entity.setDifficulty(question.getDifficulty().name());
+        entity.setContentStatus(question.getContentStatus().name());
         entity.setTags(question.getTags().toArray(String[]::new));
         entity.setSortOrder(question.getSortOrder());
         entity.setSearchableText(String.join(" ", question.getSearchKeywords()));
@@ -125,7 +133,7 @@ public class QuestionRepositoryAdapter implements QuestionRepository {
     @Override
     @Transactional
     public void deleteById(UUID id) {
-        // Cùng lý do với `deleteAbsentSortOrders`: thẻ SRS + attempt trỏ tới câu này chặn DELETE.
+        // Referenced content must be withdrawn through the audited status endpoint instead.
         dependentsDao.deleteForQuestion(id);
         springData.deleteById(id);
     }
@@ -135,6 +143,20 @@ public class QuestionRepositoryAdapter implements QuestionRepository {
         return springData.findMaxSortOrder(moduleId) + 1;
     }
 
+    @Override @Transactional
+    public Question updateContentStatus(UUID id, Question.ContentStatus status, UUID actor, String reason) {
+        var entity = entityManager.find(QuestionJpaEntity.class, id, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        if (entity == null) throw new com.knowledgegym.shared.application.NotFoundException("Câu hỏi không tồn tại");
+        String previous = entity.getContentStatus();
+        entity.setContentStatus(status.name());
+        entity.setUpdatedAt(Instant.now());
+        entityManager.flush();
+        entityManager.createNativeQuery("INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details) VALUES(:actor,'QUESTION_STATUS','QUESTION',:id,jsonb_build_object('from',CAST(:previous AS text),'to',CAST(:status AS text),'reason',CAST(:reason AS text)))")
+                .setParameter("actor",actor).setParameter("id",id).setParameter("previous",previous)
+                .setParameter("status",status.name()).setParameter("reason",reason).executeUpdate();
+        return toDomain(entity);
+    }
+
     static Question toDomain(QuestionJpaEntity entity) {
         Question question = new Question();
         question.setId(entity.getId());
@@ -142,6 +164,7 @@ public class QuestionRepositoryAdapter implements QuestionRepository {
         question.setTitle(entity.getTitle());
         question.setAnswerHtml(entity.getAnswerHtml());
         question.setDifficulty(parseDifficulty(entity.getDifficulty()));
+        try { question.setContentStatus(Question.ContentStatus.valueOf(entity.getContentStatus())); } catch (Exception ignored) { }
         question.setTags(entity.getTags() == null ? List.of() : Arrays.asList(entity.getTags()));
         question.setSearchKeywords(tokenize(entity.getSearchableText()));
         question.setSortOrder(entity.getSortOrder());

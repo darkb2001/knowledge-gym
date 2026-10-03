@@ -11,6 +11,8 @@ public interface ModuleRepository {
     Optional<ModuleRef> findBySlug(String slug);
 
     Optional<ModuleRef> findById(UUID id);
+    default ModuleRef save(ModuleRef module) { throw new UnsupportedOperationException(); }
+    default void deleteById(UUID id) { throw new UnsupportedOperationException(); }
 
     /** Insert hoặc update theo `slug` (natural key) — idempotent cho re-import. */
     ModuleRef saveOrUpdateBySlug(ModuleRef module);

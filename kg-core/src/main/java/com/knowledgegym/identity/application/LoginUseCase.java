@@ -42,6 +42,9 @@ public class LoginUseCase {
             throw new AuthException("Invalid email or password");
         }
 
+        if (user.isBlocked()) {
+            throw new AuthException("Account is blocked");
+        }
         if (!user.isEmailVerified()) {
             throw new AuthException("Email verification required");
         }

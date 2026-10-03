@@ -42,7 +42,7 @@ public class JdbcSearchDocumentAdapter implements SearchDocumentPort {
                     "SELECT id,title,coalesce(answer_html,'') answer_html,"
                             + "coalesce(searchable_text,'') searchable_text,"
                             + "coalesce(array_to_string(tags,' '),'') tags,updated_at "
-                            + "FROM questions WHERE id=?",
+                            + "FROM questions WHERE id=? AND content_status='PUBLISHED'",
                     (rs, n) -> question(rs), id).stream().findFirst();
             case NOTE -> jdbc.query(
                     "SELECT id,user_id,coalesce(note_type,'Note') note_type,coalesce(content,'') content,"

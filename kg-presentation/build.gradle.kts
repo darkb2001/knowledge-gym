@@ -35,6 +35,7 @@ dependencies {
     testImplementation(libs.spring.boot.starter.data.redis) // M7 leaderboard cache integration assertions
     testImplementation("org.springframework:spring-jdbc") // integration assertions against persisted quiz rows
     testImplementation(libs.spring.security.test)
+    testImplementation(libs.spring.boot.starter.security) // isolated admin HTTP security tests
     testImplementation(libs.archunit.junit5)
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.junit.jupiter)

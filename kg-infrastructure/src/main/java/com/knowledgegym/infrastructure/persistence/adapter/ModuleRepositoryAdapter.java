@@ -36,6 +36,20 @@ public class ModuleRepositoryAdapter implements ModuleRepository {
         return springData.findById(id).map(ModuleRepositoryAdapter::toDomain);
     }
 
+    @Override public ModuleRef save(ModuleRef module) {
+        ModuleJpaEntity entity = module.getId() == null ? new ModuleJpaEntity() : springData.findById(module.getId()).orElseThrow();
+        if (entity.getId() == null) entity.setId(UUID.randomUUID());
+        entity.setTopicId(module.getTopicId());
+        entity.setName(module.getName());
+        entity.setSlug(module.getSlug());
+        entity.setDescription(module.getDescription());
+        entity.setDisplayOrder(module.getDisplayOrder());
+        entity.setActive(module.isActive());
+        return toDomain(springData.saveAndFlush(entity));
+    }
+
+    @Override public void deleteById(UUID id) { springData.deleteById(id); springData.flush(); }
+
     @Override
     public ModuleRef saveOrUpdateBySlug(ModuleRef module) {
         ModuleJpaEntity entity = springData.findBySlug(module.getSlug()).orElseGet(() -> {

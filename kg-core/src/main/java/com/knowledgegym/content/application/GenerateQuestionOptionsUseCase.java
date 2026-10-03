@@ -47,6 +47,7 @@ public class GenerateQuestionOptionsUseCase {
                 .orElseThrow(() -> new NotFoundException("Module không tồn tại: " + moduleId));
         Question target = questions.findById(questionId)
                 .orElseThrow(() -> new NotFoundException("Câu hỏi không tồn tại: " + questionId));
+        if (options.isManual(questionId)) return options.findByQuestionId(questionId);
 
         List<Question> siblings = searchAll(moduleId).stream()
                 .filter(question -> !question.getId().equals(questionId))
@@ -100,6 +101,7 @@ public class GenerateQuestionOptionsUseCase {
         int total = 0;
         for (var module : catalog) {
             for (var question : byModule.get(module.getId())) {
+                if (options.isManual(question.getId())) continue;
                 var generated = DistractorGenerator.generate(question, byModule.get(module.getId()),
                         byTopic.get(module.getTopicId()));
                 count++;

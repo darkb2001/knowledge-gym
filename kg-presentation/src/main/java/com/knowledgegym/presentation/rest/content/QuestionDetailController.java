@@ -2,6 +2,7 @@ package com.knowledgegym.presentation.rest.content;
 
 import com.knowledgegym.content.application.GetQuestionDetailUseCase;
 import com.knowledgegym.presentation.rest.content.dto.QuestionDetailDTO;
+import com.knowledgegym.shared.application.NotFoundException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,10 @@ public class QuestionDetailController {
     @GetMapping("/{id}")
     @Cacheable(value = "questions", key = "#id")
     public QuestionDetailDTO detail(@PathVariable UUID id) {
-        return QuestionDetailDTO.from(getQuestionDetailUseCase.execute(id));
+        var detail = getQuestionDetailUseCase.execute(id);
+        if (detail.question().getContentStatus() != com.knowledgegym.content.domain.model.Question.ContentStatus.PUBLISHED) {
+            throw new NotFoundException("Câu hỏi không tồn tại");
+        }
+        return QuestionDetailDTO.from(detail);
     }
 }

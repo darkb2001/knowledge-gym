@@ -117,6 +117,22 @@ public class UseCaseConfig {
     }
 
     @Bean
+    com.knowledgegym.learning.application.AdminLearningUseCase adminLearningUseCase(
+            com.knowledgegym.learning.domain.port.AdminLearningPort learning) {
+        return new com.knowledgegym.learning.application.AdminLearningUseCase(learning);
+    }
+
+    @Bean
+    com.knowledgegym.identity.application.ManageUsersUseCase manageUsersUseCase(
+            com.knowledgegym.identity.domain.port.AdminUserPort users) {
+        return new com.knowledgegym.identity.application.ManageUsersUseCase(users);
+    }
+
+    @Bean com.knowledgegym.content.application.ManageCatalogUseCase manageCatalogUseCase(TopicRepository topics, ModuleRepository modules) {
+        return new com.knowledgegym.content.application.ManageCatalogUseCase(topics, modules);
+    }
+
+    @Bean
     CatalogQueryUseCase catalogQueryUseCase(TopicRepository topicRepository,
                                             ModuleRepository moduleRepository) {
         return new CatalogQueryUseCase(topicRepository, moduleRepository);
