@@ -43,6 +43,11 @@ public class SpringAuditLogger implements SearchAuditPort {
     }
 
     private static String escape(String value) {
-        return value == null ? "unknown" : value.replace("\\", "\\\\").replace("\"", "\\\"");
+        if (value == null) return "unknown";
+        return value.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n")
+                .replace("\t", "\\t");
     }
 }
