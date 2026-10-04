@@ -133,4 +133,10 @@ public class InterviewSessionRepositoryAdapter implements InterviewSessionReposi
         db.update("UPDATE interview_sessions SET status = 'FINISHED', finished_at = ? WHERE id = ?",
                 Timestamp.from(now), sessionId);
     }
+
+    @Override
+    public void cancel(UUID sessionId, Instant now) {
+        db.update("UPDATE interview_sessions SET status = 'CANCELLED', finished_at = ? WHERE id = ? AND status = 'ACTIVE'",
+                Timestamp.from(now), sessionId);
+    }
 }

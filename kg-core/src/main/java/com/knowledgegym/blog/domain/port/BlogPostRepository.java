@@ -8,6 +8,8 @@ import java.util.UUID;
 
 public interface BlogPostRepository {
     List<BlogPost> findPublished(int offset, int limit, String tag);
+    /** Tổng số bài PUBLISHED (theo tag nếu có) — dùng cho envelope phân trang public. */
+    default long countPublished(String tag) { throw new UnsupportedOperationException(); }
     default PageResult<BlogPost> searchAdmin(String status, UUID moduleId, String q, int page, int size) {
         throw new UnsupportedOperationException();
     }
@@ -21,5 +23,10 @@ public interface BlogPostRepository {
     boolean setLiked(UUID postId, UUID userId, boolean liked);
     void recordView(UUID postId, UUID userId);
 
-    record Comment(UUID id, UUID postId, UUID userId, UUID parentId, String content, java.time.Instant createdAt) {}
+    /**
+     * Comment kèm tác giả (`authorDisplayName`/`authorAvatarUrl` đọc từ `users`). Hai field này
+     * thêm sau, ở cuối record để không phá constructor hiện hữu.
+     */
+    record Comment(UUID id, UUID postId, UUID userId, UUID parentId, String content, java.time.Instant createdAt,
+                   String authorDisplayName, String authorAvatarUrl) {}
 }

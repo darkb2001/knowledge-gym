@@ -44,9 +44,12 @@ public class BlogController {
         }
     }
 
-    public record Comment(UUID id, UUID userId, UUID parentId, String content, Instant createdAt) {
+    /** Comment DTO: giữ nguyên field cũ, thêm tác giả ở cuối (additive, không đổi tên field). */
+    public record Comment(UUID id, UUID userId, UUID parentId, String content, Instant createdAt,
+                          String authorDisplayName, String authorAvatarUrl) {
         static Comment of(BlogPostRepository.Comment c) {
-            return new Comment(c.id(), c.userId(), c.parentId(), c.content(), c.createdAt());
+            return new Comment(c.id(), c.userId(), c.parentId(), c.content(), c.createdAt(),
+                    c.authorDisplayName(), c.authorAvatarUrl());
         }
     }
 
@@ -54,11 +57,22 @@ public class BlogController {
 
     public record LikeResult(boolean liked, int likeCount) {}
 
+    /**
+     * Envelope phân trang public. `items` giữ nguyên field của {@link PostSummary}; `hasMore`
+     * tính từ `page*size + items.size() < total` (không phụ thuộc totalPages).
+     */
+    public record PostPage(List<PostSummary> items, long total, int page, int size, boolean hasMore) {}
+
     @GetMapping("/posts")
-    public List<PostSummary> list(@RequestParam(defaultValue = "1") int page,
-                                  @RequestParam(defaultValue = "20") int size,
-                                  @RequestParam(required = false) String tag) {
-        return blog.list(page, size, tag).stream().map(PostSummary::of).toList();
+    public PostPage list(@RequestParam(defaultValue = "0") int page,
+                         @RequestParam(defaultValue = "10") int size,
+                         @RequestParam(required = false) String tag) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 50);
+        var result = blog.listPaged(safePage, safeSize, tag);
+        boolean hasMore = (long) result.page() * result.size() + result.items().size() < result.totalElements();
+        return new PostPage(result.items().stream().map(PostSummary::of).toList(),
+                result.totalElements(), result.page(), result.size(), hasMore);
     }
 
     @GetMapping("/posts/{slug}")

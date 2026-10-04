@@ -13,4 +13,6 @@ public interface InterviewSessionRepository {
  long countByUserId(UUID userId);
  void upsertAnswer(InterviewAnswer answer);
  void finish(UUID sessionId,Instant finishedAt);
+ /** Đóng phiên ở trạng thái CANCELLED (user tự bỏ). Chỉ chuyển ACTIVE → CANCELLED. */
+ void cancel(UUID sessionId,Instant finishedAt);
 }

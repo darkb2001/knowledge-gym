@@ -3,6 +3,7 @@ package com.knowledgegym.blog.application;
 import com.knowledgegym.blog.domain.model.BlogPost;
 import com.knowledgegym.blog.domain.port.BlogPostRepository;
 import com.knowledgegym.shared.application.NotFoundException;
+import com.knowledgegym.shared.domain.model.PageResult;
 
 import java.util.List;
 import java.util.Locale;
@@ -20,6 +21,16 @@ public final class BlogPostsUseCase {
     public List<BlogPost> list(int page, int size, String tag) {
         if (page < 1 || size < 1 || size > 50) throw new IllegalArgumentException("page/size không hợp lệ");
         return posts.findPublished((page - 1) * size, size, cleanTag(tag));
+    }
+    /**
+     * Public list cho envelope phân trang: `page` 0-based (default FE = 0), `size` 1..50.
+     * Giữ `list` (1-based) cho RSS vì feed gọi `list(1, 50, null)`.
+     */
+    public PageResult<BlogPost> listPaged(int page, int size, String tag) {
+        if (page < 0 || size < 1 || size > 50) throw new IllegalArgumentException("page >= 0, size 1..50");
+        String safe = cleanTag(tag);
+        long total = posts.countPublished(safe);
+        return new PageResult<>(posts.findPublished(page * size, size, safe), page, size, total);
     }
     public BlogPost get(String slug) { return posts.findPublishedBySlug(slug).orElseThrow(() -> new NotFoundException("Bài viết không tồn tại")); }
     public BlogPost createDraft(UUID adminId, String title, String body, UUID moduleId, UUID questionId, List<String> tags) {

@@ -45,6 +45,54 @@ public class MockInterviewUseCase {
 
     public record Result(InterviewSession session, List<ResultItem> items, int answeredCount) {}
 
+    /** 1 câu để FE dựng lại màn làm bài sau khi reload; `answered` = đã có câu trả lời trong DB. */
+    public record ResumeQuestion(UUID questionId, String title, boolean answered) {}
+
+    /** Phiên đang dở (hoặc đã đóng) + metadata + câu theo đúng thứ tự đã giao — dùng để resume. */
+    public record Resume(InterviewSession session, int totalQuestions, int answeredCount,
+                         List<ResumeQuestion> questions) {}
+
+    /**
+     * Đọc phiên theo id bất kể status để FE resume sau reload. Không dùng `active()` vì session
+     * đã FINISHED/CANCELLED vẫn phải đọc được (chỉ chặn theo ownership).
+     */
+    @Transactional(readOnly = true)
+    public Resume resume(UUID user, UUID id) {
+        var session = sessions.findByIdAndUserId(id, user)
+                .orElseThrow(() -> new NotFoundException("Phiên phỏng vấn không tồn tại"));
+        var saved = sessions.answersOf(id);
+        java.util.Map<UUID, Question> byId = new java.util.HashMap<>();
+        for (Question question : questions.findByIds(session.questionIds())) {
+            byId.put(question.getId(), question);
+        }
+        List<ResumeQuestion> items = session.questionIds().stream().map(questionId -> {
+            Question question = byId.get(questionId);
+            return new ResumeQuestion(questionId,
+                    question == null ? "Câu hỏi đã bị xoá" : question.getTitle(),
+                    saved.containsKey(questionId));
+        }).toList();
+        int answered = (int) items.stream().filter(ResumeQuestion::answered).count();
+        return new Resume(session, items.size(), answered, items);
+    }
+
+    /**
+     * Huỷ phiên đang ACTIVE → CANCELLED. Idempotent: phiên đã ở trạng thái kết thúc (FINISHED
+     * hoặc CANCELLED) được trả về nguyên trạng thay vì ném 409/500.
+     */
+    @Transactional
+    public InterviewSession cancel(UUID user, UUID id) {
+        var session = sessions.findByIdAndUserIdForUpdate(id, user)
+                .orElseThrow(() -> new NotFoundException("Phiên phỏng vấn không tồn tại"));
+        if (!"ACTIVE".equals(session.status())) {
+            return session;
+        }
+        Instant now = Instant.now(clock);
+        sessions.cancel(id, now);
+        return new InterviewSession(session.id(), session.userId(), session.topicId(),
+                session.questionCount(), session.mode(), "CANCELLED", session.startedAt(),
+                now, session.questionIds());
+    }
+
     @Transactional
     public Started start(UUID user, UUID topic, int count, String mode) {
         if (topic == null || count < 1 || count > 20 || !"TEXT".equals(mode)) {

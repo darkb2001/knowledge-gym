@@ -174,6 +174,54 @@ class MockInterviewSubmitUseCaseTest {
                 .isInstanceOf(NotFoundException.class);
     }
 
+    @Test
+    void resumeTraCauTheoThuTuVaMetadata() {
+        var started = start(3);
+        sessions.upsertAnswer(new InterviewAnswer(started.session().id(),
+                started.questions().get(1).questionId(), "đáp án 2", null, Instant.now(CLOCK)));
+
+        var resume = useCase.resume(USER_ID, started.session().id());
+
+        assertThat(resume.session().status()).isEqualTo("ACTIVE");
+        assertThat(resume.totalQuestions()).isEqualTo(3);
+        assertThat(resume.answeredCount()).isEqualTo(1);
+        assertThat(resume.questions()).hasSize(3);
+        assertThat(resume.questions()).allSatisfy(q -> assertThat(q.title()).isNotBlank());
+        assertThat(resume.questions().get(0).answered()).isFalse();
+        assertThat(resume.questions().get(1).answered()).isTrue();
+        assertThat(resume.questions().get(2).answered()).isFalse();
+    }
+
+    @Test
+    void resumePhienCuaNguoiKhacKhongDocDuoc() {
+        var started = start(1);
+
+        assertThatThrownBy(() -> useCase.resume(OTHER_USER_ID, started.session().id()))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void cancelSetTrangThaiTerminalVaIdempotent() {
+        var started = start(2);
+
+        var cancelled = useCase.cancel(USER_ID, started.session().id());
+        assertThat(cancelled.status()).isEqualTo("CANCELLED");
+        assertThat(cancelled.finishedAt()).isEqualTo(Instant.now(CLOCK));
+
+        var again = useCase.cancel(USER_ID, started.session().id());
+        assertThat(again.status()).isEqualTo("CANCELLED");
+
+        assertThat(useCase.resume(USER_ID, started.session().id()).session().status()).isEqualTo("CANCELLED");
+    }
+
+    @Test
+    void cancelPhienCuaNguoiKhacBiChan() {
+        var started = start(1);
+
+        assertThatThrownBy(() -> useCase.cancel(OTHER_USER_ID, started.session().id()))
+                .isInstanceOf(NotFoundException.class);
+    }
+
     /** Fake giữ đúng bất biến của adapter thật: `answersOf` chỉ trả câu đã trả lời, `finish` set status. */
     static final class InterviewSessionRepositoryFake implements InterviewSessionRepository {
 
@@ -222,6 +270,14 @@ class MockInterviewSubmitUseCaseTest {
             InterviewSession current = sessions.get(sessionId);
             sessions.put(sessionId, new InterviewSession(current.id(), current.userId(), current.topicId(),
                     current.questionCount(), current.mode(), "FINISHED", current.startedAt(), finishedAt,
+                    current.questionIds()));
+        }
+
+        @Override
+        public void cancel(UUID sessionId, Instant finishedAt) {
+            InterviewSession current = sessions.get(sessionId);
+            sessions.put(sessionId, new InterviewSession(current.id(), current.userId(), current.topicId(),
+                    current.questionCount(), current.mode(), "CANCELLED", current.startedAt(), finishedAt,
                     current.questionIds()));
         }
     }

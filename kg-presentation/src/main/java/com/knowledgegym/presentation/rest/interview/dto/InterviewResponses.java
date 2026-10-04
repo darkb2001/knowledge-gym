@@ -57,4 +57,22 @@ public final class InterviewResponses {
                     result.answeredCount());
         }
     }
+
+    /** 1 câu trong payload resume; `answered` để FE tô trạng thái đã trả lời. */
+    public record ResumeQuestion(UUID questionId, String title, boolean answered) {
+
+        public static ResumeQuestion of(MockInterviewUseCase.ResumeQuestion question) {
+            return new ResumeQuestion(question.questionId(), question.title(), question.answered());
+        }
+    }
+
+    /** GET /mock-interview/{id}: metadata phiên + câu theo thứ tự, cho resume sau reload. */
+    public record Resume(Session session, int totalQuestions, int answeredCount,
+                         List<ResumeQuestion> questions) {
+
+        public static Resume of(MockInterviewUseCase.Resume resume) {
+            return new Resume(Session.of(resume.session()), resume.totalQuestions(), resume.answeredCount(),
+                    resume.questions().stream().map(ResumeQuestion::of).toList());
+        }
+    }
 }

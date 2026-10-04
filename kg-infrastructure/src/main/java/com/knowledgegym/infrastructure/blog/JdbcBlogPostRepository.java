@@ -86,8 +86,18 @@ public class JdbcBlogPostRepository implements BlogPostRepository {
     }
 
     @Override public List<Comment> comments(UUID postId) {
-        return jdbc.query("SELECT id,post_id,user_id,parent_id,content,created_at FROM blog_comments WHERE post_id=? AND status='VISIBLE' ORDER BY created_at ASC,id ASC",
-                (rs,n)->new Comment(rs.getObject("id",UUID.class),rs.getObject("post_id",UUID.class),rs.getObject("user_id",UUID.class),rs.getObject("parent_id",UUID.class),rs.getString("content"),rs.getTimestamp("created_at").toInstant()),postId);
+        return jdbc.query("""
+                SELECT c.id,c.post_id,c.user_id,c.parent_id,c.content,c.created_at,
+                       u.display_name AS author_display_name,u.avatar_url AS author_avatar_url
+                FROM blog_comments c LEFT JOIN users u ON u.id=c.user_id
+                WHERE c.post_id=? AND c.status='VISIBLE' ORDER BY c.created_at ASC,c.id ASC
+                """,
+                (rs,n)->new Comment(rs.getObject("id",UUID.class),rs.getObject("post_id",UUID.class),rs.getObject("user_id",UUID.class),rs.getObject("parent_id",UUID.class),rs.getString("content"),rs.getTimestamp("created_at").toInstant(),rs.getString("author_display_name"),rs.getString("author_avatar_url")),postId);
+    }
+    @Override public long countPublished(String tag) {
+        Long total = jdbc.queryForObject("SELECT count(*) FROM blog_posts WHERE status='PUBLISHED' AND (?::text IS NULL OR ?=ANY(tags))",
+                Long.class, tag, tag);
+        return total == null ? 0L : total;
     }
     @Override @Transactional
     public Comment addComment(UUID postId, UUID userId, UUID parentId, String body) {
@@ -98,7 +108,12 @@ public class JdbcBlogPostRepository implements BlogPostRepository {
             throw new IllegalArgumentException("parentId không thuộc bài viết này");
         UUID id=UUID.randomUUID();
         jdbc.update("INSERT INTO blog_comments(id,post_id,user_id,parent_id,content) VALUES(?,?,?,?,?)",id,postId,userId,parentId,body);
-        return new Comment(id,postId,userId,parentId,body,java.time.Instant.now());
+        // Tác giả đọc 1 query theo userId (không phải N+1 — create chỉ có 1 comment).
+        String displayName=null, avatarUrl=null;
+        var author=jdbc.query("SELECT display_name,avatar_url FROM users WHERE id=?",
+                (rs,n)->new String[]{rs.getString(1),rs.getString(2)},userId).stream().findFirst().orElse(null);
+        if(author!=null){displayName=author[0];avatarUrl=author[1];}
+        return new Comment(id,postId,userId,parentId,body,java.time.Instant.now(),displayName,avatarUrl);
     }
     @Override @Transactional
     public boolean setLiked(UUID postId, UUID userId, boolean liked) {

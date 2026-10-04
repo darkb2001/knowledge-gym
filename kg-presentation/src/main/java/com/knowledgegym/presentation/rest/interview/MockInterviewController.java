@@ -51,6 +51,21 @@ public class MockInterviewController {
         return InterviewResponses.Result.of(useCase.result(user, id));
     }
 
+    /**
+     * Resume sau reload: phiên bất kể status + câu theo thứ tự đã giao. 404 nếu không phải
+     * phiên của caller; 401 nếu thiếu token.
+     */
+    @GetMapping("/{id}")
+    public InterviewResponses.Resume resume(@AuthenticationPrincipal UUID user, @PathVariable UUID id) {
+        return InterviewResponses.Resume.of(useCase.resume(user, id));
+    }
+
+    /** Huỷ phiên đang làm; idempotent với phiên đã đóng. Chỉ chủ phiên huỷ được. */
+    @PostMapping("/{id}/cancel")
+    public InterviewResponses.Session cancel(@AuthenticationPrincipal UUID user, @PathVariable UUID id) {
+        return InterviewResponses.Session.of(useCase.cancel(user, id));
+    }
+
     @PostMapping("/{id}/finish")
     public InterviewResponses.Session finish(@AuthenticationPrincipal UUID user, @PathVariable UUID id) {
         return InterviewResponses.Session.of(useCase.finish(user, id));

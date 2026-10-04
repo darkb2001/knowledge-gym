@@ -259,11 +259,17 @@ Response: { session: { id, userId, topicId, questionCount, mode, status,
                       startedAt, finishedAt, questionIds },
             questions: [{ questionId, title }] }
 
-POST /mock-interview/{id}/answer → 200
-Body: { questionId, userAnswer }
+POST /mock-interview/{id}/answer → 200  [KHÔNG còn tồn tại trong code — câu trả lời chỉ được ghi
+Body: { questionId, userAnswer }        khi POST /mock-interview/{id}/submit; xem ghi chú dưới]
 Response: { sessionId, questionId, userAnswer, answerHtml, attemptedAt }
 
 POST /mock-interview/{id}/finish → 200, session với status=FINISHED
+POST /mock-interview/{id}/cancel → 200, session với status=CANCELLED (bỏ phiên; idempotent —
+     huỷ lại trả nguyên phiên đã đóng chứ không 409; phiên user khác → 404, ẩn danh → 401)
+GET /mock-interview/{id} → 200 resume phiên ở MỌI status (reload trang):
+     { session: {...}, totalQuestions, answeredCount,
+       questions: [{ questionId, title, answered }] }  (đúng thứ tự đã giao;
+     ẩn danh → 401, phiên user khác → 404)
 GET /mock-interview/history?page=1&size=20 → { items, page, size, totalElements, totalPages }
 ```
 
@@ -277,6 +283,9 @@ sanitize — cùng nguồn với question detail) để người học tự đ�
 `overallScore`, `feedback`; bảng `interview_answers` lưu `answer_html` thay cho
 `keyword_score`/`feedback`/`sample_answer` (V035).
 Row lock serialize answer/finish; phiên đã FINISHED → 409, phiên user khác → 404.
+`cancel` là terminal thứ hai (V037 mở rộng CHECK thêm `CANCELLED`); phiên đã đóng thì cancel no-op.
+`GET /{id}` trả `answered`/`answeredCount` theo `interview_answers` đã persist — luồng hiện tại chỉ
+ghi answer lúc `/submit`, nên phiên đang ACTIVE thường `answeredCount = 0`.
 `questionIds` trong session giữ **đúng thứ tự đã giao** (`interview_answers.display_order`, V017).
 Response đi qua DTO (`rest/interview/dto`) nên không lộ trường nội bộ của domain.
 Xoá câu dọn answer nhưng giữ interview session; FK topic giữ nguyên.
@@ -331,8 +340,10 @@ GET    /notes/export?format=md  Export as Markdown [m8]; PDF deferred
 ## Blog Endpoints
 
 ```
-GET    /blog/posts              List published posts [m9]
-       Query:   ?tag=&page=&size=
+GET    /blog/posts              List published posts (envelope phân trang) [m9]
+       Query:   ?tag=&page=&size=   page 0-based (default 0); size default 10, cap 50
+       Returns: { items: [ { id, title, slug, excerpt, publishedAt, viewCount, likeCount, tags } ],
+                  total, page, size, hasMore }
 
 GET    /blog/posts/{slug}       Get published post [m9]
 
@@ -348,6 +359,8 @@ GET    /blog/posts/{slug}/comments Get comments [m9]
 
 POST   /blog/posts/{slug}/comments Post sanitized comment [m9]
        Body:    { content, parentId? } (authenticated)
+       Comment (list + create) thêm authorDisplayName/authorAvatarUrl (join users, không N+1);
+       giữ nguyên các field cũ.
 
 GET    /blog/feed.rss           RSS feed [m9]
 
