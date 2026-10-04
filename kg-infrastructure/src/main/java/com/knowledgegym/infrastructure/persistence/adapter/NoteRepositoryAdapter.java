@@ -73,6 +73,13 @@ public class NoteRepositoryAdapter implements NoteRepository {
     }
 
     @Override
+    public boolean publishedQuestionExists(UUID questionId) {
+        return Boolean.TRUE.equals(jdbc.queryForObject(
+                "SELECT EXISTS(SELECT 1 FROM questions WHERE id=? AND content_status='PUBLISHED')",
+                Boolean.class, questionId));
+    }
+
+    @Override
     @Transactional
     public UUID upsertSrsCardFromNote(UUID userId, UUID questionId, UUID noteId) {
         jdbc.update(

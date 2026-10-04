@@ -64,6 +64,7 @@ public class QueryDueUseCase {
 
         Map<UUID, Question> byId = questionRepository.findByIds(
                         due.stream().map(SRSCard::getQuestionId).collect(Collectors.toSet())).stream()
+                .filter(question -> question.getContentStatus() == Question.ContentStatus.PUBLISHED)
                 .collect(Collectors.toMap(Question::getId, Function.identity()));
 
         List<SRSCard> selected = due.stream()

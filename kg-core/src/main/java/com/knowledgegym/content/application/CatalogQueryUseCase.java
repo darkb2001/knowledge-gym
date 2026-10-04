@@ -60,8 +60,8 @@ public class CatalogQueryUseCase {
         Map<UUID, String> topicSlugById = topicRepository.findAllOrdered().stream()
                 .collect(Collectors.toMap(Topic::getId, Topic::getSlug, (a, b) -> a));
 
-        // 1 query group-by thay vì 1 count/module (N+1) — xem `countQuestionsByModule`.
-        Map<UUID, Long> countByModule = moduleRepository.countQuestionsByModule();
+        // Visible counts must match /questions; retain separate all-status counts for delete guards.
+        Map<UUID, Long> countByModule = moduleRepository.countPublishedQuestionsByModule();
 
         return modules.stream()
                 .map(module -> new ModuleWithStats(module,
@@ -76,7 +76,7 @@ public class CatalogQueryUseCase {
         return moduleRepository.findById(id)
                 .map(module -> new ModuleWithStats(module,
                         topicSlugById.get(module.getTopicId()),
-                        moduleRepository.countQuestions(module.getId())));
+                        moduleRepository.countPublishedQuestions(module.getId())));
     }
 
     /** moduleId → slug, để list question không phải tra từng dòng. */

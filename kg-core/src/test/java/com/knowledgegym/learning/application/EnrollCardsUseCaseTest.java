@@ -207,6 +207,20 @@ class EnrollCardsUseCaseTest {
     }
 
     @Test
+    void enrollingNonpublicIdsRejectsTheEntireRequestBeforeWritingAnyCards() {
+        List<Question> seeded = seedQuestions(2);
+        for (var status : Question.ContentStatus.values()) {
+            if (status == Question.ContentStatus.PUBLISHED) continue;
+            seeded.get(1).setContentStatus(status);
+            assertThatThrownBy(() -> useCase.execute(USER_ID, new EnrollCardsUseCase.EnrollCommand(
+                    null, seeded.stream().map(Question::getId).toList(), null)))
+                    .isInstanceOf(NotFoundException.class);
+            assertThat(cards.store).isEmpty();
+            assertThat(decks.store).isEmpty();
+        }
+    }
+
+    @Test
     void unknownQuestionIdReturnsNotFoundInsteadOfForeignKeyViolation() {
         assertThatThrownBy(() -> useCase.execute(USER_ID,
                 new EnrollCardsUseCase.EnrollCommand(null, List.of(UUID.randomUUID()), null)))

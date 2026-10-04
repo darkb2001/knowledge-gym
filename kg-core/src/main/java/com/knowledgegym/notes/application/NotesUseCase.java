@@ -28,7 +28,7 @@ public class NotesUseCase {
     }
 
     public Note create(UUID userId, UUID questionId, UUID moduleId, String noteType, String content, List<String> tags) {
-        requireExistingQuestion(questionId);
+        requirePublishedQuestion(questionId);
         Instant now = Instant.now();
         return notes.insert(new Note(
                 UUID.randomUUID(),
@@ -37,14 +37,18 @@ public class NotesUseCase {
                 moduleId,
                 parseType(noteType),
                 content,
-                tags == null ? List.of() : List.copyOf(tags),
+                copyTags(tags),
                 now,
                 now));
     }
 
     public Note update(UUID userId, UUID noteId, UUID questionId, UUID moduleId, String noteType, String content, List<String> tags) {
         Note existing = get(userId, noteId);
-        requireExistingQuestion(questionId);
+        if (Objects.equals(existing.questionId(), questionId)) {
+            requireExistingQuestion(questionId);
+        } else {
+            requirePublishedQuestion(questionId);
+        }
         return notes.update(new Note(
                 existing.id(),
                 userId,
@@ -52,7 +56,7 @@ public class NotesUseCase {
                 moduleId,
                 parseType(noteType),
                 content,
-                tags == null ? List.of() : List.copyOf(tags),
+                copyTags(tags),
                 existing.createdAt(),
                 Instant.now()));
     }
@@ -84,8 +88,22 @@ public class NotesUseCase {
         if (note.questionId() == null) {
             throw new IllegalArgumentException("Chỉ note gắn với question mới chuyển thành SRS card được");
         }
-        requireExistingQuestion(note.questionId());
+        requirePublishedQuestion(note.questionId());
         return notes.upsertSrsCardFromNote(userId, note.questionId(), noteId);
+    }
+
+    private static List<String> copyTags(List<String> tags) {
+        if (tags == null) return List.of();
+        if (tags.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("tags không được chứa null");
+        }
+        return List.copyOf(tags);
+    }
+
+    private void requirePublishedQuestion(UUID questionId) {
+        if (questionId != null && !notes.publishedQuestionExists(questionId)) {
+            throw new IllegalArgumentException("questionId không khả dụng");
+        }
     }
 
     private void requireExistingQuestion(UUID questionId) {

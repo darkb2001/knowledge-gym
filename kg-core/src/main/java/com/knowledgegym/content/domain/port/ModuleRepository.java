@@ -21,7 +21,7 @@ public interface ModuleRepository {
 
     List<ModuleRef> findAllOrdered();
 
-    /** Đếm số câu hỏi theo module — dùng cho `GET /modules/{id}` (stats) và UI list. */
+    /** All statuses, for destructive-operation guards. Do not use for learner-visible totals. */
     long countQuestions(UUID moduleId);
 
     /**
@@ -31,4 +31,8 @@ public interface ModuleRepository {
      * cho một request `GET /modules`. Trả map để module không có câu nào vẫn tra được (0).
      */
     java.util.Map<UUID, Long> countQuestionsByModule();
+
+    /** Learner-visible totals must match the PUBLISHED-only question list. */
+    default long countPublishedQuestions(UUID moduleId) { throw new UnsupportedOperationException(); }
+    default java.util.Map<UUID, Long> countPublishedQuestionsByModule() { throw new UnsupportedOperationException(); }
 }

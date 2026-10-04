@@ -1,5 +1,7 @@
 package com.knowledgegym.learning.application;
 
+import com.knowledgegym.content.domain.model.Question;
+import com.knowledgegym.content.domain.port.QuestionRepository;
 import com.knowledgegym.learning.domain.model.AttemptSource;
 import com.knowledgegym.learning.domain.model.SRSCard;
 import com.knowledgegym.learning.domain.port.SRSCardRepository;
@@ -37,12 +39,14 @@ public class ReviewCardUseCase {
     private final SRSCardRepository cardRepository;
     private final RecordAttemptUseCase recordAttemptUseCase;
     private final Clock clock;
+    private final QuestionRepository questions;
 
     public ReviewCardUseCase(SRSCardRepository cardRepository, RecordAttemptUseCase recordAttemptUseCase,
-                             Clock clock) {
+                             Clock clock, QuestionRepository questions) {
         this.cardRepository = cardRepository;
         this.recordAttemptUseCase = recordAttemptUseCase;
         this.clock = clock;
+        this.questions = questions;
     }
 
     public record ReviewResult(int quality, int intervalDays, double easeFactor, int repetitions,
@@ -61,6 +65,11 @@ public class ReviewCardUseCase {
         SRSCard card = cardRepository.findByIdForUpdate(cardId, userId)
                 // Thẻ của người khác trả 404 (không phải 403): không xác nhận sự tồn tại của id.
                 .orElseThrow(() -> new NotFoundException("Thẻ SRS không tồn tại: " + cardId));
+
+        // A stale browser tab must not resume withdrawn content or change its schedule/XP.
+        questions.findById(card.getQuestionId())
+                .filter(question -> question.getContentStatus() == Question.ContentStatus.PUBLISHED)
+                .orElseThrow(() -> new NotFoundException("Nội dung thẻ SRS không còn khả dụng"));
 
         Instant now = Instant.now(clock);
         Sm2Scheduler.Schedule schedule = card.applyReview(quality, LocalDate.now(clock), now);

@@ -1,6 +1,6 @@
 # Beta release gates — implementation checkpoint
 
-Status: **NOT approved for public beta deployment**. This document supersedes earlier conversational claims that passing the existing test suites proved the new AI paths complete. No commit, deployment or production flags were enabled.
+Status: **NOT approved for public beta deployment**. This document supersedes earlier conversational claims that passing the existing test suites proved the new AI paths complete. Earlier sections describe their historical checkpoints, not the current deployment state. Current operational evidence and the end-user contract review are recorded in [27-end-user-backend-review.md](27-end-user-backend-review.md); successful CI/deployment does not grant beta approval.
 
 ## Verified in this checkpoint
 
@@ -63,3 +63,13 @@ Known environment warning remains: `./gradlew: line 49: : command not found`; Gr
 - [ ] Owner approves beta scope and deployment environment after gate evidence is collected.
 
 Independent authored decks and interview scenarios are still absent; current beta scope would use the common question bank. If advertised as independent authored products, implement and test them before release. Account invitation/anonymization are also not implemented; do not advertise them as available.
+
+## End-user contract review — 2026-10-04
+
+See [27-end-user-backend-review.md](27-end-user-backend-review.md) for the product matrix, endpoint assessment, priorities and evidence boundaries. Baseline `2ec2141` has a successful GitHub deploy-prod job and public health UP; this is not a full learner-journey acceptance test.
+
+Local follow-up fixes: published-only ID enrollment/SRS due/review/new note links/conversion; existing notes remain editable and withdrawn cards/history are retained; final quiz publication check; sample interview results only after FINISHED; learner module counts exclude nonpublic questions while removal guards retain raw counts; malformed avatar URLs and null note tags are client errors.
+
+Local verification: **223 core + 50 selected infrastructure + 13 presentation/architecture tests**, zero failures/errors/skips; packaging `build -x test` passes. Counts are tested through real Spring Data/Hibernate on disposable PostgreSQL; note publication lookup executes actual JDBC. Updated SRS/quiz HTTP regressions compile but still require the Docker-enabled full CI run. No new migrations, production writes, flags or deployments were performed for this patch.
+
+Full visibility gate stays open: concurrent withdrawal, inactive taxonomy, active/existing quiz/interview semantics, content/options revision snapshots, search relay latency and live HTTP integration are not proven complete. Daily challenge remains 501; PREMIUM is not a verified paid product. Do not advertise these as finished features.

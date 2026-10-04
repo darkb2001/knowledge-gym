@@ -134,6 +134,26 @@ class QueryDueUseCaseTest {
     }
 
     @Test
+    void unpublishedCardsAreSkippedBeforeLimitAndRestoredWithoutResettingSchedule() {
+        Question hidden = seedQuestion(MODULE_A, "Withdrawn", 1);
+        seedCard(hidden, TODAY.minusDays(5));
+        Question visible = seedQuestion(MODULE_A, "Visible", 2);
+        seedCard(visible, TODAY);
+        for (var status : Question.ContentStatus.values()) {
+            if (status == Question.ContentStatus.PUBLISHED) continue;
+            hidden.setContentStatus(status);
+            assertThat(useCase.execute(USER_ID, null, 1))
+                    .extracting(c -> c.question().getId()).containsExactly(visible.getId());
+            assertThat(cards.store).hasSize(2);
+        }
+        hidden.setContentStatus(Question.ContentStatus.PUBLISHED);
+        assertThat(useCase.execute(USER_ID, null, 1))
+                .extracting(c -> c.question().getId()).containsExactly(hidden.getId());
+        assertThat(cards.store.values()).filteredOn(c -> c.getQuestionId().equals(hidden.getId()))
+                .allSatisfy(c -> assertThat(c.getNextReview()).isEqualTo(TODAY.minusDays(5)));
+    }
+
+    @Test
     void noDueCardsReturnsEmptyWithoutTouchingQuestions() {
         assertThat(useCase.execute(USER_ID, null, null)).isEmpty();
     }

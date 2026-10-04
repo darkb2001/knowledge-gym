@@ -29,5 +29,5 @@ fi
   :kg-infrastructure:test --tests '*AdminUsersPersistenceTest' --tests '*FlywayDatabaseMigrationTest' \
   --tests '*JwtAuthenticationFilterTest' --tests '*BlockedOAuthAccountTest' \
   --tests '*AdminModerationPersistenceTest' --tests '*AdminLearningPersistenceTest' --tests '*LearningDraftPersistenceTest' \
-  --tests '*QuestionVisibilityQueryTest' --tests '*QuestionDeleteSafetyTest' \
+  --tests '*QuestionVisibilityQueryTest' --tests '*QuestionDeleteSafetyTest' --tests '*ModulePublicationCountsTest' \
   :kg-presentation:test --tests '*AdminUsersHttpTest' --rerun-tasks --console=plain

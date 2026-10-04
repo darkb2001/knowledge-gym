@@ -95,6 +95,20 @@ public class ModuleRepositoryAdapter implements ModuleRepository {
         return counts;
     }
 
+    @Override
+    public long countPublishedQuestions(UUID moduleId) {
+        return questionRepository.countByModuleIdAndContentStatus(moduleId, "PUBLISHED");
+    }
+
+    @Override
+    public Map<UUID, Long> countPublishedQuestionsByModule() {
+        Map<UUID, Long> counts = new HashMap<>();
+        for (Object[] row : questionRepository.countPublishedGroupedByModule()) {
+            counts.put((UUID) row[0], (Long) row[1]);
+        }
+        return counts;
+    }
+
     static ModuleRef toDomain(ModuleJpaEntity entity) {
         ModuleRef module = new ModuleRef(entity.getName(), entity.getSlug(), entity.getDisplayOrder());
         module.setId(entity.getId());

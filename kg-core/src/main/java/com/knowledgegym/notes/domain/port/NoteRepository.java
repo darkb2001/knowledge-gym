@@ -21,5 +21,8 @@ public interface NoteRepository {
 
     boolean questionExists(UUID questionId);
 
+    /** New links and SRS conversion require published content; existing private notes remain readable. */
+    default boolean publishedQuestionExists(UUID questionId) { throw new UnsupportedOperationException(); }
+
     UUID upsertSrsCardFromNote(UUID userId, UUID questionId, UUID noteId);
 }

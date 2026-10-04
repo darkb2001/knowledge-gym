@@ -123,6 +123,18 @@ class MockInterviewSubmitUseCaseTest {
     }
 
     @Test
+    void activeInterviewCannotExposeSampleAnswersThroughResult() {
+        var started = start(2);
+        assertThatThrownBy(() -> useCase.result(USER_ID, started.session().id()))
+                .isInstanceOf(ConflictException.class);
+        assertThatThrownBy(() -> useCase.result(OTHER_USER_ID, started.session().id()))
+                .isInstanceOf(NotFoundException.class);
+        assertThat(sessions.answersOf(started.session().id())).isEmpty();
+        useCase.submit(USER_ID, started.session().id(), List.of());
+        assertThat(useCase.result(USER_ID, started.session().id()).items()).hasSize(2);
+    }
+
+    @Test
     void submitLanHaiTrenPhienDaDongTraConflict() {
         var started = start(1);
         useCase.submit(USER_ID, started.session().id(), List.of());

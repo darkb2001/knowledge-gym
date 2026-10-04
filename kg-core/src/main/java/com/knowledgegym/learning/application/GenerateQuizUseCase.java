@@ -123,7 +123,9 @@ public class GenerateQuizUseCase {
 
         Map<UUID, Question> questionsById = new LinkedHashMap<>();
         for (Question question : questionRepository.findByIds(selectedIds)) {
-            questionsById.put(question.getId(), question);
+            if (question.getContentStatus() == Question.ContentStatus.PUBLISHED) {
+                questionsById.put(question.getId(), question);
+            }
         }
 
         selectedIds.removeIf(id -> !questionsById.containsKey(id));

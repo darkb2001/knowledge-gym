@@ -114,6 +114,9 @@ public class MockInterviewUseCase {
     public Result result(UUID user, UUID id) {
         var session = sessions.findByIdAndUserId(id, user)
                 .orElseThrow(() -> new NotFoundException("Phiên phỏng vấn không tồn tại"));
+        if (!"FINISHED".equals(session.status())) {
+            throw new ConflictException("Kết thúc phỏng vấn trước khi xem đáp án mẫu");
+        }
         var saved = sessions.answersOf(id);
         List<ResultItem> items = session.questionIds().stream().map(questionId -> {
             var answer = saved.get(questionId);

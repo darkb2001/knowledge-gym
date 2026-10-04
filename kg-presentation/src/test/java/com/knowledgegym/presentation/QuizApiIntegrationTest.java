@@ -184,6 +184,7 @@ class QuizApiIntegrationTest {
         // Phiên của người khác: không submit được, không đọc được trang kết quả.
         response(postJson("/mock-interview/"+id+"/submit",java.util.Map.of("answers",List.of(java.util.Map.of("questionId",qid,"answer","thread lock"))),otherUserToken),404);
         response(get("/mock-interview/"+id+"/result").header("Authorization","Bearer "+otherUserToken),404);
+        response(get("/mock-interview/"+id+"/result").header("Authorization","Bearer "+userToken),409);
         String sample=questionRepository.findById(UUID.fromString(qid)).orElseThrow().getAnswerHtml();
         // Một nút "kết thúc phỏng vấn" = submit toàn cục: mọi câu đều có đáp án mẫu, kể cả câu bỏ trống; không chấm điểm.
         var submitted=response(postJson("/mock-interview/"+id+"/submit",java.util.Map.of("answers",List.of(

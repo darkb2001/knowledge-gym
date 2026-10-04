@@ -21,6 +21,11 @@ public interface SpringDataQuestionRepository extends JpaRepository<QuestionJpaE
 
     long countByModuleId(UUID moduleId);
 
+    long countByModuleIdAndContentStatus(UUID moduleId, String contentStatus);
+
+    @Query("SELECT q.moduleId, count(q) FROM QuestionJpaEntity q WHERE q.contentStatus = 'PUBLISHED' GROUP BY q.moduleId")
+    List<Object[]> countPublishedGroupedByModule();
+
     void deleteByModuleId(UUID moduleId);
 
     @Modifying

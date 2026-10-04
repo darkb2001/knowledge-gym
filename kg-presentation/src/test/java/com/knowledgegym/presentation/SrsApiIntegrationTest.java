@@ -517,6 +517,59 @@ class SrsApiIntegrationTest {
                 .andExpect(jsonPath("$.title").value("bad_request"));
     }
 
+    @Test
+    @Order(21)
+    void withdrawalBlocksEnrollDueAndReviewWithoutDeletingHistory() throws Exception {
+        UUID questionId = UUID.fromString(firstQuestionIdOfModule());
+        UUID cardId = UUID.fromString(cardIdFor(questionId));
+        try (var connection = dataSource.getConnection();
+             var statement = connection.prepareStatement("UPDATE srs_cards SET next_review=CURRENT_DATE-1 WHERE id=?")) {
+            statement.setObject(1, cardId);
+            statement.executeUpdate();
+        }
+        var before = cardRow(cardId);
+        var attemptsBefore = attemptsFor(questionId);
+        long visibleCount = questionRepository.search(new QuestionQuery(
+                UUID.fromString(moduleId), null, null, null, 1, 1)).totalElements();
+        try {
+            for (String contentStatus : List.of("DRAFT", "HIDDEN", "ARCHIVED")) {
+                setQuestionStatus(questionId, contentStatus);
+                mockMvc.perform(get("/modules/{id}", moduleId).header("Authorization", bearer(userToken)))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.questionCount").value(visibleCount - 1));
+                mockMvc.perform(post("/srs/enroll").header("Authorization", bearer(userToken))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"questionIds\":[\"" + questionId + "\"]}"))
+                        .andExpect(status().isNotFound());
+                mockMvc.perform(get("/srs/due").param("limit", "100")
+                                .header("Authorization", bearer(userToken)))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$[?(@.questionId == '" + questionId + "')]").isEmpty());
+                mockMvc.perform(post("/srs/review/{cardId}", cardId).header("Authorization", bearer(userToken))
+                                .contentType(MediaType.APPLICATION_JSON).content("{\"quality\":2,\"timeMs\":1000}"))
+                        .andExpect(status().isNotFound());
+                assertThat(cardRow(cardId)).isEqualTo(before);
+                assertThat(attemptsFor(questionId)).containsExactlyInAnyOrderElementsOf(attemptsBefore);
+                assertThat(cardIdsFor(questionId)).contains(cardId);
+            }
+        } finally {
+            setQuestionStatus(questionId, "PUBLISHED");
+        }
+        mockMvc.perform(get("/srs/due").param("limit", "100").header("Authorization", bearer(userToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.questionId == '" + questionId + "')]").isNotEmpty());
+        assertThat(cardRow(cardId)).isEqualTo(before);
+    }
+
+    private void setQuestionStatus(UUID questionId, String contentStatus) throws Exception {
+        try (var connection = dataSource.getConnection();
+             var statement = connection.prepareStatement("UPDATE questions SET content_status=? WHERE id=?")) {
+            statement.setString(1, contentStatus);
+            statement.setObject(2, questionId);
+            statement.executeUpdate();
+        }
+    }
+
     // ------------------------------------------------------------------ atomicity
 
     /**

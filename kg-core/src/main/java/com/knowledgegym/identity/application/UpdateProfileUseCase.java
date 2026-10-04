@@ -3,7 +3,6 @@ package com.knowledgegym.identity.application;
 import com.knowledgegym.identity.domain.model.User;
 import com.knowledgegym.identity.domain.port.UserRepository;
 import java.net.URI;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -54,6 +53,8 @@ public final class UpdateProfileUseCase {
                 throw new IllegalArgumentException("avatarUrl must be hosted on the configured object storage");
             }
         });
-        Objects.requireNonNull(uri.getHost(), "avatarUrl must include a host");
+        if (uri.getHost() == null || uri.getHost().isBlank() || uri.getUserInfo() != null) {
+            throw new IllegalArgumentException("avatarUrl must include a host and no credentials");
+        }
     }
 }

@@ -51,10 +51,38 @@ class NotesUseCaseTest {
         assertThat(useCase.exportMarkdown(user)).contains("# My notes").contains("bm");
     }
 
+    @Test
+    void withdrawalBlocksNewLinksAndConversionButKeepsExistingNotesEditable() {
+        notes.existingQuestions.add(question);
+        var linked = useCase.create(user, question, null, "STUDY", "My notes", List.of());
+        notes.unpublishedQuestions.add(question);
+        assertThatThrownBy(() -> useCase.create(user, question, null, "BOOKMARK", "", List.of()))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> useCase.convertToSrsCard(user, linked.id()))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThat(useCase.update(user, linked.id(), question, null, "STUDY", "Still mine", List.of()).content())
+                .isEqualTo("Still mine");
+        assertThat(useCase.list(user)).hasSize(1);
+        assertThat(notes.cards).isEmpty();
+    }
+
+    @Test
+    void nullTagElementsAreClientErrorsWithoutChangingExistingNotes() {
+        var note = useCase.create(user, null, null, "QUICK", "Keep", List.of());
+        var badTags = java.util.Collections.<String>singletonList(null);
+        assertThatThrownBy(() -> useCase.create(user, null, null, "QUICK", "Invalid", badTags))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> useCase.update(user, note.id(), null, null, "QUICK", "Invalid", badTags))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThat(useCase.list(user)).hasSize(1);
+        assertThat(useCase.get(user, note.id()).content()).isEqualTo("Keep");
+    }
+
     private static final class InMemoryNotes implements NoteRepository {
         private final Map<UUID, Note> byId = new HashMap<>();
         private final Map<String, UUID> cards = new HashMap<>();
         final List<UUID> existingQuestions = new ArrayList<>();
+        final List<UUID> unpublishedQuestions = new ArrayList<>();
 
         @Override public List<Note> findByUser(UUID userId) {
             return byId.values().stream().filter(n -> n.userId().equals(userId)).toList();
@@ -74,6 +102,9 @@ class NotesUseCaseTest {
             return true;
         }
         @Override public boolean questionExists(UUID questionId) { return existingQuestions.contains(questionId); }
+        @Override public boolean publishedQuestionExists(UUID questionId) {
+            return existingQuestions.contains(questionId) && !unpublishedQuestions.contains(questionId);
+        }
         @Override public UUID upsertSrsCardFromNote(UUID userId, UUID questionId, UUID noteId) {
             return cards.computeIfAbsent(userId + ":" + questionId, key -> UUID.randomUUID());
         }

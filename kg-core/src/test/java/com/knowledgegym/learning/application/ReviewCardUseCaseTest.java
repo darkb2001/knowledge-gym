@@ -42,6 +42,7 @@ class ReviewCardUseCaseTest {
     private ProgressTestSupport.InMemoryProgressRepository progress;
     private ReviewCardUseCase useCase;
     private SRSCard card;
+    private com.knowledgegym.content.domain.model.Question question;
 
     @BeforeEach
     void setUp() {
@@ -51,8 +52,12 @@ class ReviewCardUseCaseTest {
         progress = new ProgressTestSupport.InMemoryProgressRepository();
         var questionModules = new ProgressTestSupport.InMemoryQuestionModulePort();
         questionModules.seed(QUESTION_ID, UUID.randomUUID());
+        var questions = new LearningTestSupport.InMemoryQuestionRepository();
+        question = LearningTestSupport.question(UUID.randomUUID(), "Published card", 1);
+        question.setId(QUESTION_ID);
+        questions.seed(question);
         useCase = new ReviewCardUseCase(cards,
-                new RecordAttemptUseCase(attempts, questionModules, xp, progress), CLOCK);
+                new RecordAttemptUseCase(attempts, questionModules, xp, progress), CLOCK, questions);
 
         card = SRSCard.newCard(USER_ID, QUESTION_ID, null, null, TODAY);
         cards.store.put(card.getId(), card);
@@ -173,6 +178,24 @@ class ReviewCardUseCaseTest {
         useCase.execute(USER_ID, card.getId(), Sm2Scheduler.QUALITY_GOOD, null);
 
         assertThat(attempts.store.get(0).getTimeMs()).isNull();
+    }
+
+    @Test
+    void withdrawnContentCannotBeReviewedAndKeepsScheduleHistoryAndXp() {
+        useCase.execute(USER_ID, card.getId(), Sm2Scheduler.QUALITY_GOOD, 4200);
+        LocalDate nextReview = card.getNextReview();
+        int repetitions = card.getRepetitions();
+        int currentXp = xp.currentXp(USER_ID);
+        for (var status : com.knowledgegym.content.domain.model.Question.ContentStatus.values()) {
+            if (status == com.knowledgegym.content.domain.model.Question.ContentStatus.PUBLISHED) continue;
+            question.setContentStatus(status);
+            assertThatThrownBy(() -> useCase.execute(USER_ID, card.getId(), Sm2Scheduler.QUALITY_GOOD, 1000))
+                    .isInstanceOf(NotFoundException.class);
+            assertThat(card.getNextReview()).isEqualTo(nextReview);
+            assertThat(card.getRepetitions()).isEqualTo(repetitions);
+            assertThat(attempts.store).hasSize(1);
+            assertThat(xp.currentXp(USER_ID)).isEqualTo(currentXp);
+        }
     }
 
     // ------------------------------------------------------------------ validation

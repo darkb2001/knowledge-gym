@@ -142,6 +142,7 @@ public class EnrollCardsUseCase {
      */
     private void requireQuestionsExist(List<UUID> questionIds) {
         Set<UUID> found = questionRepository.findByIds(questionIds).stream()
+                .filter(question -> question.getContentStatus() == Question.ContentStatus.PUBLISHED)
                 .map(Question::getId)
                 .collect(Collectors.toSet());
         for (UUID id : questionIds) {

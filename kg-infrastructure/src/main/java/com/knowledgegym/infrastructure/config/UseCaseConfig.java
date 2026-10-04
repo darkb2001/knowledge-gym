@@ -318,8 +318,8 @@ public class UseCaseConfig {
     @Bean
     ReviewCardUseCase reviewCardUseCase(SRSCardRepository srsCardRepository,
                                         RecordAttemptUseCase recordAttemptUseCase,
-                                        Clock clock) {
-        return new ReviewCardUseCase(srsCardRepository, recordAttemptUseCase, clock);
+                                        Clock clock, QuestionRepository questions) {
+        return new ReviewCardUseCase(srsCardRepository, recordAttemptUseCase, clock, questions);
     }
 
     /**
