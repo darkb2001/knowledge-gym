@@ -177,24 +177,43 @@ class QuizApiIntegrationTest {
         var detail=response(get("/questions/"+qid).header("Authorization","Bearer "+userToken),200);
         assertThat(detail.get("options").size()).isGreaterThanOrEqualTo(2);assertThat(detail.get("options").get(0).has("isCorrect")).isFalse();
     }
-    @Test @Order(6) void mockInterviewReturnsSampleAnswerOnSubmitAndScopesOwnership() throws Exception {
+    @Test @Order(6) void mockInterviewSubmitsEverythingAtOnceAndScopesOwnership() throws Exception {
         var start=response(postJson("/mock-interview/start",java.util.Map.of("topicId",topicId,"questionCount",3,"mode","TEXT"),userToken),201);
         String id=start.get("session").get("id").asText();String qid=start.get("questions").get(0).get("questionId").asText();
-        response(postJson("/mock-interview/"+id+"/answer",java.util.Map.of("questionId",qid,"userAnswer","thread lock"),otherUserToken),404);
-        response(post("/mock-interview/"+id+"/finish").header("Authorization","Bearer "+otherUserToken),404);
+        String blankQid=start.get("questions").get(2).get("questionId").asText();
+        // Phiên của người khác: không submit được, không đọc được trang kết quả.
+        response(postJson("/mock-interview/"+id+"/submit",java.util.Map.of("answers",List.of(java.util.Map.of("questionId",qid,"answer","thread lock"))),otherUserToken),404);
+        response(get("/mock-interview/"+id+"/result").header("Authorization","Bearer "+otherUserToken),404);
         String sample=questionRepository.findById(UUID.fromString(qid)).orElseThrow().getAnswerHtml();
-        // Không chấm điểm: mọi câu trả lời đều trả về đáp án mẫu (answerHtml) ngay khi lưu.
-        var first=response(postJson("/mock-interview/"+id+"/answer",java.util.Map.of("questionId",qid,"userAnswer","unknown"),userToken),200);
-        assertThat(first.get("answerHtml").asText()).isEqualTo(sample);
-        assertThat(first.has("keywordScore")).isFalse();assertThat(first.has("feedback")).isFalse();
-        var edited=response(postJson("/mock-interview/"+id+"/answer",java.util.Map.of("questionId",qid,"userAnswer","thread lock và lock striping"),userToken),200);
-        assertThat(edited.get("userAnswer").asText()).isEqualTo("thread lock và lock striping");
-        assertThat(edited.get("answerHtml").asText()).isEqualTo(sample);
+        // Một nút "kết thúc phỏng vấn" = submit toàn cục: mọi câu đều có đáp án mẫu, kể cả câu bỏ trống; không chấm điểm.
+        var submitted=response(postJson("/mock-interview/"+id+"/submit",java.util.Map.of("answers",List.of(
+                java.util.Map.of("questionId",qid,"answer","thread lock và lock striping"),
+                java.util.Map.of("questionId",blankQid,"answer","   "))),userToken),200);
+        assertThat(submitted.get("items")).hasSize(3);
+        assertThat(submitted.get("answeredCount").asInt()).isEqualTo(1);
+        assertThat(submitted.get("session").get("status").asText()).isEqualTo("FINISHED");
+        var answered=submitted.get("items").get(0);
+        assertThat(answered.get("questionId").asText()).isEqualTo(qid);
+        assertThat(answered.get("userAnswer").asText()).isEqualTo("thread lock và lock striping");
+        assertThat(answered.get("answerHtml").asText()).isEqualTo(sample);
+        var blankAnswer=submitted.get("items").get(2).get("userAnswer");
+        assertThat(blankAnswer==null||blankAnswer.isNull()).isTrue();
+        assertThat(submitted.get("items").get(2).hasNonNull("answerHtml")).isTrue();
+        assertThat(submitted.has("overallScore")).isFalse();
+        assertThat(answered.has("keywordScore")).isFalse();assertThat(answered.has("feedback")).isFalse();
         assertThat(db().queryForObject("SELECT count(*) FROM interview_answers WHERE session_id=? AND question_id=?",Integer.class,UUID.fromString(id),UUID.fromString(qid))).isEqualTo(1);
         assertThat(db().queryForObject("SELECT answer_html FROM interview_answers WHERE session_id=? AND question_id=?",String.class,UUID.fromString(id),UUID.fromString(qid))).isEqualTo(sample);
-        var finish=response(post("/mock-interview/"+id+"/finish").header("Authorization","Bearer "+userToken),200);
-        assertThat(finish.get("status").asText()).isEqualTo("FINISHED");assertThat(finish.has("overallScore")).isFalse();
-        response(postJson("/mock-interview/"+id+"/answer",java.util.Map.of("questionId",qid,"userAnswer","edited"),userToken),409);
+        // Bỏ trống không tạo thêm dòng: 3 dòng là placeholder của phiên lúc start, chỉ 1 dòng có câu trả lời.
+        assertThat(db().queryForObject("SELECT count(*) FROM interview_answers WHERE session_id=?",Integer.class,UUID.fromString(id))).isEqualTo(3);
+        assertThat(db().queryForObject("SELECT count(*) FROM interview_answers WHERE session_id=? AND user_answer IS NOT NULL",Integer.class,UUID.fromString(id))).isEqualTo(1);
+        assertThat(db().queryForObject("SELECT count(*) FROM interview_answers WHERE session_id=? AND question_id=? AND user_answer IS NULL",Integer.class,UUID.fromString(id),UUID.fromString(blankQid))).isEqualTo(1);
+        // Đọc lại trang kết quả được; phiên đã đóng nên submit/finish lần nữa -> 409.
+        var reread=response(get("/mock-interview/"+id+"/result").header("Authorization","Bearer "+userToken),200);
+        assertThat(reread.get("items")).hasSize(3);
+        response(postJson("/mock-interview/"+id+"/submit",java.util.Map.of("answers",List.of()),userToken),409);
+        response(post("/mock-interview/"+id+"/finish").header("Authorization","Bearer "+userToken),409);
+        // Endpoint lưu từng câu đã bị gỡ: FE chỉ còn một nút submit toàn cục.
+        response(postJson("/mock-interview/"+id+"/answer",java.util.Map.of("questionId",qid,"userAnswer","edited"),userToken),404);
         response(postJson("/mock-interview/start",java.util.Map.of("topicId",topicId,"questionCount",1,"mode","AUDIO"),userToken),400);
         for(int count:new int[]{0,21})response(postJson("/mock-interview/start",java.util.Map.of("topicId",topicId,"questionCount",count,"mode","TEXT"),userToken),400);
         var history=response(get("/mock-interview/history").header("Authorization","Bearer "+userToken),200);
@@ -202,9 +221,11 @@ class QuizApiIntegrationTest {
         assertThat(persisted.get("status").asText()).isEqualTo("FINISHED");
         assertThat(persisted.get("questionIds")).hasSize(3);
         assertThat(persisted.has("overallScore")).isFalse();
-        // V017: history phải trả câu theo đúng thứ tự đã giao, không phải theo UUID của placeholder.
+        // V017: mọi dòng của phiên (kể cả câu bỏ trống) theo đúng thứ tự đã giao, không phải theo UUID của placeholder.
         assertThat(db().queryForList("SELECT question_id::text FROM interview_answers WHERE session_id=? ORDER BY display_order",String.class,UUID.fromString(id)))
                 .isEqualTo(start.get("questions").findValuesAsString("questionId"));
+        assertThat(db().queryForList("SELECT question_id::text FROM interview_answers WHERE session_id=? AND user_answer IS NOT NULL ORDER BY display_order",String.class,UUID.fromString(id)))
+                .containsExactly(qid);
     }
     @Test @Order(10) void adminCreatedQuestionGetsQuizOptionsImmediately() throws Exception {
         var created=response(postJson("/admin/content/questions",java.util.Map.of("moduleId",moduleId,
@@ -260,7 +281,7 @@ class QuizApiIntegrationTest {
         response(postJson("/quiz/"+id+"/submit",java.util.Map.of("answers",List.of(answer(quiz,0,true))),userToken),200);
         var start=response(postJson("/mock-interview/start",java.util.Map.of("topicId",topicId,"questionCount",20,"mode","TEXT"),userToken),201);
         String interviewId=start.get("session").get("id").asText();
-        response(postJson("/mock-interview/"+interviewId+"/answer",java.util.Map.of("questionId",qid,"userAnswer","java"),userToken),200);
+        response(postJson("/mock-interview/"+interviewId+"/submit",java.util.Map.of("answers",List.of(java.util.Map.of("questionId",qid,"answer","java"))),userToken),200);
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/admin/content/questions/"+qid).header("Authorization","Bearer "+adminToken)).andExpect(status().isConflict());
         assertThat(db().queryForObject("SELECT count(*) FROM quiz_sessions WHERE id=?",Integer.class,UUID.fromString(id))).isEqualTo(1);
         assertThat(db().queryForObject("SELECT count(*) FROM interview_sessions WHERE id=?",Integer.class,UUID.fromString(interviewId))).isEqualTo(1);
