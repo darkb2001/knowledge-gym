@@ -28,6 +28,7 @@ public class SecurityConfig {
     private final RateLimitFilter rateLimitFilter;
     private final OAuth2SuccessHandler oauth2SuccessHandler;
     private final OAuth2FailureHandler oauth2FailureHandler;
+    private final HttpCookieOAuth2AuthorizationRequestRepository oauth2AuthorizationRequestRepository;
     private final List<String> allowedOrigins;
     private final boolean swaggerEnabled;
 
@@ -35,12 +36,14 @@ public class SecurityConfig {
                           RateLimitFilter rateLimitFilter,
                           OAuth2SuccessHandler oauth2SuccessHandler,
                           OAuth2FailureHandler oauth2FailureHandler,
+                          HttpCookieOAuth2AuthorizationRequestRepository oauth2AuthorizationRequestRepository,
                           @Value("${app.security.cors.allowed-origins:http://localhost:3000}") String origins,
                           @Value("${app.security.swagger-enabled:false}") boolean swaggerEnabled) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.rateLimitFilter = rateLimitFilter;
         this.oauth2SuccessHandler = oauth2SuccessHandler;
         this.oauth2FailureHandler = oauth2FailureHandler;
+        this.oauth2AuthorizationRequestRepository = oauth2AuthorizationRequestRepository;
         this.allowedOrigins = Arrays.stream(origins.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
@@ -79,7 +82,12 @@ public class SecurityConfig {
                     .anyRequest().authenticated();
             })
             .oauth2Login(oauth2 -> oauth2
-                .authorizationEndpoint(a -> a.baseUri("/oauth2/authorization"))
+                .authorizationEndpoint(a -> a
+                    .baseUri("/oauth2/authorization")
+                    // State + PKCE code_verifier đi trong cookie mã hoá thay vì JSESSIONID:
+                    // app STATELESS nên session cookie không đáng tin (iOS/mobile hay đánh rơi),
+                    // mất nó là callback trả authorization_request_not_found một cách ngẫu nhiên.
+                    .authorizationRequestRepository(oauth2AuthorizationRequestRepository))
                 .successHandler(oauth2SuccessHandler)
                 .failureHandler(oauth2FailureHandler)
             )
