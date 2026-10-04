@@ -117,8 +117,10 @@ public class UseCaseConfig {
     ImportContentUseCase importContentUseCase(ContentSource contentSource,
                                               TopicRepository topicRepository,
                                               ModuleRepository moduleRepository,
-                                              QuestionRepository questionRepository, GenerateQuestionOptionsUseCase options) {
-        return new ImportContentUseCase(contentSource, topicRepository, moduleRepository, questionRepository, options);
+                                              QuestionRepository questionRepository, GenerateQuestionOptionsUseCase options,
+                                              com.knowledgegym.content.domain.port.ContentTrackRepository trackRepository) {
+        return new ImportContentUseCase(contentSource, topicRepository, moduleRepository, questionRepository,
+                options, trackRepository);
     }
 
     @Bean
@@ -157,8 +159,9 @@ public class UseCaseConfig {
 
     @Bean
     CatalogQueryUseCase catalogQueryUseCase(TopicRepository topicRepository,
-                                            ModuleRepository moduleRepository) {
-        return new CatalogQueryUseCase(topicRepository, moduleRepository);
+                                            ModuleRepository moduleRepository,
+                                            com.knowledgegym.content.domain.port.ContentTrackRepository trackRepository) {
+        return new CatalogQueryUseCase(topicRepository, moduleRepository, trackRepository);
     }
 
     @Bean GenerateQuestionOptionsUseCase generateQuestionOptionsUseCase(ModuleRepository m, QuestionRepository q, QuestionOptionRepository o) {return new GenerateQuestionOptionsUseCase(m,q,o);}

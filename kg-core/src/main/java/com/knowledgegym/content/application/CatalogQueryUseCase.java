@@ -1,9 +1,11 @@
 package com.knowledgegym.content.application;
 
+import com.knowledgegym.content.domain.model.ContentTrack;
 import com.knowledgegym.content.domain.model.ModuleRef;
 import com.knowledgegym.content.domain.model.ModuleWithStats;
 import com.knowledgegym.content.domain.model.Topic;
 import com.knowledgegym.content.domain.model.TopicWithStats;
+import com.knowledgegym.content.domain.port.ContentTrackRepository;
 import com.knowledgegym.content.domain.port.ModuleRepository;
 import com.knowledgegym.content.domain.port.TopicRepository;
 
@@ -18,10 +20,22 @@ public class CatalogQueryUseCase {
 
     private final TopicRepository topicRepository;
     private final ModuleRepository moduleRepository;
+    private final ContentTrackRepository trackRepository;
 
     public CatalogQueryUseCase(TopicRepository topicRepository, ModuleRepository moduleRepository) {
+        this(topicRepository, moduleRepository, null);
+    }
+
+    public CatalogQueryUseCase(TopicRepository topicRepository, ModuleRepository moduleRepository,
+                               ContentTrackRepository trackRepository) {
         this.topicRepository = topicRepository;
         this.moduleRepository = moduleRepository;
+        this.trackRepository = trackRepository;
+    }
+
+    /** Lộ trình học (Java / AWS …) theo display_order — UI gom topic theo track. */
+    public List<ContentTrack> listTracks() {
+        return trackRepository == null ? List.of() : trackRepository.findAllOrdered();
     }
 
     public List<TopicWithStats> listTopics() {

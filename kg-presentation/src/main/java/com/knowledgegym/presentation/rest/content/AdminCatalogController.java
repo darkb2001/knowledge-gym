@@ -39,7 +39,7 @@ public class AdminCatalogController {
     @CacheEvict(value = {"topics", "modules", "questions"}, allEntries = true)
     public TopicDTO createTopic(@Valid @RequestBody TopicCreate request) {
         var topic = manage.createTopic(request.patch());
-        return new TopicDTO(topic.getId(), topic.getSlug(), topic.getName(), topic.getDescription(), topic.getDisplayOrder(), 0);
+        return new TopicDTO(topic.getId(), topic.getSlug(), topic.getName(), topic.getDescription(), topic.getDisplayOrder(), 0, topic.getTrackSlug());
     }
     @PatchMapping("/topics/{id}")
     @CacheEvict(value = {"topics", "modules", "questions"}, allEntries = true)

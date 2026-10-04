@@ -27,7 +27,7 @@ public class CacheConfig {
     CacheManager cacheManager(@Value("${app.cache.questions.max-size:1000}") long maxSize,
                               @Value("${app.cache.questions.ttl:30m}") Duration ttl) {
         CaffeineCacheManager manager = new CaffeineCacheManager();
-        manager.setCacheNames(List.of("questions", "topics", "modules"));
+        manager.setCacheNames(List.of("questions", "topics", "modules", "tracks"));
         manager.setCaffeine(Caffeine.newBuilder()
                 .maximumSize(maxSize)
                 .expireAfterWrite(ttl)

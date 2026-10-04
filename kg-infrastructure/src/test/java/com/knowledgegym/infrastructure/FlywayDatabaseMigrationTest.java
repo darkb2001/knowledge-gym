@@ -159,8 +159,8 @@ class FlywayDatabaseMigrationTest {
         query("SELECT count(*) FROM information_schema.tables " +
                 "WHERE table_schema = 'public' AND table_type = 'BASE TABLE' " +
                 "AND table_name != 'flyway_schema_history'", rs -> {
-            assertEquals(48, rs.getInt(1),
-                    "Expected exactly 48 tables excluding flyway_schema_history through V031");
+            assertEquals(49, rs.getInt(1),
+                    "Expected exactly 49 tables excluding flyway_schema_history (V036 adds content_tracks)");
         });
     }
 

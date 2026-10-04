@@ -12,6 +12,9 @@ public class Topic {
     private int displayOrder;
     private boolean active = true;
 
+    /** Track (lộ trình) chứa topic — suy từ `data-track` của nav-group khi import docs. */
+    private String trackSlug;
+
     public Topic(String name, String slug, int displayOrder) {
         this.name = name;
         this.slug = slug;
@@ -30,4 +33,6 @@ public class Topic {
     public void setDisplayOrder(int displayOrder) { this.displayOrder = displayOrder; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+    public String getTrackSlug() { return trackSlug; }
+    public void setTrackSlug(String trackSlug) { this.trackSlug = trackSlug; }
 }

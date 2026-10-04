@@ -15,6 +15,9 @@ import java.util.UUID;
 @Repository
 public class TopicRepositoryAdapter implements TopicRepository {
 
+    /** Topic tạo qua admin API (không khai báo track) vẫn phải thoả FK `content_tracks`. */
+    static final String DEFAULT_TRACK = "java";
+
     private final SpringDataTopicRepository springData;
 
     public TopicRepositoryAdapter(SpringDataTopicRepository springData) {
@@ -41,6 +44,7 @@ public class TopicRepositoryAdapter implements TopicRepository {
         entity.setDescription(topic.getDescription());
         entity.setActive(topic.isActive());
         entity.setDisplayOrder(topic.getDisplayOrder());
+        entity.setTrack(trackOf(topic));
         return toDomain(springData.saveAndFlush(entity));
     }
 
@@ -59,6 +63,7 @@ public class TopicRepositoryAdapter implements TopicRepository {
         entity.setDescription(topic.getDescription());
         entity.setActive(topic.isActive());
         entity.setDisplayOrder(topic.getDisplayOrder());
+        entity.setTrack(trackOf(topic));
         return toDomain(springData.save(entity));
     }
 
@@ -69,11 +74,17 @@ public class TopicRepositoryAdapter implements TopicRepository {
                 .toList();
     }
 
+    private static String trackOf(Topic topic) {
+        return topic.getTrackSlug() == null || topic.getTrackSlug().isBlank()
+                ? DEFAULT_TRACK : topic.getTrackSlug();
+    }
+
     static Topic toDomain(TopicJpaEntity entity) {
         Topic topic = new Topic(entity.getName(), entity.getSlug(), entity.getDisplayOrder());
         topic.setId(entity.getId());
         topic.setDescription(entity.getDescription());
         topic.setActive(entity.isActive());
+        topic.setTrackSlug(entity.getTrack());
         return topic;
     }
 }

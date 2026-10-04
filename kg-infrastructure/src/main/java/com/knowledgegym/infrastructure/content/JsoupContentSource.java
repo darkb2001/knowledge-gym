@@ -4,6 +4,7 @@ import com.knowledgegym.content.application.ContentImportException;
 import com.knowledgegym.content.application.ModuleDifficultyDefaults;
 import com.knowledgegym.content.application.SearchText;
 import com.knowledgegym.content.domain.model.ContentCatalog;
+import com.knowledgegym.content.domain.model.ContentTrack;
 import com.knowledgegym.content.domain.model.ModuleRef;
 import com.knowledgegym.content.domain.model.ParsedQuestion;
 import com.knowledgegym.content.domain.model.Topic;
@@ -90,7 +91,7 @@ public class JsoupContentSource implements ContentSource {
         List<ModuleRef> modules = index.modules();
         log.info("Content parse xong: {} topics, {} modules, {} questions ({} file)",
                 topics.size(), modules.size(), questions.size(), moduleFiles.size());
-        return new ContentCatalog(topics, modules, questions);
+        return new ContentCatalog(index.tracks(), topics, modules, questions);
     }
 
     private List<Path> moduleFiles(Path dir) {
@@ -107,7 +108,8 @@ public class JsoupContentSource implements ContentSource {
 
     // ---------------------------------------------------------------- index.html
 
-    private record Index(List<Topic> topics, List<ModuleRef> modules, Map<String, String> moduleTopicBySlug) {}
+    private record Index(List<ContentTrack> tracks, List<Topic> topics, List<ModuleRef> modules,
+                         Map<String, String> moduleTopicBySlug) {}
 
     private Index parseIndex(Path indexFile) {
         if (!Files.isRegularFile(indexFile)) {
@@ -118,9 +120,11 @@ public class JsoupContentSource implements ContentSource {
         Map<String, String> topicSlugByModuleSlug = new LinkedHashMap<>();
         Map<String, String> topicDisplayName = new LinkedHashMap<>();
         List<String> topicOrder = new ArrayList<>();
+        // track khai báo trên nav-group: data-track="aws" data-track-name="AWS DVA" …
+        Map<String, String> trackOfTopic = new LinkedHashMap<>();
+        Map<String, ContentTrack> tracksBySlug = new LinkedHashMap<>();
 
         // sidebar: div.nav-group > div.nav-label + a.nav-item[href]
-        int groupOrder = 0;
         for (Element group : doc.select("nav.sidebar div.nav-group")) {
             Element label = group.selectFirst("div.nav-label");
             if (label == null) {
@@ -131,10 +135,19 @@ public class JsoupContentSource implements ContentSource {
             if (topicSlug.isEmpty()) {
                 continue;
             }
-            if (!topicDisplayName.containsKey(topicSlug)) {
+            boolean newTopic = !topicDisplayName.containsKey(topicSlug);
+            if (newTopic) {
                 topicDisplayName.put(topicSlug, topicName);
                 topicOrder.add(topicSlug);
-                groupOrder++;
+            }
+            String trackSlug = slugify(group.attr("data-track"));
+            if (!trackSlug.isEmpty() && newTopic) {
+                trackOfTopic.put(topicSlug, trackSlug);
+                tracksBySlug.computeIfAbsent(trackSlug, slug -> new ContentTrack(
+                        firstNonBlank(group.attr("data-track-name"), ContentTrack.fromSlug(slug, 0).getName()),
+                        slug, tracksBySlug.size() + 1,
+                        blankToNull(group.attr("data-track-desc")),
+                        blankToNull(group.attr("data-track-icon"))));
             }
             for (Element link : group.select("a.nav-item[href]")) {
                 String slug = moduleSlugFromHref(link.attr("href"));
@@ -147,7 +160,12 @@ public class JsoupContentSource implements ContentSource {
         List<Topic> topics = new ArrayList<>();
         for (int i = 0; i < topicOrder.size(); i++) {
             String slug = topicOrder.get(i);
-            topics.add(new Topic(topicDisplayName.get(slug), slug, i + 1));
+            Topic topic = new Topic(topicDisplayName.get(slug), slug, i + 1);
+            String track = trackOfTopic.get(slug);
+            if (track != null) {
+                topic.setTrackSlug(track);
+            }
+            topics.add(topic);
         }
 
         // module meta: div.module-grid a.module-card
@@ -183,7 +201,7 @@ public class JsoupContentSource implements ContentSource {
         if (modules.isEmpty()) {
             throw new ContentImportException("index.html không có module nào (div.module-grid a.module-card)");
         }
-        return new Index(topics, modules, topicSlugByModuleSlug);
+        return new Index(new ArrayList<>(tracksBySlug.values()), topics, modules, topicSlugByModuleSlug);
     }
 
     /** `01-java-core.html` → `01-java-core`; bỏ qua link ngoài (index.html, http://...). */
@@ -197,6 +215,20 @@ public class JsoupContentSource implements ContentSource {
         }
         Matcher matcher = MODULE_FILE.matcher(clean);
         return matcher.matches() ? matcher.group(1) + "-" + matcher.group(2) : null;
+    }
+
+    /** `data-track-name` rỗng → lấy tên suy từ slug; null/blank khi không có attribute. */
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return null;
     }
 
     // ---------------------------------------------------------------- module files

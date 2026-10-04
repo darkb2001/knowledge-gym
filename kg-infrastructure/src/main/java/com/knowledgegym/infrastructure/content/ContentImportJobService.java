@@ -44,7 +44,7 @@ public class ContentImportJobService implements ContentImportJob {
     private static final int MAX_JOBS = 20;
 
     /** Cache phái sinh từ nội dung import — phải xoá cùng nhau sau khi ghi. */
-    private static final List<String> CONTENT_CACHES = List.of("questions", "topics", "modules");
+    private static final List<String> CONTENT_CACHES = List.of("questions", "topics", "modules", "tracks");
 
     private final ImportContentUseCase importContentUseCase;
     private final TaskExecutor taskExecutor;
