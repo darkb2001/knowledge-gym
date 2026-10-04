@@ -38,8 +38,12 @@ public class DashboardController {
     }
 
     @GetMapping("/dashboard/leaderboard")
-    public List<DashboardResponses.LeaderboardRow> leaderboard() {
-        return leaderboard.execute().stream().map(DashboardResponses.LeaderboardRow::of).toList();
+    public List<DashboardResponses.LeaderboardRow> leaderboard(
+            @RequestParam(defaultValue = "10") int limit) {
+        // Keep the shared top-100 Redis cache, but never send that entire cache to the dashboard.
+        int boundedLimit = Math.max(1, Math.min(10, limit));
+        return leaderboard.execute().stream().limit(boundedLimit)
+                .map(DashboardResponses.LeaderboardRow::of).toList();
     }
 
     @GetMapping("/users/me/progress")
