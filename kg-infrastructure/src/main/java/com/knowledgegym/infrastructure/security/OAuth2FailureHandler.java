@@ -41,8 +41,24 @@ public class OAuth2FailureHandler implements AuthenticationFailureHandler {
         auditLogger.oauthFailure(clientIpResolver.resolve(request), describe(exception));
         String separator = failureRedirectBase.contains("?") ? "&" : "?";
         String redirect = failureRedirectBase + separator + "reason="
-                + URLEncoder.encode("oauth_failed", StandardCharsets.UTF_8);
+                + URLEncoder.encode(reasonCode(exception), StandardCharsets.UTF_8);
         response.sendRedirect(redirect);
+    }
+
+    /**
+     * Mã lỗi gửi cho FE. Trước đây luôn là "oauth_failed" nên FE không phân biệt được phiên đăng
+     * nhập Google đã hết hạn (`authorization_request_not_found` — người dùng chỉ cần bấm lại) với
+     * người dùng tự huỷ (`access_denied`). Chỉ gửi mã, KHÔNG gửi description (có thể chứa chi tiết
+     * nội bộ); chi tiết đầy đủ vẫn nằm trong audit log.
+     */
+    static String reasonCode(AuthenticationException exception) {
+        if (exception instanceof OAuth2AuthenticationException oauth2) {
+            String code = oauth2.getError().getErrorCode();
+            if (code != null && !code.isBlank()) {
+                return code;
+            }
+        }
+        return "oauth_failed";
     }
 
     /**

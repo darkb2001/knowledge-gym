@@ -15,6 +15,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class BlockedOAuthAccountTest {
+    /**
+     * Tài khoản bị khoá: KHÔNG phát token/cookie, KHÔNG dựng phiên. Trước đây trả thẳng
+     * `sendError(401)` nên trình duyệt hiện trang lỗi HTML của Tomcat; nay phải redirect về
+     * trang lỗi của FE kèm `reason=account_blocked` để người dùng biết lý do.
+     */
     @Test void blockedGoogleAccountCannotIssueTokensOrSetCookie() throws Exception {
         var users=mock(UserRepository.class); var tokens=mock(TokenService.class);
         var refresh=mock(RefreshTokenRepository.class); var cache=mock(RefreshTokenCachePort.class);
@@ -26,7 +31,8 @@ class BlockedOAuthAccountTest {
         var principal=new DefaultOAuth2User(authorities,Map.of("sub","google-sub","email",user.getEmail(),"email_verified",true),"sub");
         var response=new MockHttpServletResponse();
         handler.onAuthenticationSuccess(new MockHttpServletRequest(),response,new OAuth2AuthenticationToken(principal,authorities,"google"));
-        assertEquals(401,response.getStatus()); assertNull(response.getRedirectedUrl());
-        verifyNoInteractions(tokens,refresh,cache,cookie,audit);
+        assertEquals("https://example.test/auth/oauth2/error?reason=account_blocked", response.getRedirectedUrl());
+        verifyNoInteractions(tokens,refresh,cache,cookie);
+        verify(audit).oauthFailure(any(), eq("account_blocked"));
     }
 }

@@ -37,8 +37,12 @@ public class LoginUseCase {
         User user = userRepository.findByEmail(User.normalizeEmail(email))
                 .orElseThrow(() -> new AuthException("Invalid email or password"));
 
-        if (user.getPasswordHash() == null ||
-                !passwordHasher.matches(password, user.getPasswordHash())) {
+        // Tài khoản chỉ có OAuth (Google/GitHub) không có hash để so. Trả mã riêng để FE hướng
+        // người dùng sang nút Google thay vì báo "sai email/mật khẩu" — họ sẽ thử lại vô ích.
+        if (user.getPasswordHash() == null) {
+            throw new AuthException("oauth_only_account");
+        }
+        if (!passwordHasher.matches(password, user.getPasswordHash())) {
             throw new AuthException("Invalid email or password");
         }
 

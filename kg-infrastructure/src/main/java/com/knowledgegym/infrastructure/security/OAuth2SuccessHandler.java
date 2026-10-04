@@ -42,6 +42,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final ClientIpResolver clientIpResolver;
     private final SpringAuditLogger auditLogger;
     private final String successRedirectBase;
+    private final String errorRedirectBase;
 
     public OAuth2SuccessHandler(UserRepository userRepository,
                                 TokenService tokenService,
@@ -60,6 +61,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         this.clientIpResolver = clientIpResolver;
         this.auditLogger = auditLogger;
         this.successRedirectBase = successRedirectBase;
+        this.errorRedirectBase = deriveErrorRedirect(successRedirectBase);
         validateRedirectBase(successRedirectBase);
     }
 
@@ -71,14 +73,16 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         Boolean emailVerified = oauthUser.getAttribute("email_verified");
         if (emailVerified == null || !emailVerified) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Email not verified by Google");
+            auditLogger.oauthFailure(clientIpResolver.resolve(request), "google_email_unverified");
+            redirectToError(response, "google_email_unverified");
             return;
         }
         String email = oauthUser.getAttribute("email");
         String displayName = oauthUser.getAttribute("name");
         String googleSub = oauthUser.getName();
         if (email == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Google account has no email");
+            auditLogger.oauthFailure(clientIpResolver.resolve(request), "google_no_email");
+            redirectToError(response, "google_no_email");
             return;
         }
 
@@ -93,12 +97,12 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                     || (user.getOauthId() == null && user.getPasswordHash() != null)) {
                 // Audit cả nhánh thất bại: đây là dấu hiệu account-takeover / user nhầm phương thức.
                 auditLogger.oauthEmailConflict(email, clientIpResolver.resolve(request));
-                response.sendError(HttpServletResponse.SC_CONFLICT,
-                        "Account exists with password login. Sign in with email/password, then link Google from settings.");
+                redirectToError(response, "password_account");
                 return;
             }
             if (user.getOauthId() != null && !user.getOauthId().equals(googleSub)) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "OAuth identity mismatch");
+                auditLogger.oauthFailure(clientIpResolver.resolve(request), "oauth_identity_mismatch");
+                redirectToError(response, "oauth_identity_mismatch");
                 return;
             }
             if (user.getOauthId() == null) {
@@ -110,7 +114,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         if (user.isBlocked()) {
             org.springframework.security.core.context.SecurityContextHolder.clearContext();
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Account is blocked");
+            auditLogger.oauthFailure(clientIpResolver.resolve(request), "account_blocked");
+            redirectToError(response, "account_blocked");
             return;
         }
         if (!user.isEmailVerified()) {
@@ -142,6 +147,32 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 + "&role=" + user.getRole().name()
                 + "&provider=google";
         response.sendRedirect(redirect);
+    }
+
+    /**
+     * Lỗi nghiệp vụ giữa luồng OAuth (email Google chưa xác minh, email đã có tài khoản mật khẩu,
+     * tài khoản bị khoá…) trước đây trả `sendError` ⇒ trình duyệt nhận trang lỗi HTML của Tomcat:
+     * người dùng chỉ thấy "HTTP Status 409" và không biết phải làm gì. Redirect về trang lỗi của
+     * FE kèm `?reason=<mã>` để FE hiển thị đúng hướng dẫn cho từng trường hợp.
+     */
+    private void redirectToError(HttpServletResponse response, String reason) throws IOException {
+        String separator = errorRedirectBase.contains("?") ? "&" : "?";
+        response.sendRedirect(errorRedirectBase + separator + "reason="
+                + java.net.URLEncoder.encode(reason, StandardCharsets.UTF_8));
+    }
+
+    /**
+     * `/auth/oauth2/success` → `/auth/oauth2/error`, giữ nguyên origin (và query nếu có) nên không
+     * cần thêm biến môi trường: đích redirect vẫn nằm trong allowlist đã cấu hình cho đăng nhập thành công.
+     */
+    static String deriveErrorRedirect(String successRedirectBase) {
+        int query = successRedirectBase.indexOf('?');
+        String path = query < 0 ? successRedirectBase : successRedirectBase.substring(0, query);
+        String tail = query < 0 ? "" : successRedirectBase.substring(query);
+        String derived = path.endsWith("/success")
+                ? path.substring(0, path.length() - "/success".length()) + "/error"
+                : path.replaceAll("/+$", "") + "/error";
+        return derived + tail;
     }
 
     /** Chỉ cho phép http(s) absolute URL — chống open-redirect nếu config sai. */
