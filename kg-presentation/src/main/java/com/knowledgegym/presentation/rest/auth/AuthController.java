@@ -35,6 +35,7 @@ public class AuthController {
     private final GetCurrentUserUseCase currentUser;
     private final RefreshTokenCookie refreshCookie;
     private final ClientIpResolver clientIpResolver;
+    private final SessionManagementUseCase sessionUseCase;
 
     public AuthController(VerifiedRegistrationUseCase registerUseCase,
                            LoginUseCase loginUseCase,
@@ -46,7 +47,8 @@ public class AuthController {
                            SetPasswordUseCase setPasswordUseCase,
                            GetCurrentUserUseCase currentUser,
                            RefreshTokenCookie refreshCookie,
-                           ClientIpResolver clientIpResolver) {
+                           ClientIpResolver clientIpResolver,
+                           SessionManagementUseCase sessionUseCase) {
         this.registerUseCase = registerUseCase;
         this.loginUseCase = loginUseCase;
         this.refreshTokenUseCase = refreshTokenUseCase;
@@ -58,6 +60,7 @@ public class AuthController {
         this.currentUser = currentUser;
         this.refreshCookie = refreshCookie;
         this.clientIpResolver = clientIpResolver;
+        this.sessionUseCase = sessionUseCase;
     }
 
     @PostMapping("/register")
@@ -221,6 +224,55 @@ public class AuthController {
         setPasswordUseCase.execute(userId, req.code(), req.newPassword(),
                 clientIpResolver.resolve(httpRequest));
         return Map.of("message", "Đặt mật khẩu thành công. Bạn có thể đăng nhập bằng email và mật khẩu này.");
+    }
+
+    // ------------------------------------------------- thiết bị / phiên đăng nhập
+
+    public record SessionResponse(String familyId, java.time.Instant createdAt, java.time.Instant lastSeenAt,
+                                   String ipAddress, String userAgent, boolean current) {
+        static SessionResponse of(SessionManagementUseCase.SessionView v) {
+            return new SessionResponse(v.familyId(), v.createdAt(), v.lastSeenAt(),
+                    v.ipAddress(), v.userAgent(), v.current());
+        }
+    }
+
+    /** Danh sách thiết bị đang đăng nhập (mỗi refresh-token family = 1 thiết bị/trình duyệt). */
+    @GetMapping("/sessions")
+    public java.util.List<SessionResponse> sessions(@AuthenticationPrincipal java.util.UUID userId,
+                                                     HttpServletRequest httpRequest) {
+        requireAuthenticated(userId);
+        return sessionUseCase.list(userId, refreshCookie.read(httpRequest)).stream()
+                .map(SessionResponse::of).toList();
+    }
+
+    /** Đăng xuất một thiết bị. Nếu chính thiết bị đang gọi thì xoá luôn cookie phiên ở response. */
+    @DeleteMapping("/sessions/{familyId}")
+    public Map<String, Object> revokeSession(@AuthenticationPrincipal java.util.UUID userId,
+                                              @PathVariable java.util.UUID familyId,
+                                              HttpServletRequest httpRequest, HttpServletResponse response) {
+        requireAuthenticated(userId);
+        SessionManagementUseCase.RevokeResult result =
+                sessionUseCase.revoke(userId, familyId, refreshCookie.read(httpRequest));
+        if (!result.removed()) {
+            throw new AuthException(AuthException.Kind.BAD_REQUEST, "Phiên không tồn tại hoặc đã đăng xuất");
+        }
+        if (result.wasCurrent()) {
+            refreshCookie.clear(response);
+        }
+        return Map.of("message", result.wasCurrent()
+                ? "Đã đăng xuất thiết bị này"
+                : "Đã đăng xuất thiết bị đã chọn", "current", result.wasCurrent());
+    }
+
+    /** Đăng xuất mọi thiết bị khác, giữ phiên đang dùng. */
+    @DeleteMapping("/sessions")
+    public Map<String, Object> revokeOtherSessions(@AuthenticationPrincipal java.util.UUID userId,
+                                                    HttpServletRequest httpRequest) {
+        requireAuthenticated(userId);
+        int revoked = sessionUseCase.revokeOthers(userId, refreshCookie.read(httpRequest));
+        return Map.of("revoked", revoked,
+                "message", revoked == 0 ? "Không có thiết bị nào khác đang đăng nhập"
+                        : "Đã đăng xuất " + revoked + " thiết bị khác");
     }
 
     private static void requireAuthenticated(java.util.UUID userId) {

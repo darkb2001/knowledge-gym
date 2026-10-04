@@ -27,7 +27,9 @@ public class JdbcSessionInvalidationAdapter implements SessionInvalidationPort {
         if (userId == null || cutoff == null) {
             return;
         }
-        // clock_timestamp() (không phải now()) để mốc cắt luôn >= mọi iat đã phát hành trong transaction này.
+        // Giữ nguyên độ phân giải mili-giây: access token mới mang claim iatMs (xem
+        // JwtTokenService) nên so sánh là chính xác, còn token cũ chỉ có iat tới giây được nới
+        // một giây ở JdbcAccessTokenGuard để không cắt oan thiết bị khác.
         jdbc.update("UPDATE users SET tokens_invalid_before=GREATEST(clock_timestamp(), ?::timestamptz), updated_at=now() WHERE id=?",
                 Timestamp.from(cutoff), userId);
     }

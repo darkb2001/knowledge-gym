@@ -105,4 +105,18 @@ class AdminUsersPersistenceTest {
         assertTrue(guard.authorizedRole(UUID.randomUUID(), Instant.now()).isEmpty());
         assertTrue(guard.authorizedRole(user, null).isEmpty());
     }
+
+    @Test void sessionCutoffKeepsMillisecondPrecisionSoOtherDevicesAreNotCutOff() {
+        Instant logout = Instant.parse("2026-10-05T00:00:00.500Z");
+        jdbc.update("UPDATE users SET tokens_invalid_before=? WHERE id=?", java.sql.Timestamp.from(logout), user);
+        // Thiết bị KHÁC refresh ngay sau khi thiết bị này logout: token phát cùng giây nhưng muộn hơn
+        // mốc cắt (iatMs chính xác mili-giây) → vẫn dùng được.
+        assertTrue(guard.authorizedRole(user, Instant.parse("2026-10-05T00:00:00.700Z"), true).isPresent());
+        // Token phát trước mốc cắt → bị cắt.
+        assertTrue(guard.authorizedRole(user, Instant.parse("2026-10-05T00:00:00.400Z"), true).isEmpty());
+        // Token cũ chỉ có iat tới giây: cùng giây thì nới 1 giây để không cắt oan thiết bị khác...
+        assertTrue(guard.authorizedRole(user, Instant.parse("2026-10-05T00:00:00Z")).isPresent());
+        // ...nhưng cũ hơn hẳn thì vẫn bị cắt.
+        assertTrue(guard.authorizedRole(user, Instant.parse("2026-10-04T23:59:59Z")).isEmpty());
+    }
 }

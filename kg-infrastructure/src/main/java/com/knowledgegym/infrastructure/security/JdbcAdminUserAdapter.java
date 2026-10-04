@@ -59,7 +59,8 @@ public class JdbcAdminUserAdapter implements AdminUserPort {
     }
     @Override public void revokeSessions(UUID id) {
         var p = new MapSqlParameterSource("id", id);
-        jdbc.update("UPDATE users SET tokens_invalid_before=clock_timestamp(),updated_at=now() WHERE id=:id", p);
+        // Cùng lý do như JdbcSessionInvalidationAdapter: iat chỉ có giây nên mốc cắt làm tròn xuống giây.
+        jdbc.update("UPDATE users SET tokens_invalid_before=date_trunc('second', clock_timestamp()),updated_at=now() WHERE id=:id", p);
         jdbc.update("UPDATE refresh_tokens SET revoked_at=now() WHERE user_id=:id AND revoked_at IS NULL", p);
     }
     @Override public void audit(UUID actor, UUID target, String action, String reason) {

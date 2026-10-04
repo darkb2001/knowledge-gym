@@ -341,4 +341,15 @@ public class UseCaseConfig {
         executor.initialize();
         return executor;
     }
+
+    @Bean
+    public SessionManagementUseCase sessionManagementUseCase(SessionRegistryPort sessionRegistryPort,
+                                                             RefreshTokenRepository refreshTokenRepository,
+                                                             RefreshTokenCachePort refreshTokenCachePort,
+                                                             SessionInvalidationPort sessionInvalidationPort,
+                                                             TokenService tokenService) {
+        return new SessionManagementUseCase(sessionRegistryPort, refreshTokenRepository,
+                refreshTokenCachePort, sessionInvalidationPort, tokenService);
+    }
+
 }

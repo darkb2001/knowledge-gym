@@ -24,7 +24,7 @@ class JwtAuthenticationFilterTest {
     @AfterEach void clear() { SecurityContextHolder.clearContext(); }
 
     @Test void authorityComesFromDatabaseNotStaleJwtAdminClaim() throws Exception {
-        when(guard.authorizedRole(eq(user), any())).thenReturn(Optional.of(UserRole.USER));
+        when(guard.authorizedRole(eq(user), any(), anyBoolean())).thenReturn(Optional.of(UserRole.USER));
         var response = new MockHttpServletResponse();
         filter.doFilter(request(token("ADMIN", SECRET)), response, (req, res) -> {
             var auth = SecurityContextHolder.getContext().getAuthentication();
@@ -34,7 +34,7 @@ class JwtAuthenticationFilterTest {
         assertEquals(200, response.getStatus());
     }
     @Test void blockedOrRevokedTokenStopsChainWith401() throws Exception {
-        when(guard.authorizedRole(eq(user), any())).thenReturn(Optional.empty());
+        when(guard.authorizedRole(eq(user), any(), anyBoolean())).thenReturn(Optional.empty());
         var response = new MockHttpServletResponse();
         filter.doFilter(request(token("ADMIN", SECRET)), response, (req, res) -> fail("Must not call handler"));
         assertEquals(401, response.getStatus());

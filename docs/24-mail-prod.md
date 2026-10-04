@@ -82,3 +82,18 @@ PY
 - Mailu self-host vẫn deferred (ADR-004 / `docs/19-m11b-ops.md`).
 - Rotate ngay app password Gmail nếu nó từng bị lộ trong log/chat, và nhớ: rotate xong
   **phải chạy lại nghiệm thu ở trên** (SMTP sai mật khẩu thì app ném 500 khi gửi).
+
+## Ảnh đại diện người gửi trong hộp thư (không sửa được bằng header)
+
+Hộp thư hiện ảnh/logo cạnh người gửi theo 3 nguồn, **không** phải do header `From`:
+
+1. **Tài khoản Google đang gửi** — Gmail hiển thị ảnh hồ sơ của chính tài khoản đó. Tài khoản
+   chưa đặt ảnh → Gmail vẽ vòng tròn chữ cái đầu (đây là tình trạng hiện tại). Cách sửa rẻ nhất:
+   đặt ảnh hồ sơ (logo vuông ≥250×250) cho tài khoản gửi.
+2. **BIMI + VMC** — logo domain trong Gmail/Apple Mail/Yahoo, nhưng cần domain riêng có DMARC
+   `p=reject` **và** chứng chỉ VMC (trả phí, cần nhãn hiệu đăng ký).
+3. **Khác** — mọi trường hợp còn lại: vòng tròn chữ cái đầu, không có API/header nào đổi được.
+
+Thư trong repo đã là HTML (bản text dự phòng) + tên hiển thị "Knowledge Gym"
+(`APP_EMAIL_FROM_NAME`), màu accent trùng web, không nhúng ảnh ngoài nên không bị chặn
+"hiển thị hình ảnh". Muốn biểu tượng thật (logo) → chọn BIMI+VMC hoặc Google Workspace.

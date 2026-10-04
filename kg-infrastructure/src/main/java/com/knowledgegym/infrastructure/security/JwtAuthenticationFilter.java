@@ -22,6 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -55,8 +56,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .parseSignedClaims(token)
                         .getPayload();
                 UUID userId = UUID.fromString(claims.getSubject());
-                var role = accountGuard.authorizedRole(userId,
-                        claims.getIssuedAt() == null ? null : claims.getIssuedAt().toInstant());
+                Instant issuedAt = claims.getIssuedAt() == null ? null : claims.getIssuedAt().toInstant();
+                Number issuedAtMillis = claims.get(JwtTokenService.CLAIM_ISSUED_AT_MILLIS, Number.class);
+                if (issuedAtMillis != null) issuedAt = Instant.ofEpochMilli(issuedAtMillis.longValue());
+                var role = accountGuard.authorizedRole(userId, issuedAt, issuedAtMillis != null);
                 if (role.isEmpty()) {
                     SecurityContextHolder.clearContext();
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

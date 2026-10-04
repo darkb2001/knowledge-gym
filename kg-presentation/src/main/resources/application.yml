@@ -138,6 +138,8 @@ app:
     smtp-enabled: false
     kafka-enabled: ${MAIL_KAFKA_ENABLED:false}
     from: no-reply@knowledgegym.dev
+    # Tên hiển thị người gửi — phần duy nhất giữ được thương hiệu khi Gmail buộc header From về tài khoản gửi.
+    from-name: ${APP_EMAIL_FROM_NAME:Knowledge Gym}
   content:
     # `docs/` nằm ngoài git root của repo (knowledge-gym/) — CI không có.
     # Local dev: ../docs. Container: mount volume + CONTENT_DOCS_PATH

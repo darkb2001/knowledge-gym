@@ -18,6 +18,13 @@ import java.util.UUID;
 public class JwtTokenService implements TokenService {
 
     public static final String CLAIM_FAMILY_ID = "fid";
+    /**
+     * iat chuẩn (NumericDate) chỉ có độ phân giải GIÂY, không đủ để so với mốc cắt phiên
+     * ({@code users.tokens_invalid_before} lưu mili-giây): access token phát trong cùng giây
+     * với lúc logout của thiết bị khác sẽ bị coi là "cũ" và trả 401 oan. Claim này ghi thêm
+     * mốc phát hành chính xác tới mili-giây; xem JdbcAccessTokenGuard.
+     */
+    public static final String CLAIM_ISSUED_AT_MILLIS = "iatMs";
     public static final String CLAIM_ROLE = "role";
 
     private final SecretKey accessKey;
@@ -38,6 +45,7 @@ public class JwtTokenService implements TokenService {
         return Jwts.builder()
                 .subject(userId.toString())
                 .claim(CLAIM_ROLE, role)
+                .claim(CLAIM_ISSUED_AT_MILLIS, now.toEpochMilli())
                 .id(UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(accessTtl)))
