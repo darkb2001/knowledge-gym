@@ -207,6 +207,29 @@ class AuthIntegrationTest {
     }
 
     @Test
+    void logoutWithoutCookieInvalidatesBearerAndLeavesOtherRefreshFamilyUsable() throws Exception {
+        String email = "logout-no-cookie+" + java.util.UUID.randomUUID() + "@example.com";
+        String ip = nextIp();
+        MvcResult registered = mockMvc.perform(post("/auth/register")
+                        .header("X-Forwarded-For", ip).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","password":"superSecret123","confirmPassword":"superSecret123","displayName":"Logout","verificationCode":"%s"}
+                                """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
+                .andExpect(status().isCreated()).andReturn();
+        String access = readJson(registered, "$.accessToken");
+        String otherFamily = registered.getResponse().getCookie("refreshToken").getValue();
+        mockMvc.perform(post("/auth/logout").header("Authorization", "Bearer " + access)
+                        .header("X-Forwarded-For", ip))
+                .andExpect(status().isNoContent()).andExpect(cookie().maxAge("refreshToken", 0));
+        mockMvc.perform(get("/users/me").header("Authorization", "Bearer " + access))
+                .andExpect(status().isUnauthorized());
+        // Cookie-less access tokens carry no family id: do not guess or revoke all devices.
+        mockMvc.perform(post("/auth/refresh").header("X-Forwarded-For", ip)
+                        .cookie(new jakarta.servlet.http.Cookie("refreshToken", otherFamily)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void login_withWrongPassword_returns401() throws Exception {
         String email = "wrong+" + System.currentTimeMillis() + "@example.com";
         String ip = nextIp();

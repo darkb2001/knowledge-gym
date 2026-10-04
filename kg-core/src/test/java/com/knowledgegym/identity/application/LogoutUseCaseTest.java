@@ -67,6 +67,44 @@ class LogoutUseCaseTest {
     }
 
     @Test
+    void missingCookieStillInvalidatesVerifiedAccessPrincipalWithoutRevokingOtherFamilies() {
+        useCase.execute(null, userId);
+        verify(sessionInvalidation).invalidateIssuedBefore(eq(userId), any(Instant.class));
+        verifyNoInteractions(tokenService, repository, cache);
+    }
+
+    @Test
+    void invalidUnknownCookieStillInvalidatesVerifiedPrincipal() {
+        when(tokenService.verifyRefreshToken(raw)).thenThrow(new IllegalArgumentException("invalid"));
+        when(repository.findByTokenHash(hash)).thenReturn(Optional.empty());
+        useCase.execute(raw, userId);
+        verify(sessionInvalidation).invalidateIssuedBefore(eq(userId), any(Instant.class));
+        verify(repository, never()).revokeFamily(any());
+    }
+
+    @Test
+    void anonymousCookieLessLogoutIsAnIdempotentNoOp() {
+        useCase.execute(null, null);
+        verifyNoInteractions(tokenService, repository, cache, sessionInvalidation);
+    }
+
+    @Test
+    void identityMismatchCannotRevokeAnotherUsersSession() {
+        when(tokenService.verifyRefreshToken(raw)).thenReturn(new TokenService.RefreshTokenClaims(UUID.randomUUID(), familyId));
+        org.junit.jupiter.api.Assertions.assertThrows(AuthException.class, () -> useCase.execute(raw, userId));
+        verifyNoInteractions(repository, cache, sessionInvalidation);
+    }
+
+    @Test
+    void databaseFailureIsNotSwallowedAsInvalidTokenOrSuccessfulLogout() {
+        when(tokenService.verifyRefreshToken(raw)).thenReturn(new TokenService.RefreshTokenClaims(userId, familyId));
+        org.mockito.Mockito.doThrow(new IllegalStateException("database offline")).when(repository).revokeFamily(familyId);
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> useCase.execute(raw, userId));
+        verify(repository, never()).findByTokenHash(any());
+        verifyNoInteractions(cache, sessionInvalidation);
+    }
+
+    @Test
     void unknownTokenTouchesNothing() {
         when(tokenService.verifyRefreshToken(raw)).thenThrow(new IllegalArgumentException("expired"));
         when(repository.findByTokenHash(hash)).thenReturn(Optional.empty());

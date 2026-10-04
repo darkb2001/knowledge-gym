@@ -129,9 +129,10 @@ public class AuthController {
 
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void logout(HttpServletRequest httpRequest, HttpServletResponse response) {
+    public void logout(@AuthenticationPrincipal java.util.UUID userId,
+                       HttpServletRequest httpRequest, HttpServletResponse response) {
         String rawRefresh = refreshCookie.read(httpRequest);
-        if (rawRefresh != null) logoutUseCase.execute(rawRefresh);
+        logoutUseCase.execute(rawRefresh, userId);
         refreshCookie.clear(response);
     }
 

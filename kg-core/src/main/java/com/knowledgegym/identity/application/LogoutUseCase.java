@@ -7,6 +7,8 @@ import com.knowledgegym.identity.domain.port.SessionInvalidationPort;
 import com.knowledgegym.identity.domain.port.TokenService;
 
 import java.time.Instant;
+import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Logout — revoke TOÀN BỘ family (PG + Redis), không chỉ 1 token.
@@ -35,26 +37,33 @@ public class LogoutUseCase {
     }
 
     public void execute(String rawRefreshToken) {
-        String hash = HashUtils.sha256Hex(rawRefreshToken);
-        Instant cutoff = Instant.now();
+        execute(rawRefreshToken, null);
+    }
 
-        // Ưu tiên parse JWT → familyId (hoạt động cả khi PG miss)
-        try {
-            TokenService.RefreshTokenClaims claims = tokenService.verifyRefreshToken(rawRefreshToken);
-            refreshTokenRepository.revokeFamily(claims.familyId());
+    /** authenticatedUser must come from the verified principal, never from request body. */
+    @Transactional
+    public void execute(String rawRefreshToken, UUID authenticatedUser) {
+        String hash = rawRefreshToken == null ? null : HashUtils.sha256Hex(rawRefreshToken);
+        TokenService.RefreshTokenClaims claims = null;
+        if (rawRefreshToken != null) {
+            try {
+                claims = tokenService.verifyRefreshToken(rawRefreshToken);
+            } catch (RuntimeException invalidToken) {
+                claims = refreshTokenRepository.findByTokenHash(hash)
+                        .map(audit -> new TokenService.RefreshTokenClaims(audit.getUserId(), audit.getFamilyId()))
+                        .orElse(null);
+            }
+        }
+        if (claims != null && authenticatedUser != null && !authenticatedUser.equals(claims.userId())) {
+            throw new AuthException(AuthException.Kind.BAD_REQUEST, "Refresh token does not match authenticated user");
+        }
+        UUID user = claims == null ? authenticatedUser : claims.userId();
+        if (claims != null) refreshTokenRepository.revokeFamily(claims.familyId());
+        if (user != null) sessionInvalidation.invalidateIssuedBefore(user, Instant.now());
+        // Mutation failures must propagate: they are not invalid-token errors or successful logout.
+        if (claims != null) {
             cache.revokeFamily(claims.familyId(), RefreshToken.TTL);
             cache.blacklist(hash, RefreshToken.TTL);
-            sessionInvalidation.invalidateIssuedBefore(claims.userId(), cutoff);
-            return;
-        } catch (Exception ignored) {
-            // Token invalid/expired — fallback PG lookup theo hash
         }
-
-        refreshTokenRepository.findByTokenHash(hash).ifPresent(audit -> {
-            refreshTokenRepository.revokeFamily(audit.getFamilyId());
-            cache.revokeFamily(audit.getFamilyId(), RefreshToken.TTL);
-            cache.blacklist(hash, RefreshToken.TTL);
-            sessionInvalidation.invalidateIssuedBefore(audit.getUserId(), cutoff);
-        });
     }
 }
