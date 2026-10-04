@@ -67,8 +67,9 @@ public class UseCaseConfig {
     @Bean
     LogoutUseCase logoutUseCase(TokenService tokenService,
                                  RefreshTokenRepository refreshTokenRepository,
-                                 RefreshTokenCachePort cache) {
-        return new LogoutUseCase(tokenService, refreshTokenRepository, cache);
+                                 RefreshTokenCachePort cache,
+                                 SessionInvalidationPort sessionInvalidation) {
+        return new LogoutUseCase(tokenService, refreshTokenRepository, cache, sessionInvalidation);
     }
 
     @Bean
@@ -83,9 +84,10 @@ public class UseCaseConfig {
                                                PasswordResetCodeRepository codeRepository,
                                                PasswordHasher passwordHasher,
                                                RefreshTokenRepository refreshTokenRepository,
-                                               RefreshTokenCachePort cache) {
+                                               RefreshTokenCachePort cache,
+                                               SessionInvalidationPort sessionInvalidation) {
         return new ResetPasswordUseCase(userRepository, codeRepository, passwordHasher,
-                refreshTokenRepository, cache);
+                refreshTokenRepository, cache, sessionInvalidation);
     }
 
     @Bean

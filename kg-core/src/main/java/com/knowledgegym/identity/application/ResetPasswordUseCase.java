@@ -5,6 +5,7 @@ import com.knowledgegym.identity.domain.model.RefreshToken;
 import com.knowledgegym.identity.domain.model.User;
 import com.knowledgegym.identity.domain.port.*;
 
+import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
@@ -15,17 +16,20 @@ public class ResetPasswordUseCase {
     private final PasswordHasher passwordHasher;
     private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenCachePort cache;
+    private final SessionInvalidationPort sessionInvalidation;
 
     public ResetPasswordUseCase(UserRepository userRepository,
                                  PasswordResetCodeRepository codeRepository,
                                  PasswordHasher passwordHasher,
                                  RefreshTokenRepository refreshTokenRepository,
-                                 RefreshTokenCachePort cache) {
+                                 RefreshTokenCachePort cache,
+                                 SessionInvalidationPort sessionInvalidation) {
         this.userRepository = userRepository;
         this.codeRepository = codeRepository;
         this.passwordHasher = passwordHasher;
         this.refreshTokenRepository = refreshTokenRepository;
         this.cache = cache;
+        this.sessionInvalidation = sessionInvalidation;
     }
 
     /**
@@ -75,5 +79,8 @@ public class ResetPasswordUseCase {
             cache.revokeFamily(familyId, RefreshToken.TTL);
         }
         refreshTokenRepository.revokeAllByUserId(user.getId());
+        // Đặt lại mật khẩu thường do mất quyền kiểm soát tài khoản ⇒ cắt luôn access token cũ (JWT
+        // stateless). Không ảnh hưởng phiên hiện tại vì người dùng chưa đăng nhập ở luồng này.
+        sessionInvalidation.invalidateIssuedBefore(user.getId(), Instant.now());
     }
 }
