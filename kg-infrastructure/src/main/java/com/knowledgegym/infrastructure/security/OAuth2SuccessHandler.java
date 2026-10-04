@@ -132,7 +132,11 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         refreshCookie.write(response, rawRefresh);
         auditLogger.oauthSuccess(user.getId(), clientIpResolver.resolve(request));
 
-        String redirect = successRedirectBase
+        // `?oauth=google` cho FE biết redirect này đến từ handler này: khi phần fragment
+        // (#accessToken=…) bị cắt trên đường đi (proxy/edge), FE vẫn có đường dự phòng là
+        // đổi refresh cookie HttpOnly ở trên lấy access token mới.
+        String separator = successRedirectBase.contains("?") ? "&" : "?";
+        String redirect = successRedirectBase + separator + "oauth=google"
                 + "#accessToken=" + java.net.URLEncoder.encode(accessToken, StandardCharsets.UTF_8)
                 + "&userId=" + user.getId()
                 + "&role=" + user.getRole().name()
