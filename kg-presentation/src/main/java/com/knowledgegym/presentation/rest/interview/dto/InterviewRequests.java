@@ -2,10 +2,10 @@ package com.knowledgegym.presentation.rest.interview.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
 import java.util.UUID;
 
 public final class InterviewRequests {
@@ -17,6 +17,10 @@ public final class InterviewRequests {
     public record Start(@NotNull UUID topicId, @Min(1) @Max(20) int questionCount, @NotNull String mode) {
     }
 
-    public record Answer(@NotNull UUID questionId, @NotBlank @Size(max = 20000) String userAnswer) {
+    /** Submit toàn cục: FE gửi 1 lần cho mọi câu; câu bỏ trống gửi `answer` rỗng/không gửi. */
+    public record Submit(@NotNull @Size(max = 100) List<Item> answers) {
+
+        public record Item(@NotNull UUID questionId, @Size(max = 20000) String answer) {
+        }
     }
 }

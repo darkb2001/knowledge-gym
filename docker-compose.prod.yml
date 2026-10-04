@@ -143,6 +143,11 @@ services:
       S3_BUCKET_IMAGES: kg-blog-images
       S3_BUCKET_AVATARS: kg-avatars
       S3_BUCKET_EXPORTS: kg-exports
+      # Ảnh đại diện do SERVER ghi (AvatarUseCase) rồi phục vụ lại qua API: bucket mặc định
+      # của Garage đã được image tạo sẵn kèm quyền cho access key, không cần bước thủ công.
+      S3_OBJECT_BUCKET: ${S3_OBJECT_BUCKET:-kg-local}
+      # URL công khai của API (gồm `/api/v1`) — dùng để dựng URL ảnh đại diện trả cho client.
+      APP_API_PUBLIC_BASE_URL: ${APP_API_PUBLIC_BASE_URL:-https://api.darkb-tech.io.vn/api/v1}
     mem_limit: 1024m
     memswap_limit: 1024m
     logging: *default-logging

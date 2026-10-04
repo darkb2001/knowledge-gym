@@ -6,6 +6,9 @@ import java.time.Instant;
 public interface InterviewSessionRepository {
  InterviewSession save(InterviewSession session);
  Optional<InterviewSession> findByIdAndUserIdForUpdate(UUID id,UUID userId);
+ Optional<InterviewSession> findByIdAndUserId(UUID id,UUID userId);
+ /** Câu đã trả lời (không tính row placeholder) theo questionId — dựng trang kết quả trong 1 query. */
+ Map<UUID, InterviewAnswer> answersOf(UUID sessionId);
  List<InterviewSession> findByUserId(UUID userId,int page,int size);
  long countByUserId(UUID userId);
  void upsertAnswer(InterviewAnswer answer);

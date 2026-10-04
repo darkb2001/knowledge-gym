@@ -99,16 +99,24 @@ public class BlogController {
 
     @GetMapping(value = "/feed.rss", produces = MediaType.APPLICATION_XML_VALUE)
     public String feed() {
-        String items = blog.list(1, 50, null).stream()
+        List<BlogPost> posts = blog.list(1, 50, null);
+        String self = canonicalBaseUrl + "/blog/feed.rss";
+        String items = posts.stream()
                 .map(p -> "<item><title>" + xml(p.title()) + "</title><link>"
                         + xml(canonicalBaseUrl + "/blog/" + p.slug()) + "</link><guid isPermaLink=\"false\">"
                         + p.id() + "</guid><description>" + xml(p.excerpt()) + "</description><pubDate>"
                         + DateTimeFormatter.RFC_1123_DATE_TIME.format(p.publishedAt().atZone(ZoneOffset.UTC))
                         + "</pubDate></item>")
                 .reduce("", String::concat);
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rss version=\"2.0\"><channel><title>Knowledge Gym</title><link>"
+        String lastBuildDate = posts.isEmpty() ? ""
+                : "<lastBuildDate>" + DateTimeFormatter.RFC_1123_DATE_TIME
+                        .format(posts.getFirst().publishedAt().atZone(ZoneOffset.UTC)) + "</lastBuildDate>";
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">"
+                + "<channel><title>Knowledge Gym</title><link>"
                 + xml(canonicalBaseUrl + "/blog") + "</link><description>Knowledge Gym blog</description>"
-                + items + "</channel></rss>";
+                + "<language>vi</language><ttl>60</ttl>"
+                + "<atom:link href=\"" + xml(self) + "\" rel=\"self\" type=\"application/rss+xml\"/>"
+                + lastBuildDate + items + "</channel></rss>";
     }
 
     private static String xml(String s) {

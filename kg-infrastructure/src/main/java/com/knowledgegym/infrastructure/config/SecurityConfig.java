@@ -64,6 +64,8 @@ public class SecurityConfig {
                     // (location = /api/v1/actuator/prometheus).
                     .requestMatchers(HttpMethod.GET, "/actuator/prometheus").permitAll()
                     .requestMatchers(HttpMethod.GET, "/blog/posts", "/blog/posts/**", "/blog/feed.rss").permitAll()
+                    // Ảnh đại diện do API phục vụ và tải bằng thẻ <img>: không có header Authorization.
+                    .requestMatchers(HttpMethod.GET, "/users/*/avatar/*").permitAll()
                     .requestMatchers("/auth/register", "/auth/login", "/auth/forgot-password",
                                      "/auth/reset-password", "/auth/refresh", "/auth/logout",
                                      "/auth/email-verification/request", "/auth/verify-email").permitAll()

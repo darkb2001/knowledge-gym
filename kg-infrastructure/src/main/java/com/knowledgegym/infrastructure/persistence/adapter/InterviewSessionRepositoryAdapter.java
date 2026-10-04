@@ -81,6 +81,28 @@ public class InterviewSessionRepositoryAdapter implements InterviewSessionReposi
     }
 
     @Override
+    public Optional<InterviewSession> findByIdAndUserId(UUID id, UUID user) {
+        return read("SELECT * FROM interview_sessions WHERE id = ? AND user_id = ?", id, user)
+                .stream().findFirst();
+    }
+
+    @Override
+    public Map<UUID, InterviewAnswer> answersOf(UUID sessionId) {
+        Map<UUID, InterviewAnswer> answers = new LinkedHashMap<>();
+        db.query("""
+                SELECT question_id, user_answer, answer_html, attempted_at
+                FROM interview_answers
+                WHERE session_id = ? AND user_answer IS NOT NULL AND btrim(user_answer) <> ''
+                ORDER BY display_order
+                """, rs -> {
+            UUID questionId = rs.getObject("question_id", UUID.class);
+            answers.put(questionId, new InterviewAnswer(sessionId, questionId, rs.getString("user_answer"),
+                    rs.getString("answer_html"), rs.getTimestamp("attempted_at").toInstant()));
+        }, sessionId);
+        return answers;
+    }
+
+    @Override
     public List<InterviewSession> findByUserId(UUID user, int page, int size) {
         return read("SELECT * FROM interview_sessions WHERE user_id = ? ORDER BY started_at DESC, id LIMIT ? OFFSET ?",
                 user, size, (long) (page - 1) * size);

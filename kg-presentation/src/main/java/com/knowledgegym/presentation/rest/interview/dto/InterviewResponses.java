@@ -1,7 +1,6 @@
 package com.knowledgegym.presentation.rest.interview.dto;
 
 import com.knowledgegym.learning.application.MockInterviewUseCase;
-import com.knowledgegym.learning.domain.model.InterviewAnswer;
 import com.knowledgegym.learning.domain.model.InterviewSession;
 
 import java.time.Instant;
@@ -40,13 +39,22 @@ public final class InterviewResponses {
         }
     }
 
-    /** Kết quả 1 câu: trả `answerHtml` (đáp án mẫu) ngay khi submit — không chấm điểm. */
-    public record AnswerResult(UUID sessionId, UUID questionId, String userAnswer, String answerHtml,
-                               Instant attemptedAt) {
+    /** 1 dòng của trang kết quả; `userAnswer` null = user chưa trả lời câu này. */
+    public record ResultItem(UUID questionId, String title, String userAnswer, String answerHtml,
+                             Instant answeredAt) {
 
-        public static AnswerResult of(InterviewAnswer answer) {
-            return new AnswerResult(answer.sessionId(), answer.questionId(), answer.userAnswer(),
-                    answer.answerHtml(), answer.attemptedAt());
+        public static ResultItem of(MockInterviewUseCase.ResultItem item) {
+            return new ResultItem(item.questionId(), item.title(), item.userAnswer(), item.answerHtml(),
+                    item.answeredAt());
+        }
+    }
+
+    /** Trang kết quả submit toàn cục: đủ mọi câu của phiên + số câu đã trả lời. */
+    public record Result(Session session, List<ResultItem> items, int answeredCount) {
+
+        public static Result of(MockInterviewUseCase.Result result) {
+            return new Result(Session.of(result.session()), result.items().stream().map(ResultItem::of).toList(),
+                    result.answeredCount());
         }
     }
 }

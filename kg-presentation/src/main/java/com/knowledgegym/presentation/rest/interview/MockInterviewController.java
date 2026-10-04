@@ -36,11 +36,19 @@ public class MockInterviewController {
                 useCase.start(user, request.topicId(), request.questionCount(), request.mode()));
     }
 
-    @PostMapping("/{id}/answer")
-    public InterviewResponses.AnswerResult answer(@AuthenticationPrincipal UUID user, @PathVariable UUID id,
-                                                  @Valid @RequestBody InterviewRequests.Answer request) {
-        return InterviewResponses.AnswerResult.of(
-                useCase.answer(user, id, request.questionId(), request.userAnswer()));
+    /** Nút "kết thúc phỏng vấn": submit toàn cục rồi trả luôn trang kết quả đầy đủ câu. */
+    @PostMapping("/{id}/submit")
+    public InterviewResponses.Result submit(@AuthenticationPrincipal UUID user, @PathVariable UUID id,
+                                            @Valid @RequestBody InterviewRequests.Submit request) {
+        var answers = request.answers().stream()
+                .map(item -> new MockInterviewUseCase.AnswerInput(item.questionId(), item.answer()))
+                .toList();
+        return InterviewResponses.Result.of(useCase.submit(user, id, answers));
+    }
+
+    @GetMapping("/{id}/result")
+    public InterviewResponses.Result result(@AuthenticationPrincipal UUID user, @PathVariable UUID id) {
+        return InterviewResponses.Result.of(useCase.result(user, id));
     }
 
     @PostMapping("/{id}/finish")

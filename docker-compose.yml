@@ -57,6 +57,10 @@ services:
       S3_BUCKET_IMAGES: kg-blog-images
       S3_BUCKET_AVATARS: kg-avatars
       S3_BUCKET_EXPORTS: kg-exports
+      # Bật storage ở dev để đường avatar/presign giống prod (Garage đã có sẵn trong file này).
+      STORAGE_S3_ENABLED: "true"
+      S3_OBJECT_BUCKET: ${S3_OBJECT_BUCKET:-kg-local}
+      APP_API_PUBLIC_BASE_URL: ${APP_API_PUBLIC_BASE_URL:-http://localhost:8080/api/v1}
     depends_on:
       db:
         condition: service_healthy

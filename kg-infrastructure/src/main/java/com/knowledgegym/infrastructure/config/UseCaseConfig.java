@@ -259,11 +259,26 @@ public class UseCaseConfig {
 
     @Bean
     UpdateProfileUseCase updateProfileUseCase(UserRepository userRepository,
-            @org.springframework.beans.factory.annotation.Value("${storage.s3.public-endpoint:}") String publicEndpoint) {
-        java.util.Optional<String> prefix = publicEndpoint == null || publicEndpoint.isBlank()
+            @org.springframework.beans.factory.annotation.Value("${app.api.public-base-url:http://localhost:8080}")
+            String apiBaseUrl) {
+        // Ảnh đại diện do API phục vụ (AvatarController), không phải host S3: prefix hợp lệ
+        // chính là base URL của API.
+        java.util.Optional<String> prefix = apiBaseUrl == null || apiBaseUrl.isBlank()
                 ? java.util.Optional.empty()
-                : java.util.Optional.of(publicEndpoint.replaceAll("/+$", "") + "/kg-avatars/");
+                : java.util.Optional.of(apiBaseUrl.replaceAll("/+$", "") + "/");
         return new UpdateProfileUseCase(userRepository, prefix);
+    }
+
+    /** Cùng property với adapter + controller: thiếu Garage thì endpoint avatar biến mất, app vẫn boot. */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            name = "storage.s3.enabled", havingValue = "true")
+    AvatarUseCase avatarUseCase(UserRepository userRepository,
+            com.knowledgegym.shared.domain.port.StoragePort storage,
+            @org.springframework.beans.factory.annotation.Value("${storage.s3.objects-bucket:kg-local}") String bucket,
+            @org.springframework.beans.factory.annotation.Value("${app.api.public-base-url:http://localhost:8080}")
+            String publicBaseUrl) {
+        return new AvatarUseCase(userRepository, storage, bucket, publicBaseUrl);
     }
 
     // ------------------------------------------------------------------ learning / SRS (m5)
