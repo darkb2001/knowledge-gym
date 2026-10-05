@@ -152,6 +152,15 @@ app:
       # Mutation của admin evict toàn bộ.
       max-size: 1000
       ttl: 30m
+  turnstile:
+    # Bật enforcement ở BE. Mặc định tắt để deploy code trước, gắn secret sau:
+    # FE đã render widget từ trước nên khi bật không có khoảng chết với người dùng.
+    enabled: ${TURNSTILE_ENABLED:false}
+    secret: ${TURNSTILE_SECRET:}
+    verify-url: ${TURNSTILE_VERIFY_URL:https://challenges.cloudflare.com/turnstile/v0/siteverify}
+    timeout-ms: ${TURNSTILE_TIMEOUT_MS:3000}
+    # Cloudflare sự cố/timeout: ưu tiên không chặn người dùng thật (log WARN để còn phát hiện).
+    fail-open: ${TURNSTILE_FAIL_OPEN:true}
   security:
     swagger-enabled: false
     jwt:
