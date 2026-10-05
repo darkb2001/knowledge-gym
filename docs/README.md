@@ -36,6 +36,7 @@
 | 22 | [es-control-ops-bot-reply.md](./22-es-control-ops-bot-reply.md) | Trả lời ops bot: ES lifecycle qua host control |
 | 23 | [23-alertmanager-ops.md](./23-alertmanager-ops.md) | Alertmanager project `kgops`: dựng lại + nghiệm thu |
 | 24 | [24-mail-prod.md](./24-mail-prod.md) | Mail transactional prod: bật SMTP, nghiệm thu end-to-end, bẫy `MAIL_SMTP_ENABLED=false` |
+| 29 | [29-ddos-protection.md](./29-ddos-protection.md) | Chống DDoS/lạm dụng: nginx + alert rule + Telegram + script Cloudflare, runbook khi bị đánh |
 | adr | [adr/](./adr/) | ADR-001 modular monolith, ADR-004 infra/backup/email |
 
 ## Quick start

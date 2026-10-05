@@ -38,3 +38,5 @@ Thumbs.db
 
 # Logs
 *.log
+# File runtime (marker ES stopped, danh sách IP chặn của nginx)
+run/
