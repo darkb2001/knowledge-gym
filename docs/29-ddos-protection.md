@@ -15,14 +15,14 @@ khách → Cloudflare edge (L3/L4 unmetered, WAF free, bot fight)
 
 | Host | Đường vào | Bảo vệ hiện có | Đo được (05/10) |
 |---|---|---|---|
-| `api.darkb-tech.io.vn` | Cloudflare proxy + tunnel | CF L3/L4 unmetered, WAF free (UA `sqlmap` → **403**), nginx `limit_req` auth 10r/s + api 60r/s, Bucket4j 5 login/phút/IP | 120 req dồn vào `/auth` → **87×503**; 1000 req vào `/api/v1/topics` → chỉ 54×503 |
+| `api.darkb-tech.io.vn` | Cloudflare proxy + tunnel | CF L3/L4 unmetered, WAF free (UA `sqlmap` → **403**), **CF rate limit 250 req/10s/IP** (edge, có `error code: 1015`), nginx `limit_req` auth 10r/s + api 60r/s, Bucket4j 5 login/phút/IP | 120 req dồn vào `/auth` → **87×503**; 1000 req vào `/api/v1/topics` → **16×429** (edge/app shed) |
 | `9router.darkb-tech.io.vn` | Cloudflare proxy | CF; **cố ý không rate-limit** (đây là LLM gateway của agent) | `/v1/chat/completions` không key → **401** |
-| `app.darkb-tech.io.vn` (FE) | **Vercel trực tiếp, KHÔNG qua Cloudflare** | Vercel DDoS mitigation (mọi gói) + firewall free rules; chưa có rate limit rule | 1 lượt xem ≈ **745 KB** ⇒ quota Free 100 GB ≈ **137k lượt/tháng** |
+| `app.darkb-tech.io.vn` (FE) | **Vercel trực tiếp, KHÔNG qua Cloudflare** | Vercel DDoS mitigation (mọi gói) + WAF: **Challenge Bot Protection + Deny AI Bots** (chủ web bật 05/10) | 1 lượt xem ≈ **745 KB** ⇒ quota Free 100 GB ≈ **137k lượt/tháng** |
 
-**Điểm yếu đã biết:** (a) zone Cloudflare chưa có rate limiting rule — 1 IP bắn
-100 req/s thì ~95% vẫn vào tới CT102; (b) FE không qua Cloudflare nên không có
-WAF/bot rule cho nó, chỉ có Vercel + hạn mức quota; (c) trần thật của API là
-băng thông upload của mạng nhà (tunnel) — CF phải chặn trước khi tới đó.
+**Điểm yếu còn lại:** (a) FE không qua Cloudflare nên không có WAF/rate-limit rule
+của zone, chỉ có Vercel (đã bật bot challenge) + hạn mức quota; (b) trần thật của
+API là băng thông upload của mạng nhà (tunnel) — CF phải chặn trước khi tới đó;
+(c) gói Free chỉ cho 1 rate-limit rule nên `/auth` không có rule riêng ở edge.
 
 ## 2. Đã triển khai trong repo
 
@@ -73,14 +73,31 @@ thêm log exporter (mtail/vector) — chưa cần.
 ### Script áp rule Cloudflare (`ops/cloudflare/apply-ddos-rules.sh`)
 ```bash
 export CF_API_TOKEN='<token: Zone→WAF→Edit, Zone→Zone Settings→Edit>'
-ops/cloudflare/apply-ddos-rules.sh                 # 2 rate limit rule
+ops/cloudflare/apply-ddos-rules.sh                 # 1 rate limit rule
+ops/cloudflare/apply-ddos-rules.sh --verify 400    # bắn 400 req, kiểm tra CF chặn ở edge
 ops/cloudflare/apply-ddos-rules.sh --under-attack on    # kill-switch
 ops/cloudflare/apply-ddos-rules.sh --under-attack off
 ```
-- `/api/v1/auth/*`: **60 req/phút/IP → managed challenge** (chặn brute force).
-- `/api/*`: **200 req/10s/IP → block 60s** (chặn flood API).
-- Gói Free chỉ khớp được `Path` (+Verified Bot) và đếm theo IP ⇒ 2 rule này nằm
-  đúng giới hạn đó. Script `PUT` cả phase nên rule tạo tay trên dashboard sẽ bị xoá.
+- Rule đang chạy: `/api/*` → **250 req/10s/IP → block 10s** (chặn flood API trước
+  khi tốn băng thông tunnel). Ngưỡng ~25 req/s: đủ rộng cho NAT dùng chung (CGNAT),
+  đủ chặt để cắt flood; hạ `requests_per_period` nếu muốn chặt hơn.
+- **Gói Free — giới hạn đã kiểm chứng bằng API (05/10), sai là API trả 400:**
+  1. mỗi zone **chỉ 1** rate-limit rule ⇒ không thể vừa có rule riêng cho `/auth`
+     vừa có rule cho `/api`; brute-force `/auth` vẫn được app (Bucket4j 5 login/phút)
+     + nginx (zone `auth` 10 r/s) lo;
+  2. expression **chỉ được dùng field `Path`** (`http.request.uri.path`). Bản dùng
+     `http.host eq ...` được API nhận nhưng **không bao giờ kích hoạt** — đã test
+     250 request dồn mà không thấy chặn;
+  3. `characteristics` **bắt buộc có `cf.colo.id`** (không có ⇒ lỗi 20155);
+  4. `period` chỉ được **10**, `mitigation_timeout` chỉ được **10**.
+- **Kết quả nghiệm thu (05/10):** hạ ngưỡng tạm về 5 req/10s → bắn 60 request
+  (~33 req/s) → **31 request bị chặn ở edge**, body `error code: 1015`; sau đó
+  khôi phục 250/10s.
+- **Đếm theo colocation**: counter tách theo `cf.colo.id`, một flood trải nhiều
+  colo (SIN/HKG/NRT) sẽ bị chặn từng phần — đúng thiết kế của gói Free.
+- Rule mới có **độ trễ lan truyền ở edge** (hàng chục giây): sửa rule xong test
+  ngay sẽ thấy như "không có tác dụng"; đợi ~1–2 phút rồi hãy đo.
+- Script `PUT` cả phase ⇒ rule tạo tay trên dashboard sẽ bị xoá.
 - **Không** rate-limit host `9router` (agent đang dùng nó làm LLM gateway).
 
 ## 3. Runbook khi đang bị tấn công (theo thứ tự)
@@ -111,10 +128,10 @@ ssh <CT102> "rm -f /opt/kg/run/blocklist/attack.conf && docker exec kg-nginx-1 n
 
 | Việc | Ai làm | Vì sao chưa xong |
 |---|---|---|
-| Chạy `apply-ddos-rules.sh` | cần CF token | Repo chỉ có `GITHUB_TOKEN`/`PVE_*`; token CF chưa có trong `/root/.hermes/.env` |
-| Bật Cloudflare Free Managed Ruleset + Bot Fight Mode | dashboard CF | API không chắc theo gói |
-| Vercel: rate limit rule cho `/login`, biết chỗ bật Attack Challenge Mode | dashboard Vercel | cần tài khoản Vercel của chủ web |
-| Turnstile cho `/login` + `/register` | dev (FE widget + BE verify) | cần sitekey/secret key từ CF trước |
+| ~~Chạy `apply-ddos-rules.sh`~~ | **xong 05/10** | `CF_API_TOKEN` đã có trong `/root/.hermes/.env` (0600); rule `250 req/10s` đang live, đã nghiệm thu thấy `error code: 1015` |
+| Bật Cloudflare Free Managed Ruleset + Bot Fight Mode | dashboard CF | API `PATCH settings/bot_fight_mode` trả **403** với token hiện tại ⇒ phải bật tay trên dashboard |
+| ~~Vercel: bật bot protection~~ | **xong 05/10** | chủ web đã bật Challenge Bot Protection + Deny AI Bots |
+| Turnstile cho đăng ký/quên mật khẩu/xác minh email | **code xong 05/10** (`sha-829e62c`) | còn gắn `APP_TURNSTILE_ENABLED=true` + `APP_TURNSTILE_SECRET` vào `/opt/kg/.env` rồi recreate app — xem `docs/30-turnstile.md` |
 | (Tuỳ chọn) cho FE đi qua Cloudflare | quyết định của chủ web | đổi DNS `app.` sang proxied: được WAF/rate limit cho FE, đổi lại mất vài tối ưu edge Vercel |
 | Cảnh báo quota Vercel (FDT > 50 GB/tháng) | dashboard Vercel | Hobby không expose API usage qua token thường |
 
@@ -126,8 +143,9 @@ ssh <CT102> "rm -f /opt/kg/run/blocklist/attack.conf && docker exec kg-nginx-1 n
 3. Bắn 1000 request dồn vào `/api/v1/topics`: `shed_rate > 20 req/s` xuất hiện
    trong Prometheus ⇒ alert `KnowledgeGymEdgeRejectionStorm` chuyển `firing`
    trong ≤ 4 phút và **Telegram nhận được tin**.
-4. Sau khi chạy script CF: bắn 300 req/10s từ 1 IP vào `/api/` ⇒ response có
-   `cf-mitigated: block` (hoặc challenge) từ **edge**, `shed_rate` ở nginx ≈ 0.
+4. Sau khi chạy script CF: bắn **> 250 request trong 10s** từ 1 IP vào `/api/`
+   ⇒ một phần response trả **429 với body `error code: 1015`** (chặn ở edge, đến
+   trước nginx); phải đợi ~1–2 phút sau khi sửa rule để edge lan truyền.
 5. `promtool check rules /etc/prometheus/alerts.yml` → 11 rules, 0 lỗi.
 
 ## 6. Ghi chú vận hành

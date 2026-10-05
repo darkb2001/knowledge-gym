@@ -28,10 +28,11 @@ Mặc định **tắt** (`app.turnstile.enabled=false`) để có thể deploy c
 
 ```bash
 # CT102, /opt/kg/.env  (0600, KHÔNG commit)
-TURNSTILE_ENABLED=true
-TURNSTILE_SECRET=<secret key từ Cloudflare dashboard>
+APP_TURNSTILE_ENABLED=true
+APP_TURNSTILE_SECRET=<secret key từ Cloudflare dashboard>
 # tuỳ chọn
-TURNSTILE_FAIL_OPEN=true      # Cloudflare timeout/lỗi ⇒ cho qua + log WARN
+APP_TURNSTILE_FAIL_OPEN=true   # Cloudflare timeout/lỗi ⇒ cho qua + log WARN
+APP_TURNSTILE_TIMEOUT_MS=3000
 docker compose -f docker-compose.prod.yml up -d --force-recreate --no-deps app
 ```
 

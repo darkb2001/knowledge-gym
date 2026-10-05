@@ -50,38 +50,51 @@ zone_id() {
 apply_rate_limits() {
   local z="$1"
   local payload
+  # GÓI FREE (kiểm chứng bằng API 05/10 — mọi mục dưới đây đều bị API trả 400 nếu sai):
+  #   1. mỗi zone CHỈ 1 rate-limit rule;
+  #   2. expression chỉ được dùng field `Path` (http.request.uri.path) — bản dùng `http.host`
+  #      được API nhận nhưng KHÔNG bao giờ kích hoạt;
+  #   3. characteristics bắt buộc có `cf.colo.id` (đếm theo colocation);
+  #   4. period chỉ được = 10 (giây), mitigation_timeout chỉ được = 10 (giây).
+  # Ngưỡng 250 req/10s/IP (~25 req/s): đủ rộng cho NAT dùng chung (CGNAT lớp học) nhưng vẫn
+  # cắt được flood — hạ xuống nếu muốn chặt hơn.
   payload=$(cat <<JSON
 {
   "rules": [
     {
-      "description": "KG auth: 60 req/phút/IP → managed challenge (brute force login/OTP)",
-      "expression": "(http.host eq \"$API_HOST\" and starts_with(http.request.uri.path, \"/api/v1/auth/\"))",
-      "action": "managed_challenge",
-      "ratelimit": {
-        "characteristics": ["ip.src"],
-        "period": 60,
-        "requests_per_period": 60,
-        "mitigation_timeout": 300
-      }
-    },
-    {
-      "description": "KG api: 200 req/10s/IP → block 60s (flood API)",
-      "expression": "(http.host eq \"$API_HOST\" and starts_with(http.request.uri.path, \"/api/\"))",
+      "description": "KG API: 250 req/10s/IP -> block 10s (flood API; Free: 1 rule/zone, period 10s, field Path)",
+      "expression": "(starts_with(http.request.uri.path, \"/api/\"))",
       "action": "block",
       "ratelimit": {
-        "characteristics": ["ip.src"],
+        "characteristics": ["ip.src", "cf.colo.id"],
         "period": 10,
-        "requests_per_period": 200,
-        "mitigation_timeout": 60
-      }
+        "requests_per_period": 250,
+        "mitigation_timeout": 10
+      },
+      "enabled": true
     }
   ]
 }
 JSON
 )
-  echo "→ PUT ruleset phase http_ratelimit (2 rule) cho zone $z"
+  echo "→ PUT ruleset phase http_ratelimit (1 rule) cho zone $z"
   api PUT "/zones/$z/rulesets/phases/http_ratelimit/entrypoint" "$payload" \
     | python3 -c 'import json,sys; d=json.load(sys.stdin); r=d.get("result") or {}; print("   OK:", len(r.get("rules",[])), "rule(s), id:", r.get("id"))'
+}
+
+verify() { # verify [N] [PATH] — bắn N request song song và xác nhận Cloudflare chặn ở edge
+  local n="${1:-60}" path="${2:-/api/v1/blog/posts}" dir
+  dir="$(mktemp -d)"
+  echo "→ bắn $n request song song tới https://$API_HOST$path"
+  seq 1 "$n" | xargs -P 20 -I{} curl -s -o "$dir/{}" -w '%{http_code}\n' --max-time 20 "https://$API_HOST$path" | sort | uniq -c
+  if grep -rqi 'error code: 1015' "$dir"; then
+    echo "   ✓ Cloudflare đã chặn ở edge (error code: 1015) — rule hoạt động"
+  else
+    echo "   ! chưa thấy 1015 — hoặc ngưỡng chưa bị vượt (bình thường với vài chục request so với"
+    echo "     ngưỡng 250 req/10s), hoặc expression sai. Muốn kiểm chứng cơ chế: bắn nhiều hơn"
+    echo "     ngưỡng (vd: --verify 400) hoặc tạm hạ requests_per_period xuống 5."
+  fi
+  rm -rf "$dir"
 }
 
 setting() { # setting NAME VALUE
@@ -106,6 +119,8 @@ main() {
       ;;
     --security-level)
       setting "$z" security_level "${2:?high|medium|low}" ;;
+    --verify)
+      verify "${2:-60}" "${3:-/api/v1/blog/posts}" ;;
     *)
       apply_rate_limits "$z"
       # Bot Fight Mode: hữu ích nhưng API có thể khác theo gói → lỗi không chặn.

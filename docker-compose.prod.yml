@@ -87,6 +87,12 @@ services:
       APP_BLOG_KAFKA_ENABLED: ${APP_BLOG_KAFKA_ENABLED:-true}
       APP_BLOG_WRITER_ENABLED: ${APP_BLOG_WRITER_ENABLED:-false}
       APP_CRON_MODE: ${APP_CRON_MODE:-external}
+      # Cloudflare Turnstile (docs/30-turnstile.md). Mặc định TẮT: deploy code
+      # trước, bật sau bằng APP_TURNSTILE_ENABLED=true + APP_TURNSTILE_SECRET
+      # trong /opt/kg/.env (0600) rồi force-recreate app — không có khoảng chết.
+      APP_TURNSTILE_ENABLED: ${APP_TURNSTILE_ENABLED:-false}
+      APP_TURNSTILE_SECRET: ${APP_TURNSTILE_SECRET:-}
+      APP_TURNSTILE_FAIL_OPEN: ${APP_TURNSTILE_FAIL_OPEN:-true}
       CRON_TOKEN: ${CRON_TOKEN:?CRON_TOKEN is required}
       # ES lifecycle agent on CT102 Docker bridge gateway (not 127.0.0.1).
       # Empty = admin start/stop returns 501 until kg-es-control is deployed.
