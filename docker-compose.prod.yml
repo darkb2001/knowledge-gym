@@ -38,6 +38,9 @@ services:
       - kg-internal
     volumes:
       - ./infra/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+      # Kill-switch chặn IP thủ công khi đang bị tấn công (docs/29-ddos-protection.md):
+      # thêm file .conf chứa `deny <ip>;` vào /opt/kg/run/blocklist/ rồi reload nginx.
+      - ./run/blocklist:/etc/nginx/blocklist:ro
     mem_limit: 96m
     memswap_limit: 96m
     logging: *default-logging

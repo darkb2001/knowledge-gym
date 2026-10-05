@@ -24,8 +24,9 @@ route:
   group_interval: 5m
   repeat_interval: 4h
   routes:
+    # Critical (app down, đang bị đánh...) → Telegram + email, phản hồi nhanh.
     - matchers: ['severity="critical"']
-      receiver: email-ops
+      receiver: ops-critical
       group_wait: 10s
       repeat_interval: 1h
 
@@ -42,3 +43,22 @@ receivers:
         send_resolved: true
         headers:
           Subject: '{{ if eq .Status "firing" }}[FIRING]{{ else }}[RESOLVED]{{ end }} Knowledge Gym - {{ .CommonLabels.alertname }}'
+
+  # Critical: bắn CẢ Telegram (đọc ngay trên điện thoại, kể cả lúc đang bị đánh)
+  # LẪN email (lưu vết). Token bot + chat id điền trên host, KHÔNG commit.
+  # Bot dùng chung với Hermes: chat id = chat Telegram của chủ hệ thống.
+  - name: ops-critical
+    email_configs:
+      - to: 'mtpquangbao@gmail.com'
+        send_resolved: true
+        headers:
+          Subject: '{{ if eq .Status "firing" }}[FIRING]{{ else }}[RESOLVED]{{ end }} Knowledge Gym - {{ .CommonLabels.alertname }}'
+    telegram_configs:
+      - bot_token: REPLACE_ME_TELEGRAM_BOT_TOKEN
+        chat_id: REPLACE_ME_TELEGRAM_CHAT_ID
+        parse_mode: HTML
+        send_resolved: true
+        message: |-
+          {{ if eq .Status "firing" }}🔥 <b>FIRING</b>{{ else }}✅ <b>RESOLVED</b>{{ end }} · {{ .CommonLabels.alertname }}
+          {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}
+          <i>runbook: docs/29-ddos-protection.md</i>

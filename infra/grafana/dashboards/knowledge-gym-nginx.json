@@ -35,6 +35,43 @@
         { "expr": "nginx_connections_writing", "legendFormat": "writing", "refId": "B" },
         { "expr": "nginx_connections_waiting", "legendFormat": "waiting", "refId": "C" }
       ]
+    },
+    {
+      "id": 4,
+      "title": "Request bị chặn ở edge (req/s) — đèn báo bị đánh",
+      "description": "rate(nginx_http_requests_total) - rate(http_server_requests_seconds_count): request tới edge nhưng KHÔNG tới được app (rate limit 429, blocklist, 444 Host sai). > 20 req/s = đang bị tấn công (docs/29-ddos-protection.md).",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        { "expr": "clamp_min(sum(rate(nginx_http_requests_total[5m])) - sum(rate(http_server_requests_seconds_count[5m])), 0)", "legendFormat": "bị chặn ở edge", "refId": "A" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "thresholdsStyle": { "mode": "line" } }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 3 }, { "color": "red", "value": 20 }] } }, "overrides": [] }
+    },
+    {
+      "id": 5,
+      "title": "429 từ app (rate limit đăng nhập/OTP)",
+      "description": "Bucket4j trong app trả 429 — brute force login hoặc lạm dụng API hợp lệ đã vượt hạn mức (login 5/phút/IP).",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        { "expr": "sum(rate(http_server_requests_seconds_count{status=\"429\"}[5m]))", "legendFormat": "429/s", "refId": "A" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "thresholdsStyle": { "mode": "line" } }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 0.5 }] } }, "overrides": [] }
+    },
+    {
+      "id": 6,
+      "title": "Tổng request tới edge vs tới app (req/s)",
+      "description": "Hai đường phải bám sát nhau khi bình thường; tách xa = edge đang hạ request.",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "targets": [
+        { "expr": "sum(rate(nginx_http_requests_total[5m]))", "legendFormat": "tới edge", "refId": "A" },
+        { "expr": "sum(rate(http_server_requests_seconds_count[5m]))", "legendFormat": "tới app", "refId": "B" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
     }
   ]
 }

@@ -229,6 +229,14 @@ jobs:
             "${compose[@]}" pull app
             "${compose[@]}" up -d --remove-orphans
 
+            # nginx/prometheus bind-mount FILE cấu hình (nginx.prod.conf,
+            # alerts.yml): `git reset --hard` phía trên tạo inode mới, container
+            # cũ vẫn giữ inode cũ nên `up -d` KHÔNG đọc config mới. Buộc tạo lại
+            # 2 container stateless này (~2s) để rule rate limit / alert vừa
+            # deploy có hiệu lực thật. Lỗi ở đây không làm fail deploy.
+            "${compose[@]}" up -d --force-recreate --no-deps nginx prometheus \
+              || echo "CẢNH BÁO: chưa tạo lại được nginx/prometheus — config mới có thể chưa vào"
+
             # An intentional ES stop must survive compose up.
             if [ -f "$marker" ]; then
               "${compose[@]}" stop elasticsearch

@@ -38,3 +38,96 @@ groups:
         annotations:
           summary: >-
             Grafana Cloud is discarding samples due to its active-series limit
+
+  # ---------------------------------------------------------------------------
+  # Chống DDoS / lạm dụng (runbook: docs/29-ddos-protection.md).
+  #
+  # Cách đọc số liệu: `nginx_http_requests_total` (job nginx = stub_status) đếm
+  # MỌI request tới edge, còn `http_server_requests_seconds_count` (job
+  # knowledge-gym) chỉ đếm request LỌT TỚI app. Hiệu hai rate = số request bị
+  # chặn/ngắt ngay ở edge (rate limit nginx, blocklist, 444 Host sai) — đây là
+  # "đèn báo đang bị đánh", không cần thêm exporter nào.
+  #
+  # Baseline lành mạnh của hệ này ~5 req/s (đo 05/10).
+  # ---------------------------------------------------------------------------
+  - name: knowledge-gym-edge-ddos
+    rules:
+      - alert: KnowledgeGymTrafficSurge
+        expr: sum(rate(nginx_http_requests_total[5m])) > 40
+        for: 5m
+        labels:
+          severity: warning
+          layer: edge
+        annotations:
+          summary: >-
+            Lưu lượng tới edge > 40 req/s trong 5 phút (baseline ~5 req/s) —
+            kiểm tra nguồn trước khi bật kill-switch
+      - alert: KnowledgeGymTrafficFlood
+        expr: sum(rate(nginx_http_requests_total[5m])) > 150
+        for: 2m
+        labels:
+          severity: critical
+          layer: edge
+        annotations:
+          summary: >-
+            Lưu lượng tới edge > 150 req/s — nghi đang bị tấn công, mở
+            docs/29-ddos-protection.md và bật kill-switch
+      - alert: KnowledgeGymEdgeRejections
+        expr: >-
+          clamp_min(
+            sum(rate(nginx_http_requests_total[5m]))
+            - sum(rate(http_server_requests_seconds_count[5m]))
+          , 0) > 3
+        for: 5m
+        labels:
+          severity: warning
+          layer: edge
+        annotations:
+          summary: >-
+            Edge đang chặn > 3 req/s không tới được app (rate limit 429 /
+            blocklist) — có client bị hạn chế
+      - alert: KnowledgeGymEdgeRejectionStorm
+        expr: >-
+          clamp_min(
+            sum(rate(nginx_http_requests_total[5m]))
+            - sum(rate(http_server_requests_seconds_count[5m]))
+          , 0) > 20
+        for: 2m
+        labels:
+          severity: critical
+          layer: edge
+        annotations:
+          summary: >-
+            Edge đang chặn > 20 req/s — tấn công đang diễn ra thật, bật
+            Cloudflare Under Attack Mode / rate limiting rule
+      - alert: KnowledgeGymConnectionFlood
+        expr: nginx_connections_active > 60
+        for: 3m
+        labels:
+          severity: warning
+          layer: edge
+        annotations:
+          summary: >-
+            > 60 kết nối đồng thời tới nginx trong 3 phút — slowloris hoặc
+            connection flood (limit_conn 60/IP đang chặn bớt)
+      - alert: KnowledgeGymAuthRateLimited
+        expr: >-
+          sum(rate(http_server_requests_seconds_count{status="429"}[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          layer: app
+        annotations:
+          summary: >-
+            Bucket4j trong app trả 429 (> 0.5 req/s) — brute force login /
+            OTP / reset mật khẩu
+      - alert: KnowledgeGymNginxExporterDown
+        expr: up{job="nginx"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          layer: edge
+        annotations:
+          summary: >-
+            nginx-prometheus-exporter down — mù toàn bộ số liệu tầng edge
+            (mất khả năng phát hiện tấn công)
