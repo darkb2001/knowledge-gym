@@ -5,7 +5,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Component;
 
-/** Strict allowlist aligned with answer HTML — no images, no javascript: URIs. */
+/** Strict allowlist for readable technical articles; external links/images remain HTTPS-only. */
 @Component
 public class JsoupHtmlSanitizer implements BlogPostsUseCase.HtmlSanitizer {
     private static final Safelist BLOG = Safelist.none()
@@ -13,7 +13,7 @@ public class JsoupHtmlSanitizer implements BlogPostsUseCase.HtmlSanitizer {
                     "ul", "ol", "li", "blockquote", "small", "sup", "sub",
                     "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption",
                     "h1", "h2", "h3", "h4", "h5", "h6",
-                    "dl", "dt", "dd", "span", "div", "a")
+                    "dl", "dt", "dd", "span", "div", "a", "figure", "figcaption", "img")
             .addAttributes("a", "href", "title", "rel")
             .addAttributes("code", "class")
             .addAttributes("pre", "class")
@@ -21,7 +21,10 @@ public class JsoupHtmlSanitizer implements BlogPostsUseCase.HtmlSanitizer {
             .addAttributes("td", "colspan", "rowspan")
             .addAttributes("span", "class")
             .addAttributes("div", "class")
-            .addProtocols("a", "href", "http", "https", "mailto");
+            .addAttributes("figure", "class")
+            .addAttributes("img", "src", "alt", "title", "loading")
+            .addProtocols("a", "href", "https")
+            .addProtocols("img", "src", "https");
 
     @Override
     public String sanitize(String html) {
@@ -31,15 +34,8 @@ public class JsoupHtmlSanitizer implements BlogPostsUseCase.HtmlSanitizer {
     @Override
     public String sanitizeGenerated(String html) {
         var fragment = Jsoup.parseBodyFragment(html == null ? "" : html);
-        // Model-invented links are untrusted; canonical source links are attached by the application.
-        fragment.select("a").unwrap();
-        for(var heading:fragment.select("h1,h2,h3,h4,h5,h6").stream().toList()){
-            String label=heading.text().trim().toLowerCase(java.util.Locale.ROOT);
-            if(java.util.Set.of("sources","references","source","nguồn","tài liệu tham khảo","tham khảo").contains(label)){
-                var next=heading.nextElementSibling();heading.remove();
-                while(next!=null&&!next.tagName().matches("h[1-6]")){var after=next.nextElementSibling();next.remove();next=after;}
-            }
-        }
+        // Generated content may contain cited HTTPS documentation, books and videos.
+        // BLOG still strips javascript/data URLs and every tag/attribute outside the allowlist.
         return Jsoup.clean(fragment.body().html(), BLOG);
     }
 }
