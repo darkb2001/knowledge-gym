@@ -42,7 +42,23 @@ public final class DistractorGenerator {
     public static final int MIN_OPTION_COUNT = 2;
 
     /** Trần độ dài mỗi option — câu trả lời dài nguyên đoạn sẽ tràn UI và lộ đáp án đúng. */
-    private static final int MAX_OPTION_LENGTH = 240;
+    private static final int MAX_OPTION_LENGTH = 160;
+
+    /**
+     * Nhãn `span.ans-label` trong docs (What/Why/How/When...) bị `PlainText` giữ lại thành chữ, nên
+     * câu đầu tiên của đáp án thường bắt đầu bằng "What ..." — dính vào option thì 100% phương án
+     * cùng một khuôn và trông như dữ liệu rác. Luôn bỏ nhãn trước khi dùng làm text option.
+     */
+    private static final java.util.regex.Pattern LABEL_PREFIX = java.util.regex.Pattern.compile(
+            "^(?i)\\s*(what|why|how|when not|when|which|where|who|"
+                    + "nói trong 60 giây|đáp án|answer)\\b[\\s:.\\-—–]*");
+
+    /** Từ dừng — không dùng để đo độ liên quan giữa phương án nhiễu và câu hỏi. */
+    private static final Set<String> STOP_WORDS = Set.of(
+            "the", "and", "for", "with", "that", "this", "vs", "la", "là", "cua", "của", "cho", "voi",
+            "với", "khi", "nao", "nào", "gi", "gì", "cac", "các", "nhung", "những", "mot", "một",
+            "duoc", "được", "trong", "khong", "không", "hay", "hoac", "hoặc", "tren", "trên", "tu",
+            "từ", "bằng", "để", "làm", "sao", "explain", "giai", "giải", "thich", "thích");
 
     private DistractorGenerator() {
     }
@@ -128,11 +144,43 @@ public final class DistractorGenerator {
             }
         }
         long seed = seedOf(target.getId());
+        // Thứ tự ưu tiên: cùng module trước, rồi **câu hỏi liên quan nhất tới chủ đề đang hỏi**.
+        // Không có bước liên quan thì phương án nhiễu thường trả lời một câu hỏi khác hẳn, người học
+        // chỉ cần đọc đề là loại được — đúng lỗi đã gặp ở dữ liệu quiz.
         pool.sort(java.util.Comparator
                 .comparingInt((Question q) -> Objects.equals(target.getModuleId(), q.getModuleId()) ? 0 : 1)
+                .thenComparing(java.util.Comparator.comparingInt(
+                        (Question q) -> -relevance(target, q)))
                 .thenComparingLong(q -> mixedHash(seed, q.getId()))
                 .thenComparing(q -> q.getId().toString()));
         return pool;
+    }
+
+    /**
+     * Số từ khoá chung giữa **câu hỏi đích** và câu trả lời của ứng viên — càng cao thì phương án
+     * nhiễu càng bàn về đúng chủ đề đang hỏi (thay vì lạc sang câu khác trong module).
+     */
+    private static int relevance(Question target, Question candidate) {
+        Set<String> topic = keywords(target.getTitle());
+        if (topic.isEmpty()) {
+            return 0;
+        }
+        Set<String> answer = keywords(firstSentence(candidate.getAnswerHtml()));
+        answer.retainAll(topic);
+        return answer.size();
+    }
+
+    private static Set<String> keywords(String text) {
+        if (text == null || text.isBlank()) {
+            return Set.of();
+        }
+        Set<String> words = new LinkedHashSet<>();
+        for (String token : PlainText.of(text).toLowerCase(Locale.ROOT).split("[^\\p{L}\\p{N}]+")) {
+            if (token.length() > 2 && !STOP_WORDS.contains(token)) {
+                words.add(token);
+            }
+        }
+        return words;
     }
 
     /** 64 bit đầu của UUID — đủ trải cho seed, không cần hash mạnh. */
@@ -153,7 +201,7 @@ public final class DistractorGenerator {
      * nhiều câu trả lời trong docs/ là 1 câu dài không kết thúc bằng dấu chấm.
      */
     static String firstSentence(String html) {
-        String text = PlainText.of(html);
+        String text = LABEL_PREFIX.matcher(PlainText.of(html)).replaceFirst("").trim();
         if (text.isBlank()) {
             return "";
         }
