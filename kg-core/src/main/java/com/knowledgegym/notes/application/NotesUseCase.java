@@ -27,7 +27,8 @@ public class NotesUseCase {
                 .orElseThrow(() -> new NotFoundException("Note not found"));
     }
 
-    public Note create(UUID userId, UUID questionId, UUID moduleId, String noteType, String content, List<String> tags) {
+    public Note create(UUID userId, UUID questionId, UUID moduleId, String noteType, String content,
+                       String highlightRange, List<String> tags) {
         requirePublishedQuestion(questionId);
         Instant now = Instant.now();
         return notes.insert(new Note(
@@ -37,18 +38,22 @@ public class NotesUseCase {
                 moduleId,
                 parseType(noteType),
                 content,
+                normalizeHighlight(highlightRange),
                 copyTags(tags),
                 now,
                 now));
     }
 
-    public Note update(UUID userId, UUID noteId, UUID questionId, UUID moduleId, String noteType, String content, List<String> tags) {
+    public Note update(UUID userId, UUID noteId, UUID questionId, UUID moduleId, String noteType, String content,
+                       String highlightRange, List<String> tags) {
         Note existing = get(userId, noteId);
         if (Objects.equals(existing.questionId(), questionId)) {
             requireExistingQuestion(questionId);
         } else {
             requirePublishedQuestion(questionId);
         }
+        // Client cũ không gửi `highlightRange`: giữ nguyên đoạn neo đã lưu thay vì xoá mất.
+        String highlight = highlightRange == null ? existing.highlightRange() : normalizeHighlight(highlightRange);
         return notes.update(new Note(
                 existing.id(),
                 userId,
@@ -56,6 +61,7 @@ public class NotesUseCase {
                 moduleId,
                 parseType(noteType),
                 content,
+                highlight,
                 copyTags(tags),
                 existing.createdAt(),
                 Instant.now()));
@@ -90,6 +96,22 @@ public class NotesUseCase {
         }
         requirePublishedQuestion(note.questionId());
         return notes.upsertSrsCardFromNote(userId, note.questionId(), noteId);
+    }
+
+    /** Đoạn neo do tầng presentation sinh ra (JSON) — chỉ nhận object gọn, chặn chuỗi rác/quá dài. */
+    private static String normalizeHighlight(String highlightRange) {
+        if (highlightRange == null || highlightRange.isBlank()) {
+            return null;
+        }
+        String trimmed = highlightRange.trim();
+        if (trimmed.length() > 2000) {
+            throw new IllegalArgumentException("highlightRange quá dài");
+        }
+        if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
+            throw new IllegalArgumentException("highlightRange không hợp lệ");
+        }
+        // Object rỗng = người dùng bỏ neo; lưu NULL để không còn neo nào trên trang đọc.
+        return trimmed.equals("{}") ? null : trimmed;
     }
 
     private static List<String> copyTags(List<String> tags) {

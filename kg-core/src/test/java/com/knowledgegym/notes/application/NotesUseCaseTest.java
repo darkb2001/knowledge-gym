@@ -26,16 +26,16 @@ class NotesUseCaseTest {
     @Test
     void createRejectsUnknownQuestionAndConvertRequiresQuestionLink() {
         notes.existingQuestions.add(question);
-        assertThatThrownBy(() -> useCase.create(user, UUID.randomUUID(), null, "QUICK", "x", List.of()))
+        assertThatThrownBy(() -> useCase.create(user, UUID.randomUUID(), null, "QUICK", "x", null, List.of()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("questionId");
 
-        Note orphan = useCase.create(user, null, null, "STUDY", "body", List.of("tag"));
+        Note orphan = useCase.create(user, null, null, "STUDY", "body", null, List.of("tag"));
         assertThatThrownBy(() -> useCase.convertToSrsCard(user, orphan.id()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("question");
 
-        Note linked = useCase.create(user, question, null, "QUICK", "linked", List.of());
+        Note linked = useCase.create(user, question, null, "QUICK", "linked", null, List.of());
         UUID card = useCase.convertToSrsCard(user, linked.id());
         assertThat(useCase.convertToSrsCard(user, linked.id())).isEqualTo(card);
     }
@@ -43,7 +43,7 @@ class NotesUseCaseTest {
     @Test
     void ownershipIsEnforcedOnGetUpdateDelete() {
         notes.existingQuestions.add(question);
-        Note note = useCase.create(user, question, null, "BOOKMARK", "bm", List.of());
+        Note note = useCase.create(user, question, null, "BOOKMARK", "bm", null, List.of());
         UUID stranger = UUID.randomUUID();
         assertThatThrownBy(() -> useCase.get(stranger, note.id())).isInstanceOf(NotFoundException.class);
         assertThatThrownBy(() -> useCase.delete(stranger, note.id())).isInstanceOf(NotFoundException.class);
@@ -54,13 +54,13 @@ class NotesUseCaseTest {
     @Test
     void withdrawalBlocksNewLinksAndConversionButKeepsExistingNotesEditable() {
         notes.existingQuestions.add(question);
-        var linked = useCase.create(user, question, null, "STUDY", "My notes", List.of());
+        var linked = useCase.create(user, question, null, "STUDY", "My notes", null, List.of());
         notes.unpublishedQuestions.add(question);
-        assertThatThrownBy(() -> useCase.create(user, question, null, "BOOKMARK", "", List.of()))
+        assertThatThrownBy(() -> useCase.create(user, question, null, "BOOKMARK", "", null, List.of()))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> useCase.convertToSrsCard(user, linked.id()))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThat(useCase.update(user, linked.id(), question, null, "STUDY", "Still mine", List.of()).content())
+        assertThat(useCase.update(user, linked.id(), question, null, "STUDY", "Still mine", null, List.of()).content())
                 .isEqualTo("Still mine");
         assertThat(useCase.list(user)).hasSize(1);
         assertThat(notes.cards).isEmpty();
@@ -68,14 +68,38 @@ class NotesUseCaseTest {
 
     @Test
     void nullTagElementsAreClientErrorsWithoutChangingExistingNotes() {
-        var note = useCase.create(user, null, null, "QUICK", "Keep", List.of());
+        var note = useCase.create(user, null, null, "QUICK", "Keep", null, List.of());
         var badTags = java.util.Collections.<String>singletonList(null);
-        assertThatThrownBy(() -> useCase.create(user, null, null, "QUICK", "Invalid", badTags))
+        assertThatThrownBy(() -> useCase.create(user, null, null, "QUICK", "Invalid", null, badTags))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> useCase.update(user, note.id(), null, null, "QUICK", "Invalid", badTags))
+        assertThatThrownBy(() -> useCase.update(user, note.id(), null, null, "QUICK", "Invalid", null, badTags))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThat(useCase.list(user)).hasSize(1);
         assertThat(useCase.get(user, note.id()).content()).isEqualTo("Keep");
+    }
+
+    @Test
+    void highlightRangeIsStoredAndKeptWhenClientOmitsIt() {
+        notes.existingQuestions.add(question);
+        Note anchored = useCase.create(user, question, null, "HIGHLIGHT", "xem lại phần GC",
+                "{\"quote\":\"G1 là bộ sưu tập young\",\"start\":0,\"end\":24,\"sessionId\":\"s-1\"}", List.of());
+        assertThat(anchored.highlightRange()).contains("\"sessionId\":\"s-1\"");
+
+        // Client không gửi đoạn neo (ví dụ trang /notes cũ) => giữ nguyên neo thay vì xoá.
+        Note kept = useCase.update(user, anchored.id(), question, null, "HIGHLIGHT", "sửa nội dung", null, List.of());
+        assertThat(kept.highlightRange()).contains("s-1");
+
+        // Gửi tường minh object rỗng => người dùng chủ động bỏ neo.
+        Note cleared = useCase.update(user, anchored.id(), question, null, "HIGHLIGHT", "bỏ neo", "{}", List.of());
+        assertThat(cleared.highlightRange()).isNull();
+
+        assertThatThrownBy(() -> useCase.create(user, question, null, "HIGHLIGHT", "x", "khong-phai-json", List.of()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("highlightRange");
+        assertThatThrownBy(() -> useCase.create(user, question, null, "HIGHLIGHT", "x", "{\"quote\":\"" + "a".repeat(2100) + "\"}",
+                List.of()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("quá dài");
     }
 
     private static final class InMemoryNotes implements NoteRepository {

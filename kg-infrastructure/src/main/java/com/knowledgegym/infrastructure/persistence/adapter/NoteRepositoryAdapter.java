@@ -55,6 +55,7 @@ public class NoteRepositoryAdapter implements NoteRepository {
         entity.setModuleId(note.moduleId());
         entity.setNoteType(note.noteType());
         entity.setContent(note.content());
+        entity.setHighlightRange(note.highlightRange());
         entity.setTags(note.tags().toArray(String[]::new));
         entity.setUpdatedAt(note.updatedAt());
         return toDomain(jpa.save(entity));
@@ -101,6 +102,7 @@ public class NoteRepositoryAdapter implements NoteRepository {
                 entity.getModuleId(),
                 entity.getNoteType(),
                 entity.getContent(),
+                entity.getHighlightRange(),
                 Arrays.asList(tags),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
@@ -114,6 +116,7 @@ public class NoteRepositoryAdapter implements NoteRepository {
         entity.setModuleId(note.moduleId());
         entity.setNoteType(note.noteType());
         entity.setContent(note.content());
+        entity.setHighlightRange(note.highlightRange());
         entity.setTags(note.tags().toArray(String[]::new));
         entity.setPublic(false);
         entity.setCreatedAt(note.createdAt());

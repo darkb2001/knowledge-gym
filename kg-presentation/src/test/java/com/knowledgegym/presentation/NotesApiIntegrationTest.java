@@ -214,6 +214,66 @@ class NotesApiIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    @Order(5)
+    void highlightAnchorIsStoredKeptAndClearable() throws Exception {
+        MvcResult created = mockMvc.perform(post("/notes")
+                        .header("Authorization", bearer(ownerToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"questionId":"%s","noteType":"QUICK","content":"Nhớ đoạn locking này",
+                                 "highlight":{"quote":"Optimistic locking dùng version","start":12,"end":41,
+                                              "blockIndex":2,"sessionId":"sess-abc","path":"/questions/%s"},
+                                 "tags":["jpa"]}
+                                """.formatted(questionId, questionId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.highlight.quote").value("Optimistic locking dùng version"))
+                .andExpect(jsonPath("$.highlight.sessionId").value("sess-abc"))
+                .andExpect(jsonPath("$.highlight.blockIndex").value(2))
+                .andReturn();
+        UUID anchoredId = UUID.fromString(
+                objectMapper.readTree(created.getResponse().getContentAsString()).get("id").asText());
+
+        mockMvc.perform(get("/notes/{id}", anchoredId).header("Authorization", bearer(ownerToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.highlight.quote").value("Optimistic locking dùng version"))
+                .andExpect(jsonPath("$.highlight.path").value("/questions/" + questionId));
+
+        // Sửa nội dung mà không gửi lại neo ⇒ neo cũ phải được giữ
+        mockMvc.perform(put("/notes/{id}", anchoredId)
+                        .header("Authorization", bearer(ownerToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"questionId":"%s","noteType":"QUICK","content":"Nhớ đoạn locking này (bản 2)"}
+                                """.formatted(questionId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.highlight.sessionId").value("sess-abc"));
+
+        // Gửi highlight rỗng ⇒ gỡ neo
+        mockMvc.perform(put("/notes/{id}", anchoredId)
+                        .header("Authorization", bearer(ownerToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"questionId":"%s","noteType":"QUICK","content":"Bỏ neo","highlight":{}}
+                                """.formatted(questionId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.highlight").value(org.hamcrest.Matchers.nullValue()));
+
+        // Dữ liệu neo cũ có field lạ (JSON do bản trước ghi) không được làm hỏng note
+        mockMvc.perform(put("/notes/{id}", anchoredId)
+                        .header("Authorization", bearer(ownerToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"questionId":"%s","noteType":"QUICK","content":"Neo lạ","highlight":
+                                 {"quote":"đoạn cũ","blockIndex":1,"sessionId":"sess-old","legacyField":"bỏ qua"}}
+                                """.formatted(questionId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.highlight.quote").value("đoạn cũ"));
+
+        mockMvc.perform(delete("/notes/{id}", anchoredId).header("Authorization", bearer(ownerToken)))
+                .andExpect(status().isNoContent());
+    }
+
     private UUID register(String email) throws Exception {
         mockMvc.perform(post("/auth/register")
                         .header("X-Forwarded-For", RegistrationTestSupport.nextIp())
