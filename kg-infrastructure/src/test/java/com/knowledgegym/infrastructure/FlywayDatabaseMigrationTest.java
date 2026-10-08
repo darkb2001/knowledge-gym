@@ -155,12 +155,12 @@ class FlywayDatabaseMigrationTest {
     }
 
     @Test
-    void shouldCreateExactly42Tables() throws Exception {
+    void shouldCreateExpectedTables() throws Exception {
         query("SELECT count(*) FROM information_schema.tables " +
                 "WHERE table_schema = 'public' AND table_type = 'BASE TABLE' " +
                 "AND table_name != 'flyway_schema_history'", rs -> {
-            assertEquals(49, rs.getInt(1),
-                    "Expected exactly 49 tables excluding flyway_schema_history (V036 adds content_tracks)");
+            assertEquals(50, rs.getInt(1),
+                    "Expected 50 tables excluding flyway_schema_history (V038 adds english_attempts)");
         });
     }
 
