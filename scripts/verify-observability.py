@@ -72,6 +72,23 @@ def verify_config():
     indexed = loki["limits_config"]["otlp_config"]["resource_attributes"]
     assert indexed["ignore_defaults"]
     assert indexed["attributes_config"][0]["attributes"] == ["service.name", "deployment.environment.name"]
+    # Route and actor are promoted to log-record attributes: Loki stores those as
+    # structured metadata, so `| http_route="..."` / `| user_id="..."` filter with
+    # no `| json` and without adding a third indexed label. Values that could carry
+    # a raw URI/query or a person are deleted, not merely left unpublished.
+    statements = " ".join(statement
+                          for group in collector["processors"]["transform/logs"]["log_statements"]
+                          for statement in group["statements"])
+    assert 'keep_keys(attributes, ["http_route", "user_id"])' in statements
+    for field in ["http_route", "user_id"]:
+        assert f'set(attributes["{field}"], body["{field}"])' in statements, field
+        assert f'delete_key(body, "{field}") where' in statements, field
+        assert f'IsMatch(body["{field}"]' in statements, field
+        # Still published in the body: the raw line stays readable in the UI.
+        assert f'"{field}"' in statements.split("keep_keys(body, [")[1].split("]")[0], field
+    grafana_image = read_yaml("docker-compose.prod.yml")["services"]["grafana"]["image"]
+    # Logs Drilldown ships in Grafana 12; pin a patch release, never a moving tag.
+    assert grafana_image.startswith("grafana/grafana:12.") and "latest" not in grafana_image
     assert tempo["compactor"]["compaction"]["block_retention"] == "24h"
     for job in base_prom["scrape_configs"]:
         assert job in prom["scrape_configs"], "existing scrape drift"
@@ -93,7 +110,9 @@ def verify_config():
     match = re.search(derived["matcherRegex"], json.dumps({"trace_id": "1" * 32}))
     assert match is not None and match.group(1) == "1" * 32
     assert derived["datasourceUid"] == "tempo"
-    assert "$${__trace.traceId}" in by_uid["tempo"]["jsonData"]["tracesToLogsV2"]["query"]
+    drilldown = by_uid["tempo"]["jsonData"]["tracesToLogsV2"]
+    assert "$${__trace.traceId}" in drilldown["query"]
+    assert "| json" not in drilldown["query"], "trace_id is structured metadata; no parse needed"
     for path in (ROOT / "infra/grafana/dashboards").glob("kg-*.json"):
         dashboard = json.loads(path.read_text())
         assert not dashboard["editable"]

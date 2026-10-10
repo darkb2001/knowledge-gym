@@ -78,7 +78,7 @@ processors:
           - >-
               keep_keys(body, ["timestamp", "service", "environment", "level",
               "logger", "message", "trace_id", "span_id", "request_id",
-              "http_method", "http_route", "http_status", "duration_ms",
+              "user_id", "http_method", "http_route", "http_status", "duration_ms",
               "stack_trace", "status", "upstream_status", "duration_seconds",
               "upstream_duration_seconds", "request_bytes", "response_bytes"])
           - >-
@@ -92,6 +92,9 @@ processors:
               delete_key(body, "http_route") where
               resource.attributes["service.name"] != "knowledge-gym"
           - >-
+              delete_key(body, "user_id") where
+              resource.attributes["service.name"] != "knowledge-gym"
+          - >-
               delete_key(body, "logger") where
               resource.attributes["service.name"] != "knowledge-gym"
           - >-
@@ -102,7 +105,33 @@ processors:
               set(span_id.string, body["span_id"]) where
               IsString(body["span_id"]) and IsMatch(body["span_id"],
               "^[0-9a-f]{16}$")
-          - 'keep_keys(attributes, [])'
+          # Fail closed on shapes that could carry a raw URI/query or a person:
+          # a value that does not match is deleted, not merely left unpublished.
+          # The app validates first (SafeJsonEncoder); this is the last gate
+          # before Loki, which never receives a raw path, query or email.
+          - >-
+              delete_key(body, "http_route") where IsString(body["http_route"])
+              and not IsMatch(body["http_route"],
+              "^(_unmatched|/[A-Za-z0-9_{}/.-]{0,159})$")
+          - >-
+              delete_key(body, "user_id") where IsString(body["user_id"]) and
+              not IsMatch(body["user_id"],
+              "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+          # Publish them as log-record attributes: Loki stores OTLP log
+          # attributes as structured metadata, so `| user_id="..."` and
+          # `| http_route="..."` filter without `| json` and without touching
+          # stream labels (no index cardinality). trace_id/span_id are already
+          # native log-record fields with the same property.
+          - >-
+              set(attributes["http_route"], body["http_route"]) where
+              resource.attributes["service.name"] == "knowledge-gym" and
+              IsString(body["http_route"])
+          - >-
+              set(attributes["user_id"], body["user_id"]) where
+              resource.attributes["service.name"] == "knowledge-gym" and
+              IsString(body["user_id"])
+          # Attribute allowlist: nothing else may survive to the exporter.
+          - 'keep_keys(attributes, ["http_route", "user_id"])'
   # Typed event/link slices cannot be replaced by an OTTL [] literal.
   # Remove events with filterprocessor. Reject linked spans fail-closed;
   # the agent is configured not to create links (see deployment trade-off).

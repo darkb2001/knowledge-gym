@@ -23,6 +23,11 @@ class SafeJsonEncoderTest {
         return event;
     }
     private String encode(LoggingEvent event) { return new String(encoder.encode(event), StandardCharsets.UTF_8); }
+    private String withMdc(String name, String value) {
+        LoggingEvent event = new LoggingEvent(getClass().getName(), logger, Level.ERROR, "actor_event", null, new Object[0]);
+        event.setMDCPropertyMap(Map.of(name, value));
+        return encode(event);
+    }
 
     @Test void rejectsAllDynamicStringsBodiesAndObjectsBeforeFormatting() {
         Object dangerous = new Object() { @Override public String toString() { throw new AssertionError("must not stringify"); } };
@@ -79,6 +84,14 @@ class SafeJsonEncoderTest {
         assertFalse(output.contains("123456"));
         assertTrue(encode(event("x".repeat(100000))).length() < 10000);
         assertTrue(encode(event("count={} ok={}", 25, true)).contains("count=25 ok=true"));
+    }
+
+    @Test void actorIdIsEmittedOnlyForAnInternalAccountUuid() {
+        for (String unsafe : new String[]{"alice@example.test", "11111111222233334444555555555555",
+                "11111111-2222-3333-4444-55555555555", "Alice", "1".repeat(40), "Bearer synthetic-token"})
+            assertFalse(withMdc("user_id", unsafe).contains("user_id"), unsafe);
+        String output = withMdc("user_id", "11111111-2222-3333-4444-555555555555");
+        assertTrue(output.contains("\"user_id\":\"11111111-2222-3333-4444-555555555555\""));
     }
 
     @Test void branchingThrowableGraphHasGlobalBudget() {

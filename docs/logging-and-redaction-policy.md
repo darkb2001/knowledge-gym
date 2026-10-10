@@ -4,11 +4,14 @@
 
 Console is one UTF-8 JSON object per line, UTC timestamp (Z), fixed service/
 environment, level, logger and reviewed constant message template. Within a
-request: trace_id, span_id, request_id, HTTP method, route template, status and
-duration_ms. Outside a request those HTTP fields are absent. Without an agent/
+request: trace_id, span_id, request_id, account UUID (user_id), HTTP method,
+route template, status and duration_ms. Outside a request those HTTP fields are absent. Without an agent/
 valid context trace IDs are absent, not fabricated.
 
 MDC is allowlisted; arbitrary key-value pairs are not serialized.
+user_id is the authenticated account UUID read from the security context by
+UserMdcFilter, never an email, display name or token; anonymous and
+pre-authentication lines carry no user_id.
 Logging does not read request/response bodies, query strings or security headers.
 Route uses BEST_MATCHING_PATTERN_ATTRIBUTE; unknown paths are _unmatched.
 Do not concatenate user data into a message literal.
@@ -51,6 +54,11 @@ Unlabelled/unstructured/unknown services are dropped quietly, without diagnostic
 payload echo. Historical logs are not harvested on first start (start_at=end).
 Body/resource fields are allowlisted; infrastructure free-form messages,
 stack traces, logger and routes are removed/replaced. IDs never become labels.
+Route template and account UUID are promoted to log-record attributes (Loki
+structured metadata: queryable, not indexed). Promotion is shape-gated and fails
+closed: a value that is not a route template or a UUID is deleted from the body
+rather than published, so enforcement never depends on the application encoder
+alone.
 
 Trace resource/span attributes are allowlisted. Raw URLs/queries, SQL statements,
 bodies, user/client identifiers, status messages and events are removed.

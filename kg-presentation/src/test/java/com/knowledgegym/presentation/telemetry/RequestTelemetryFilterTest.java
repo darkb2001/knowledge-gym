@@ -14,7 +14,9 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.ServletException;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.HandlerMapping;
 
 class RequestTelemetryFilterTest {
@@ -114,6 +118,31 @@ class RequestTelemetryFilterTest {
             assertFalse(Span.fromContext(malformed).getSpanContext().isValid());
         }
         assertFalse(exemplar.isCurrentSpanSampled());
+    }
+
+    @Test void authenticatedActorStaysOnEveryLineIncludingCompletion() throws Exception {
+        var userId = UUID.fromString("11111111-2222-3333-4444-555555555555");
+        var request = new MockHttpServletRequest("GET", "/notes/private-identifier");
+        var response = new MockHttpServletResponse();
+        try {
+            filter.doFilter(request, response, (req, res) -> {
+                // Production ordering: the Security chain, with UserMdcFilter inside
+                // it, runs after this filter and before the MVC dispatch.
+                SecurityContextHolder.getContext().setAuthentication(
+                        new UsernamePasswordAuthenticationToken(userId, null, List.of()));
+                request.setAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, "/notes/{id}");
+                new UserMdcFilter().doFilter(req, res, (inner, ignored) -> logger.info("service_layer_event"));
+            });
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+        assertEquals(userId.toString(), events.list.get(0).getMDCPropertyMap().get("user_id"));
+        var completion = events.list.getLast().getMDCPropertyMap();
+        assertEquals(userId.toString(), completion.get("user_id"));
+        assertEquals("/notes/{id}", completion.get("http_route"));
+        assertEquals("200", completion.get("http_status"));
+        // The outer filter owns the restore, so nothing leaks to the next request.
+        assertNull(MDC.get("user_id"));
     }
 
     @Test void logLevelCanChangeWithoutRebuildAndDoesNotExposeAdditionalData() throws Exception {

@@ -224,7 +224,7 @@ services:
       - nginx-exporter
 
   grafana:
-    image: grafana/grafana:11.1.0
+    image: grafana/grafana:12.4.12
     ports:
       - "3001:3000"
     environment:

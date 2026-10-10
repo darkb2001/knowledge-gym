@@ -118,6 +118,7 @@ def main():
                 wait_until(lambda: get(f"http://127.0.0.1:{health}/"))
                 time.sleep(1.5)  # Receiver start_at=end must discover the empty fixture.
                 trace_id, span_id = "1" * 32, "2" * 16
+                actor = "11111111-2222-3333-4444-555555555555"
                 sentinel = "synthetic-must-not-leave-collector"
 
                 def append(body, service="knowledge-gym"):
@@ -129,9 +130,15 @@ def main():
 
                 append({"level": "INFO", "message": "canary_safe", "trace_id": trace_id,
                         "span_id": span_id, "request_id": "3" * 32, "authorization": sentinel,
-                        "cookie": sentinel, "request_body": sentinel})
+                        "cookie": sentinel, "request_body": sentinel,
+                        "http_route": "/notes/{id}", "user_id": actor})
+                # A raw URI/query and a person must be deleted at the collector, not
+                # merely unpublished: enforcement cannot depend on the app alone.
+                append({"level": "INFO", "message": "canary_unsafe_shapes",
+                        "http_route": "/notes/private-id?token=" + sentinel,
+                        "user_id": "alice@example.test"})
                 append({"level": "warn", "message": sentinel, "stack_trace": sentinel,
-                        "logger": sentinel, "http_route": sentinel}, "grafana")
+                        "logger": sentinel, "http_route": sentinel, "user_id": actor}, "grafana")
                 # Unlabelled/non-JSON input must not be sent or echoed by parser diagnostics.
                 with logfile.open("a") as handle:
                     handle.write(json.dumps({"log": sentinel, "time": "invalid"}) + "\n")
@@ -188,8 +195,34 @@ def main():
                 logs_payload = next(v for p, v in collected if p == "/v1/logs")
                 records = [record for resource in logs_payload["resourceLogs"]
                            for scope in resource["scopeLogs"] for record in scope["logRecords"]]
-                assert len(records) == 2, "unapproved/unstructured input was not dropped"
+
+                def body_fields(record):
+                    return {kv["key"]: kv["value"].get("stringValue")
+                            for kv in record["body"]["kvlistValue"]["values"]}
+
+                def published(record):
+                    return {kv["key"]: kv["value"].get("stringValue")
+                            for kv in record.get("attributes", [])}
+
+                assert len(records) == 3, "unapproved/unstructured input was not dropped"
                 assert any(r.get("traceId") == trace_id for r in records), "trace ID conversion failed"
+                lines = {body_fields(r).get("message"): r for r in records}
+                safe = lines["canary_safe"]
+                assert published(safe) == {"http_route": "/notes/{id}", "user_id": actor}, \
+                    "route/actor must be published as log-record attributes (structured metadata)"
+                assert body_fields(safe)["http_route"] == "/notes/{id}"
+                # Fail closed at the collector: a raw URI and an email are deleted from
+                # the body and never promoted, so no query can surface them either way.
+                unsafe = lines["canary_unsafe_shapes"]
+                assert published(unsafe) == {}, "unsafe shapes must not be published"
+                assert "http_route" not in body_fields(unsafe) and "user_id" not in body_fields(unsafe), \
+                    "unsafe shapes must be deleted, not stored unpublished"
+                # Non-application services publish no actor and no route at all.
+                infrastructure = lines["infrastructure_event"]
+                assert published(infrastructure) == {}, "infrastructure logs must carry no attributes"
+                assert "user_id" not in body_fields(infrastructure)
+                assert not any(published(r) for r in records if r is not safe), \
+                    "only the application line may carry structured metadata"
                 traces_payload = next(v for p, v in collected if p == "/v1/traces")
                 spans = [span for resource in traces_payload["resourceSpans"]
                          for scope in resource["scopeSpans"] for span in scope["spans"]]
@@ -197,6 +230,7 @@ def main():
                 assert not spans[0].get("events"), "span events must be removed"
                 print("PASS: Docker JSON selection, schema allowlist, IDs, logs and OTLP traces")
                 print("PASS: SQL/URL/body/header/user/event/link redaction; no raw diagnostic echo")
+                print("PASS: route/actor published as structured metadata, unsafe shapes fail closed")
 
                 # Backend 503: ingress stays healthy; bounded queues + retries are observable.
                 outage.set()

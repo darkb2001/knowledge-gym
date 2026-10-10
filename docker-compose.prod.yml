@@ -381,7 +381,7 @@ services:
       - app
 
   grafana:
-    image: grafana/grafana:11.1.0
+    image: grafana/grafana:12.4.12
     restart: unless-stopped
     networks:
       - kg-internal
@@ -395,8 +395,9 @@ services:
       - grafanadata:/var/lib/grafana
       - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    mem_limit: 256m
-    memswap_limit: 256m
+    # Logs Drilldown (Grafana 12) loads Loki data and patterns per open dashboard.
+    mem_limit: 512m
+    memswap_limit: 512m
     logging: *default-logging
     depends_on:
       - prometheus

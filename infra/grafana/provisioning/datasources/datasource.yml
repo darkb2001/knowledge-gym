@@ -39,9 +39,10 @@ datasources:
         spanStartTimeShift: "-2m"
         spanEndTimeShift: "2m"
         customQuery: true
+        # trace_id is structured metadata: filtering needs no `| json` parse.
         query: >-
-          {service_name="knowledge-gym"} | json
-          | trace_id="$${__trace.traceId}"
+          {service_name="knowledge-gym"} |
+          trace_id="$${__trace.traceId}"
       tracesToMetrics:
         datasourceUid: prometheus
         spanStartTimeShift: "-5m"

@@ -25,8 +25,20 @@ Explore Loki:
   | json | level="ERROR"
 ```
 
-For a known ID, add | request_id="..." or | trace_id="...".
+For a known ID, add | request_id="..." or | trace_id="..." — no `| json` needed.
+Route and actor are structured metadata, so they filter the same way:
+```logql
+{service_name="knowledge-gym"} | http_route="/notes/{id}" | user_id="<account-uuid>"
+```
+`user_id` is the account UUID bound by `UserMdcFilter`; anonymous, actuator and
+pre-authentication lines have no `user_id` at all, so a non-empty filter also
+answers "which accounts hit this route". Only the reviewed shapes are promoted:
+a raw path/query or a non-UUID actor is deleted at the Collector, so those lines
+never match and cannot be retrieved.
 Do not use IDs/emails/IPs as Loki stream labels.
+Grafana 12 Logs Drilldown on the Loki datasource is the fast path for browsing
+volume by service/pattern before writing LogQL; it is read-only and does not
+change what is stored.
 Explore Tempo searches by exact trace ID or the provisioned TraceQL view.
 Trace → Logs for this span searches ±2m; metrics links show the corresponding
 time window. Exemplar storage must be enabled in Prometheus and the span must

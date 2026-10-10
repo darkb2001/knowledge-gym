@@ -48,6 +48,9 @@ public final class SafeJsonEncoder extends EncoderBase<ILoggingEvent> {
             putMatching(fields, mdc, "trace_id", "[0-9a-f]{32}");
             putMatching(fields, mdc, "span_id", "[0-9a-f]{16}");
             putMatching(fields, mdc, "request_id", "[a-zA-Z0-9_-]{1,64}");
+            // The actor is an internal account id: never an email, name or token.
+            putMatching(fields, mdc, "user_id",
+                    "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
             putMatching(fields, mdc, "http_method", "GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS|OTHER");
             String route = mdc.get("http_route");
             if (route != null && route.length() <= 256 && !route.contains("?")

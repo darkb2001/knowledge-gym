@@ -34,7 +34,7 @@ All nine services share the Compose host/LXC unless the deployment is changed.
 | `elasticsearch` | `elasticsearch:9.1.5` | Search | Named volume `esdata`; single-node, security disabled for local Compose; JVM heap explicitly 768 MB (`-Xms768m -Xmx768m`) |
 | `garage` | `dxflrs/garage:v2.4.1` | S3-compatible object storage | Named volume `garage-data`; single node; S3 API 3900, admin/metrics 3901, web 3902 |
 | `prometheus` | `prom/prometheus:v2.53.0` | Metrics collection | Named volume `promdata`; scrape config from `infra/prometheus.yml` |
-| `grafana` | `grafana/grafana:11.1.0` | Dashboards | Named volume `grafanadata`; port 3001 on host |
+| `grafana` | `grafana/grafana:12.4.12` | Dashboards, Logs Drilldown | Named volume `grafanadata`; port 3001 on host |
 
 The current Compose file publishes PostgreSQL 5432, Redis 6379, Kafka 9092, Elasticsearch 9200 and Garage 3900–3902 (and Grafana 3001). For the proposed CT 102 deployment, remove host-published ports for these services; keep backend-to-service traffic on the private Compose network and expose only Nginx on port 80. Confirm the production Compose changes before treating this as implemented. The backend connects to Compose service DNS names (`db`, `redis`, `kafka`, `elasticsearch`, `garage`).
 

@@ -12,7 +12,8 @@ approximately 80 GiB on one NVMe, roughly 5 GiB RAM and 67 GiB disk free.
 These are operator-provided measurements, not measurements taken by this change.
 
 Repository baseline: Spring Boot 4.1.1 / Java 21; existing Prometheus 2.53.0,
-Grafana 11.1.0, Alertmanager 0.27.0, Docker json-file 10 MiB × 3.
+Grafana 11.1.0 (upgraded to the pinned 12.4.12), Alertmanager 0.27.0,
+Docker json-file 10 MiB × 3.
 The existing application Compose memory caps total 6112 MiB; existing
 Alertmanager adds 192 MiB. Current usage is not the sum of configured caps.
 
@@ -116,7 +117,15 @@ Do not migrate Garage or use Elasticsearch as a log backend.
 Existing JVM/HTTP and Nginx metrics dashboards are preserved. New views:
 Application Overview & Logs, Nginx Logs, Distributed Traces, Pipeline Health.
 Stream labels are only service_name and deployment_environment_name.
-Level/request/trace IDs are parsed at query time, not indexed labels.
+Level and request IDs are parsed at query time, not indexed labels.
+`trace_id`/`span_id` are native log-record fields; `http_route` and `user_id` are
+promoted at the Collector to log-record attributes, which Loki stores as
+structured metadata. They filter with `| http_route="..."` / `| user_id="..."`
+without `| json` — no per-query parse and no index cardinality growth. Only the
+reviewed shapes (route template, account UUID) are promoted; anything else is
+deleted from the body at the Collector, so a raw URI/query or an email is neither
+published nor retained. Grafana 12 Logs Drilldown is enabled on the Loki
+datasource; the datasource stays read-only and the port stays loopback-bound.
 Request/trace textbox filters are prefixes; full-length IDs effectively match
 one ID. Tempo → logs uses trace ID with a ±2m window. Metrics exemplars point
 to Tempo. HTTP histograms use finite SLO buckets; p95 is approximate.
@@ -125,14 +134,17 @@ Grafana anonymous access and sign-up are disabled. No new public port is added.
 OSS Grafana viewers can query organization datasources: folder permissions are
 not datasource row-level security. Restrict organization membership to operators
 and verify the existing tunnel/Access policy; this change does not certify it.
-Production Grafana 11.1.0 and other pre-existing versions need a separate
-security-upgrade review, not a claim that this stack is fully patched.
+Production Grafana runs the pinned 12.4.12 image (the 11.1.0 → 12.x upgrade was
+done for Logs Drilldown); it and the other pre-existing versions still need a
+separate security-upgrade review, not a claim that this stack is fully patched.
 
 ## Evidence and remaining acceptance
 
 Source contracts, redaction/context/exemplar tests, real Kafka propagation and
 native Collector synthetic pipeline tests are provided. The native canary checks
-events removal, linked-span rejection, backend 503/recovery and offset restart.
+events removal, linked-span rejection, backend 503/recovery, offset restart and
+that route/actor become log-record attributes while a raw URI or email fails
+closed.
 It uses local HTTP JSON test exporters, not production Loki/Tempo.
 Full Gradle build was attempted and failed in Docker-backed integration tests
 because the local Docker daemon is unavailable. Actual backends, healthcheck
