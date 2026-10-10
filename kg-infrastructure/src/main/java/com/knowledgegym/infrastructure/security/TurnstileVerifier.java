@@ -74,7 +74,7 @@ public class TurnstileVerifier {
             return false;
         } catch (RuntimeException ex) {
             // Cloudflare lỗi/timeout: mặc định KHÔNG chặn người dùng thật (fail-open) và ghi log để biết.
-            log.warn("Turnstile: không gọi được siteverify ({}), fail-open={}", ex.getMessage(), failOpen);
+            log.warn("Turnstile verification unavailable, fail-open={}", failOpen, ex);
             return failOpen;
         }
     }

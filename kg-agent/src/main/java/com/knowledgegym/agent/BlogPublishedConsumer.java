@@ -27,10 +27,10 @@ public class BlogPublishedConsumer {
         JsonNode event = json.readTree(message);
         String postId = event.path("postId").asText();
         String slug = event.path("slug").asText();
-        String canonicalUrl = event.path("canonicalUrl").asText();
+
         if (postId.isBlank() || slug.isBlank()) {
             throw new IllegalArgumentException("blog.published event missing postId/slug");
         }
-        log.info("blog.published received postId={} slug={} canonicalUrl={}", postId, slug, canonicalUrl);
+        log.info("blog.published received");
     }
 }

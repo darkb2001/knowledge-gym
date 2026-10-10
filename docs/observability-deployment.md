@@ -1,0 +1,132 @@
+# Observability deployment and verification
+
+## Approval and preflight
+
+**No production deployment has been performed.** Staging first, owner approval
+before any production restart/recreate. Do not push this work without approval.
+Existing GitHub CI can deploy app pushes when DEPLOY_ENABLED=true; pause that
+variable/use production environment approval before merging a rollout.
+No workflow automatically starts the observability ops profile.
+
+Use an isolated staging VM/CT/Docker engine: network names kgops_telemetry and
+kg_kg-internal are intentionally fixed and must not collide with production.
+Confirm disk/RAM/CPU baseline, DockerRootDir, log driver and Grafana/tunnel ACL.
+Do not copy production database or credentials into synthetic fixtures.
+
+Images: Collector 0.162.0, Loki 3.7.8, Tempo 2.9.0 and static BusyBox 1.37.0-musl
+health probe. App agent 2.32.0 is SHA-256-pinned. New images are version-pinned,
+not digest-locked; capture resolved immutable digests and scan them before rollout.
+Build ops wrapper images on CI/workstation, not the resource-limited LXC.
+Existing base image versions are not upgraded by this feature.
+
+## Local source gates
+
+Set JAVA_HOME to a JDK 21 installation. Install PyYAML 6.0.3 in a temporary venv.
+Provide native binaries matching Collector 0.162.0, Loki 3.7.8 and Prometheus 2.53.0.
+Download from the versioned upstream releases and verify checksums.
+
+```bash
+./gradlew build
+./gradlew :kg-presentation:test --tests 'com.knowledgegym.presentation.telemetry.*'
+./gradlew :kg-presentation:telemetryAgentTest -PotelAgentPath=/verified/otel-javaagent.jar
+python scripts/verify-observability.py
+python scripts/test-observability-pipeline.py --collector /verified/otelcol-contrib
+OTEL_STATE_DIR=/existing/temp/state DOCKER_LOG_ROOT=/existing/temp/logs \
+  /verified/otelcol-contrib validate --config=ops/observability/collector.yml
+/verified/loki -config.file=ops/observability/loki.yml -verify-config=true
+/verified/promtool check rules infra/prometheus/observability-alerts.yml
+/verified/promtool test rules infra/prometheus/observability-alerts.test.yml
+/verified/promtool check config --syntax-only infra/prometheus-observability.yml
+git diff --check
+```
+
+The source contract script uses --env-file /dev/null, synthetic required values,
+Compose --quiet, and a fake Docker CLI for deploy-marker checks.
+The native pipeline canary uses loopback ephemeral ports/temp log files and HTTP
+JSON mock exporters. It is not a Loki/Tempo/Grafana acceptance test.
+
+Local results: targeted 14 unit tests and one real embedded Kafka agent test
+passed; native canary passed selection/redaction/503/recovery/offset restart.
+Promtool alert tests passed seven scenarios (eight evaluations), including the
+pending duration, healthy backend and each of the six alert conditions.
+Full Gradle build FAILED in existing Docker-backed integration tests because
+Docker daemon was unavailable; it is a mandatory staging/CI gate, not waived.
+
+## Staging activation commands (examples, NOT executed)
+
+Host-only .env stays out of source/output. Set TELEMETRY_ENVIRONMENT=staging
+and the verified Docker containers-log path. Keep existing required variables.
+Do not print docker compose config without --quiet or inspect all env values.
+
+```bash
+cd /opt/kg
+ops=(docker compose -p kgops --env-file /opt/kg/.env \
+  -f ops/docker-compose.ops.yml --profile observability)
+app=(docker compose -p kg --env-file /opt/kg/.env \
+  -f docker-compose.prod.yml -f docker-compose.observability.yml)
+"${ops[@]}" config --quiet
+"${app[@]}" config --quiet
+# Load prebuilt/scanned ops images first; never build app in this CT.
+"${ops[@]}" up -d telemetry-init otel-collector loki tempo
+# Existing Alertmanager format/labels also require approved recreation
+# if infrastructure logs are wanted; do not replace its receiver config.
+"${ops[@]}" up -d --no-deps alertmanager
+# App image MUST contain the checksum-pinned agent jar before this step.
+"${app[@]}" up -d --no-deps app nginx prometheus grafana
+"${ops[@]}" ps
+```
+
+Config bind-mounts may retain old inodes after git updates. On staging, use
+approved --force-recreate --no-deps for affected stateless services and verify
+loaded config. Never use --remove-orphans on an ops invocation without its active
+profile/service model. Do not run down -v.
+
+After acceptance, create /opt/kg/run/observability.enabled **manually**.
+scripts/deploy-prod.sh and the existing CI app deploy retain the overlay only
+when this marker exists, and fail before compose if its network is missing.
+They do not activate/create the ops stack. Preserve the ES-stop marker as before.
+A direct plain compose up can still remove overlay settings: always use both files
+while opted in. The marker is host state, not a source-controlled default.
+
+## Mandatory acceptance matrix
+
+Record command, time, Pass/Fail/NOT RUN and observed outputs (never secrets):
+- Full Gradle build including Docker integrations; image vulnerability scan.
+- Real image startup, non-root data ownership and actual HTTP healthchecks.
+- Nginx -t in its real container; HTTP 2xx/4xx/5xx and safe request-ID handling.
+- Valid/malformed W3C headers; unsampled root then sampled canary trace.
+- JDBC beneath JPA, Redis, Elasticsearch native/transport, JDK/Spring HTTP clients,
+  scheduled job, Kafka producer/consumer; no double instrumentation.
+- Query actual Loki and Tempo, inspect safe fields and retention.
+- Grafana Save & Test; all dashboard variables and panels; log→trace→log links,
+  exemplars, anonymous denial, operator-only organization/tunnel access.
+- Inject synthetic body/header/SQL/OTP/email sentinels; search all outputs and
+  collector diagnostics without displaying payloads. Assert zero sentinel matches.
+- Stop Collector, then Loki and Tempo separately on staging; app endpoints and
+  latency remain acceptable. Verify alerts and existing Alertmanager delivery.
+- Sustained queue saturation, disk pressure, Docker log rotation, abrupt Collector
+  crash and app/backend restart; quantify drops rather than claiming losslessness.
+- 24h soak: CPU/RSS/GC/latency/volume growth, at least 10 GiB free, no OOM/thrashing.
+- Test deploy marker enabled/disabled and rollback across current/old app images.
+
+All real container/Grafana/host-resource items remain NOT RUN locally.
+
+## Production rollout and rollback
+
+Only after the matrix passes and an approved maintenance window: record previous
+image/config/digests and baseline, start ops, then explicitly recreate opted-in
+services; verify application first and telemetry second. Retain short data
+retention initially. No storage migration or HA claim.
+
+Fast tracing rollback: approved app recreation with OTEL_TRACES_EXPORTER=none
+and/or remove -javaagent from the overlay; JSON logs remain console-only.
+For full overlay rollback, remove the host marker, restore previous plain Compose
+application settings, and recreate affected app/nginx/prometheus/grafana with
+approval. Restore previous Nginx config if its diagnostics policy must be reverted.
+An older app image may lack the agent jar: never reuse -javaagent with that image.
+
+Stop only otel-collector/loki/tempo if needed; leave Alertmanager and persistent
+volumes untouched. Restore Prometheus config without new backend scrape jobs/
+rules so intentionally stopped telemetry does not trigger false alarms.
+Rollback requires actions, not just deleting the marker. Data already dropped
+cannot be recovered; host/NVMe failure loses these local observability histories.

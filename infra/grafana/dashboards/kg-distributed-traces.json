@@ -1,0 +1,76 @@
+{
+  "id": null,
+  "uid": "kg-distributed-traces",
+  "title": "Knowledge Gym — Distributed Traces",
+  "tags": [
+    "knowledge-gym",
+    "observability"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Environment",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "query": "label_values(deployment_environment_name)",
+        "refresh": 1,
+        "includeAll": false,
+        "multi": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Sampled application traces (not all requests)",
+      "type": "table",
+      "datasource": {
+        "type": "tempo",
+        "uid": "tempo"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 12
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "{ resource.service.name = \"knowledge-gym\" && resource.deployment.environment.name = \"$environment\" }",
+          "queryType": "traceql",
+          "limit": 20,
+          "tableType": "traces"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "text",
+      "title": "How to correlate",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 5
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Open a trace → span → **Logs for this span**; Application Logs → **Open trace**. Use Explore Tempo for an exact trace ID. Prometheus exemplars → Tempo where a sampled request populated a histogram. Sampling is 5% for root traces; incoming sampled parents are honoured. Scheduled outbox → Kafka → consumer has its own trace, not the original HTTP transaction."
+      }
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "id": null,
+  "uid": "kg-nginx-logs",
+  "title": "Knowledge Gym — Nginx Logs",
+  "tags": [
+    "knowledge-gym",
+    "observability"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Environment",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "query": "label_values(deployment_environment_name)",
+        "refresh": 1,
+        "includeAll": false,
+        "multi": false
+      },
+      {
+        "name": "request_id",
+        "label": "Request ID",
+        "type": "textbox",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "options": [
+          {
+            "text": "",
+            "value": "",
+            "selected": true
+          }
+        ]
+      },
+      {
+        "name": "trace_id",
+        "label": "Trace ID",
+        "type": "textbox",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "options": [
+          {
+            "text": "",
+            "value": "",
+            "selected": true
+          }
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Edge errors by status",
+      "type": "timeseries",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (status) (count_over_time({service_name=\"nginx\", deployment_environment_name=~\"${environment:regex}\"} | json | status >= 400 [5m]))",
+          "queryType": "range",
+          "maxLines": 500
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Edge access logs — request ID and upstream trace",
+      "type": "logs",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 14
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=\"nginx\", deployment_environment_name=~\"${environment:regex}\"} | json | request_id=~\"${request_id:regex}.*\" | trace_id=~\"${trace_id:regex}.*\"",
+          "queryType": "range",
+          "maxLines": 500
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "sortOrder": "Descending"
+      }
+    }
+  ]
+}

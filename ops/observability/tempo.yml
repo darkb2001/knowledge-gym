@@ -1,0 +1,39 @@
+server:
+  http_listen_port: 3200
+  log_level: warn
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+storage:
+  trace:
+    backend: local
+    local:
+      path: /var/tempo/blocks
+    wal:
+      path: /var/tempo/wal
+    block:
+      version: vParquet4
+compactor:
+  compaction:
+    block_retention: 24h
+    compacted_block_retention: 1h
+ingester:
+  max_block_duration: 10m
+  max_block_bytes: 33554432
+overrides:
+  defaults:
+    ingestion:
+      rate_limit_bytes: 1048576
+      burst_size_bytes: 2097152
+      max_traces_per_user: 10000
+    global:
+      max_bytes_per_trace: 65536
+    read:
+      max_bytes_per_tag_values_query: 1048576
+    metrics_generator:
+      processors: []
+usage_report:
+  reporting_enabled: false

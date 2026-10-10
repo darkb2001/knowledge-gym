@@ -1,5 +1,15 @@
-# Ops stack cho CT102 — chạy project riêng `kgops` để độc lập hoàn toàn với
-# pipeline deploy của app (project `kg`). Thêm service ops khác vào đây.
+# Independent project kgops. Normal ops start keeps only Alertmanager.
+# Observability requires explicit --profile observability; never app CI deploy.
+x-runtime: &runtime
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 64
+  networks: [telemetry]
+  logging:
+    driver: json-file
+    options: {max-size: "5m", max-file: "2"}
 services:
   alertmanager:
     image: quay.io/prometheus/alertmanager:v0.27.0
@@ -7,24 +17,135 @@ services:
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
       - --storage.path=/alertmanager
-      - --log.level=debug
+      - --log.level=info
+      - --log.format=json
     volumes:
       - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager-data:/alertmanager
     networks:
       kg-internal:
-        aliases:
-          - alertmanager
+        aliases: [alertmanager]
     mem_limit: 192m
     memswap_limit: 192m
+    labels:
+      telemetry.service: alertmanager
+      telemetry.environment: ${TELEMETRY_ENVIRONMENT:-production}
     logging:
       driver: json-file
-      options: {max-size: "10m", max-file: "3"}
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "telemetry.service,telemetry.environment"
+
+  telemetry-init:
+    profiles: [observability]
+    image: busybox:1.37.0-musl
+    user: "0:0"
+    network_mode: none
+    restart: "no"
+    mem_limit: 32m
+    memswap_limit: 32m
+    cpus: 0.10
+    cap_drop: [ALL]
+    cap_add: [CHOWN]
+    security_opt: [no-new-privileges:true]
+    volumes: [loki-data:/loki, tempo-data:/var/tempo]
+    command:
+      - sh
+      - -ec
+      - >-
+        mkdir -p /loki/chunks /loki/rules /loki/index /loki/cache /loki/wal
+        /loki/compactor /var/tempo/blocks /var/tempo/wal;
+        chown 10001:10001 /loki /loki/* /var/tempo /var/tempo/*
+
+  otel-collector:
+    <<: *runtime
+    profiles: [observability]
+    image: kg-otelcol-contrib:0.162.0
+    build: {context: ./observability, target: collector}
+    # Read root-owned log files, not Docker API; no capabilities.
+    user: "0:0"
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.50
+    environment:
+      GOMEMLIMIT: 180MiB
+      OTEL_STATE_DIR: /var/lib/otelcol
+      DOCKER_LOG_ROOT: /host/docker-containers
+    command: [--config=/etc/otelcol/config.yml]
+    volumes:
+      - ./observability/collector.yml:/etc/otelcol/config.yml:ro
+      - ${DOCKER_CONTAINER_LOG_PATH:-/var/lib/docker/containers}:/host/docker-containers:ro
+      - collector-state:/var/lib/otelcol
+    healthcheck:
+      test:
+        [CMD, /bin/busybox, wget, -q, -T, "2", -O, /dev/null,
+         http://127.0.0.1:13133/]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+
+  loki:
+    <<: *runtime
+    profiles: [observability]
+    image: kg-loki:3.7.8
+    build: {context: ./observability, target: loki}
+    user: "10001:10001"
+    mem_limit: 384m
+    memswap_limit: 384m
+    cpus: 0.75
+    environment: {GOMEMLIMIT: 280MiB}
+    command: [-config.file=/etc/loki/config.yml]
+    volumes:
+      - ./observability/loki.yml:/etc/loki/config.yml:ro
+      - loki-data:/loki
+    depends_on:
+      telemetry-init: {condition: service_completed_successfully}
+    healthcheck:
+      test:
+        [CMD, /bin/busybox, wget, -q, -T, "2", -O, /dev/null,
+         http://127.0.0.1:3100/ready]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
+
+  tempo:
+    <<: *runtime
+    profiles: [observability]
+    image: kg-tempo:2.9.0
+    build: {context: ./observability, target: tempo}
+    user: "10001:10001"
+    mem_limit: 384m
+    memswap_limit: 384m
+    cpus: 0.75
+    environment: {GOMEMLIMIT: 280MiB}
+    command: [-config.file=/etc/tempo/config.yml]
+    volumes:
+      - ./observability/tempo.yml:/etc/tempo/config.yml:ro
+      - tempo-data:/var/tempo
+    depends_on:
+      telemetry-init: {condition: service_completed_successfully}
+    healthcheck:
+      test:
+        [CMD, /bin/busybox, wget, -q, -T, "2", -O, /dev/null,
+         http://127.0.0.1:3200/ready]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
 
 networks:
+  telemetry:
+    name: kgops_telemetry
+    internal: true
   kg-internal:
     external: true
     name: kg_kg-internal
 
 volumes:
+  collector-state:
+  loki-data:
+  tempo-data:
   alertmanager-data:

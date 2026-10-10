@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProperty scope="context" name="telemetryEnvironment" source="app-telemetry.environment" defaultValue="development"/>
+    <springProperty scope="context" name="serviceName" source="spring.application.name" defaultValue="knowledge-gym"/>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="com.knowledgegym.presentation.telemetry.SafeJsonEncoder">
+            <service>${serviceName}</service>
+            <environment>${telemetryEnvironment}</environment>
+        </encoder>
+    </appender>
+    <!-- Bounded, fail-soft console queue. Full queues drop rather than block app work. -->
+    <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>256</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>true</neverBlock>
+        <maxFlushTime>1000</maxFlushTime>
+        <appender-ref ref="CONSOLE"/>
+    </appender>
+    <!-- No network appender. Docker json-file rotation bounds local console storage. -->
+    <root level="INFO"><appender-ref ref="ASYNC_CONSOLE"/></root>
+</configuration>

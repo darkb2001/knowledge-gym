@@ -114,7 +114,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {
-        log.warn("Infrastructure operation failed: {}", ex.getMessage());
+        log.warn("Infrastructure operation failed", ex);
         return problem(HttpStatus.BAD_GATEWAY, "bad_gateway", ex.getMessage());
     }
 

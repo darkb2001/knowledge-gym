@@ -1,0 +1,161 @@
+{
+  "id": null,
+  "uid": "kg-telemetry-health",
+  "title": "Knowledge Gym — Telemetry Pipeline Health",
+  "tags": [
+    "knowledge-gym",
+    "observability"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Backend scrape availability",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=~\"otel-collector|loki|tempo\"}",
+          "exemplar": true
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Collector RSS",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "otelcol_process_memory_rss",
+          "exemplar": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "title": "Export failures / second",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (exporter) (rate(otelcol_exporter_send_failed_log_records[5m])) or sum by (exporter) (rate(otelcol_exporter_send_failed_spans[5m]))",
+          "exemplar": true
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Queue utilization",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "otelcol_exporter_queue_size / clamp_min(otelcol_exporter_queue_capacity, 1)",
+          "exemplar": true
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Accepted records / spans per second",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (receiver) (rate(otelcol_receiver_accepted_log_records[5m])) or sum by (receiver) (rate(otelcol_receiver_accepted_spans[5m]))",
+          "exemplar": true
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Backend drops",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (reason) (rate(loki_discarded_samples_total[5m])) or sum by (reason) (rate(tempo_discarded_spans_total[5m]))",
+          "exemplar": true
+        }
+      ]
+    }
+  ]
+}

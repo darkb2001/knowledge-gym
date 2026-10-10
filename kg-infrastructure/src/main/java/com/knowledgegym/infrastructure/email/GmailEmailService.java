@@ -77,7 +77,7 @@ public class GmailEmailService implements EmailService {
                 "Mã có hiệu lực trong 10 phút. Nếu bạn không yêu cầu, hãy bỏ qua email này.",
                 "Mã đặt lại mật khẩu " + BRAND + " của bạn là: " + code
                         + "\n\nMã có hiệu lực trong 10 phút.\nNếu bạn không yêu cầu, hãy bỏ qua email này.");
-        log.info("Password reset code sent to {}", email);
+        log.info("Password reset email delivered");
     }
 
     @Override
@@ -94,7 +94,7 @@ public class GmailEmailService implements EmailService {
                         + "\n\nMật khẩu của tài khoản này vừa được thay đổi."
                         + "\nNếu là bạn: không cần làm gì thêm. Mọi phiên đăng nhập khác đã được đăng xuất."
                         + "\nNếu KHÔNG phải bạn: hãy dùng ngay chức năng \"Quên mật khẩu\" để đặt lại và kiểm tra thiết bị của bạn.");
-        log.info("Password change notice sent to {}", email);
+        log.info("Password change notice delivered");
     }
 
     private void requireSmtp(String purpose) {
@@ -116,7 +116,7 @@ public class GmailEmailService implements EmailService {
             helper.setText(textBody, layout(heading, intro, code, note));
             mailSender.send(message);
         } catch (MessagingException | UnsupportedEncodingException | RuntimeException e) {
-            log.error("Transactional email delivery failed for {}", subject);
+            log.error("Transactional email delivery failed", e);
             throw new IllegalStateException("Unable to send email", e);
         }
     }
