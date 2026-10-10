@@ -25,7 +25,7 @@ class EnglishPracticeUseCaseTest {
         when(repository.updateOwned(any(), anyLong())).thenReturn(true);
     }
     @Test void catalogCoversEveryTaskTypeWithUniqueImmutableIds() {
-        assertThat(catalog.list()).hasSize(9).extracting(e -> e.id()).doesNotHaveDuplicates();
+        assertThat(catalog.list()).hasSize(39).extracting(e -> e.id()).doesNotHaveDuplicates();
         for (var skill : com.knowledgegym.english.domain.model.EnglishExercise.Skill.values())
             assertThat(catalog.list()).anyMatch(e -> e.skill() == skill);
         assertThat(catalog.get("writing-email-v1").minimumWords()).isEqualTo(120);
@@ -71,6 +71,19 @@ class EnglishPracticeUseCaseTest {
         assertThatThrownBy(() -> useCase.save(owner, id, 0, Map.of("q1", 4), "", 0, false)).isInstanceOf(IllegalArgumentException.class);
         var saved = useCase.save(owner, id, 0, Map.of("q1", 1, "q2", 2, "q3", 0), "", 60, true);
         assertThat(saved.answers()).hasSize(3);
+    }
+    @Test void everyObjectiveBankEntryIncludingFullSectionsAndHcmusCanSubmit() {
+        for (var exercise : catalog.list()) {
+            if (exercise.items().isEmpty()) continue;
+            var attempt = new EnglishAttempt(id, owner, exercise.id(), "DRAFT", 0, Map.of(), "", 0, Instant.now(), Instant.now());
+            when(repository.findOwned(owner, id)).thenReturn(Optional.of(attempt));
+            var answers = exercise.items().stream().collect(java.util.stream.Collectors.toMap(q -> q.id(), q -> q.correctIndex()));
+            var saved = useCase.save(owner, id, 0, answers, "", 120, true);
+            assertThat(saved.status()).isEqualTo("SUBMITTED");
+            assertThat(saved.exerciseId()).isEqualTo(exercise.id());
+            assertThat(saved.answers()).hasSize(exercise.items().size());
+            assertThat(saved.userId()).isEqualTo(owner);
+        }
     }
     @Test void staleVersionsAndRacingWritesConflictWithoutOverwrite() {
         assertThatThrownBy(() -> useCase.save(owner, id, 1, Map.of(), "stale", 0, false)).isInstanceOf(ConflictException.class);

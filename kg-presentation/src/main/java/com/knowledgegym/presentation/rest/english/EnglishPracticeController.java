@@ -2,7 +2,10 @@ package com.knowledgegym.presentation.rest.english;
 
 import com.knowledgegym.english.application.EnglishCatalog;
 import com.knowledgegym.english.application.EnglishPracticeUseCase;
+import com.knowledgegym.english.application.EnglishReferenceResponses;
+import com.knowledgegym.english.domain.model.EnglishReferenceResponse;
 import com.knowledgegym.english.domain.model.EnglishExercise;
+import com.knowledgegym.english.domain.model.EnglishExercisePart;
 import com.knowledgegym.english.domain.model.EnglishAttempt;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,9 +26,11 @@ public class EnglishPracticeController {
     }
     public record ItemView(String id, String stem, List<String> options) {}
     public record ExerciseView(String id, String skill, String title, String focus, int minutes, int minimumWords,
-                               String prompt, String passage, String audioPath, List<ItemView> items, List<String> checklist) {}
+                               String prompt, String passage, String audioPath, List<ItemView> items, List<String> checklist,
+                               List<EnglishExercisePart> parts, String scope, String curriculum) {}
     public record AnswerFeedback(String id, int correctIndex, String explanation) {}
-    public record Feedback(Integer correct, int total, String transcript, List<AnswerFeedback> items) {}
+    public record Feedback(Integer correct, int total, String transcript, List<AnswerFeedback> items,
+                           EnglishReferenceResponse referenceResponse) {}
     public record AttemptView(UUID id, String exerciseId, String status, long version, Map<String, Integer> answers,
                               String response, int elapsedSeconds, Instant createdAt, Instant updatedAt, Feedback feedback) {}
     public record StartRequest(String exerciseId) {}
@@ -54,7 +59,7 @@ public class EnglishPracticeController {
     private ExerciseView exerciseView(EnglishExercise e) {
         return new ExerciseView(e.id(), e.skill().name(), e.title(), e.focus(), e.minutes(), e.minimumWords(),
             e.prompt(), e.passage(), e.audioPath(), e.items().stream().map(q -> new ItemView(q.id(), q.stem(), q.options())).toList(),
-            e.checklist());
+            e.checklist(), catalog.parts(e.id()), catalog.scope(e.id()), catalog.curriculum(e.id()));
     }
     private AttemptView attemptView(EnglishAttempt a) {
         Feedback feedback = null;
@@ -63,7 +68,8 @@ public class EnglishPracticeController {
             Integer correct = e.items().isEmpty() ? null : (int)e.items().stream()
                 .filter(q -> Integer.valueOf(q.correctIndex()).equals(a.answers().get(q.id()))).count();
             feedback = new Feedback(correct, e.items().size(), e.transcript(),
-                e.items().stream().map(q -> new AnswerFeedback(q.id(), q.correctIndex(), q.explanation())).toList());
+                e.items().stream().map(q -> new AnswerFeedback(q.id(), q.correctIndex(), q.explanation())).toList(),
+                EnglishReferenceResponses.find(e.id()).orElse(null));
         }
         return new AttemptView(a.id(), a.exerciseId(), a.status(), a.version(), a.answers(), a.response(),
             a.elapsedSeconds(), a.createdAt(), a.updatedAt(), feedback);

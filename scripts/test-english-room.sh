@@ -26,5 +26,5 @@ fi
 ./gradlew ${JAVA_HOME:+-Dorg.gradle.java.installations.paths="$JAVA_HOME"} \
   :kg-core:test \
   :kg-infrastructure:test --tests '*EnglishPracticePersistenceTest' --tests '*FlywayDatabaseMigrationTest' \
-  :kg-presentation:test --tests '*EnglishPracticeHttpTest' --tests '*PresentationLayerArchTest' \
+  :kg-presentation:test --tests '*EnglishPracticeHttpTest' --tests '*EnglishCatalogEvidenceTest' --tests '*PresentationLayerArchTest' \
   --rerun-tasks --console=plain

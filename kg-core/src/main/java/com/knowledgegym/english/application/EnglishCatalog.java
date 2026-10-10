@@ -4,6 +4,8 @@ import com.knowledgegym.english.domain.model.EnglishExercise;
 import com.knowledgegym.english.domain.model.EnglishExercise.Item;
 import com.knowledgegym.shared.application.NotFoundException;
 import java.util.List;
+import java.util.stream.Stream;
+import com.knowledgegym.english.domain.model.EnglishExercisePart;
 import static com.knowledgegym.english.domain.model.EnglishExercise.Skill.*;
 
 /** Keep released IDs/content immutable: new authored revisions receive new IDs. */
@@ -68,9 +70,29 @@ public class EnglishCatalog {
             "Give a short talk about ways individuals can protect the environment. You may discuss transport, consumption and community activities, or use your own ideas. Follow-up questions: Which change is easiest for students? Should governments or individuals take more responsibility? Can technology solve environmental problems?", "", "", "", List.of(),
             List.of("Introduce the topic and develop several ideas.", "Support your points with examples.", "Conclude your talk.", "Respond to follow-up questions rather than repeating the talk."))
     );
-    public List<EnglishExercise> list() { return EXERCISES; }
+    private static final List<EnglishExercise> LISTENING_BANK = EnglishListeningBank.exercises(EXERCISES);
+    private static final List<EnglishExercise> BASE = Stream.of(EXERCISES, LISTENING_BANK,
+        EnglishReadingBank.exercises(), EnglishSubjectiveBank.EXERCISES, EnglishCurrentThemeBank.EXERCISES, EnglishHcmusBank.EXERCISES).flatMap(List::stream).toList();
+    private static final List<EnglishExercise> ALL = Stream.concat(BASE.stream(), EnglishHcmusListeningBank.exercises(BASE).stream()).toList();
+    public List<EnglishExercise> list() { return ALL; }
+    public String curriculum(String id) {
+        get(id);
+        return id.startsWith("hcmus-") ? "HCMUS_PREPARATION" : "VSTEP";
+    }
+    public String scope(String id) {
+        get(id);
+        if (EXERCISES.stream().anyMatch(e -> e.id().equals(id))) return "SHORT_PRACTICE";
+        return parts(id).isEmpty() ? "TASK_PRACTICE" : "COMPLETE_SKILL";
+    }
+    public List<EnglishExercisePart> parts(String id) {
+        get(id);
+        var reading = EnglishReadingBank.parts(id);
+        if (!reading.isEmpty()) return reading;
+        var listening = EnglishListeningBank.parts(id, LISTENING_BANK);
+        return listening.isEmpty() ? EnglishHcmusListeningBank.parts(id, ALL) : listening;
+    }
     public EnglishExercise get(String id) {
-        return EXERCISES.stream().filter(e -> e.id().equals(id)).findFirst()
+        return ALL.stream().filter(e -> e.id().equals(id)).findFirst()
             .orElseThrow(() -> new NotFoundException("English exercise not found"));
     }
 }

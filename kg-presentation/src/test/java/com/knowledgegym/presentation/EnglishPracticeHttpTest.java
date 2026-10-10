@@ -59,10 +59,12 @@ class EnglishPracticeHttpTest {
     }
     @Test void catalogDoesNotLeakAnswerKeysOrTranscripts() throws Exception {
         mvc.perform(get("/english/exercises").with(authentication(auth())))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(9))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(39))
             .andExpect(jsonPath("$[0].items[0].correctIndex").doesNotExist())
             .andExpect(jsonPath("$[0].items[0].explanation").doesNotExist())
             .andExpect(jsonPath("$[0].transcript").doesNotExist())
+            .andExpect(jsonPath("$[*].referenceResponse").doesNotExist())
+            .andExpect(jsonPath("$[*].text").doesNotExist())
             .andExpect(jsonPath("$[0].audioPath").value("/english/audio/announcement-v1.mp3"));
     }
     @Test void draftHidesFeedbackAndStartUsesPrincipal() throws Exception {
@@ -95,7 +97,42 @@ class EnglishPracticeHttpTest {
         when(service.get(user, id)).thenReturn(subjective);
         mvc.perform(get("/english/attempts/" + id).with(authentication(auth())))
             .andExpect(status().isOk()).andExpect(jsonPath("$.feedback.correct").isEmpty())
-            .andExpect(jsonPath("$.feedback.total").value(0));
+            .andExpect(jsonPath("$.feedback.total").value(0))
+            .andExpect(jsonPath("$.feedback.referenceResponse.text").isNotEmpty())
+            .andExpect(jsonPath("$.feedback.referenceResponse.notes[0].vi").isNotEmpty());
+    }
+    @Test void allSubjectiveModelsAreHiddenInDraftAndVisibleOnlyInSubmittedOwnedFeedback() throws Exception {
+        for (var exercise : new EnglishCatalog().list()) {
+            if (!exercise.items().isEmpty()) continue;
+            if (exercise.skill() != com.knowledgegym.english.domain.model.EnglishExercise.Skill.WRITING
+                    && exercise.skill() != com.knowledgegym.english.domain.model.EnglishExercise.Skill.SPEAKING) continue;
+            for (String state : List.of("DRAFT", "SUBMITTED")) {
+                var attempt = new EnglishAttempt(id, user, exercise.id(), state, state.equals("DRAFT") ? 0 : 1,
+                    Map.of(), "Original learner response", 120, Instant.now(), Instant.now());
+                when(service.get(user, id)).thenReturn(attempt);
+                var result = mvc.perform(get("/english/attempts/" + id).with(authentication(auth())))
+                    .andExpect(status().isOk());
+                if (state.equals("DRAFT")) result.andExpect(jsonPath("$.feedback").isEmpty());
+                else result.andExpect(jsonPath("$.feedback.referenceResponse.text").isNotEmpty())
+                    .andExpect(jsonPath("$.feedback.correct").isEmpty())
+                    .andExpect(jsonPath("$.vstepScore").doesNotExist());
+            }
+        }
+    }
+    @Test void fullSectionsExposeGroupingButNoKeysTranscriptsOrReferenceTextInCatalog() throws Exception {
+        var body = mvc.perform(get("/english/exercises").with(authentication(auth())))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        org.assertj.core.api.Assertions.assertThat(body).contains("reading-complete-practice-v1", "listening-complete-practice-v1", "itemIds", "COMPLETE_SKILL")
+            .doesNotContain("\"correctIndex\"", "\"explanation\"", "\"transcript\"", "\"referenceResponse\"");
+    }
+    @Test void anotherPrincipalCannotRetrieveTheOwnersSubmittedReference() throws Exception {
+        var other = UUID.randomUUID();
+        var otherAuth = new UsernamePasswordAuthenticationToken(other, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        when(service.get(other, id)).thenThrow(new NotFoundException("English attempt not found"));
+        var body = mvc.perform(get("/english/attempts/" + id).with(authentication(otherAuth)))
+            .andExpect(status().isNotFound()).andReturn().getResponse().getContentAsString();
+        org.assertj.core.api.Assertions.assertThat(body).doesNotContain("referenceResponse", "Dear Alex");
+        verify(service).get(other, id);
     }
     @Configuration @EnableWebMvc @EnableWebSecurity @EnableMethodSecurity
     static class Config {
