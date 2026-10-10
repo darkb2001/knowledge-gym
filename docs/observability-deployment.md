@@ -1,12 +1,18 @@
 # Observability deployment and verification
 
-## Approval and preflight
+## Status
 
-**No production deployment has been performed.** Staging first, owner approval
-before any production restart/recreate. Do not push this work without approval.
-Existing GitHub CI can deploy app pushes when DEPLOY_ENABLED=true; pause that
-variable/use production environment approval before merging a rollout.
-No workflow automatically starts the observability ops profile.
+**Activated in production on 2026-10-11 on CT102 (`kg-be`), commits
+`426ff58..baf7ebe`.** `/opt/kg/run/observability.enabled` is the switch:
+`scripts/deploy-prod.sh` adds the overlay only when that marker exists *and* the
+`kgops_telemetry` network is live, so the ops profile and the app rollout are
+independent. Stopping is `rm` of the marker plus a normal deploy (see rollback
+below). Existing GitHub CI keeps deploying app pushes while DEPLOY_ENABLED=true;
+no workflow starts or stops the ops profile.
+
+The staging/preflight checklist below is still the gate for changing the
+observability stack itself; the defects found while activating it in production
+are recorded in "Activation record" at the end of this document.
 
 Use an isolated staging VM/CT/Docker engine: network names kgops_telemetry and
 kg_kg-internal are intentionally fixed and must not collide with production.
@@ -130,3 +136,43 @@ volumes untouched. Restore Prometheus config without new backend scrape jobs/
 rules so intentionally stopped telemetry does not trigger false alarms.
 Rollback requires actions, not just deleting the marker. Data already dropped
 cannot be recovered; host/NVMe failure loses these local observability histories.
+
+## Activation record (2026-10-11, CT102 `kg-be`)
+
+Running: `kgops-telemetry-init` (exit 0), `kgops-loki-1`, `kgops-tempo-1` and
+`kgops-otel-collector-1` healthy on the internal `kgops_telemetry` network;
+app/nginx/prometheus/grafana joined it through the overlay. Prometheus scrapes
+otel-collector, loki and tempo (5/5 targets up, exemplar storage enabled,
+telemetry alert group loaded). Grafana serves Loki, Prometheus and Tempo and six
+provisioned dashboards.
+
+Defects found and fixed while activating (shipped in `426ff58..baf7ebe`):
+
+* `ADD <agent-url>` left `/app/otel-javaagent.jar` as root:root 0600 while the
+  container runs as `app`, so the JVM aborted with "Error opening zip file or
+  JAR manifest missing" and the app would have crash-looped as soon as the
+  overlay was enabled. Fixed with `chmod 0444` before `USER app`; CI now runs the
+  published image as `app` with `-javaagent` as a gate.
+* `telemetry-init` dropped every capability but CHOWN, but the named volumes
+  inherit uid 10001 from the loki/tempo images, so it died with
+  "mkdir: Permission denied" and every telemetry service stayed down (they
+  `depends_on` its completion). Fixed with `cap_add: [CHOWN, DAC_OVERRIDE]`.
+* The application-logs panel filtered `level=~"${level:regex}"`; the `:regex`
+  formatter escapes the custom variable's `All` value `.*` into `\.\*`, Loki
+  answered 400 and the panel rendered "No data" in the UI (API-level checks miss
+  it because they skip variable interpolation). Fixed with plain interpolation
+  plus a contract assertion; panels that legitimately have no series on a
+  healthy system now end in `or vector(0)`.
+
+Verification: the edge answers 200; Loki holds `knowledge-gym` and `nginx`
+streams; one edge request id and the backend log line for that request resolve to
+a single trace id; Tempo lists those traces; all four new dashboards render with
+zero "No data" panels in the browser.
+
+Access: Grafana listens on `127.0.0.1:3001` only —
+`ssh -N -L 3001:127.0.0.1:3001 deploy@192.168.1.15`, then http://localhost:3001.
+The admin password is `GF_SECURITY_ADMIN_PASSWORD` in `/opt/kg/.env`. For phone
+or off-LAN access, add a Cloudflare tunnel public hostname
+`grafana.darkb-tech.io.vn -> http://localhost:3001` and set `GF_SERVER_ROOT_URL`
+to the same URL; never bind the port to 0.0.0.0, the dashboards render full log
+bodies.
