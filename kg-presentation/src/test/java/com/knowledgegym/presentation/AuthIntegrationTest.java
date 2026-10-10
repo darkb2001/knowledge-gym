@@ -794,9 +794,9 @@ class AuthIntegrationTest {
     }
 
     private String readJson(MvcResult result, String jsonPath) throws Exception {
-        // jsonPath dạng "$.accessToken" → Jackson pointer "/accessToken"
+        // jsonPath dạng "$.user.id" → Jackson pointer "/user/id" (đổi HẾT dấu chấm, không chỉ dấu đầu).
         JsonNode node = objectMapper.readTree(result.getResponse().getContentAsString())
-                .at(jsonPath.substring(1).replaceFirst("\\.", "/"));
+                .at(jsonPath.substring(1).replace(".", "/"));
         return node.asText();
     }
 }
