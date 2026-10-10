@@ -1,0 +1,100 @@
+rule_files:
+  - observability-alerts.yml
+evaluation_interval: 1m
+tests:
+  - name: backend down waits then fires
+    interval: 1m
+    input_series:
+      - series: 'up{job="loki"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: KnowledgeGymTelemetryBackendDown
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: KnowledgeGymTelemetryBackendDown
+        exp_alerts:
+          - exp_labels: {job: loki, severity: warning}
+            exp_annotations:
+              summary: "Telemetry backend loki is unreachable"
+              description: >-
+                App must stay available. See observability-runbook.md.
+  - name: healthy backend stays quiet
+    interval: 1m
+    input_series:
+      - series: 'up{job="loki"}'
+        values: '1+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: KnowledgeGymTelemetryBackendDown
+        exp_alerts: []
+  - name: log exports failing
+    interval: 1m
+    input_series:
+      - series: 'otelcol_exporter_send_failed_log_records{exporter="loki"}'
+        values: '0+10x15'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: KnowledgeGymTelemetryLogExportFailures
+        exp_alerts:
+          - exp_labels: {exporter: loki, severity: warning}
+            exp_annotations:
+              summary: "Loki export is failing"
+              description: "Check Loki ingestion limits, health and disk."
+  - name: trace exports failing
+    interval: 1m
+    input_series:
+      - series: 'otelcol_exporter_send_failed_spans{exporter="tempo"}'
+        values: '0+10x15'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: KnowledgeGymTelemetryTraceExportFailures
+        exp_alerts:
+          - exp_labels: {exporter: tempo, severity: warning}
+            exp_annotations:
+              summary: "Tempo export is failing"
+              description: "Check Tempo ingestion limits, health and disk."
+  - name: queue pressure
+    interval: 1m
+    input_series:
+      - series: 'otelcol_exporter_queue_size{exporter="tempo"}'
+        values: '60+0x15'
+      - series: 'otelcol_exporter_queue_capacity{exporter="tempo"}'
+        values: '64+0x15'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: KnowledgeGymTelemetryQueuePressure
+        exp_alerts:
+          - exp_labels: {exporter: tempo, severity: warning}
+            exp_annotations:
+              summary: "Collector queue above 80%"
+              description: "Queues are bounded; full queues can drop data."
+  - name: refused spans
+    interval: 1m
+    input_series:
+      - series: otelcol_processor_refused_spans
+        values: '0+10x15'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: KnowledgeGymTelemetryDropped
+        exp_alerts:
+          - exp_labels: {severity: warning}
+            exp_annotations:
+              summary: "Telemetry is being dropped or refused"
+              description: >-
+                Check volume, queue pressure, memory and rate limits.
+  - name: traffic but pipeline silent
+    interval: 1m
+    input_series:
+      - series: http_server_requests_seconds_count
+        values: '0+60x40'
+      - series: otelcol_receiver_accepted_log_records
+        values: '0+0x40'
+    alert_rule_test:
+      - eval_time: 31m
+        alertname: KnowledgeGymTelemetryNoApplicationLogs
+        exp_alerts:
+          - exp_labels: {severity: warning}
+            exp_annotations:
+              summary: "Traffic exists but Collector accepts no logs"
+              description: "Check json-file labels, log path and parser errors."

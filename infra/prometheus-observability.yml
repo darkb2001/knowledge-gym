@@ -1,0 +1,61 @@
+# Prometheus — thu thập metrics từ Spring Boot Actuator.
+#
+# Scrape đi qua nginx (`nginx:80`) để hưởng allowlist/deny của nó, và vì
+# `server.servlet.context-path=/api/v1` áp dụng cho CẢ management endpoint —
+# thiếu prefix `/api/v1` thì scrape nhận 404 và dashboard im lặng trống.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+storage:
+  exemplars:
+    max_exemplars: 10000
+
+scrape_configs:
+  - job_name: "knowledge-gym"
+    metrics_path: "/api/v1/actuator/prometheus"
+    static_configs:
+      - targets: ["nginx:80"]
+        labels:
+          # Trung tính cho cả dev và prod (cùng file). Chưa có dashboard nào
+          # provision trong repo nên đổi nhãn không phá gì.
+          env: "self-hosted"
+
+  # nginx-prometheus-exporter chuyển stub_status thành Prometheus format.
+  - job_name: "nginx"
+    static_configs:
+      - targets: ["nginx-exporter:9113"]
+
+  # Opt-in overlay only; plain production compose retains the current metrics.
+  - job_name: "otel-collector"
+    static_configs:
+      - targets: ["otel-collector:8888"]
+  - job_name: "loki"
+    static_configs:
+      - targets: ["loki:3100"]
+  - job_name: "tempo"
+    static_configs:
+      - targets: ["tempo:3200"]
+
+alerting:
+  # Alertmanager: project kgops, ops/docker-compose.ops.yml.
+  # Shared Docker network resolves the existing alertmanager DNS alias.
+  # Lưu ý: compose project `kg` (app) KHÔNG quản lý container này — đừng thêm nó
+  # vào docker-compose.prod.yml, vì mỗi lần deploy sẽ bị --remove-orphans xoá.
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+  - /etc/prometheus/observability-alerts.yml
+
+# Offsite metrics (m11b): keep local scrape/dashboards; add Grafana Cloud Free
+# remote_write so history survives host death. Copy
+# infra/prometheus/remote_write.yml.example → host-only secrets file,
+# then either
+# merge into this file or mount an override. Alert
+# KnowledgeGymPrometheusRemoteSamplesDiscarded fires when Free-tier series limit
+# silently drops samples.
+#
+# remote_write: []

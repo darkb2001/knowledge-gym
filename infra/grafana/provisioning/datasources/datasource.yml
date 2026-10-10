@@ -8,3 +8,52 @@ datasources:
     url: http://prometheus:9090
     isDefault: true
     editable: false
+    jsonData:
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: tempo
+  - name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: false
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - name: TraceID
+          matcherRegex: '"trace_id"\s*:\s*"([0-9a-f]{32})"'
+          datasourceUid: tempo
+          url: '$${__value.raw}'
+          urlDisplayLabel: Open trace
+  - name: Tempo
+    uid: tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    editable: false
+    jsonData:
+      httpMethod: GET
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: "-2m"
+        spanEndTimeShift: "2m"
+        customQuery: true
+        query: >-
+          {service_name="knowledge-gym"} | json
+          | trace_id="$${__trace.traceId}"
+      tracesToMetrics:
+        datasourceUid: prometheus
+        spanStartTimeShift: "-5m"
+        spanEndTimeShift: "5m"
+        queries:
+          - name: HTTP requests
+            query: 'sum(rate(http_server_requests_seconds_count[5m]))'
+          - name: HTTP latency
+            query: >-
+              histogram_quantile(0.95, sum by (le)
+              (rate(http_server_requests_seconds_bucket[5m])))
+      search:
+        hide: false
+      nodeGraph:
+        enabled: false

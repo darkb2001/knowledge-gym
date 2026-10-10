@@ -1,0 +1,94 @@
+# Explicit application opt-in; NOT used by normal deploy/CI. No secrets here.
+# docker compose -p kg -f docker-compose.prod.yml -f
+# docker-compose.observability.yml ...
+x-telemetry-logging: &telemetry-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+    labels: "telemetry.service,telemetry.environment"
+    mode: non-blocking
+    max-buffer-size: "1m"
+services:
+  app:
+    networks: [kg-internal, kg-telemetry]
+    labels:
+      telemetry.service: knowledge-gym
+      telemetry.environment: ${TELEMETRY_ENVIRONMENT:-production}
+    logging: *telemetry-logging
+    environment:
+      SPRING_PROFILES_INCLUDE: observability
+      TELEMETRY_ENVIRONMENT: ${TELEMETRY_ENVIRONMENT:-production}
+      JAVA_TOOL_OPTIONS: >-
+        -XX:MaxRAMPercentage=55 -XX:+ExitOnOutOfMemoryError
+        -javaagent:/app/otel-javaagent.jar
+      OTEL_SERVICE_NAME: knowledge-gym
+      OTEL_RESOURCE_ATTRIBUTES: >-
+        deployment.environment.name=${TELEMETRY_ENVIRONMENT:-production}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_EXPORTER_OTLP_TIMEOUT: "3000"
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
+      OTEL_PROPAGATORS: tracecontext
+      # Probabilistic, NOT a rate cap; sampled parents are honoured.
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: ${OTEL_TRACE_SAMPLE_RATIO:-0.05}
+      OTEL_BSP_MAX_QUEUE_SIZE: "1024"
+      OTEL_BSP_MAX_EXPORT_BATCH_SIZE: "128"
+      OTEL_BSP_SCHEDULE_DELAY: "2000"
+      OTEL_BSP_EXPORT_TIMEOUT: "3000"
+      OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT: "256"
+      OTEL_ATTRIBUTE_COUNT_LIMIT: "32"
+      OTEL_SPAN_EVENT_COUNT_LIMIT: "0"
+      OTEL_SPAN_LINK_COUNT_LIMIT: "0"
+      OTEL_JAVAAGENT_LOGGING: none
+      OTEL_INSTRUMENTATION_JDBC_EXPERIMENTAL_CAPTURE_QUERY_PARAMETERS: "false"
+      OTEL_INSTRUMENTATION_REDIS_STATEMENT_SANITIZER_ENABLED: "true"
+      OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS: ""
+      OTEL_INSTRUMENTATION_HTTP_SERVER_CAPTURE_REQUEST_HEADERS: ""
+      OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_RESPONSE_HEADERS: ""
+      OTEL_INSTRUMENTATION_HTTP_SERVER_CAPTURE_RESPONSE_HEADERS: ""
+      OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED: >-
+        false
+      LOG_LEVEL_APP: ${LOG_LEVEL_APP:-INFO}
+      LOG_LEVEL_ROOT: ${LOG_LEVEL_ROOT:-INFO}
+  nginx:
+    labels:
+      telemetry.service: nginx
+      telemetry.environment: "${TELEMETRY_ENVIRONMENT:-production}"
+    logging: *telemetry-logging
+  prometheus:
+    networks: [kg-internal, kg-telemetry]
+    volumes:
+      - ./infra/prometheus-observability.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infra/prometheus/observability-alerts.yml:/etc/prometheus/observability-alerts.yml:ro
+    labels:
+      telemetry.service: prometheus
+      telemetry.environment: "${TELEMETRY_ENVIRONMENT:-production}"
+    logging: *telemetry-logging
+    # Replaces the command list, preserving BOTH current retention flags.
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=3GB
+      - --log.format=json
+      - --enable-feature=exemplar-storage
+  grafana:
+    networks: [kg-internal, kg-telemetry]
+    labels:
+      telemetry.service: grafana
+      telemetry.environment: "${TELEMETRY_ENVIRONMENT:-production}"
+    logging: *telemetry-logging
+    environment:
+      GF_LOG_MODE: console
+      GF_LOG_CONSOLE_FORMAT: json
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_AUTH_BASIC_ENABLED: "true"
+      GF_USERS_DEFAULT_THEME: system
+networks:
+  kg-telemetry:
+    external: true
+    name: kgops_telemetry

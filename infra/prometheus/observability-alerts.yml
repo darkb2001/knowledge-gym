@@ -1,0 +1,59 @@
+groups:
+  - name: knowledge-gym-telemetry
+    rules:
+      - alert: KnowledgeGymTelemetryBackendDown
+        expr: up{job=~"otel-collector|loki|tempo"} == 0
+        for: 3m
+        labels: {severity: warning}
+        annotations:
+          summary: "Telemetry backend {{ $labels.job }} is unreachable"
+          description: "App must stay available. See observability-runbook.md."
+      - alert: KnowledgeGymTelemetryLogExportFailures
+        expr: >-
+          sum by (exporter) (rate(otelcol_exporter_send_failed_log_records[5m]))
+          > 0
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Loki export is failing"
+          description: "Check Loki ingestion limits, health and disk."
+      - alert: KnowledgeGymTelemetryTraceExportFailures
+        expr: >-
+          sum by (exporter) (rate(otelcol_exporter_send_failed_spans[5m])) > 0
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Tempo export is failing"
+          description: "Check Tempo ingestion limits, health and disk."
+      - alert: KnowledgeGymTelemetryQueuePressure
+        expr: >-
+          otelcol_exporter_queue_size /
+          clamp_min(otelcol_exporter_queue_capacity, 1) > 0.8
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Collector queue above 80%"
+          description: "Queues are bounded; full queues can drop data."
+      - alert: KnowledgeGymTelemetryDropped
+        expr: >-
+          sum(rate(otelcol_exporter_enqueue_failed_log_records[5m])) > 0
+          or sum(rate(otelcol_exporter_enqueue_failed_spans[5m])) > 0
+          or sum(rate(otelcol_processor_refused_log_records[5m])) > 0
+          or sum(rate(otelcol_processor_refused_spans[5m])) > 0
+          or sum(rate(loki_discarded_samples_total[5m])) > 0
+          or sum(rate(tempo_discarded_spans_total[5m])) > 0
+        for: 3m
+        labels: {severity: warning}
+        annotations:
+          summary: "Telemetry is being dropped or refused"
+          description: "Check volume, queue pressure, memory and rate limits."
+      - alert: KnowledgeGymTelemetryNoApplicationLogs
+        expr: >-
+          (sum(rate(http_server_requests_seconds_count[15m])) > 0.01)
+          and on()
+          (sum(increase(otelcol_receiver_accepted_log_records[15m])) == 0)
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "Traffic exists but Collector accepts no logs"
+          description: "Check json-file labels, log path and parser errors."

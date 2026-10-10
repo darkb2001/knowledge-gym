@@ -27,6 +27,38 @@ jobs:
       - name: Build + test (includes ArchUnit)
         run: ./gradlew build
 
+      - name: Observability contracts and runtime canary (local fixtures only)
+        run: |
+          set -euo pipefail
+          tools="$RUNNER_TEMP/kg-observability"
+          mkdir -p "$tools"
+          python3 -m venv "$tools/venv"
+          "$tools/venv/bin/pip" install PyYAML==6.0.3
+          "$tools/venv/bin/python" scripts/verify-observability.py
+          agent_url="https://github.com/open-telemetry/opentelemetry-java-instrumentation"
+          agent_release="$agent_url/releases/download/v2.32.0"
+          curl -fsSL --retry 2 "$agent_release/opentelemetry-javaagent.jar" \
+            -o "$tools/otel-javaagent.jar"
+          # Gradle verifies the same fixed SHA-256 as the Dockerfile.
+          ./gradlew :kg-presentation:telemetryAgentTest \
+            -PotelAgentPath="$tools/otel-javaagent.jar"
+          release="https://github.com/open-telemetry/opentelemetry-collector-releases"
+          archive="otelcol-contrib_0.162.0_linux_amd64.tar.gz"
+          url="$release/releases/download/v0.162.0/$archive"
+          curl -fsSL --retry 2 "$url" -o "$tools/$archive"
+          curl -fsSL --retry 2 "$url.sha256" -o "$tools/$archive.sha256"
+          expected="$(tr -d '\r\n' < "$tools/$archive.sha256")"
+          [[ "$expected" =~ ^[a-f0-9]{64}$ ]]
+          printf '%s  %s\n' "$expected" "$archive" | \
+            (cd "$tools" && sha256sum -c -)
+          tar -xzf "$tools/$archive" -C "$tools"
+          "$tools/venv/bin/python" scripts/test-observability-pipeline.py \
+            --collector "$tools/otelcol-contrib"
+          docker run --rm --network none --cap-drop ALL \
+            --entrypoint /bin/promtool \
+            -v "$PWD/infra/prometheus:/rules:ro" prom/prometheus:v2.53.0 \
+            test rules /rules/observability-alerts.test.yml
+
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -209,13 +241,20 @@ jobs:
             fi
             export APP_IMAGE="$image"
             compose=(docker compose -f docker-compose.prod.yml)
+            # Preserve operator opt-in; never start the ops stack.
+            obs_marker="${KG_OBSERVABILITY_MARKER:-$PWD/run/observability.enabled}"
+            if [ -f "$obs_marker" ]; then
+              test -f docker-compose.observability.yml
+              docker network inspect kgops_telemetry >/dev/null
+              compose+=(-f docker-compose.observability.yml)
+            fi
             marker="${KG_ES_STOP_MARKER:-$PWD/run/elasticsearch.stopped}"
 
             # Preserve the exact image currently used by the app. This keeps
             # one rollback release even when `latest` has moved in GHCR.
             # Tên container do compose sinh (kg-app-1) nên tra theo service id
             # thay vì hardcode "app".
-            current_app="$(docker compose -f docker-compose.prod.yml ps -q app \
+            current_app="$("${compose[@]}" ps -q app \
               2>/dev/null | head -1)"
             current_id="$(docker inspect --format '{{.Image}}' "$current_app" \
               2>/dev/null || true)"
@@ -235,7 +274,7 @@ jobs:
             # 2 container stateless này (~2s) để rule rate limit / alert vừa
             # deploy có hiệu lực thật. Lỗi ở đây không làm fail deploy.
             "${compose[@]}" up -d --force-recreate --no-deps nginx prometheus \
-              || echo "CẢNH BÁO: chưa tạo lại được nginx/prometheus — config mới có thể chưa vào"
+              || echo "CẢNH BÁO: nginx/prometheus có thể còn dùng config cũ"
 
             # An intentional ES stop must survive compose up.
             if [ -f "$marker" ]; then

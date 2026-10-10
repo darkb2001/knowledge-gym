@@ -56,5 +56,16 @@ management:
 
 logging:
   level:
-    com.knowledgegym: INFO
-    org.hibernate.SQL: WARN
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.knowledgegym: ${LOG_LEVEL_APP:INFO}
+    org.hibernate.SQL: OFF
+    org.hibernate.orm.jdbc.bind: OFF
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.apache.kafka.clients: WARN
+    org.apache.http.wire: OFF
+    org.apache.hc.client5.http.wire: OFF
+    jakarta.mail: WARN
+
+app-telemetry:
+  environment: ${TELEMETRY_ENVIRONMENT:production}
