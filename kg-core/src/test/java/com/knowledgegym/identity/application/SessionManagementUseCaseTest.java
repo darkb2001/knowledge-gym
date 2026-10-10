@@ -44,7 +44,7 @@ class SessionManagementUseCaseTest {
 
     private void tokenBelongsTo(String raw, UUID family) {
         when(tokenService.verifyRefreshToken(raw))
-                .thenReturn(new TokenService.RefreshTokenClaims(user, family));
+                .thenReturn(new TokenService.RefreshTokenClaims(user, family, null));
     }
 
     @Test void listMarksCurrentSessionAndKeepsOthersUsable() {
@@ -63,7 +63,7 @@ class SessionManagementUseCaseTest {
         when(registry.listActive(user)).thenReturn(List.of(session(phone)));
         // cookie của người khác (userId khác) thì không được coi là phiên hiện tại
         when(tokenService.verifyRefreshToken("cookie-other"))
-                .thenReturn(new TokenService.RefreshTokenClaims(UUID.randomUUID(), phone));
+                .thenReturn(new TokenService.RefreshTokenClaims(UUID.randomUUID(), phone, null));
 
         var views = useCase.list(user, "cookie-other");
 

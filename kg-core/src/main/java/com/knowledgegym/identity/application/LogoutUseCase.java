@@ -50,7 +50,7 @@ public class LogoutUseCase {
                 claims = tokenService.verifyRefreshToken(rawRefreshToken);
             } catch (RuntimeException invalidToken) {
                 claims = refreshTokenRepository.findByTokenHash(hash)
-                        .map(audit -> new TokenService.RefreshTokenClaims(audit.getUserId(), audit.getFamilyId()))
+                        .map(audit -> new TokenService.RefreshTokenClaims(audit.getUserId(), audit.getFamilyId(), null))
                         .orElse(null);
             }
         }

@@ -28,15 +28,16 @@ class BlockedAccountAuthTest {
         var tokens = mock(TokenService.class);
         var refresh = mock(RefreshTokenRepository.class);
         var cache = mock(RefreshTokenCachePort.class);
+        var revoker = mock(RefreshFamilyRevoker.class);
         var user = new User("learner@example.com", "hash", "Learner");
         user.verifyEmail(); user.setBlocked(true);
         var family = UUID.randomUUID();
-        when(tokens.verifyRefreshToken("raw")).thenReturn(new TokenService.RefreshTokenClaims(user.getId(), family));
+        when(tokens.verifyRefreshToken("raw")).thenReturn(new TokenService.RefreshTokenClaims(user.getId(), family, java.time.Instant.now()));
         when(users.findById(user.getId())).thenReturn(Optional.of(user));
         when(cache.find(HashUtils.sha256Hex("raw"))).thenReturn(
                 Optional.of(new RefreshTokenCachePort.CacheEntry(user.getId(), family)));
-        assertThrows(AuthException.class, () -> new RefreshTokenUseCase(tokens, refresh, cache, users)
-                .execute("raw", null, null));
+        assertThrows(AuthException.class, () -> new RefreshTokenUseCase(tokens, refresh, cache, users, revoker)
+                .execute("raw", null, null, null));
         verify(tokens, never()).generateAccessToken(any(), any());
         verify(refresh, never()).save(any());
     }

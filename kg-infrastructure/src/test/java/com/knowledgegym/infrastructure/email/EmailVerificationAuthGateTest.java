@@ -32,18 +32,19 @@ class EmailVerificationAuthGateTest {
         var tokens = mock(TokenService.class);
         var refresh = mock(RefreshTokenRepository.class);
         var cache = mock(RefreshTokenCachePort.class);
+        var revoker = mock(RefreshFamilyRevoker.class);
         User user = new User("user@example.com", "hash", "User");
         UUID family = UUID.randomUUID();
         when(tokens.verifyRefreshToken("old-refresh"))
-                .thenReturn(new TokenService.RefreshTokenClaims(user.getId(), family));
+                .thenReturn(new TokenService.RefreshTokenClaims(user.getId(), family, java.time.Instant.now()));
         when(cache.find(HashUtils.sha256Hex("old-refresh")))
                 .thenReturn(Optional.of(new RefreshTokenCachePort.CacheEntry(user.getId(), family)));
         when(users.findById(user.getId())).thenReturn(Optional.of(user));
-        assertThatThrownBy(() -> new RefreshTokenUseCase(tokens, refresh, cache, users)
-                .execute("old-refresh", "127.0.0.1", "test"))
+        assertThatThrownBy(() -> new RefreshTokenUseCase(tokens, refresh, cache, users, revoker)
+                .execute("old-refresh", "127.0.0.1", "test", null))
                 .isInstanceOf(AuthException.class).hasMessage("Email verification required");
         verify(tokens, never()).generateAccessToken(any(), anyString());
-        verify(tokens, never()).generateRefreshToken(any(), any());
+        verify(tokens, never()).generateRefreshToken(any(), any(), any());
         verifyNoInteractions(refresh);
         verify(cache, never()).blacklist(anyString(), any());
         verify(cache, never()).store(anyString(), any(), any(), any());

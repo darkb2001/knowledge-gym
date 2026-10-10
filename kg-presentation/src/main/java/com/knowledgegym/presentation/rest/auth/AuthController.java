@@ -7,10 +7,12 @@ import com.knowledgegym.infrastructure.security.RefreshTokenCookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -23,6 +25,13 @@ public class AuthController {
 
     private static final long ACCESS_TOKEN_TTL_SECONDS = 900L; // 15 minutes
     private static final int USER_AGENT_MAX_LEN = 500;
+
+    /**
+     * Hạn TỐI ĐA của một phiên bất kể rotate bao nhiêu lần (absolute family lifetime).
+     * Rolling TTL 7 ngày vẫn giữ, nhưng sau mốc này phải đăng nhập lại bằng mật khẩu/OAuth.
+     * Cấu hình qua {@code app.security.refresh.absolute-family-ttl} (ISO-8601 Duration).
+     */
+    private final Duration absoluteFamilyTtl;
 
     private final VerifiedRegistrationUseCase registerUseCase;
     private final LoginUseCase loginUseCase;
@@ -48,7 +57,9 @@ public class AuthController {
                            GetCurrentUserUseCase currentUser,
                            RefreshTokenCookie refreshCookie,
                            ClientIpResolver clientIpResolver,
-                           SessionManagementUseCase sessionUseCase) {
+                           SessionManagementUseCase sessionUseCase,
+                           @Value("${app.security.refresh.absolute-family-ttl:30d}")
+                           Duration absoluteFamilyTtl) {
         this.registerUseCase = registerUseCase;
         this.loginUseCase = loginUseCase;
         this.refreshTokenUseCase = refreshTokenUseCase;
@@ -61,6 +72,7 @@ public class AuthController {
         this.refreshCookie = refreshCookie;
         this.clientIpResolver = clientIpResolver;
         this.sessionUseCase = sessionUseCase;
+        this.absoluteFamilyTtl = absoluteFamilyTtl;
     }
 
     @PostMapping("/register")
@@ -125,7 +137,8 @@ public class AuthController {
         if (rawRefresh == null) throw new AuthException("Missing refresh cookie");
         RefreshTokenUseCase.Result result = refreshTokenUseCase.execute(rawRefresh,
                 clientIpResolver.resolve(httpRequest),
-                clientIpResolver.userAgent(httpRequest, USER_AGENT_MAX_LEN));
+                clientIpResolver.userAgent(httpRequest, USER_AGENT_MAX_LEN),
+                absoluteFamilyTtl);
         refreshCookie.write(response, result.newRefreshToken());
         return Map.of("accessToken", result.accessToken(), "expiresIn", ACCESS_TOKEN_TTL_SECONDS);
     }

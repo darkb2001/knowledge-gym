@@ -45,7 +45,7 @@ class LogoutUseCaseTest {
 
     @Test
     void validTokenRevokesFamilyAndCutsIssuedAccessTokens() {
-        when(tokenService.verifyRefreshToken(raw)).thenReturn(new TokenService.RefreshTokenClaims(userId, familyId));
+        when(tokenService.verifyRefreshToken(raw)).thenReturn(new TokenService.RefreshTokenClaims(userId, familyId, null));
 
         useCase.execute(raw);
 
@@ -90,14 +90,14 @@ class LogoutUseCaseTest {
 
     @Test
     void identityMismatchCannotRevokeAnotherUsersSession() {
-        when(tokenService.verifyRefreshToken(raw)).thenReturn(new TokenService.RefreshTokenClaims(UUID.randomUUID(), familyId));
+        when(tokenService.verifyRefreshToken(raw)).thenReturn(new TokenService.RefreshTokenClaims(UUID.randomUUID(), familyId, null));
         org.junit.jupiter.api.Assertions.assertThrows(AuthException.class, () -> useCase.execute(raw, userId));
         verifyNoInteractions(repository, cache, sessionInvalidation);
     }
 
     @Test
     void databaseFailureIsNotSwallowedAsInvalidTokenOrSuccessfulLogout() {
-        when(tokenService.verifyRefreshToken(raw)).thenReturn(new TokenService.RefreshTokenClaims(userId, familyId));
+        when(tokenService.verifyRefreshToken(raw)).thenReturn(new TokenService.RefreshTokenClaims(userId, familyId, null));
         org.mockito.Mockito.doThrow(new IllegalStateException("database offline")).when(repository).revokeFamily(familyId);
         org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> useCase.execute(raw, userId));
         verify(repository, never()).findByTokenHash(any());

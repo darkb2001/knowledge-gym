@@ -19,6 +19,11 @@ public class JwtTokenService implements TokenService {
 
     public static final String CLAIM_FAMILY_ID = "fid";
     /**
+     * Mốc login đầu tiên của family, mili-giây epoch. Rotation giữ NGUYÊN claim này để absolute
+     * lifetime (ví dụ 30 ngày) không bị gia hạn vô thời hạn bởi rolling TTL 7 ngày.
+     */
+    public static final String CLAIM_FAMILY_ISSUED_AT_MILLIS = "fiatMs";
+    /**
      * iat chuẩn (NumericDate) chỉ có độ phân giải GIÂY, không đủ để so với mốc cắt phiên
      * ({@code users.tokens_invalid_before} lưu mili-giây): access token phát trong cùng giây
      * với lúc logout của thiết bị khác sẽ bị coi là "cũ" và trả 401 oan. Claim này ghi thêm
@@ -55,10 +60,16 @@ public class JwtTokenService implements TokenService {
 
     @Override
     public String generateRefreshToken(UUID userId, UUID familyId) {
+        return generateRefreshToken(userId, familyId, Instant.now());
+    }
+
+    @Override
+    public String generateRefreshToken(UUID userId, UUID familyId, Instant familyIssuedAt) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(userId.toString())
                 .claim(CLAIM_FAMILY_ID, familyId.toString())
+                .claim(CLAIM_FAMILY_ISSUED_AT_MILLIS, familyIssuedAt.toEpochMilli())
                 .id(UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(refreshTtl)))
@@ -88,8 +99,15 @@ public class JwtTokenService implements TokenService {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+        // Token phát trước khi có claim family lifetime → null. KHÔNG thay bằng iat: iat là mốc
+        // rotate hiện tại nên sẽ biến absolute expiry thành no-op.
+        Number familyIssuedAtMillis = claims.get(CLAIM_FAMILY_ISSUED_AT_MILLIS, Number.class);
+        Instant familyIssuedAt = familyIssuedAtMillis == null
+                ? null
+                : Instant.ofEpochMilli(familyIssuedAtMillis.longValue());
         return new RefreshTokenClaims(
                 UUID.fromString(claims.getSubject()),
-                UUID.fromString(claims.get(CLAIM_FAMILY_ID, String.class)));
+                UUID.fromString(claims.get(CLAIM_FAMILY_ID, String.class)),
+                familyIssuedAt);
     }
 }

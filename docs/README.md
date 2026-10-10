@@ -38,6 +38,7 @@
 | 24 | [24-mail-prod.md](./24-mail-prod.md) | Mail transactional prod: bật SMTP, nghiệm thu end-to-end, bẫy `MAIL_SMTP_ENABLED=false` |
 | 29 | [29-ddos-protection.md](./29-ddos-protection.md) | Chống DDoS/lạm dụng: nginx + alert rule + Telegram + script Cloudflare, runbook khi bị đánh |
 | 30 | [30-turnstile.md](./30-turnstile.md) | Turnstile: chặn bot ở form gửi mail/đăng ký, cách bật + nghiệm thu |
+| 33 | [33-auth-session-hardening-plan.md](./33-auth-session-hardening-plan.md) | **Đã triển khai** — phân loại + xử lý 4 điểm review auth/session: rollback reuse (P0, `RefreshFamilyRevoker` REQUIRES_NEW), multi-tab race (P1, Web Locks), absolute expiry (P2, claim `fiatMs` 30 ngày), CSRF/Origin (P3, `OriginGuardFilter`) |
 | adr | [adr/](./adr/) | ADR-001 modular monolith, ADR-004 infra/backup/email |
 
 ## Quick start
