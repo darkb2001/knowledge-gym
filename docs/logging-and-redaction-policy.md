@@ -67,11 +67,16 @@ adding a sender requires another privacy review.
 ## Nginx and infrastructure
 
 Access logs contain generated request ID, upstream trace ID, method, numeric
-status/duration/byte counts. No raw URI/query/IP/User-Agent/header/body.
-Native Nginx error lines are disabled because they echo request URLs; troubleshoot
-with access 4xx/5xx, upstream availability and exporter metrics.
-This sacrifices detailed edge TLS/upstream diagnostics; do not temporarily
-enable raw error logs in production without a reviewed, bounded handling plan.
+status/upstream status/duration/byte counts. No raw URI/query/IP/User-Agent/
+header/body in the shipped stream.
+Native Nginx error lines are never shipped: they echo request URLs and the
+collector's JSON gate drops them. They are kept on stderr (`error_log
+/dev/stderr crit;`) so worker/upstream/TLS failures stay visible in local
+`docker logs kg-nginx-1`; redirecting them to /dev/null hides real outages.
+Detailed edge TLS/upstream diagnostics still rely on access 4xx/5xx plus
+`status`/`upstream_status`/`upstream_duration_seconds`, so do not raise the
+error level or add raw error fields to the shipped stream without a reviewed,
+bounded handling plan.
 
 Only opted-in JSON logs from Prometheus/Grafana/Alertmanager are collected.
 Raw logs from PostgreSQL/Redis/Kafka/Elasticsearch/Garage are intentionally not

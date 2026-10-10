@@ -79,7 +79,7 @@ processors:
               keep_keys(body, ["timestamp", "service", "environment", "level",
               "logger", "message", "trace_id", "span_id", "request_id",
               "http_method", "http_route", "http_status", "duration_ms",
-              "stack_trace", "status", "duration_seconds",
+              "stack_trace", "status", "upstream_status", "duration_seconds",
               "upstream_duration_seconds", "request_bytes", "response_bytes"])
           - >-
               set(body["message"], "infrastructure_event") where

@@ -13,9 +13,13 @@ RUN chmod +x gradlew && ./gradlew :kg-presentation:bootJar --no-daemon -x test
 
 FROM eclipse-temurin:21-jre-alpine
 RUN addgroup -S app && adduser -S app -G app
-USER app
 WORKDIR /app
 COPY --from=builder /app/kg-presentation/build/libs/*.jar app.jar
+# `ADD <url>` writes the agent as root:root 0600. The JVM runs as `app`, so an
+# unreadable agent aborts startup ("Error opening zip file or JAR manifest
+# missing"). Keep it readable for the runtime user, writable by none.
 COPY --from=builder /otel-javaagent.jar /app/otel-javaagent.jar
+RUN chmod 0444 /app/otel-javaagent.jar
+USER app
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

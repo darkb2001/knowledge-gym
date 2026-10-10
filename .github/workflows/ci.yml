@@ -132,6 +132,20 @@ jobs:
             echo "- Digest: \`${{ steps.build.outputs.digest }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # Bắt buộc: `ADD <url>` để lại agent jar 0600 root:root. Nếu image đã
+      # publish vẫn không đọc được nó dưới user `app`, container sẽ crash-loop
+      # ngay khi overlay bật -javaagent - lỗi này không thể phát hiện bằng scan
+      # hay unit test, chỉ lộ ra khi chạy thật trong image.
+      - name: Runtime smoke gate (agent readable by non-root user)
+        env:
+          AGENT: /app/otel-javaagent.jar
+        run: |
+          set -euo pipefail
+          image="${IMAGE_NAME}:sha-${GITHUB_SHA:0:7}"
+          docker pull "$image"
+          docker run --rm --network none --user app --entrypoint sh "$image" \
+            -c "test -r $AGENT && java -javaagent:$AGENT -version"
+
   image-security:
     needs: publish-image
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

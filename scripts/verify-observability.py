@@ -72,7 +72,9 @@ def verify_config():
         assert forbidden not in log_format
     assert "proxy_set_header X-Request-ID $request_id;" in nginx
     assert "proxy_set_header traceparent $http_traceparent;" in nginx
-    assert "error_log /dev/null crit;" in nginx
+    assert "error_log /dev/stderr crit;" in nginx
+    assert "error_log /dev/null" not in nginx
+    assert '"upstream_status":"$upstream_status",' in log_format
     datasources = read_yaml("infra/grafana/provisioning/datasources/datasource.yml")["datasources"]
     by_uid = {d["uid"]: d for d in datasources}
     assert set(by_uid) == {"prometheus", "loki", "tempo"}
