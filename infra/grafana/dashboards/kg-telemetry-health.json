@@ -86,7 +86,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (exporter) (rate(otelcol_exporter_send_failed_log_records[5m])) or sum by (exporter) (rate(otelcol_exporter_send_failed_spans[5m]))",
+          "expr": "(sum by (exporter) (rate(otelcol_exporter_send_failed_log_records[5m])) or sum by (exporter) (rate(otelcol_exporter_send_failed_spans[5m]))) or vector(0)",
           "exemplar": true
         }
       ]
@@ -152,7 +152,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (reason) (rate(loki_discarded_samples_total[5m])) or sum by (reason) (rate(tempo_discarded_spans_total[5m]))",
+          "expr": "(sum by (reason) (rate(loki_discarded_samples_total[5m])) or sum by (reason) (rate(tempo_discarded_spans_total[5m]))) or vector(0)",
           "exemplar": true
         }
       ]
