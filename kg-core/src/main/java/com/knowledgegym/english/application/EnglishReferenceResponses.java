@@ -97,6 +97,6 @@ public final class EnglishReferenceResponses {
     );
     public static Optional<EnglishReferenceResponse> find(String exerciseId) {
         return Optional.ofNullable(RESPONSES.get(exerciseId)).or(() -> EnglishSubjectiveBank.reference(exerciseId))
-            .or(() -> EnglishCurrentThemeBank.reference(exerciseId)).or(() -> EnglishHcmusBank.reference(exerciseId));
+            .or(() -> EnglishCurrentThemeBank.reference(exerciseId)).or(() -> EnglishHcmusBank.reference(exerciseId)).or(() -> EnglishHcmusExpansionBank.reference(exerciseId));
     }
 }

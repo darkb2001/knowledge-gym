@@ -51,7 +51,7 @@ class EnglishPracticeHttpTest {
     }
     @AfterEach void close() { context.close(); }
     @Test void everyRouteRequiresAuthentication() throws Exception {
-        for (String path : List.of("/english/exercises", "/english/attempts", "/english/attempts/" + id))
+        for (String path : List.of("/english/exercises", "/english/exercises/listening-announcement-v1/transcript", "/english/attempts", "/english/attempts/" + id))
             mvc.perform(get(path)).andExpect(status().isUnauthorized());
         mvc.perform(post("/english/attempts").contentType(MediaType.APPLICATION_JSON).content("{\"exerciseId\":\"writing-email-v1\"}"))
             .andExpect(status().isUnauthorized());
@@ -59,13 +59,26 @@ class EnglishPracticeHttpTest {
     }
     @Test void catalogDoesNotLeakAnswerKeysOrTranscripts() throws Exception {
         mvc.perform(get("/english/exercises").with(authentication(auth())))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(39))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(47))
             .andExpect(jsonPath("$[0].items[0].correctIndex").doesNotExist())
             .andExpect(jsonPath("$[0].items[0].explanation").doesNotExist())
             .andExpect(jsonPath("$[0].transcript").doesNotExist())
             .andExpect(jsonPath("$[*].referenceResponse").doesNotExist())
             .andExpect(jsonPath("$[*].text").doesNotExist())
             .andExpect(jsonPath("$[0].audioPath").value("/english/audio/announcement-v1.mp3"));
+    }
+    @Test void transcriptIsAnExplicitAuthenticatedAidNotAnAnswerOrModelEndpoint() throws Exception {
+        mvc.perform(get("/english/exercises/listening-announcement-v1/transcript").with(authentication(auth())))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.text").isNotEmpty())
+            .andExpect(jsonPath("$.items").doesNotExist()).andExpect(jsonPath("$.referenceResponse").doesNotExist());
+        mvc.perform(get("/english/exercises/hcmus-listening-complete-v1/transcript").param("partId", "hcmus-listening-short-v1").with(authentication(auth())))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.partId").value("hcmus-listening-short-v1"))
+            .andExpect(jsonPath("$.text").value(new EnglishCatalog().get("hcmus-listening-short-v1").transcript()));
+        mvc.perform(get("/english/exercises/hcmus-listening-complete-v1/transcript").param("partId", "listening-announcement-v1").with(authentication(auth())))
+            .andExpect(status().isBadRequest());
+        mvc.perform(get("/english/exercises/writing-email-v1/transcript").with(authentication(auth()))).andExpect(status().isBadRequest());
+        mvc.perform(get("/english/exercises/unknown/transcript").with(authentication(auth()))).andExpect(status().isNotFound());
+        verifyNoInteractions(service);
     }
     @Test void draftHidesFeedbackAndStartUsesPrincipal() throws Exception {
         when(service.start(user, "listening-announcement-v1")).thenReturn(attempt("DRAFT"));

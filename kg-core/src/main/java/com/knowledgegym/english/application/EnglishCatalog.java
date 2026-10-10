@@ -72,7 +72,7 @@ public class EnglishCatalog {
     );
     private static final List<EnglishExercise> LISTENING_BANK = EnglishListeningBank.exercises(EXERCISES);
     private static final List<EnglishExercise> BASE = Stream.of(EXERCISES, LISTENING_BANK,
-        EnglishReadingBank.exercises(), EnglishSubjectiveBank.EXERCISES, EnglishCurrentThemeBank.EXERCISES, EnglishHcmusBank.EXERCISES).flatMap(List::stream).toList();
+        EnglishReadingBank.exercises(), EnglishSubjectiveBank.EXERCISES, EnglishCurrentThemeBank.EXERCISES, EnglishHcmusBank.EXERCISES, EnglishHcmusExpansionBank.EXERCISES).flatMap(List::stream).toList();
     private static final List<EnglishExercise> ALL = Stream.concat(BASE.stream(), EnglishHcmusListeningBank.exercises(BASE).stream()).toList();
     public List<EnglishExercise> list() { return ALL; }
     public String curriculum(String id) {

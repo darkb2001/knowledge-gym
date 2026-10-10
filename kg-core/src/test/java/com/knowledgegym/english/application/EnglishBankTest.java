@@ -63,7 +63,7 @@ class EnglishBankTest {
         }
     }
     @Test void preservesOriginalWarmupsAndGivesRevisionsNewIdsAndDistinctTitles() {
-        assertThat(catalog.list()).hasSize(39);
+        assertThat(catalog.list()).hasSize(47);
         assertThat(catalog.list().stream().map(EnglishExercise::id).toList()).doesNotHaveDuplicates();
         assertThat(catalog.list().stream().map(EnglishExercise::title).toList()).doesNotHaveDuplicates();
         assertThat(catalog.get("listening-dialogue-v1").items()).hasSize(3);
@@ -78,6 +78,17 @@ class EnglishBankTest {
         assertThat(EnglishReferenceResponses.find("not-registered")).isEmpty();
         assertThat(EnglishReferenceResponses.find("reading-complete-practice-v1")).isEmpty();
     }
+    @Test void expansionKeepsPublishedTaskCountsAndExplainsEveryAnswer() {
+        assertThat(EnglishHcmusExpansionBank.EXERCISES).hasSize(8);
+        assertThat(catalog.get("hcmus-grammar-study-v1").items()).hasSize(15);
+        assertThat(catalog.get("hcmus-grammar-community-v1").items()).hasSize(15);
+        assertThat(catalog.get("hcmus-cloze-garden-v1").items()).hasSize(10);
+        assertThat(catalog.get("hcmus-cloze-repair-v1").items()).hasSize(10);
+        assertThat(catalog.get("hcmus-reading-wetland-v1").items()).hasSize(10);
+        assertThat(catalog.get("hcmus-vocabulary-context-v1").items()).hasSize(10);
+        assertThat(EnglishReferenceResponses.find("hcmus-transformations-practice-v1")).isPresent();
+        assertThat(EnglishReferenceResponses.find("hcmus-speaking-routine-v1")).isPresent();
+    }
     @Test void hcmusListeningHasTheOfficialSectionCountsButOnlyOriginalPracticeAudio() {
         var e = catalog.get("hcmus-listening-complete-v1");
         assertThat(e.items()).hasSize(20);
@@ -88,7 +99,7 @@ class EnglishBankTest {
         assertThat(catalog.get("hcmus-listening-short-v1").transcript().split("Conversation ").length - 1).isEqualTo(10);
     }
     @Test void hcmusPreparationIsSeparateAndDoesNotPretendToBeAnOfficialFullMock() {
-        assertThat(catalog.list().stream().filter(e -> catalog.curriculum(e.id()).equals("HCMUS_PREPARATION")).toList()).hasSize(8);
+        assertThat(catalog.list().stream().filter(e -> catalog.curriculum(e.id()).equals("HCMUS_PREPARATION")).toList()).hasSize(16);
         assertThat(catalog.get("hcmus-vocabulary-v1").items()).hasSize(10);
         assertThat(catalog.get("hcmus-grammar-v1").items()).hasSize(15);
         assertThat(catalog.get("hcmus-cloze-v1").items()).hasSize(10);

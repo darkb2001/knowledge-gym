@@ -25,7 +25,7 @@ class EnglishPracticeUseCaseTest {
         when(repository.updateOwned(any(), anyLong())).thenReturn(true);
     }
     @Test void catalogCoversEveryTaskTypeWithUniqueImmutableIds() {
-        assertThat(catalog.list()).hasSize(39).extracting(e -> e.id()).doesNotHaveDuplicates();
+        assertThat(catalog.list()).hasSize(47).extracting(e -> e.id()).doesNotHaveDuplicates();
         for (var skill : com.knowledgegym.english.domain.model.EnglishExercise.Skill.values())
             assertThat(catalog.list()).anyMatch(e -> e.skill() == skill);
         assertThat(catalog.get("writing-email-v1").minimumWords()).isEqualTo(120);

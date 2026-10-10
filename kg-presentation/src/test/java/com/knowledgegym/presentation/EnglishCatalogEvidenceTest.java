@@ -24,7 +24,7 @@ class EnglishCatalogEvidenceTest {
             row.put("referenceResponse", EnglishReferenceResponses.find(exercise.id()).orElse(null));
             return row;
         }).toList();
-        assertThat(rows).hasSize(39);
+        assertThat(rows).hasSize(47);
         var output = Path.of("build/reports/english/catalog-fixture.json");
         Files.createDirectories(output.getParent());
         Files.writeString(output, JsonMapper.builder().build().writerWithDefaultPrettyPrinter().writeValueAsString(rows));

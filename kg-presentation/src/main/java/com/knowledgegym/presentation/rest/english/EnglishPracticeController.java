@@ -39,6 +39,18 @@ public class EnglishPracticeController {
 
     @GetMapping("/exercises")
     public List<ExerciseView> exercises() { return catalog.list().stream().map(this::exerciseView).toList(); }
+    /** Explicit learner-requested listening aid; keys/models remain submitted-attempt-only. */
+    public record TranscriptView(String exerciseId, String partId, String text) {}
+    @GetMapping("/exercises/{id}/transcript")
+    public TranscriptView transcript(@PathVariable String id, @RequestParam(required=false) String partId) {
+        var exercise = catalog.get(id);
+        if (exercise.skill() != EnglishExercise.Skill.LISTENING)
+            throw new IllegalArgumentException("Transcripts are available only for listening practice");
+        if (partId == null || partId.equals(id)) return new TranscriptView(id, id, exercise.transcript());
+        if (catalog.parts(id).stream().noneMatch(part -> part.id().equals(partId)))
+            throw new IllegalArgumentException("Unknown listening section");
+        return new TranscriptView(id, partId, catalog.get(partId).transcript());
+    }
     @PostMapping("/attempts")
     public AttemptView start(@AuthenticationPrincipal UUID user, @RequestBody StartRequest request) {
         return attemptView(practice.start(user, request.exerciseId()));

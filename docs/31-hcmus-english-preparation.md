@@ -1,4 +1,6 @@
-# English Studio — HCMUS preparation and final local checkpoint
+# English Studio — HCMUS preparation: historical 39-entry checkpoint
+
+**Historical evidence:** this checkpoint preceded the committed/pushed 39-entry release (`4936085` backend / `6013889` frontend). Current 47-entry work, opt-in transcripts and recent UIT research are documented in [32-english-transcript-and-recent-sources.md](32-english-transcript-and-recent-sources.md). Counts and local-only statements below describe the earlier checkpoint, not the current release status.
 
 Date: 2026-10-10. User confirmed KHTN in Ho Chi Minh City. No commit/push/deployment requested or performed. Supersedes the blocked audio checkpoint in docs/30-vstep-content-review.md, not its historical research caveats.
 
