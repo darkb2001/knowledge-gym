@@ -23,7 +23,9 @@ Images: Collector 0.162.0, Loki 3.7.8, Tempo 2.9.0 and static BusyBox 1.37.0-mus
 health probe. App agent 2.32.0 is SHA-256-pinned. New images are version-pinned,
 not digest-locked; capture resolved immutable digests and scan them before rollout.
 Build ops wrapper images on CI/workstation, not the resource-limited LXC.
-Existing base image versions are not upgraded by this feature.
+Existing base image versions are not upgraded by this feature — the single
+exception is the reviewed Grafana 11.1.0 -> 12.4.12 upgrade in the "Upgrade
+record" at the end of this document.
 
 ## Local source gates
 
@@ -176,3 +178,61 @@ or off-LAN access, add a Cloudflare tunnel public hostname
 `grafana.darkb-tech.io.vn -> http://localhost:3001` and set `GF_SERVER_ROOT_URL`
 to the same URL; never bind the port to 0.0.0.0, the dashboards render full log
 bodies.
+
+## Upgrade record (2026-10-11, Grafana 12 and filterable route/actor)
+
+Shipped in `91fa847`; the push pipeline went green (`build-test`, `publish-image`,
+`image-security`, `deploy-prod`) and the app now runs `sha-91fa847`.
+
+Grafana moved from 11.1.0 to `grafana/grafana:12.4.12` in both Compose models,
+because Logs Drilldown needs 12. Grafana runs a schema migration against the
+existing `kg_grafanadata` volume, so `grafana.db` was copied to
+`/opt/kg/backups/grafana-pre12-*.db` before the recreate. After the restart
+`/api/health` answers 12.4.12 with `"database": "ok"`, the Loki, Tempo and
+Prometheus datasource health checks all return OK, all six provisioned dashboards
+are present, and `grafana-lokiexplore-app` 2.6.0 (Logs Drilldown; also
+`grafana-exploretraces-app` 2.2.1) is installed and enabled. Every panel in the six
+dashboards is a core `timeseries`/`logs`/`table`/`text` panel, so nothing depends
+on the Angular plugins Grafana 12 removed. The datasource port stays
+`127.0.0.1:3001`.
+
+`http_route` and `user_id` are now promoted at the Collector to log-record
+attributes, which Loki stores as structured metadata: they filter with
+`| http_route="..."` / `| user_id="..."`, with no `| json`, and the indexed label
+set is unchanged at `service_name` + `deployment_environment_name`. Promotion is
+shape-gated and fails closed — a value that is not a route template
+(`^(_unmatched|/[A-Za-z0-9_{}/.-]{0,159})$`) or an account UUID is deleted from
+the body, so the Collector never publishes or retains a raw URI/query, and only
+`service.name == "knowledge-gym"` may publish either field.
+
+Production evidence after the rollout:
+
+| Check | Result |
+| --- | --- |
+| `sum(count_over_time({service_name="knowledge-gym"} \| http_route=~".+" [30m]))` | 46 |
+| `sum(count_over_time({service_name="knowledge-gym"} \| trace_id=~".+" [24h]))` | 273 |
+| `sum(count_over_time({service_name="nginx"} \| user_id=~".+" [24h]))` | empty (deletion rule holds) |
+| real app line | metadata `http_route=/actuator/prometheus`, `trace_id`, `span_id`, `severity_text` |
+| native Collector canary (`scripts/test-observability-pipeline.py`) | PASS: route/actor published; raw URI and email fail closed |
+
+`user_id` can only appear once an authenticated request is logged, and the
+deployed app serves no user traffic by itself, so the code path was verified
+instead of waiting for a human click: the running `sha-91fa847` image contains
+`UserMdcFilter` (`unzip -l /app/app.jar | grep -ci usermdcfilter` = 1) and the
+encoder tests reject every non-UUID shape. Query the first real line with
+`{service_name="knowledge-gym"} | user_id=~".+"`.
+
+Rollback: set Grafana back to `grafana/grafana:11.1.0`, stop it, restore
+`/opt/kg/backups/grafana-pre12-*.db` into the `kg_grafanadata` volume and start it
+(a 12-upgraded DB is not readable by 11, which is why the copy exists). Revert the
+app with `APP_IMAGE=<previous sha>` plus `up -d app`; the Collector change reverts
+with the file (`git checkout <previous> -- ops/observability/collector.yml`
+followed by `--force-recreate otel-collector`, which is the only way to pick up a
+bind-mounted config change).
+
+Pre-upgrade leftover: the OTLP probe used to prove attributes -> structured
+metadata pushed one line straight to Loki with a synthetic `user_id`, bypassing the
+Collector, under `service_name="hermes-otlp-probe"`; it is the only such line that
+exists outside the application. Delete request `84b1b3bd` was accepted (delete
+store: filesystem), so the compactor removes it within the 2h delete delay instead
+of at the 72h retention boundary.

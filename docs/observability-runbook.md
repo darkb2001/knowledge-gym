@@ -38,7 +38,10 @@ never match and cannot be retrieved.
 Do not use IDs/emails/IPs as Loki stream labels.
 Grafana 12 Logs Drilldown on the Loki datasource is the fast path for browsing
 volume by service/pattern before writing LogQL; it is read-only and does not
-change what is stored.
+change what is stored. With the SSH tunnel up it lives at
+http://localhost:3001/a/grafana-lokiexplore-app/explore (Traces Drilldown:
+/a/grafana-exploretraces-app/explore), and it needs a logged-in session —
+anonymous access stays off.
 Explore Tempo searches by exact trace ID or the provisioned TraceQL view.
 Trace → Logs for this span searches ±2m; metrics links show the corresponding
 time window. Exemplar storage must be enabled in Prometheus and the span must
