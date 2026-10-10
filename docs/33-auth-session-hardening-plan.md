@@ -504,10 +504,8 @@ Bằng chứng test:
 
 ### 10.7 Còn lại / chưa kiểm chứng
 
-- **Docker không có trên máy này** → nhóm test `@Testcontainers` (gồm 4 case
-  `AuthIntegrationTest` mới ở 10.1/10.3/10.4) **chưa từng chạy thật**. Cần chạy
-  `bash scripts/test-admin-platform.sh --local-postgres` hoặc trên CI có Docker trước khi coi
-  là đã kiểm chứng. Đây là khoảng trống lớn nhất của đợt này.
-- `admin-platform-snapshot`/diagram asset trỏ `BACKEND_REVISION` cũ; theo convention repo, các
-  diagram Archify được regenerate theo commit riêng, không tự động — chưa regenerate.
+- **CI (có Docker) đã chạy nhóm `@Testcontainers`** và bắt được 1 lỗi trong helper của
+  `AuthIntegrationTest`: `readJson` chỉ thay dấu `.` đầu tiên nên `$.user.id` → pointer sai
+  (`Invalid UUID string:`). Đã sửa (đổi hết dấu chấm). Máy dev không có Docker nên lỗi này chỉ
+  lộ ra trên CI — đúng lý do phải chạy CI trước khi coi là kiểm chứng.
 - Multi-tab browser E2E (acceptance #2) mới có unit test, chưa chạy browser thật.
