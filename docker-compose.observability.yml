@@ -78,6 +78,13 @@ services:
       - --enable-feature=exemplar-storage
   grafana:
     networks: [kg-internal, kg-telemetry]
+    # Loopback-only listener: reach it with
+    #   ssh -N -L 3001:127.0.0.1:3001 deploy@192.168.1.15   ->  http://localhost:3001
+    # or front it with a Cloudflare tunnel public hostname (GF_SERVER_ROOT_URL is
+    # already http://localhost:3001). Never bind 0.0.0.0: panels render raw log
+    # bodies, which must not be reachable from the LAN or the Internet.
+    ports:
+      - "127.0.0.1:3001:3000"
     labels:
       telemetry.service: grafana
       telemetry.environment: "${TELEMETRY_ENVIRONMENT:-production}"

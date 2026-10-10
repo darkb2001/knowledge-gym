@@ -155,7 +155,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{service_name=~\"${service:regex}\", deployment_environment_name=~\"${environment:regex}\"} | json | level=~\"${level:regex}\" | request_id=~\"${request_id:regex}.*\" | trace_id=~\"${trace_id:regex}.*\"",
+          "expr": "{service_name=~\"${service:regex}\", deployment_environment_name=~\"${environment:regex}\"} | json | level=~\"$level\" | request_id=~\"${request_id:regex}.*\" | trace_id=~\"${trace_id:regex}.*\"",
           "queryType": "range",
           "maxLines": 500
         }

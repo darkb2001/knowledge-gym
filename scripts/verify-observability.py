@@ -42,6 +42,13 @@ def verify_config():
     # Volumes come from the loki/tempo images (uid 10001); without DAC_OVERRIDE
     # the init container cannot create the dirs and telemetry never starts.
     assert {"CHOWN", "DAC_OVERRIDE"} <= set(init["cap_add"])
+    dashboards = {p.name: p.read_text() for p in (ROOT / "infra/grafana/dashboards").glob("*.json")}
+    # `${var:regex}` escapes regex metacharacters in the value, so a custom
+    # variable whose "All" value is `.*` interpolates to `\.\*`, Loki answers
+    # 400 and the log panel shows "No data". Filter with plain interpolation.
+    for name, text in dashboards.items():
+        assert "${level:regex}" not in text, name
+    assert 'level=~\\"$level\\"' in dashboards["kg-application-logs.json"]
     assert total == 1024
     assert "docker.sock" not in json.dumps(ops["services"])
     assert "docker.sock" not in json.dumps(overlay["services"])
