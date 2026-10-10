@@ -18,6 +18,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -38,6 +40,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @org.springframework.context.annotation.Import(TestEmailServiceConfig.class)
 class AuthIntegrationTest {
+
+    /**
+     * Origin hợp lệ khớp {@code app.security.cors.allowed-origins} trong application-test.yml.
+     * Mọi request mang refresh cookie phải kèm header này, nếu không OriginGuardFilter trả 403
+     * (CSRF defense-in-depth).
+     */
+    private static final String ALLOWED_ORIGIN = "http://localhost:3000";
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES =
@@ -186,6 +195,7 @@ class AuthIntegrationTest {
         // 3. Refresh (use cookie)
         mockMvc.perform(post("/auth/refresh")
                         .header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
                         .cookie(new jakarta.servlet.http.Cookie("refreshToken", refreshCookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())
@@ -194,12 +204,14 @@ class AuthIntegrationTest {
         // 4. Logout
         mockMvc.perform(post("/auth/logout")
                         .header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
                         .cookie(new jakarta.servlet.http.Cookie("refreshToken", refreshCookie)))
                 .andExpect(status().isNoContent());
 
         // 5. Reuse refresh token after logout → 401 (reuse detection / family revoked)
         mockMvc.perform(post("/auth/refresh")
                         .header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
                         .cookie(new jakarta.servlet.http.Cookie("refreshToken", refreshCookie)))
                 .andExpect(status().isUnauthorized());
 
@@ -225,6 +237,7 @@ class AuthIntegrationTest {
                 .andExpect(status().isUnauthorized());
         // Cookie-less access tokens carry no family id: do not guess or revoke all devices.
         mockMvc.perform(post("/auth/refresh").header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
                         .cookie(new jakarta.servlet.http.Cookie("refreshToken", otherFamily)))
                 .andExpect(status().isOk());
     }
@@ -282,17 +295,37 @@ class AuthIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON).content(registerBody))
                 .andExpect(status().isCreated()).andReturn();
         String originalRefresh = reg.getResponse().getCookie("refreshToken").getValue();
+        UUID familyId = tokenService
+                .verifyRefreshToken(originalRefresh).familyId();
 
         // Lần 1: refresh thành công (rotation tạo token mới, old vào blacklist)
-        mockMvc.perform(post("/auth/refresh")
+        MvcResult rotated = mockMvc.perform(post("/auth/refresh")
                         .header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
                         .cookie(new jakarta.servlet.http.Cookie("refreshToken", originalRefresh)))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk()).andReturn();
+        String newestRefresh = rotated.getResponse().getCookie("refreshToken").getValue();
 
         // Lần 2: dùng lại token cũ → phải 401 (family revoke)
         mockMvc.perform(post("/auth/refresh")
                         .header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
                         .cookie(new jakarta.servlet.http.Cookie("refreshToken", originalRefresh)))
+                .andExpect(status().isUnauthorized());
+
+        // Containment THẬT: không chỉ 401 mà family phải bị cắt ở cả PG và Redis.
+        // Nếu revoke nằm chung @Transactional với exception thì UPDATE bị rollback → test này đỏ.
+        assertThat(jdbc.queryForObject(
+                "SELECT count(*) FROM refresh_tokens WHERE family_id=? AND revoked_at IS NULL",
+                Integer.class, familyId))
+                .as("mọi refresh token của family đã bị revoke trong PostgreSQL")
+                .isZero();
+
+        // Token MỚI NHẤT của family cũng phải chết — đây mới là thứ chặn kẻ giữ token.
+        mockMvc.perform(post("/auth/refresh")
+                        .header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
+                        .cookie(new jakarta.servlet.http.Cookie("refreshToken", newestRefresh)))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -423,6 +456,7 @@ class AuthIntegrationTest {
         // Refresh token cũ đã bị revoke family → 401
         mockMvc.perform(post("/auth/refresh")
                         .header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
                         .cookie(new jakarta.servlet.http.Cookie("refreshToken", oldRefresh)))
                 .andExpect(status().isUnauthorized());
     }
@@ -564,6 +598,7 @@ class AuthIntegrationTest {
         mockMvc.perform(post("/auth/change-password")
                         .header("Authorization", "Bearer " + token)
                         .header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
                         .cookie(new jakarta.servlet.http.Cookie("refreshToken", currentSessionRefresh))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"currentPassword\":\"oldPassword123\",\"newPassword\":\"brandNew123\",\"confirmPassword\":\"brandNew123\"}"))
@@ -573,11 +608,13 @@ class AuthIntegrationTest {
         // Phiên hiện tại vẫn dùng được
         mockMvc.perform(post("/auth/refresh")
                         .header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
                         .cookie(new jakarta.servlet.http.Cookie("refreshToken", currentSessionRefresh)))
                 .andExpect(status().isOk());
         // Thiết bị khác bị đăng xuất
         mockMvc.perform(post("/auth/refresh")
                         .header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
                         .cookie(new jakarta.servlet.http.Cookie("refreshToken", otherSessionRefresh)))
                 .andExpect(status().isUnauthorized());
         // Mật khẩu cũ hết hiệu lực, mật khẩu mới dùng được
@@ -661,6 +698,99 @@ class AuthIntegrationTest {
                 .andExpect(status().isConflict());
         assertThat(userRepository.findByEmail(com.knowledgegym.identity.domain.model.User.normalizeEmail(email))
                 .orElseThrow().getPasswordHash()).isNotBlank();
+    }
+
+    /**
+     * #1 Absolute family lifetime: rolling TTL 7 ngày không được phép gia hạn vô thời hạn.
+     * Giả lập family login đã 31 ngày bằng cách phát refresh token với mốc neo quá khứ —
+     * không cần chờ, cũng không cần sửa đồng hồ hệ thống.
+     */
+    @Test
+    void refreshAfterAbsoluteFamilyLifetime_isRejectedAndRevokesFamily() throws Exception {
+        String email = "absolutetest+" + UUID.randomUUID() + "@example.com";
+        String ip = nextIp();
+        MvcResult reg = mockMvc.perform(post("/auth/register")
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","password":"superSecret123","confirmPassword":"superSecret123","displayName":"Absolute","verificationCode":"%s"}
+                                """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
+                .andExpect(status().isCreated()).andReturn();
+        UUID userId = UUID.fromString(readJson(reg, "$.user.id"));
+        UUID familyId = UUID.randomUUID();
+        String stale = tokenService.generateRefreshToken(userId, familyId,
+                java.time.Instant.now().minus(java.time.Duration.ofDays(31)));
+        String hash = com.knowledgegym.identity.application.HashUtils.sha256Hex(stale);
+        jdbc.update("INSERT INTO refresh_tokens(user_id,token_hash,family_id,expires_at) "
+                        + "VALUES (?,?,?,now()+interval '7 days')",
+                userId, hash, familyId);
+
+        mockMvc.perform(post("/auth/refresh")
+                        .header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
+                        .cookie(new jakarta.servlet.http.Cookie("refreshToken", stale)))
+                .andExpect(status().isUnauthorized());
+
+        // Quá hạn cứng cũng phải là containment: family bị cắt, không chỉ trả 401.
+        assertThat(jdbc.queryForObject(
+                "SELECT count(*) FROM refresh_tokens WHERE family_id=? AND revoked_at IS NULL",
+                Integer.class, familyId)).isZero();
+    }
+
+    /** #1: token cũ không có claim mốc family phải tiếp tục dùng được (không đá oan phiên đang sống). */
+    @Test
+    void legacyRefreshTokenWithoutFamilyLifetimeClaim_stillRotates() throws Exception {
+        String email = "legacyfiat+" + UUID.randomUUID() + "@example.com";
+        String ip = nextIp();
+        MvcResult reg = mockMvc.perform(post("/auth/register")
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","password":"superSecret123","confirmPassword":"superSecret123","displayName":"LegacyFiat","verificationCode":"%s"}
+                                """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
+                .andExpect(status().isCreated()).andReturn();
+        String refresh = reg.getResponse().getCookie("refreshToken").getValue();
+
+        mockMvc.perform(post("/auth/refresh")
+                        .header("X-Forwarded-For", ip)
+                        .header("Origin", ALLOWED_ORIGIN)
+                        .cookie(new jakarta.servlet.http.Cookie("refreshToken", refresh)))
+                .andExpect(status().isOk())
+                .andExpect(cookie().exists("refreshToken"));
+    }
+
+    /** #4 OriginGuard: request mang refresh cookie từ origin lạ bị 403 trước khi tới handler. */
+    @Test
+    void refreshWithUntrustedOrigin_isRejectedBeforeReachingHandler() throws Exception {
+        String email = "origin+" + UUID.randomUUID() + "@example.com";
+        String ip = nextIp();
+        MvcResult reg = mockMvc.perform(post("/auth/register")
+                        .header("X-Forwarded-For", ip)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","password":"superSecret123","confirmPassword":"superSecret123","displayName":"Origin","verificationCode":"%s"}
+                                """.formatted(email, RegistrationTestSupport.code(mockMvc, email))))
+                .andExpect(status().isCreated()).andReturn();
+        String refresh = reg.getResponse().getCookie("refreshToken").getValue();
+
+        mockMvc.perform(post("/auth/refresh")
+                        .header("X-Forwarded-For", nextIp())
+                        .header("Origin", "https://evil.example")
+                        .cookie(new jakarta.servlet.http.Cookie("refreshToken", refresh)))
+                .andExpect(status().isForbidden());
+
+        // Thiếu cả Origin lẫn Referer cũng bị chặn (không thể chứng minh same-site).
+        mockMvc.perform(post("/auth/refresh")
+                        .header("X-Forwarded-For", nextIp())
+                        .cookie(new jakarta.servlet.http.Cookie("refreshToken", refresh)))
+                .andExpect(status().isForbidden());
+
+        // Referer hợp lệ được dùng khi browser không gửi Origin.
+        mockMvc.perform(post("/auth/refresh")
+                        .header("X-Forwarded-For", ip)
+                        .header("Referer", ALLOWED_ORIGIN + "/profile")
+                        .cookie(new jakarta.servlet.http.Cookie("refreshToken", refresh)))
+                .andExpect(status().isOk());
     }
 
     private String readJson(MvcResult result, String jsonPath) throws Exception {

@@ -27,6 +27,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final RateLimitFilter rateLimitFilter;
     private final TurnstileFilter turnstileFilter;
+    private final OriginGuardFilter originGuardFilter;
     private final OAuth2SuccessHandler oauth2SuccessHandler;
     private final OAuth2FailureHandler oauth2FailureHandler;
     private final HttpCookieOAuth2AuthorizationRequestRepository oauth2AuthorizationRequestRepository;
@@ -36,6 +37,7 @@ public class SecurityConfig {
     public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter,
                           RateLimitFilter rateLimitFilter,
                           TurnstileFilter turnstileFilter,
+                          OriginGuardFilter originGuardFilter,
                           OAuth2SuccessHandler oauth2SuccessHandler,
                           OAuth2FailureHandler oauth2FailureHandler,
                           HttpCookieOAuth2AuthorizationRequestRepository oauth2AuthorizationRequestRepository,
@@ -44,6 +46,7 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
         this.rateLimitFilter = rateLimitFilter;
         this.turnstileFilter = turnstileFilter;
+        this.originGuardFilter = originGuardFilter;
         this.oauth2SuccessHandler = oauth2SuccessHandler;
         this.oauth2FailureHandler = oauth2FailureHandler;
         this.oauth2AuthorizationRequestRepository = oauth2AuthorizationRequestRepository;
@@ -100,8 +103,10 @@ public class SecurityConfig {
                 res.getWriter().write("{\"error\":\"unauthorized\",\"message\":\"Authentication required\"}");
             }))
             // Rate limit trước (rẻ, chặn flood sớm), rồi mới tới Turnstile (gọi ra Cloudflare).
+            // OriginGuard ngay sau CORS: chặn cross-site cookie request trước khi tốn CPU auth.
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(turnstileFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(originGuardFilter, org.springframework.web.filter.CorsFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

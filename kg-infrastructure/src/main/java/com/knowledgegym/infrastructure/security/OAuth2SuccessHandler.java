@@ -125,6 +125,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         UUID familyId = UUID.randomUUID();
         String accessToken = tokenService.generateAccessToken(user.getId(), user.getRole().name());
+        // generateRefreshToken(userId, familyId) neo mốc family = now → đây là login đầu của family.
         String rawRefresh = tokenService.generateRefreshToken(user.getId(), familyId);
         String refreshHash = HashUtils.sha256Hex(rawRefresh);
 

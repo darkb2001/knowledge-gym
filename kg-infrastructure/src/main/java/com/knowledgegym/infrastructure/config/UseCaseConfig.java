@@ -60,8 +60,10 @@ public class UseCaseConfig {
     RefreshTokenUseCase refreshTokenUseCase(TokenService tokenService,
                                              RefreshTokenRepository refreshTokenRepository,
                                              RefreshTokenCachePort cache,
-                                             UserRepository userRepository) {
-        return new RefreshTokenUseCase(tokenService, refreshTokenRepository, cache, userRepository);
+                                             UserRepository userRepository,
+                                             RefreshFamilyRevoker refreshFamilyRevoker) {
+        return new RefreshTokenUseCase(tokenService, refreshTokenRepository, cache, userRepository,
+                refreshFamilyRevoker);
     }
 
     @Bean

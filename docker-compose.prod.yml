@@ -112,6 +112,9 @@ services:
         ${APP_BLOG_WRITER_DAILY_COST_LIMIT_USD:-10}
       APP_BLOG_WRITER_MONTHLY_COST_ALERT_USD: >-
         ${APP_BLOG_WRITER_MONTHLY_COST_ALERT_USD:-10}
+      # Hardening phiên (docs/33): hạn tuyệt đối 30 ngày + Origin guard cho cookie request.
+      REFRESH_ABSOLUTE_TTL: ${REFRESH_ABSOLUTE_TTL:-30d}
+      ORIGIN_GUARD_ENABLED: ${ORIGIN_GUARD_ENABLED:-true}
       # Bắt buộc: `application-prod.yml` không có default cho các biến này.
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET is required}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET is required}
