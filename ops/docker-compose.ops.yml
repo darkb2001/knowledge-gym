@@ -46,8 +46,12 @@ services:
     mem_limit: 32m
     memswap_limit: 32m
     cpus: 0.10
+    # Named volumes inherit /loki (uid 10001) and /var/tempo ownership from the
+    # upstream images, so bare root is NOT enough to create dirs inside them:
+    # without DAC_OVERRIDE the init container dies with "mkdir: Permission denied"
+    # and every telemetry service stays down (they depend on this completing).
     cap_drop: [ALL]
-    cap_add: [CHOWN]
+    cap_add: [CHOWN, DAC_OVERRIDE]
     security_opt: [no-new-privileges:true]
     volumes: [loki-data:/loki, tempo-data:/var/tempo]
     command:

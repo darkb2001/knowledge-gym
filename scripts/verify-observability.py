@@ -38,6 +38,10 @@ def verify_config():
         assert "latest" not in service["image"]
         assert service["mem_limit"] == service["memswap_limit"]
         total += int(service["mem_limit"].removesuffix("m"))
+    init = ops["services"]["telemetry-init"]
+    # Volumes come from the loki/tempo images (uid 10001); without DAC_OVERRIDE
+    # the init container cannot create the dirs and telemetry never starts.
+    assert {"CHOWN", "DAC_OVERRIDE"} <= set(init["cap_add"])
     assert total == 1024
     assert "docker.sock" not in json.dumps(ops["services"])
     assert "docker.sock" not in json.dumps(overlay["services"])
