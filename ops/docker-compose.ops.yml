@@ -21,6 +21,11 @@ services:
       - --log.format=json
     volumes:
       - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      # Secret đọc qua smtp_auth_password_file / bot_token_file — nằm trong file
+      # riêng (0640 root:nogroup để uid 65534 của container đọc được), không nằm
+      # trong alertmanager.yml nên không lộ khi xem/in config.
+      - ./alertmanager/smtp_password:/etc/alertmanager/smtp_password:ro
+      - ./alertmanager/telegram_bot_token:/etc/alertmanager/telegram_bot_token:ro
       - alertmanager-data:/alertmanager
     networks:
       kg-internal:

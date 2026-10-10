@@ -17,7 +17,9 @@ Kết quả: deploy app không đụng tới Alertmanager; Alertmanager restart 
 |---|---|
 | `ops/docker-compose.ops.yml` | ✅ commit — không chứa secret |
 | `ops/alertmanager/alertmanager.example.yml` | ✅ commit — bản mẫu, password để placeholder |
-| `ops/alertmanager/alertmanager.yml` | ❌ **gitignore** — bản thật, chứa SMTP app password |
+| `ops/alertmanager/alertmanager.yml` | ❌ **gitignore** — bản thật, **không chứa secret** (trỏ tới `*_file:`) |
+| `ops/alertmanager/smtp_password` | ❌ **gitignore** — Gmail App Password, `0640 root:nogroup`, mount `:ro` vào `/etc/alertmanager/smtp_password` |
+| `ops/alertmanager/telegram_bot_token` | ❌ **gitignore** — token bot Telegram, `0640 root:nogroup`, mount `:ro` vào `/etc/alertmanager/telegram_bot_token` |
 | `infra/prometheus.yml` (block `alerting`) | ✅ commit — trỏ tới `alertmanager:9093` |
 | `infra/prometheus/alerts.yml` | ✅ commit — 4 rule (API down, backup cũ, ES heap/lifecycle...) |
 
@@ -28,18 +30,40 @@ cd /opt/kg
 git rev-parse --short HEAD                    # phải khớp commit đang deploy
 cd ops/alertmanager
 cp alertmanager.example.yml alertmanager.yml
-sed -i 's/REPLACE_ME_SMTP_APP_PASSWORD/<gmail-app-password>/' alertmanager.yml
-chown root:nogroup alertmanager.yml && chmod 0640 alertmanager.yml   # container chạy uid nobody
+printf '%s' '<gmail-app-password>' > smtp_password
+printf '%s' '<telegram-bot-token>' > telegram_bot_token
+chown root:nogroup alertmanager.yml smtp_password telegram_bot_token
+chmod 0640 alertmanager.yml smtp_password telegram_bot_token   # container chạy uid nobody
 cd /opt/kg
 docker compose -f ops/docker-compose.ops.yml -p kgops up -d
 ```
 
+- Secret dùng `printf` (không `echo`) để **không có newline cuối file**; Alertmanager đọc
+  nguyên nội dung file qua `smtp_auth_password_file` / `bot_token_file`.
+- Quyền `0640 root:nogroup` là mức tối thiểu đủ dùng: container chạy `uid=65534(nobody)`
+  nên đọc được qua group, còn user thường trên host thì không.
+
 - Password SMTP: Gmail **App Password** của mailbox dùng để gửi cảnh báo. Cùng giá trị
   với `MAIL_PASSWORD` trong `/opt/kg/.env` (không copy file `.env` vào `ops/`).
-- Alertmanager đọc config **một lần lúc start** → sửa `alertmanager.yml` phải
-  `docker compose -p kgops restart alertmanager`, không tự nạp lại.
+- Alertmanager đọc config **một lần lúc start** → sửa `alertmanager.yml` **hoặc file secret**
+  phải `docker compose -p kgops restart alertmanager` (hoặc `POST /-/reload`), không tự nạp lại.
+  Đổi secret trong file rồi restart là đủ, không cần đụng compose.
 - **Đừng** thêm `--config.expand-env=true`: file mẫu này không cần expand, bật lên thì
   mọi `${...}` sẽ bị thay bằng biến môi trường (và muốn giữ literal phải viết `$${...}`).
+
+## 3b. Rotate secret (không cần sửa repo)
+
+```bash
+cd /opt/kg/ops/alertmanager
+printf '%s' '<new-secret>' > smtp_password        # hoặc telegram_bot_token
+chown root:nogroup smtp_password && chmod 0640 smtp_password
+cd /opt/kg && docker compose -f ops/docker-compose.ops.yml -p kgops restart alertmanager
+docker logs --tail 3 kgops-alertmanager-1          # phải có 'Completed loading of configuration file'
+```
+
+Gmail App Password mới: myaccount.google.com → Bảo mật → Mật khẩu ứng dụng. Sau khi rotate
+phải cập nhật luôn `MAIL_PASSWORD` trong `/opt/kg/.env` (app gửi mail dùng cùng App Password)
+rồi deploy lại app — nếu không, alert gửi được nhưng mail của app sẽ hỏng.
 
 ## 4. Nghiệm thu (đúng thứ tự)
 
@@ -48,6 +72,9 @@ docker compose -f ops/docker-compose.ops.yml -p kgops up -d
 curl -s localhost:9090/api/v1/alertmanagers    # cần auth/allowlist như dashboard
 # 2. Rule đã nạp
 docker exec kg-prometheus-1 promtool check rules /etc/prometheus/alerts.yml
+# 2b. Config Alertmanager hợp lệ + đọc được secret dạng file (không in giá trị)
+docker exec kgops-alertmanager-1 amtool check-config /etc/alertmanager/alertmanager.yml
+docker exec kgops-alertmanager-1 sh -c 'wc -c < /etc/alertmanager/smtp_password; wc -c < /etc/alertmanager/telegram_bot_token'
 # 3. Có cảnh báo thật thì thấy trạng thái + mail
 docker exec kgops-alertmanager-1 amtool alert query --alertmanager.url=http://localhost:9093
 docker logs kgops-alertmanager-1 2>&1 | grep -i 'Notify success'

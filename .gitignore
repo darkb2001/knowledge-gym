@@ -27,6 +27,12 @@ infra/prometheus/*.secrets.yml
 ops/alertmanager/alertmanager.yml
 ops/*.env
 
+# Secret tách riêng khỏi alertmanager.yml (đọc qua *_file: của Alertmanager),
+# mount read-only vào container, luôn 0600/0640 root:nogroup — không bao giờ commit.
+ops/alertmanager/smtp_password
+ops/alertmanager/telegram_bot_token
+ops/alertmanager/*.bak-*
+
 # Node
 node_modules/
 kg-frontend/.next/

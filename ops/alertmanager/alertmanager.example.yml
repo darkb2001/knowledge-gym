@@ -2,9 +2,13 @@
 # Cách dùng trên host (CT102):
 #   cd /opt/kg/ops/alertmanager
 #   cp alertmanager.example.yml alertmanager.yml
-#   sed -i 's/REPLACE_ME_SMTP_APP_PASSWORD/<gmail-app-password>/' alertmanager.yml
-#   chown root:nogroup alertmanager.yml && chmod 0640 alertmanager.yml   # container chay uid nobody (65534)
-# alertmanager.yml bi .gitignore nen secret khong bao gio vao git.
+#   printf '%s' '<gmail-app-password>' > smtp_password        # printf, KHÔNG echo (tránh newline)
+#   printf '%s' '<telegram-bot-token>' > telegram_bot_token
+#   chown root:nogroup alertmanager.yml smtp_password telegram_bot_token
+#   chmod 0640 alertmanager.yml smtp_password telegram_bot_token   # container chay uid nobody (65534)
+# Cả 3 file trên đều bị .gitignore → secret không bao giờ vào git.
+# Secret KHÔNG nằm trong file này: Alertmanager đọc qua smtp_auth_password_file /
+# bot_token_file, nhờ vậy `amtool check-config` và config dump không lộ giá trị.
 # Luu y: KHONG bat --config.expand-env cho file nay.
 
 # Alertmanager — project ops riêng (kgops), KHÔNG nằm trong docker-compose.prod.yml
@@ -14,7 +18,7 @@ global:
   smtp_smarthost: 'smtp.gmail.com:587'
   smtp_from: 'mtpquangbao@gmail.com'
   smtp_auth_username: 'mtpquangbao@gmail.com'
-  smtp_auth_password: REPLACE_ME_SMTP_APP_PASSWORD
+  smtp_auth_password_file: /etc/alertmanager/smtp_password
   smtp_require_tls: true
 
 route:
@@ -54,7 +58,7 @@ receivers:
         headers:
           Subject: '{{ if eq .Status "firing" }}[FIRING]{{ else }}[RESOLVED]{{ end }} Knowledge Gym - {{ .CommonLabels.alertname }}'
     telegram_configs:
-      - bot_token: REPLACE_ME_TELEGRAM_BOT_TOKEN
+      - bot_token_file: /etc/alertmanager/telegram_bot_token
         chat_id: REPLACE_ME_TELEGRAM_CHAT_ID
         parse_mode: HTML
         send_resolved: true
