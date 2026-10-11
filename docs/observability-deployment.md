@@ -314,6 +314,71 @@ queries with no extra configuration, but level detection is off by default, so
 unchanged. Without it, Drilldown shows every line as unlevelled and its level
 filter stays empty even though the dashboards' own `severity_text` filter works.
 
+## Decision record: trace volume, the Patterns tab, acceptance (2026-10-11)
+
+Three items were still open after activation; all three are now decided and
+measured on the running stack.
+
+**1. Sampling: keep every trace, drop the scrapes.** The old sampler dropped 95%
+of traces app-side, which also threw away the child-span chains the drill-downs
+need. The app now exports **everything** (`OTEL_TRACES_SAMPLER=parentbased_traceidratio` with `OTEL_TRACE_SAMPLE_RATIO=1.0`,
+the default, in `docker-compose.observability.yml`) and the Collector makes the only drop
+decision, per **whole trace**, in `tail_sampling`:
+
+- A span-level filter was tried first and was the wrong tool: dropping the root
+  span of a scrape leaves its children behind as orphans that still show up as
+  traces. A tail-sampling `drop` policy discards all spans of the trace together.
+- The route matcher must **not** be anchored. `http.route` carries the servlet
+  context path (`/api/v1/actuator/prometheus`), so an earlier `^/actuator/` never
+  matched; the policy now tests an unanchored `/actuator/` substring.
+- In Collector 0.162.0 the `drop` policy takes `drop_sub_policy:` — a list of
+  ANDed sub-policies. `OTTL.Condition` has no `decision` field at this version,
+  so `type: ottl_condition` cannot express a drop. The shape was validated with
+  the real binary (`otelcol-contrib validate --config`) before the rollout.
+
+Acceptance, since the Collector was recreated: `otelcol_processor_tail_sampling_
+count_traces_sampled` shows `dropped` on policy `drop-scrapes` for the scrape
+traces and `sampled` on `keep-everything-else` for the rest, and a Tempo search
+for `{resource.service.name="knowledge-gym" && name=~".*actuator.*"}` over the
+last 5 minutes returns **0** traces (before the change the same query returned
+39 over 20 minutes, the newest one 3 seconds before the recreate). Real requests
+are still kept in full: 50 traces in the same 5-minute window.
+
+**2. The Patterns tab stays off — measured, not assumed.** `pattern_ingester` was
+run for real on 2026-10-11: enabled in `loki.yml`, Loki recreated, and it accepted
+traffic with zero errors (122 batches pushed) — and still answered
+`/loki/api/v1/patterns` with `data: []`, even for a catch-all matcher. The reason is
+our log shape: the tokenizer reads the JSON body's `message` field, and in the app
+stream that field is the constant `http_request_completed`, so the drain classified
+302 lines as `too_few_tokens` and produced no pattern at all. Turning it on would
+cost disk and CPU for a permanently empty tab, so it is now commented out in
+`ops/observability/loki.yml` with that evidence in the comment. With it off Loki
+does not register the route at all (HTTP 404), which is the documented answer —
+`scripts/qa-dashboard-logs.py` asserts exactly that, so a future 500 or a silent
+behaviour change is caught. Re-enable only together with a richer `message` field,
+and then verify with `curl -G …/loki/api/v1/patterns`, not with the tee metrics
+(they look healthy even when nothing is queryable). Recipe in
+`docs/observability-runbook.md`.
+
+**3. Acceptance runs.** All three tests that were previously "NOT RUN" now have
+numbers from production traffic on CT102:
+
+| Test | Method | Result |
+| --- | --- | --- |
+| Soak (25 min, 11 snapshots) | `docker stats` + Loki/Tempo ingest counters + `du` on the ops volumes | Loki +227 kB / 646 lines over ~26 min (≈13 MB/day raw); ops volumes 2 MB (loki) and 7 MB (tempo) |
+| Disk headroom | `df` on the CT102 root disk | 11 G used / 64 G free (15%) — the ops stack is not a disk risk |
+| Memory headroom | `docker stats` peaks during the soak | loki 96 MiB/384, collector 79 MiB/256, tempo peak 283 MiB/384, grafana 129 MiB/512; CT at 3.3 GiB/8 GiB |
+| Rollback drill | stop the whole ops profile, keep serving, start it again | app answered continuously (401 from the auth layer, as expected), 0 restarts, no exporter errors; after restart new log lines and traces landed again |
+
+The only watch item is Tempo's peak (283 MiB of its 384 MiB limit under load); if
+it ever approaches the limit, raise `mem_limit` for `tempo` in
+`ops/docker-compose.ops.yml` — the container is not swapped, so OOM would restart
+it, not the app.
+
+The post-deploy QA was extended to 22 checks with the same run; the two new ones
+assert the scrape-drop above and that the Patterns endpoint answers (or is absent)
+exactly as documented.
+
 Three Loki/Grafana facts this surfaced, worth knowing before editing a panel:
 
 - Loki rejects a selector whose matchers are **all** empty-compatible

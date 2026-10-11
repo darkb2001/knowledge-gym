@@ -87,6 +87,21 @@ def verify_config():
     assert app["logging"]["options"]["labels"] == "telemetry.service,telemetry.environment"
     for pipeline in collector["service"]["pipelines"].values():
         assert pipeline["processors"][0] == "memory_limiter"
+    # Tracing is sampled exactly once, at the Collector, and per whole trace: the
+    # app keeps everything (ratio 1.0) and tail_sampling drops scrape traces as a
+    # unit, because a span-level filter leaves their children as orphan traces.
+    assert env["OTEL_TRACES_SAMPLER"] == "parentbased_traceidratio"
+    assert env["OTEL_TRACES_SAMPLER_ARG"] == "${OTEL_TRACE_SAMPLE_RATIO:-1.0}"
+    trace_processors = collector["service"]["pipelines"]["traces"]["processors"]
+    assert "tail_sampling" in trace_processors and "filter/span-safety" in trace_processors
+    drops = [p for p in collector["processors"]["tail_sampling"]["policies"] if p["type"] == "drop"]
+    assert len(drops) == 1, drops
+    assert drops[0]["name"] == "drop-scrapes"
+    condition = drops[0]["drop"]["drop_sub_policy"][0]["ottl_condition"]["span"][0]
+    # Unanchored: http.route carries the servlet context path, so `^/actuator/`
+    # silently matched nothing and the scrapes kept filling Tempo.
+    assert "IsMatch" in condition and "/actuator/" in condition
+    assert not condition.lstrip().startswith('IsMatch(attributes["http.route"], "^')
     assert collector["processors"]["filter/span-safety"]["error_mode"] == "propagate"
     for exporter in collector["exporters"].values():
         assert exporter["timeout"] == "3s"

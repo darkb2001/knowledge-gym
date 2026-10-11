@@ -35,8 +35,8 @@ services:
       # Probabilistic, NOT a rate cap; sampled parents are honoured.
       # 1.0 keeps every trace: with 0.05 a low-traffic service lost ~95% of
       # real requests, error traces included. Scrape noise is dropped
-      # downstream (otel-collector filter/span-noise); OTEL_TRACE_SAMPLE_RATIO
-      # is the cost knob if span volume ever grows.
+      # downstream, per whole trace, by otel-collector `tail_sampling`;
+      # OTEL_TRACE_SAMPLE_RATIO is the cost knob if span volume ever grows.
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: ${OTEL_TRACE_SAMPLE_RATIO:-1.0}
       OTEL_BSP_MAX_QUEUE_SIZE: "1024"

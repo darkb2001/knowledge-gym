@@ -121,6 +121,36 @@ There is no node-exporter filesystem gauge added in this change; early host
 capacity monitoring remains an explicit operator responsibility. Export-failure
 alerts catch backend write failures, not advance disk exhaustion.
 
+## Trace volume, and the Patterns tab
+
+The app exports **every** trace (`OTEL_TRACES_SAMPLER=parentbased_traceidratio`,
+`OTEL_TRACE_SAMPLE_RATIO=1.0` in `docker-compose.observability.yml`); the only
+traffic dropped is scrape traffic, and it is dropped per **whole trace** by the
+`tail_sampling` processor in `ops/observability/collector.yml`. Do not replace it
+with a span-level filter: removing a trace's root span leaves its children behind
+as orphans that still show up as traces in Tempo.
+
+```bash
+# is the drop policy still firing?
+IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' kgops-otel-collector-1 | awk '{print $1}')
+curl -s "http://$IP:8888/metrics" | grep 'tail_sampling_count_traces_sampled'
+# and end to end, on the live stack:
+python3 scripts/qa-dashboard-logs.py   # asserts 0 actuator traces in the last 5m
+```
+To change what is dropped, edit the `IsMatch(...)` condition in the `drop-scrapes`
+policy and keep it **unanchored**: `http.route` carries the servlet context path
+(`/api/v1/actuator/prometheus`, not `/actuator/prometheus`). Validate the file with
+the Collector image before recreating it (`otelcol-contrib validate --config`).
+
+Turning the Patterns tab into a working tab (do not expect content today):
+uncomment the `pattern_ingester:` block in `ops/observability/loki.yml` and recreate
+Loki. For the app stream it stays empty until the JSON `message` field carries
+variable text — the tokenizer rejected our lines as `too_few_tokens` (302 of them in
+the 2026-10-11 trial) because `message` is the constant `http_request_completed`, and
+`/loki/api/v1/patterns` answered `data: []` even for a catch-all matcher. Judge the
+result with that endpoint, not with the `loki_pattern_*` tee metrics, which look
+healthy even when nothing is queryable.
+
 ## Alerts
 
 Six rules: backend down (3m), log/trace export failures (5m),
