@@ -15,6 +15,7 @@ import os
 import re
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -121,10 +122,16 @@ check("level detection on (Drilldown level filter)", bool(levels),
 volume = api(f"{proxy}/index/volume?{window}")["data"]["result"]
 check("byte volume endpoint answers (Drilldown service volumes)", bool(volume),
       f"{volume[0]['value'][1]} bytes/30m" if volume else "empty")
-patterns = api(f"{proxy}/patterns?{window}").get("data") or []
-check("Loki pattern detector answers (Drilldown Patterns tab)", bool(patterns),
-      f"{len(patterns)} patterns" if patterns
-      else "empty: set pattern_ingester.enabled in loki.yml")
+# pattern_ingester is disabled on purpose (see loki.yml): with it off Loki does
+# not even register the route, so the tab is unavailable rather than empty. Both
+# answers are fine; a 500 or a malformed body is not.
+try:
+    patterns = api(f"{proxy}/patterns?{window}").get("data")
+    ok, detail = isinstance(patterns, list), f"{len(patterns)} patterns"
+except urllib.error.HTTPError as exc:
+    ok = exc.code in (404, 501)
+    detail = f"HTTP {exc.code}: pattern_ingester off in loki.yml (documented)"
+check("Patterns endpoint answers, or is absent exactly as documented", ok, detail)
 
 print("=== trace store hygiene (sampling and scrapes) ===")
 # Scrape spans were ~95% of Tempo. They must stop the moment the collector is
