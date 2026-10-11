@@ -42,6 +42,10 @@ kg-frontend/out/
 .DS_Store
 Thumbs.db
 
+# Python bytecode (scripts/ helpers are run, not packaged)
+__pycache__/
+*.pyc
+
 # Logs
 *.log
 # File runtime (marker ES stopped, danh sách IP chặn của nginx)
