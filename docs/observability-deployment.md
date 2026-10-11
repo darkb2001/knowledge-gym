@@ -283,3 +283,37 @@ line publishes nothing and loses all three keys from the body; `scripts/
 verify-observability.py` asserts the three-field allowlist, the promotion and
 fail-closed delete statements per field, and that no log panel parses with
 `| json`.
+
+## Post-deploy QA (2026-10-11, `scripts/qa-dashboard-logs.py`)
+
+`python3 scripts/qa-dashboard-logs.py` on CT102 (it reads
+`GF_SECURITY_ADMIN_PASSWORD` from the environment; run it as `cd /opt/kg && set -a
+&& . <(grep -E "^GF_SECURITY_ADMIN_PASSWORD=" .env) && set +a && python3
+scripts/qa-dashboard-logs.py`). It reprovisions, then replays through
+`/api/ds/query` what the browser would send — template variables and the
+`$__range`/`$__auto` macros interpolated the way the frontend does — so the check
+does not depend on someone opening a browser. Result on the live stack: **17/17**.
+
+| Check | Observed |
+| --- | --- |
+| Application log panel, every box empty | 100 lines returned, no `\| json` in the query |
+| Nginx log panel, every box empty | 100 lines returned, no `\| json` in the query |
+| Empty filters vs no filters | 245 = 245 lines / 30m (the empty box really is a no-op) |
+| `severity_text` / `trace_id` / `http_route` as metadata | 245 / 174 / 173 lines / 30m |
+| `request_id` as metadata | 31 lines / 30m (only since the Collector was recreated) |
+| `user_id` as metadata + top-actors table | 37 lines / 30m, one 36-char UUID actor |
+| Top-routes table, and a route value filtering | 14 routes; `/actuator/prometheus*` → 119 lines |
+| Filtered dashboard URL (`?var-route=…`) | HTTP 200 |
+
+Three Loki/Grafana facts this surfaced, worth knowing before editing a panel:
+
+- Loki rejects a selector whose matchers are **all** empty-compatible
+  (`{a=~".*", b=~".*"}` → HTTP 400). The `service`/`environment` variables
+  therefore keep `includeAll: false`, and an "all values" default has to be `.+`
+  rather than `.*`. Filtering a stream selector down to nothing by picking
+  "*All*" would look like a broken panel, not an empty one.
+- A log panel must be sent as a **range** query; the same query as `instant`
+  returns `log queries are not supported as an instant query type`.
+- The Loki backend itself expands `$__range`, `$__auto` and `$__interval`, but
+  **not** `$__rate_interval` (HTTP 400) — use `$__range` for "over the selected
+  range" aggregations such as the two `topk(15)` tables.

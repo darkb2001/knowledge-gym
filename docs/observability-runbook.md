@@ -58,6 +58,20 @@ Trace → Logs for this span searches ±2m; metrics links show the corresponding
 time window. Exemplar storage must be enabled in Prometheus and the span must
 have been sampled. Histogram p95 is approximate with finite SLO buckets.
 
+## Log dashboards: editing and trusting a panel
+
+The log panels filter on structured metadata (`| severity_text=… | http_route=…`),
+so no predicate should need `| json`; a body parse means a field is missing from
+the promotion allowlist in `ops/observability/collector.yml` rather than a reason
+to add one back. After any panel or provisioning change, run
+`scripts/qa-dashboard-logs.py` on CT102: it reprovisions and then replays every
+panel query through Grafana exactly as the browser would, so "it renders for me"
+is not the only evidence. Loki rejects a stream selector whose matchers are *all*
+empty-compatible (`{a=~".*", b=~".*"}` → 400), log panels must be queried as
+range queries, and `$__rate_interval` is not expanded for Loki (use `$__range`).
+Details and the recorded post-deploy numbers are in
+`docs/observability-deployment.md`.
+
 ## Missing logs / parsing errors
 
 Check Docker log driver, logging labels, configured DockerRootDir/containers
