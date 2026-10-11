@@ -128,9 +128,10 @@ check("Loki pattern detector answers (Drilldown Patterns tab)", bool(patterns),
 
 print("=== trace store hygiene (sampling and scrapes) ===")
 # Scrape spans were ~95% of Tempo. They must stop the moment the collector is
-# recreated, so look at the last 20 minutes -- older spans are pre-deploy data.
+# recreated, so look at a short window: spans older than the deploy are still
+# there and Tempo keeps them for 24h+.
 now = int(time.time())
-recent = "&start=%d&end=%d" % (now - 1200, now)
+recent = "&start=%d&end=%d" % (now - 300, now)
 
 
 def traceql(query):

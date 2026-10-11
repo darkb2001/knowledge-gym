@@ -56,17 +56,28 @@ processors:
     check_interval: 1s
     limit_mib: 192
     spike_limit_mib: 32
-  # Metrics/health scrapes were ~95% of every span in Tempo and no one reads
-  # them: drop them here instead of paying for them in the trace store.
-  # Runs after transform/traces, which is where http.route survives the
-  # span-attribute allowlist.
-  filter/span-noise:
-    error_mode: propagate
-    traces:
-      span:
-        - >-
-            attributes["http.route"] != nil and
-            IsMatch(attributes["http.route"], "^/actuator/")
+  # Scrape/health traffic is ~95% of all spans in Tempo and nobody reads it,
+  # but the unit of work being dropped is a TRACE, not a span: a span-level
+  # filter leaves the children behind as orphan traces. Policies evaluate in
+  # order, so scrapes are dropped whole and everything else is kept at 100%.
+  tail_sampling:
+    decision_wait: 15s
+    num_traces: 50000
+    expected_new_traces_per_sec: 20
+    policies:
+      - name: drop-scrapes
+        type: drop
+        drop:
+          # Deliberately unanchored: http.route carries the servlet context
+          # path (`/api/v1/actuator/prometheus`), so `^/actuator/` never
+          # matched and the scrapes kept flowing -- verify with a Tempo search
+          # for `name=~".*actuator.*"` after deploying, not just by eyeballing
+          # the config.
+          - >-
+              attributes["http.route"] != nil and
+              IsMatch(attributes["http.route"], "/actuator/")
+      - name: keep-everything-else
+        type: always_sample
   # Fail closed: never forward an unstructured record or an arbitrary
   # library map.
   filter/log-schema:
@@ -253,6 +264,6 @@ service:
     traces:
       receivers: [otlp]
       processors:
-        [memory_limiter, filter/span-safety, transform/traces, filter/span-noise,
-         batch/traces]
+        [memory_limiter, filter/span-safety, transform/traces, tail_sampling,
+        batch/traces]
       exporters: [otlp/tempo]
