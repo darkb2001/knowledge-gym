@@ -236,3 +236,50 @@ Collector, under `service_name="hermes-otlp-probe"`; it is the only such line th
 exists outside the application. Delete request `84b1b3bd` was accepted (delete
 store: filesystem), so the compactor removes it within the 2h delete delay instead
 of at the 72h retention boundary.
+
+## Upgrade record (2026-10-11, log dashboards filter on metadata, no `| json`)
+
+The application log panel no longer parses bodies. Its query is now
+
+```logql
+{service_name=~"${service:regex}", deployment_environment_name=~"${environment:regex}"}
+  | severity_text=~"$level"
+  | request_id=~"${request_id:regex}.*" | trace_id=~"${trace_id:regex}.*"
+  | http_route=~"${route:regex}.*"  | user_id=~"${user:regex}.*"
+```
+
+Every predicate reads a field the Collector already promoted, so a query scans the
+line once instead of running a JSON parser over each body. `request_id` joined the
+promotion allowlist (`keep_keys(attributes, ["http_route", "user_id",
+"request_id"])`) with the same shape gate as the other two — `^[0-9a-f]{32}$`,
+deleted from the body when it does not match, and promoted for nginx as well as the
+application so one 32-hex ID joins an edge rejection to the app line it produced.
+
+An empty textbox is a no-op rather than a filter that hides everything: Loki
+matches an *absent* field against `.*`, so `| user_id=~".*"` keeps lines with no
+`user_id` at all. That was measured before the design was chosen, on both streams
+(filtered vs unfiltered `count_over_time` over 3h):
+
+| Query | Lines |
+| --- | --- |
+| `{service_name="knowledge-gym"}` | 829 |
+| `{service_name="knowledge-gym"} \| user_id=~".*"` (also `http_route`, `request_id`, `severity_text`) | 829 |
+| `{service_name="nginx"}` | 1483 |
+| `{service_name="nginx"} \| severity_text=~".*"` (nginx publishes no such field) | 1483 |
+
+`Route` and `User ID` are therefore plain textboxes, not dropdowns: a textbox holds
+literal input, so `${route:regex}`/`${user:regex}` escaping is what we want (unlike
+the earlier `$level` custom-variable bug, where `:regex` broke the `.*` default).
+Two tables below the log panel (top routes, top actors by request volume, `topk(15)`
+over `$__range` with `| field=~".+"` so only lines that actually carry the field
+appear) carry data links back to the same dashboard, so a click fills the box and
+re-renders the log panel. The route filter is a prefix match by design.
+
+Verification before the rollout: the native Collector canary
+(`scripts/test-observability-pipeline.py`, real 0.162.0 binary) passes with
+"route/actor/request ID published as structured metadata, unsafe shapes fail
+closed" — the safe line publishes `{http_route, user_id, request_id}`, the unsafe
+line publishes nothing and loses all three keys from the body; `scripts/
+verify-observability.py` asserts the three-field allowlist, the promotion and
+fail-closed delete statements per field, and that no log panel parses with
+`| json`.

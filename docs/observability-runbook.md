@@ -17,25 +17,36 @@ filters are optional ID prefixes. Paste a full ID for effective exact matching.
 Expand a line and select Open trace. Missing traces can be normal at 5% root
 sampling, during retention mismatch, or after telemetry drops.
 Nginx generates an ID even for edge 429/404; a request rejected before reaching
-Spring has no upstream trace ID.
+Spring has no upstream trace ID. `request_id` is promoted for nginx too, so the
+same 32-hex ID joins an edge rejection to the application line it produced (the
+app logs the incoming ID from `RequestTelemetryFilter`). Only a value matching
+`^[0-9a-f]{32}$` is promoted; anything else is deleted from the body.
 
-Explore Loki:
+Explore Loki (no `| json`: every filter below reads structured metadata that the
+Collector promoted, so a query never re-parses the log body):
 ```logql
 {service_name="knowledge-gym", deployment_environment_name="production"}
-  | json | level="ERROR"
-```
-
-For a known ID, add | request_id="..." or | trace_id="..." — no `| json` needed.
-Route and actor are structured metadata, so they filter the same way:
-```logql
+  | severity_text="ERROR"
+{service_name="knowledge-gym"} | request_id="..." | trace_id="..."
 {service_name="knowledge-gym"} | http_route="/notes/{id}" | user_id="<account-uuid>"
 ```
+Promoted fields: `severity_text`, `trace_id`, `span_id`, `request_id`,
+`http_route`, `user_id`. Any other body key must still be reached with `| json`.
 `user_id` is the account UUID bound by `UserMdcFilter`; anonymous, actuator and
 pre-authentication lines have no `user_id` at all, so a non-empty filter also
 answers "which accounts hit this route". Only the reviewed shapes are promoted:
 a raw path/query or a non-UUID actor is deleted at the Collector, so those lines
-never match and cannot be retrieved.
-Do not use IDs/emails/IPs as Loki stream labels.
+never match and cannot be retrieved. Stream labels stay at two (`service_name`,
+`deployment_environment_name`) — do not use IDs/emails/IPs as Loki labels.
+
+Application Overview & Logs carries the same filters: `Route` and `User ID` are
+paste/clear textboxes and the two tables below the log panel (top routes, top
+actors) are clickable — a click re-opens the dashboard with that route or actor
+in the box. A box left empty is a no-op, not a filter: Loki matches an absent
+field against `.*`, so the default view still shows lines that carry no route or
+no actor at all (verified: filtered and unfiltered counts are identical). The
+route filter is a prefix match, so selecting `/blog/posts/{slug}` also shows
+nested paths under it.
 Grafana 12 Logs Drilldown on the Loki datasource is the fast path for browsing
 volume by service/pattern before writing LogQL; it is read-only and does not
 change what is stored. With the SSH tunnel up it lives at

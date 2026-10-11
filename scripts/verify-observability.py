@@ -46,9 +46,34 @@ def verify_config():
     # `${var:regex}` escapes regex metacharacters in the value, so a custom
     # variable whose "All" value is `.*` interpolates to `\.\*`, Loki answers
     # 400 and the log panel shows "No data". Filter with plain interpolation.
+    # (Textbox/label-value variables hold literal input, so escaping is correct
+    # there -- the rule is about values that are already regexes.)
     for name, text in dashboards.items():
         assert "${level:regex}" not in text, name
-    assert 'level=~\\"$level\\"' in dashboards["kg-application-logs.json"]
+    # Log panels filter on what the collector promoted (severity, trace/span,
+    # route, actor) instead of re-parsing every body with `| json` per query.
+    dashboard = json.loads(dashboards["kg-application-logs.json"])
+    logs_expr = next(target["expr"] for panel in dashboard["panels"]
+                     if panel["type"] == "logs" for target in panel["targets"])
+    assert 'severity_text=~"$level"' in logs_expr
+    assert "| json" not in logs_expr
+    for field, var in [("http_route", "route"), ("user_id", "user"),
+                       ("request_id", "request_id"), ("trace_id", "trace_id")]:
+        assert f'{field}=~"${{{var}' in logs_expr, field
+    variables = {variable["name"]: variable for variable in dashboard["templating"]["list"]}
+    # A missing field matches `=~".*"` in Loki, so an empty textbox is a no-op:
+    # the default view keeps lines that carry no route/actor at all.
+    assert variables["route"]["type"] == variables["user"]["type"] == "textbox"
+    tables = {panel["title"]: panel for panel in dashboard["panels"] if panel["type"] == "table"}
+    assert len(tables) == 2
+    for title, panel in tables.items():
+        assert '=~".+"' in panel["targets"][0]["expr"], title
+        url = panel["fieldConfig"]["overrides"][0]["properties"][0]["value"][0]["url"]
+        assert "/d/kg-application-logs/" in url and "var-" in url, title
+    nginx_expr = next(target["expr"] for panel
+                      in json.loads(dashboards["kg-nginx-logs.json"])["panels"]
+                      if panel["type"] == "logs" for target in panel["targets"])
+    assert "| json" not in nginx_expr and "trace_id=~" in nginx_expr
     assert total == 1024
     assert "docker.sock" not in json.dumps(ops["services"])
     assert "docker.sock" not in json.dumps(overlay["services"])
@@ -72,15 +97,16 @@ def verify_config():
     indexed = loki["limits_config"]["otlp_config"]["resource_attributes"]
     assert indexed["ignore_defaults"]
     assert indexed["attributes_config"][0]["attributes"] == ["service.name", "deployment.environment.name"]
-    # Route and actor are promoted to log-record attributes: Loki stores those as
-    # structured metadata, so `| http_route="..."` / `| user_id="..."` filter with
-    # no `| json` and without adding a third indexed label. Values that could carry
-    # a raw URI/query or a person are deleted, not merely left unpublished.
+    # Route, actor and request ID are promoted to log-record attributes: Loki
+    # stores those as structured metadata, so `| http_route="..."`,
+    # `| user_id="..."` and `| request_id="..."` filter with no `| json` and
+    # without adding a third indexed label. Values that could carry a raw
+    # URI/query or a person are deleted, not merely left unpublished.
     statements = " ".join(statement
                           for group in collector["processors"]["transform/logs"]["log_statements"]
                           for statement in group["statements"])
-    assert 'keep_keys(attributes, ["http_route", "user_id"])' in statements
-    for field in ["http_route", "user_id"]:
+    assert 'keep_keys(attributes, ["http_route", "user_id", "request_id"])' in statements
+    for field in ["http_route", "user_id", "request_id"]:
         assert f'set(attributes["{field}"], body["{field}"])' in statements, field
         assert f'delete_key(body, "{field}") where' in statements, field
         assert f'IsMatch(body["{field}"]' in statements, field
@@ -121,7 +147,9 @@ def verify_config():
             for target in panel.get("targets", []):
                 expression = target.get("expr", target.get("query", ""))
                 used = re.findall(r"\$\{(\w+)(?::\w+)?\}|\$(\w+)", expression)
-                assert {a or b for a, b in used} <= variables
+                # `$__range` & co. are Grafana built-ins, not dashboard variables.
+                assert {name for name in (a or b for a, b in used)
+                        if not name.startswith("__")} <= variables
     print("PASS: resource/security/retention/label/sampling/datasource/dashboard contracts")
 
 

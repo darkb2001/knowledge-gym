@@ -136,7 +136,7 @@ def main():
                 # merely unpublished: enforcement cannot depend on the app alone.
                 append({"level": "INFO", "message": "canary_unsafe_shapes",
                         "http_route": "/notes/private-id?token=" + sentinel,
-                        "user_id": "alice@example.test"})
+                        "user_id": "alice@example.test", "request_id": sentinel})
                 append({"level": "warn", "message": sentinel, "stack_trace": sentinel,
                         "logger": sentinel, "http_route": sentinel, "user_id": actor}, "grafana")
                 # Unlabelled/non-JSON input must not be sent or echoed by parser diagnostics.
@@ -208,15 +208,18 @@ def main():
                 assert any(r.get("traceId") == trace_id for r in records), "trace ID conversion failed"
                 lines = {body_fields(r).get("message"): r for r in records}
                 safe = lines["canary_safe"]
-                assert published(safe) == {"http_route": "/notes/{id}", "user_id": actor}, \
-                    "route/actor must be published as log-record attributes (structured metadata)"
+                assert published(safe) == {"http_route": "/notes/{id}", "user_id": actor,
+                                           "request_id": "3" * 32}, \
+                    "route/actor/request ID must be published as log-record attributes " \
+                    "(structured metadata, filterable without | json)"
                 assert body_fields(safe)["http_route"] == "/notes/{id}"
                 # Fail closed at the collector: a raw URI and an email are deleted from
                 # the body and never promoted, so no query can surface them either way.
                 unsafe = lines["canary_unsafe_shapes"]
                 assert published(unsafe) == {}, "unsafe shapes must not be published"
-                assert "http_route" not in body_fields(unsafe) and "user_id" not in body_fields(unsafe), \
-                    "unsafe shapes must be deleted, not stored unpublished"
+                for field in ("http_route", "user_id", "request_id"):
+                    assert field not in body_fields(unsafe), \
+                        f"unsafe {field} must be deleted, not stored unpublished"
                 # Non-application services publish no actor and no route at all.
                 infrastructure = lines["infrastructure_event"]
                 assert published(infrastructure) == {}, "infrastructure logs must carry no attributes"
@@ -230,7 +233,8 @@ def main():
                 assert not spans[0].get("events"), "span events must be removed"
                 print("PASS: Docker JSON selection, schema allowlist, IDs, logs and OTLP traces")
                 print("PASS: SQL/URL/body/header/user/event/link redaction; no raw diagnostic echo")
-                print("PASS: route/actor published as structured metadata, unsafe shapes fail closed")
+                print("PASS: route/actor/request ID published as structured metadata, "
+                      "unsafe shapes fail closed")
 
                 # Backend 503: ingress stays healthy; bounded queues + retries are observable.
                 outage.set()

@@ -105,6 +105,13 @@ processors:
               set(span_id.string, body["span_id"]) where
               IsString(body["span_id"]) and IsMatch(body["span_id"],
               "^[0-9a-f]{16}$")
+          # request_id is a 32-hex correlation id (app or nginx), never a URI,
+          # name or token: publishing it as metadata lets the log dashboards
+          # filter a single request without `| json`.
+          - >-
+              set(attributes["request_id"], body["request_id"]) where
+              IsString(body["request_id"]) and IsMatch(body["request_id"],
+              "^[0-9a-f]{32}$")
           # Fail closed on shapes that could carry a raw URI/query or a person:
           # a value that does not match is deleted, not merely left unpublished.
           # The app validates first (SafeJsonEncoder); this is the last gate
@@ -117,6 +124,10 @@ processors:
               delete_key(body, "user_id") where IsString(body["user_id"]) and
               not IsMatch(body["user_id"],
               "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+          - >-
+              delete_key(body, "request_id") where
+              IsString(body["request_id"]) and not IsMatch(body["request_id"],
+              "^[0-9a-f]{32}$")
           # Publish them as log-record attributes: Loki stores OTLP log
           # attributes as structured metadata, so `| user_id="..."` and
           # `| http_route="..."` filter without `| json` and without touching
@@ -131,7 +142,7 @@ processors:
               resource.attributes["service.name"] == "knowledge-gym" and
               IsString(body["user_id"])
           # Attribute allowlist: nothing else may survive to the exporter.
-          - 'keep_keys(attributes, ["http_route", "user_id"])'
+          - 'keep_keys(attributes, ["http_route", "user_id", "request_id"])'
   # Typed event/link slices cannot be replaced by an OTTL [] literal.
   # Remove events with filterprocessor. Reject linked spans fail-closed;
   # the agent is configured not to create links (see deployment trade-off).

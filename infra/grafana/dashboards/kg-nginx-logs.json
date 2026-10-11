@@ -1,7 +1,7 @@
 {
   "id": null,
   "uid": "kg-nginx-logs",
-  "title": "Knowledge Gym — Nginx Logs",
+  "title": "Knowledge Gym \u2014 Nginx Logs",
   "tags": [
     "knowledge-gym",
     "observability"
@@ -90,7 +90,7 @@
     },
     {
       "id": 2,
-      "title": "Edge access logs — request ID and upstream trace",
+      "title": "Edge access logs \u2014 request ID and upstream trace",
       "type": "logs",
       "datasource": {
         "type": "loki",
@@ -105,7 +105,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{service_name=\"nginx\", deployment_environment_name=~\"${environment:regex}\"} | json | request_id=~\"${request_id:regex}.*\" | trace_id=~\"${trace_id:regex}.*\"",
+          "expr": "{service_name=\"nginx\", deployment_environment_name=~\"${environment:regex}\"} | request_id=~\"${request_id:regex}.*\" | trace_id=~\"${trace_id:regex}.*\"",
           "queryType": "range",
           "maxLines": 500
         }

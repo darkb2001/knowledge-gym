@@ -1,7 +1,7 @@
 {
   "id": null,
   "uid": "kg-application-logs",
-  "title": "Knowledge Gym — Application Overview & Logs",
+  "title": "Knowledge Gym \u2014 Application Overview & Logs",
   "tags": [
     "knowledge-gym",
     "observability"
@@ -90,6 +90,38 @@
             "selected": true
           }
         ]
+      },
+      {
+        "name": "route",
+        "label": "Route",
+        "type": "textbox",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "options": [
+          {
+            "text": "",
+            "value": "",
+            "selected": true
+          }
+        ]
+      },
+      {
+        "name": "user",
+        "label": "User ID",
+        "type": "textbox",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "options": [
+          {
+            "text": "",
+            "value": "",
+            "selected": true
+          }
+        ]
       }
     ]
   },
@@ -140,7 +172,7 @@
     },
     {
       "id": 3,
-      "title": "Application logs — expand a line → Open trace",
+      "title": "Application logs \u2014 expand a line \u2192 Open trace",
       "type": "logs",
       "datasource": {
         "type": "loki",
@@ -155,7 +187,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{service_name=~\"${service:regex}\", deployment_environment_name=~\"${environment:regex}\"} | json | level=~\"$level\" | request_id=~\"${request_id:regex}.*\" | trace_id=~\"${trace_id:regex}.*\"",
+          "expr": "{service_name=~\"${service:regex}\", deployment_environment_name=~\"${environment:regex}\"} | severity_text=~\"$level\" | request_id=~\"${request_id:regex}.*\" | trace_id=~\"${trace_id:regex}.*\" | http_route=~\"${route:regex}.*\" | user_id=~\"${user:regex}.*\"",
           "queryType": "range",
           "maxLines": 500
         }
@@ -167,6 +199,126 @@
         "enableLogDetails": true,
         "dedupStrategy": "none",
         "sortOrder": "Descending"
+      }
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Top routes \u2014 click one to filter the logs above",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "instant",
+          "expr": "topk(15, sum by (http_route) (count_over_time({service_name=~\"${service:regex}\", deployment_environment_name=~\"${environment:regex}\"} | http_route=~\".+\" [$__range])))"
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "http_route"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Filter logs by this route",
+                    "url": "/d/kg-application-logs/kg-application-logs?var-route=${__value.raw}&var-environment=${environment:raw}&var-service=${service:raw}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Actors by request volume \u2014 click one to filter (needs a logged-in request)",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 22,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "instant",
+          "expr": "topk(15, sum by (user_id) (count_over_time({service_name=~\"${service:regex}\", deployment_environment_name=~\"${environment:regex}\"} | user_id=~\".+\" [$__range])))"
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "user_id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Filter logs by this actor",
+                    "url": "/d/kg-application-logs/kg-application-logs?var-user=${__value.raw}&var-environment=${environment:raw}&var-service=${service:raw}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       }
     }
   ]
