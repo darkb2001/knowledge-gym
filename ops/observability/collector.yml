@@ -56,6 +56,17 @@ processors:
     check_interval: 1s
     limit_mib: 192
     spike_limit_mib: 32
+  # Metrics/health scrapes were ~95% of every span in Tempo and no one reads
+  # them: drop them here instead of paying for them in the trace store.
+  # Runs after transform/traces, which is where http.route survives the
+  # span-attribute allowlist.
+  filter/span-noise:
+    error_mode: propagate
+    traces:
+      span:
+        - >-
+            attributes["http.route"] != nil and
+            IsMatch(attributes["http.route"], "^/actuator/")
   # Fail closed: never forward an unstructured record or an arbitrary
   # library map.
   filter/log-schema:
@@ -242,5 +253,6 @@ service:
     traces:
       receivers: [otlp]
       processors:
-        [memory_limiter, filter/span-safety, transform/traces, batch/traces]
+        [memory_limiter, filter/span-safety, transform/traces, filter/span-noise,
+         batch/traces]
       exporters: [otlp/tempo]

@@ -34,6 +34,12 @@ compactor:
   retention_delete_delay: 2h
   retention_delete_worker_count: 1
   delete_request_store: filesystem
+# Loki's own pattern detector feeds the Logs Drilldown "Patterns" tab.
+# Clusters are held in memory for pattern_ingester.retain_for (3h) and are NOT
+# persisted as streams, so the stream-label index is untouched
+# (limits_config.pattern_persistence_enabled stays false). No extra disk.
+pattern_ingester:
+  enabled: true
 limits_config:
   retention_period: 72h
   ingestion_rate_mb: 1

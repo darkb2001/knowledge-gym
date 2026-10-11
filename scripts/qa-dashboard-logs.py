@@ -107,12 +107,43 @@ print("=== Logs Drilldown prerequisites ===")
 proxy = "/api/datasources/proxy/uid/loki/loki/api/v1"
 window = "query=" + urllib.parse.quote(f'{{service_name="{SERVICE}"}}') + "&start=" + str(
     int(time.time()) - 1800) + "&end=" + str(int(time.time()))
-levels = api(f"{proxy}/label/detected_level/values?{window}")["data"]
+# Loki does not serve structured metadata through /label/<name>/values, so ask the
+# way the app does: group the stream by the level.
+frames = ds_query(f'sum by (detected_level) (count_over_time({{service_name="{SERVICE}"}} [30m]))',
+                  kind="instant").get("frames", [])
+levels = {dict(label for field in frame["schema"]["fields"]
+               for label in (field.get("labels") or {}).items()).get("detected_level")
+          for frame in frames}
+levels.discard(None)
 check("level detection on (Drilldown level filter)", bool(levels),
-      f"detected_level={levels}" if levels else "empty: set discover_log_levels in loki.yml")
+      f"detected_level={sorted(levels)}" if levels
+      else "empty: set discover_log_levels in loki.yml")
 volume = api(f"{proxy}/index/volume?{window}")["data"]["result"]
 check("byte volume endpoint answers (Drilldown service volumes)", bool(volume),
       f"{volume[0]['value'][1]} bytes/30m" if volume else "empty")
+patterns = api(f"{proxy}/patterns?{window}").get("data") or []
+check("Loki pattern detector answers (Drilldown Patterns tab)", bool(patterns),
+      f"{len(patterns)} patterns" if patterns
+      else "empty: set pattern_ingester.enabled in loki.yml")
+
+print("=== trace store hygiene (sampling and scrapes) ===")
+# Scrape spans were ~95% of Tempo. They must stop the moment the collector is
+# recreated, so look at the last 20 minutes -- older spans are pre-deploy data.
+now = int(time.time())
+recent = "&start=%d&end=%d" % (now - 1200, now)
+
+
+def traceql(query):
+    return api("/api/datasources/proxy/uid/tempo/api/search?"
+               + urllib.parse.urlencode({"q": query, "limit": 50}) + recent).get("traces", [])
+
+
+scrapes = traceql('{resource.service.name="knowledge-gym" && name=~".*actuator.*"}')
+check("scrape spans never reach Tempo (collector filter/span-noise)", not scrapes,
+      f"{len(scrapes)} in the last 20m")
+traced = traceql('{resource.service.name="knowledge-gym" && name!~".*actuator.*"}')
+check("real requests are kept (sampler no longer drops 95%)", bool(traced),
+      f"{len(traced)} real traces in the last 20m")
 
 print("=== tables, route filter and click-through ===")
 routes = values('topk(15, sum by (http_route) (count_over_time('
