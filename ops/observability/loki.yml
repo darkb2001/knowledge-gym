@@ -34,12 +34,16 @@ compactor:
   retention_delete_delay: 2h
   retention_delete_worker_count: 1
   delete_request_store: filesystem
-# Loki's own pattern detector feeds the Logs Drilldown "Patterns" tab.
-# Clusters are held in memory for pattern_ingester.retain_for (3h) and are NOT
-# persisted as streams, so the stream-label index is untouched
-# (limits_config.pattern_persistence_enabled stays false). No extra disk.
-pattern_ingester:
-  enabled: true
+# pattern_ingester stays DISABLED on purpose (trial run 2026-10-11, loki 3.7.8).
+# It was enabled, pushed 122 batches with zero errors, and still produced an
+# empty Patterns tab: our bodies are JSON whose `message` is the constant token
+# `http_request_completed`, so the drain dropped 302 lines as `too_few_tokens`
+# and /loki/api/v1/patterns answered `data: []` even for a catch-all matcher.
+# Re-enable only together with a richer `message` field, and re-check that
+# endpoints list with `curl -G .../loki/api/v1/patterns` -- not just the tee
+# metrics, which look healthy even when nothing is queryable.
+# pattern_ingester:
+#   enabled: true
 limits_config:
   retention_period: 72h
   ingestion_rate_mb: 1
