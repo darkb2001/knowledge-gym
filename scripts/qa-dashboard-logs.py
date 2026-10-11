@@ -147,11 +147,11 @@ def traceql(query):
 
 
 scrapes = traceql('{resource.service.name="knowledge-gym" && name=~".*actuator.*"}')
-check("scrape spans never reach Tempo (collector filter/span-noise)", not scrapes,
-      f"{len(scrapes)} in the last 20m")
+check("scrape spans never reach Tempo any more (collector tail_sampling)", not scrapes,
+      f"{len(scrapes)} actuator traces in the last 5m")
 traced = traceql('{resource.service.name="knowledge-gym" && name!~".*actuator.*"}')
 check("real requests are kept (sampler no longer drops 95%)", bool(traced),
-      f"{len(traced)} real traces in the last 20m")
+      f"{len(traced)} real traces in the last 5m")
 
 print("=== tables, route filter and click-through ===")
 routes = values('topk(15, sum by (http_route) (count_over_time('
