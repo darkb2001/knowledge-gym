@@ -68,14 +68,20 @@ processors:
       - name: drop-scrapes
         type: drop
         drop:
-          # Deliberately unanchored: http.route carries the servlet context
-          # path (`/api/v1/actuator/prometheus`), so `^/actuator/` never
-          # matched and the scrapes kept flowing -- verify with a Tempo search
-          # for `name=~".*actuator.*"` after deploying, not just by eyeballing
-          # the config.
-          - >-
-              attributes["http.route"] != nil and
-              IsMatch(attributes["http.route"], "/actuator/")
+          drop_sub_policy:
+            - name: scrape-route
+              type: ottl_condition
+              ottl_condition:
+                error_mode: ignore
+                # Deliberately unanchored: http.route carries the servlet
+                # context path (`/api/v1/actuator/prometheus`), so `^/actuator/`
+                # never matched and the scrapes kept flowing -- verify with a
+                # Tempo search for `name=~".*actuator.*"` after deploying, not
+                # just by eyeballing this file.
+                span:
+                  - >-
+                      attributes["http.route"] != nil and
+                      IsMatch(attributes["http.route"], "/actuator/")
       - name: keep-everything-else
         type: always_sample
   # Fail closed: never forward an unstructured record or an arbitrary
