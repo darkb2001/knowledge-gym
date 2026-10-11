@@ -50,3 +50,6 @@ __pycache__/
 *.log
 # File runtime (marker ES stopped, danh sách IP chặn của nginx)
 run/
+
+# Archify diagram authoring scratch (candidates/receipts, không phải nguồn build)
+.archify/

@@ -18,6 +18,10 @@ import org.springframework.stereotype.Component;
  * (flow-node / flow-arrow), không phải trang trí. Đo thật 2026-09-30: strip mất ~105k ký tự
  * kiến thức (vd WAL/undo-log từng bước). Giữ markup + class; FE style thành step-flow.
  *
+ * <p>Diagram Archify là inline {@code <svg>} (xem {@link DiagramAllowlist}), không phải
+ * {@code flow-diagram} dạng div, nên cả hai đều phải nằm trong whitelist — nếu không figure
+ * sẽ bị xoá sạch và FE render ra khung rỗng.
+ *
  * Thuộc tính `on*` và URL `javascript:` bị loại bởi {@link Safelist} (không nằm trong whitelist).
  */
 @Component
@@ -25,8 +29,8 @@ public class JsoupAnswerHtmlSanitizer implements AnswerHtmlSanitizer {
 
     /**
      * Whitelist giữ đúng các class mà FE cần để style
-     * (code-block, feature-table, callout, ans-block, flow-diagram, tok-*).
-     * Chặn script/iframe/on* và mọi thứ không có trong danh sách.
+     * (code-block, feature-table, callout, ans-block, flow-diagram, tok-*) **và** SVG diagram
+     * (xem {@link DiagramAllowlist}). Chặn script/iframe/on* và mọi thứ không có trong danh sách.
      */
     private static final Safelist SAFELIST = new Safelist()
             .addTags("p", "br", "hr", "strong", "b", "em", "i", "u", "s", "code", "pre",
@@ -34,6 +38,7 @@ public class JsoupAnswerHtmlSanitizer implements AnswerHtmlSanitizer {
                     "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption",
                     "h1", "h2", "h3", "h4", "h5", "h6",
                     "dl", "dt", "dd", "span", "div", "figure", "figcaption", "a")
+            .addTags(DiagramAllowlist.SVG_TAGS)
             .addAttributes("span", "class")
             .addAttributes("div", "class")
             .addAttributes("p", "class")
@@ -42,6 +47,8 @@ public class JsoupAnswerHtmlSanitizer implements AnswerHtmlSanitizer {
             .addAttributes("td", "class", "colspan", "rowspan")
             .addAttributes("code", "class")
             .addAttributes("pre", "class")
+            .addAttributes("figure", "class", "id")
+            .addAttributes(":all", DiagramAllowlist.SVG_ATTRS)
             .addAttributes("a", "href", "title")
             .addProtocols("a", "href", "http", "https")
             // Link tương đối (15-auth-...html) sẽ hỏng trong SPA → bỏ href, giữ text.
@@ -58,7 +65,10 @@ public class JsoupAnswerHtmlSanitizer implements AnswerHtmlSanitizer {
         }
         var body = Jsoup.parseBodyFragment(rawHtml).body();
         body.select(STRIP_SELECTOR).remove();
-        return Jsoup.clean(body.html(), "", SAFELIST,
+        String cleaned = Jsoup.clean(body.html(), "", SAFELIST,
                 new Document.OutputSettings().prettyPrint(false)).trim();
+        // Allowlist giữ `style` để marker `--step` sống sót; bước này mới thu hẹp nó về đúng
+        // cấu trúc diagram dùng, chặn style deface kiểu position:fixed trên <div>/<p>.
+        return DiagramAllowlist.stripNonStepStyles(cleaned);
     }
 }

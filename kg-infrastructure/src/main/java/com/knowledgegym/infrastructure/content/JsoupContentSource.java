@@ -62,7 +62,12 @@ public class JsoupContentSource implements ContentSource {
 
     private static final Pattern MODULE_FILE = Pattern.compile("^(\\d{2})-([a-z0-9-]+)\\.html$");
     private static final Pattern LEADING_INDEX = Pattern.compile("^(\\d{2,3})\\s");
-    private static final int MAX_ANSWER_CHARS = 20_000;
+    /**
+     * Answers carry a full inline SVG diagram, so the budget has to clear the largest figure
+     * (≈43 KB for a two-diagram answer) with room for the surrounding prose. The cap stays as a
+     * runaway guard for pasted content, not as a per-question layout limit.
+     */
+    private static final int MAX_ANSWER_CHARS = 96_000;
 
     private final int parallelism;
     private final AnswerHtmlSanitizer sanitizer;
