@@ -24,6 +24,11 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+# tail_sampling holds a trace for its `decision_wait` before exporting it, so every
+# wait on a *trace* in this canary must exceed that window: the pipeline is correct
+# when the trace lands 15-20s late, and only a timeout past the decision is a bug.
+DECISION_WAIT = int(yaml.safe_load((ROOT / "ops/observability/collector.yml").read_text())
+                    ["processors"]["tail_sampling"]["decision_wait"].removesuffix("s"))
 
 
 def port():
@@ -183,7 +188,7 @@ def main():
 
                 send_trace()
                 collected = []
-                deadline = time.monotonic() + 15
+                deadline = time.monotonic() + 15 + DECISION_WAIT
                 while time.monotonic() < deadline:
                     with contextlib.suppress(queue.Empty):
                         collected.append(deliveries.get(timeout=1))
@@ -239,7 +244,7 @@ def main():
                 # Backend 503: ingress stays healthy; bounded queues + retries are observable.
                 outage.set()
                 send_trace()
-                assert failed_delivery.wait(10), "sink must actually return 503"
+                assert failed_delivery.wait(10 + DECISION_WAIT), "sink must actually return 503"
                 text = get(f"http://127.0.0.1:{metrics}/metrics").decode()
                 assert "otelcol_exporter_queue_capacity" in text
                 assert "otelcol_receiver_accepted_spans" in text
@@ -247,7 +252,7 @@ def main():
                 assert process.poll() is None
                 print("PASS: backend 503 does not stop Collector ingress; queue metrics present")
                 outage.clear()
-                recovered_path, recovered_payload = deliveries.get(timeout=20)
+                recovered_path, recovered_payload = deliveries.get(timeout=30 + DECISION_WAIT)
                 assert recovered_path == "/v1/traces"
                 assert sentinel not in json.dumps(recovered_payload)
                 print("PASS: retry exports sanitized traces after backend recovery")

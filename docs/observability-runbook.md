@@ -128,7 +128,10 @@ The app exports **every** trace (`OTEL_TRACES_SAMPLER=parentbased_traceidratio`,
 traffic dropped is scrape traffic, and it is dropped per **whole trace** by the
 `tail_sampling` processor in `ops/observability/collector.yml`. Do not replace it
 with a span-level filter: removing a trace's root span leaves its children behind
-as orphans that still show up as traces in Tempo.
+as orphans that still show up as traces in Tempo. A trace therefore becomes visible
+in Tempo only after `decision_wait` (15s) — a fresh trace appearing 15-20s late is
+normal, not a pipeline failure; `scripts/test-observability-pipeline.py` waits for
+that window explicitly.
 
 ```bash
 # is the drop policy still firing?
