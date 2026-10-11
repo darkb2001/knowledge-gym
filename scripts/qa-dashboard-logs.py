@@ -14,6 +14,8 @@ import json
 import os
 import re
 import sys
+import time
+import urllib.parse
 import urllib.request
 
 BASE = "http://127.0.0.1:3001"
@@ -98,6 +100,19 @@ for field, expected in [("severity_text", True), ("trace_id", True), ("http_rout
     seen = count(f'{{service_name="{SERVICE}"}} | {field}=~".+"')
     check(f"{field} is queryable as metadata", seen > 0 or not expected,
           f"{seen} lines/30m" + ("" if expected else " (needs a logged-in request)"))
+
+print("=== Logs Drilldown prerequisites ===")
+# Drilldown's level filter and its volume histogram need these endpoints to answer;
+# both are per-datasource, so ask Loki through Grafana's proxy.
+proxy = "/api/datasources/proxy/uid/loki/loki/api/v1"
+window = "query=" + urllib.parse.quote(f'{{service_name="{SERVICE}"}}') + "&start=" + str(
+    int(time.time()) - 1800) + "&end=" + str(int(time.time()))
+levels = api(f"{proxy}/label/detected_level/values?{window}")["data"]
+check("level detection on (Drilldown level filter)", bool(levels),
+      f"detected_level={levels}" if levels else "empty: set discover_log_levels in loki.yml")
+volume = api(f"{proxy}/index/volume?{window}")["data"]["result"]
+check("byte volume endpoint answers (Drilldown service volumes)", bool(volume),
+      f"{volume[0]['value'][1]} bytes/30m" if volume else "empty")
 
 print("=== tables, route filter and click-through ===")
 routes = values('topk(15, sum by (http_route) (count_over_time('

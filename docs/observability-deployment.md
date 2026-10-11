@@ -305,6 +305,15 @@ does not depend on someone opening a browser. Result on the live stack: **17/17*
 | Top-routes table, and a route value filtering | 14 routes; `/actuator/prometheus*` → 119 lines |
 | Filtered dashboard URL (`?var-route=…`) | HTTP 200 |
 
+The same script also checks the two per-datasource endpoints Grafana Logs Drilldown
+depends on, asking Loki through Grafana's proxy: the `volume` endpoint (byte volumes
+per service) and `detected_level` (the level filter). Loki 3.7 answers volume
+queries with no extra configuration, but level detection is off by default, so
+`limits_config.discover_log_levels: true` was added to `ops/observability/loki.yml`
+— `detected_level` is written as structured metadata, so the label count is
+unchanged. Without it, Drilldown shows every line as unlevelled and its level
+filter stays empty even though the dashboards' own `severity_text` filter works.
+
 Three Loki/Grafana facts this surfaced, worth knowing before editing a panel:
 
 - Loki rejects a selector whose matchers are **all** empty-compatible
