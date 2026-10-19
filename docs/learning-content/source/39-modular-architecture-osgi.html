@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>39. Kiến trúc Module &amp; OSGi — Knowledge Gym</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Knowledge<br><span>Gym</span></h1>
+        <p>Java, AWS DVA-C02 &amp; Frontend</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>39. Kiến trúc Module &amp; OSGi</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 39</div>
+          <h1 class="module-title">Kiến trúc Module &amp; OSGi</h1>
+          <p class="module-subtitle">Chia hệ thống thành module có ranh giới rõ: JPMS, OSGi (bundle lifecycle, classloader, service), versioning package và cách ép luật phụ thuộc bằng test.</p>
+        </div>
+
+        <section class="section" id="module-ho-ranh-gi-i-code">
+          <h2 class="section-title">Module hoá & ranh giới code</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q1</span> Cohesion/coupling là gì và vì sao monolith vẫn cần module hoá?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Module</strong> là một đơn vị code có biên rõ ràng: nó lộ ra API tối thiểu và giấu phần còn lại. <strong>Cohesion</strong> đo mức các thành phần <em>bên trong</em> một module thuộc về nhau (càng cao càng tốt); <strong>coupling</strong> đo mức phụ thuộc <em>giữa</em> các module (càng thấp càng tốt). Module hoá là thiết kế biên sao cho cohesion cao bên trong và coupling thấp qua biên.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Monolith là một đơn vị deploy nhưng chứa nhiều lý do thay đổi độc lập — đơn hàng, thanh toán, kho vận. Không có biên rõ ràng, mọi thay đổi lan ra toàn codebase, không thể test cục bộ, không ai dám xoá code vì không biết ai dùng, và khi cần tách service thì không biết cắt ở đâu. Module hoá giữ được lợi ích deploy đơn giản của monolith mà vẫn có ranh giới để kiểm soát thay đổi.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <p>Xác định biên theo <em>trục thay đổi</em> (một module đổi vì một lý do) chứ không theo tầng kỹ thuật, sau đó bảo vệ biên bằng công cụ thay vì bằng quy ước miệng.</p>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Nhận diện trục thay đổi</div></div>
+        <div class="flow-arrow">↓ nhóm code theo trục</div>
+        <div class="flow-row"><div class="flow-node">Định nghĩa API công khai của module</div><div class="flow-node">Giấu implementation</div></div>
+        <div class="flow-arrow">↓ chuyển phụ thuộc sang API</div>
+        <div class="flow-row"><div class="flow-node success">Gate tự động trong CI (ArchUnit / Spring Modulith)</div></div>
+        <div class="flow-arrow">↓ phát hiện rò rỉ</div>
+        <div class="flow-row"><div class="flow-node warning">Rò rỉ: shared entity, import chéo package</div></div>
+      </div>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Áp dụng khi có từ 2 team trở lên cùng sửa một codebase, hoặc khi số package nội bộ bắt đầu lớn đến mức không ai nắm hết. Cũng dùng khi <em>chuẩn bị</em> tách microservice: module hoá trước là bước đệm rẻ hơn nhiều so với việc cắt thẳng service từ một đống code dính chùm.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Script vài trăm dòng, prototype một người, hoặc codebase mà mọi thứ thực sự chỉ phục vụ một mục đích — chia module lúc này chỉ tạo ceremony. Đừng module hoá để rồi mỗi module phải import gần hết các module khác: đó là coupling chuyển từ trong package ra ngoài module, không giảm gì.</p></div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// RÒ RỈ: module orders import trực tiếp repository nội bộ của module inventory</span>
+<span class="tok-keyword">package</span> com.example.orders;
+<span class="tok-keyword">import</span> com.example.inventory.internal.StockLevelRepository; <span class="tok-comment">// xuyên biên, không qua API</span>
+<span class="tok-keyword">import</span> com.example.billing.entity.InvoiceEntity;        <span class="tok-comment">// shared entity = leak</span>
+
+<span class="tok-comment">// SỬA: chỉ phụ thuộc API công khai; module kia tự đổi implementation</span>
+<span class="tok-keyword">import</span> com.example.inventory.api.StockQuery;
+<span class="tok-keyword">import</span> com.example.billing.api.InvoiceSummary;</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Một hệ đặt hàng-vận chuyển: tách module <code>catalog</code>, <code>orders</code>, <code>shipping</code>. Lúc đầu chỉ là package; sau một sprint, đổi giá chỉ còn sửa <code>catalog</code> vì mọi nơi đã đi qua API của nó.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Dấu hiệu module bị rò rỉ mà interviewer hay hỏi: <strong>shared entity</strong> (nhiều module cùng import một entity class), <strong>import chéo</strong> vào package <code>internal</code>, <strong>cyclic dependency</strong> giữa package, và <strong>module "util" chung</strong> phình dần vì bất cứ thứ gì không biết đặt đâu đều nhét vào đó. Package <em>không</em> phải module: nếu không có gate compile-time hay test tự động thì ranh giới chỉ là đồ trang trí.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Cohesion cao bên trong, coupling thấp qua biên.</li>
+      <li>Monolith vẫn cần module hoá để giới hạn phạm vi thay đổi.</li>
+      <li>Biên phải có gate tự động, không chỉ quy ước.</li>
+      <li>Rò rỉ: shared entity, import chéo internal, cyclic.</li>
+      <li>Module hoá trước khi tách microservice.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q2</span> Package-by-layer vs package-by-feature, và khi nào tách multi-module Maven/Gradle?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Package-by-layer</strong> nhóm code theo tầng kỹ thuật: <code>controller</code>, <code>service</code>, <code>repository</code>, <code>entity</code>. <strong>Package-by-feature</strong> nhóm theo <em>năng lực nghiệp vụ</em>: mỗi feature chứa trọn controller, service, repository, model của nó. Package-by-feature khớp với module hoá vì trục đổi thường là theo feature chứ không theo tầng.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Với package-by-layer, một thay đổi nghiệp vụ phải chạm vào mọi tầng và mọi tầng đều phụ thuộc toàn bộ các tầng còn lại — không có ranh giới nghiệp vụ nào để bảo vệ, và bạn không thể extract một feature ra module riêng vì nó bị rải rác khắp nơi. Package-by-feature tạo biên tự nhiên, giúp việc tách module/service sau này gần như cơ học.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <p>Bắt đầu bằng package-by-feature trong một Maven module, chỉ tách thành multi-module khi có nhu cầu thật (reuse, enforce compile-time, build song song).</p>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node warning">monolith package-by-layer</div></div>
+        <div class="flow-arrow">↓ nhóm lại theo feature</div>
+        <div class="flow-row"><div class="flow-node primary">package-by-feature (1 module)</div></div>
+        <div class="flow-arrow">↓ enforce + nhu cầu reuse/build</div>
+        <div class="flow-row"><div class="flow-node">multi-module Maven/Gradle</div></div>
+        <div class="flow-arrow">↓ khi thực sự cần</div>
+        <div class="flow-row"><div class="flow-node success">ứng viên tách service</div></div>
+      </div>
+      <table class="feature-table">
+        <thead><tr><th>Tiêu chí</th><th>Package-by-layer</th><th>Package-by-feature</th></tr></thead>
+        <tbody>
+          <tr><td>Trục tổ chức</td><td>Tầng kỹ thuật</td><td>Năng lực nghiệp vụ</td></tr>
+          <tr><td>Tác động một thay đổi</td><td>Lan khắp các package tầng</td><td>Gọn trong một feature</td></tr>
+          <tr><td>Biên để enforce</td><td>Hầu như không</td><td>Rõ, enforce được</td></tr>
+          <tr><td>Tách module/service</td><td>Khó, code rải rác</td><td>Gần như cơ học</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Chọn package-by-feature cho hầu hết ứng dụng nghiệp vụ. Tách thành <strong>multi-module Maven/Gradle</strong> khi: muốn chặn compile-time (module A không thể import module B nếu không khai dependency), cần build/release từng phần, có thư viện dùng chung cho nhiều app, hoặc team cần ranh giới cứng hơn package.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng tách multi-module ngay từ ngày đầu cho một app nhỏ — build chậm hơn về mặt cấu hình, version bump nhiều nơi, và refactor qua module đau hơn qua package. Cũng tránh "one class per module" và tránh tạo module <code>common</code>/<code>shared</code> chứa mọi thứ: nó biến thành nút thắt coupling cho toàn hệ.</p></div>
+    <div class="code-block" data-lang="xml"><pre><code><span class="tok-comment">&lt;!-- pom.xml của module orders: chỉ khai dependency nó thật sự dùng --&gt;</span>
+&lt;<span class="tok-class">dependency</span>&gt;
+  &lt;<span class="tok-class">groupId</span>&gt;com.example&lt;/<span class="tok-class">groupId</span>&gt;
+  &lt;<span class="tok-class">artifactId</span>&gt;inventory-api&lt;/<span class="tok-class">artifactId</span>&gt; <span class="tok-comment">&lt;!-- API, không phải inventory-impl --&gt;</span>
+  &lt;<span class="tok-class">version</span>&gt;1.4.0&lt;/<span class="tok-class">version</span>&gt;
+&lt;/<span class="tok-class">dependency</span>&gt;</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Tách module <code>inventory-api</code> (interface + DTO) khỏi <code>inventory-impl</code>. Module <code>orders</code> phụ thuộc <code>inventory-api</code>, nên không thể vô tình chạm vào entity hay repository nội bộ — compiler chặn ngay.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Tách multi-module mà module nào cũng <code>depends on common</code> và <code>common</code> lại depends ngược lên <code>impl</code> → cyclic giữa artifact, Maven build fail hoặc phải gộp lại. Một bẫy khác: coi "có nhiều module" là "đã module hoá tốt" — nếu module A import hết package public của module B thì coupling y như cũ, chỉ tốn thêm công build.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Package-by-feature khớp trục thay đổi nghiệp vụ.</li>
+      <li>Package-by-layer không tạo biên bảo vệ được.</li>
+      <li>Multi-module để enforce compile-time + build/release riêng.</li>
+      <li>Chỉ tách khi có nhu cầu thật, không từ ngày đầu.</li>
+      <li>Tách API khỏi impl để chặn truy cập nội bộ.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q3</span> JPMS: module-info.java, requires/exports/opens, jlink/jdeps và khi nào nên dùng?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>JPMS</strong> (Java Platform Module System, Java 9+) là cơ chế module hoá ở cấp ngôn ngữ và runtime. Mỗi module khai báo trong <code>module-info.java</code>: module <code>requires</code> module nào, <code>exports</code> package nào ra ngoài, <code>opens</code> package nào cho reflection. Khác Maven module (chỉ là ranh giới build), JPMS enforce được ở compile-time <em>và</em> runtime classpath.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Maven/Gradle module chỉ tách artifact — bạn vẫn có thể import bất cứ package public nào của dependency. JPMS chặn thật: package không <code>exports</code> thì bên ngoài không compile được, và ở runtime truy cập sâu vào module khác bị chặn bởi strong encapsulation. Đây cũng là cơ sở để <code>jlink</code> tạo runtime image gọn — chỉ đóng gói đúng những module thật sự cần.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <p>Đặt <code>module-info.java</code> ở gốc source tree, khai báo quan hệ, rồi dùng <code>jdeps</code> để dò dependency và <code>jlink</code> để đóng runtime.</p>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">module-info.java</div></div>
+        <div class="flow-arrow">↓ jdeps phân tích</div>
+        <div class="flow-row"><div class="flow-node">Phát hiện package rò / thiếu requires</div></div>
+        <div class="flow-arrow">↓ compile với module-path</div>
+        <div class="flow-row"><div class="flow-node success">Compile-time enforce exports</div></div>
+        <div class="flow-arrow">↓ jlink</div>
+        <div class="flow-row"><div class="flow-node secondary">Runtime image tối giản</div></div>
+      </div>
+      <table class="feature-table">
+        <thead><tr><th>Directive</th><th>Ý nghĩa</th></tr></thead>
+        <tbody>
+          <tr><td><code>requires</code></td><td>Phụ thuộc module khác lúc compile + runtime</td></tr>
+          <tr><td><code>requires transitive</code></td><td>Ai đọc module này cũng thấy module kia (truyền API ra ngoài)</td></tr>
+          <tr><td><code>requires static</code></td><td>Chỉ cần lúc compile, không bắt buộc lúc runtime</td></tr>
+          <tr><td><code>exports</code></td><td>Cho phép bên ngoài truy cập package (compile + runtime)</td></tr>
+          <tr><td><code>opens</code></td><td>Chỉ mở cho reflection, không export type ở compile-time</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng khi cần application image nhỏ (CLI, tool, desktop, container tối giản), khi cần fail-fast strong encapsulation, hoặc khi viết thư viện muốn định nghĩa API bề mặt chính xác. <code>opens ... to</code> giới hạn đúng framework được reflection, rất hợp với các dependency injection container chạy trên module-path.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Ứng dụng Spring Boot thông thường không cần JPMS: classpath mode chạy tốt hơn, và nhiều thư viện dùng reflection/unnamed module gây ma sát (cần <code>opens</code> khắp nơi, "automatic module" chỉ là module suy diễn từ jar name — dễ vỡ). Cũng đừng nhầm JPMS với OSGi: JPMS không có versioning của module, không có multi-version, không có lifecycle/hot-redeploy. Với splitting package, JPMS cấm hoàn toàn còn OSGi cho phép có kiểm soát.</p></div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@SuppressWarnings</span>
+<span class="tok-keyword">module</span> com.example.orders {
+    <span class="tok-keyword">requires</span> java.sql;
+    <span class="tok-keyword">requires transitive</span> com.example.common;   <span class="tok-comment">// API của mình lộ type của common</span>
+    <span class="tok-keyword">requires static</span> org.jetbrains.annotations; <span class="tok-comment">// chỉ lúc compile</span>
+
+    <span class="tok-keyword">exports</span> com.example.orders.api;            <span class="tok-comment">// công khai</span>
+    <span class="tok-keyword">opens</span> com.example.orders.internal <span class="tok-keyword">to</span> spring.core; <span class="tok-comment">// reflection có kiểm soát</span>
+}</code></pre></div>
+    <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Dò dependency giữa các module/package</span>
+jdeps --multi-release 21 --module-path mods -s com.example.orders
+
+<span class="tok-comment"># Tạo runtime image tối giản chỉ gồm module cần thiết</span>
+jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.orders \
+      --strip-debug --no-header-files --no-man-pages --output runtime-image</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Một CLI tool dùng jlink giảm runtime từ hơn 200MB JDK xuống vài chục MB, và nhờ <code>exports</code> hẹp mà không ai vô tình phụ thuộc vào class nội bộ của package khác.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Nhầm <code>exports</code> với <code>opens</code>: <code>exports</code> cho truy cập type lúc compile, <code>opens</code> chỉ cho reflection lúc runtime (framework cần cái này). Bẫy thứ hai: JPMS <strong>không</strong> có khái niệm version trong <code>requires</code> — không thể yêu cầu "cần common từ 1.4 trở lên". Muốn version range, multi-version bundle hay thay đổi lúc runtime thì đó là địa hạt của OSGi, không phải JPMS.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>JPMS enforce ở compile-time và runtime.</li>
+      <li>requires / exports / opens khác nhau rõ ràng.</li>
+      <li>jdeps dò dependency, jlink đóng runtime gọn.</li>
+      <li>Không có versioning và lifecycle như OSGi.</li>
+      <li>Spring Boot thường chỉ cần classpath.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="osgi-bundle-classloader-service">
+          <h2 class="section-title">OSGi — bundle, classloader, service</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q4</span> OSGi là gì và bundle lifecycle hoạt động thế nào?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>OSGi</strong> là một đặc tả (specification) framework cho phép module hoá động trên JVM: ứng dụng gồm nhiều <strong>bundle</strong> (một jar có Manifest đặc biệt), mỗi bundle có vòng đời riêng, classloader riêng, và version riêng. Bundle có thể được cài, khởi động, dừng, cập nhật <em>ngay trong runtime</em> mà không cần restart cả JVM.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Với classpath truyền thống, mọi class nằm trên một không gian phẳng: không thể có hai version của cùng thư viện, không thể nạp lại code đã chạy, không thể biết chắc bundle nào đến từ đâu. OSGi giải quyết đúng ba vấn đề đó — <strong>versioning</strong>, <strong>isolation</strong>, <strong>dynamic lifecycle</strong> — nên rất phù hợp với thiết bị, gateway IoT, hệ điều hành nhúng và hệ thống chạy plugin cập nhật từ xa trong nhiều năm.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <p>Lifecycle của một bundle đi qua các trạng thái cố định; chuyển trạng thái là do framework điều khiển, không phải code tự đặt cờ.</p>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">INSTALLED</div></div>
+        <div class="flow-arrow">↓ resolve (thoả mãn wiring import/export)</div>
+        <div class="flow-row"><div class="flow-node">RESOLVED</div></div>
+        <div class="flow-arrow">↓ start()</div>
+        <div class="flow-row"><div class="flow-node">STARTING</div></div>
+        <div class="flow-arrow">↓ BundleActivator.start() xong</div>
+        <div class="flow-row"><div class="flow-node success">ACTIVE</div></div>
+        <div class="flow-arrow">↓ stop()</div>
+        <div class="flow-row"><div class="flow-node warning">STOPPING → RESOLVED</div><div class="flow-node">UNINSTALLED</div></div>
+      </div>
+      <p>Ngoài ra có <code>LAZY_ACTIVATION</code>: bundle ở trạng thái STARTING nhưng chờ class đầu tiên được nạp mới thực sự active — hữu ích để giảm thời gian khởi động trên thiết bị.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng OSGi khi cần cập nhật một phần hệ thống lúc đang chạy mà không restart (firmware gateway, edge box ngoài hiện trường), khi nhiều plugin có thể đến từ bên thứ ba và phải cách ly lẫn nhau, hoặc khi nhiều thành phần cần chạy song song nhiều version thư viện khác nhau.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng chọn OSGi chỉ vì "nghe module hoá hơn JPMS". Chi phí thật: framework runtime, tooling phức tạp, debug classloader khó, team phải học manifest và service model, và các thư viện dùng classpath quen thuộc dễ vỡ khi vào bundle. Hệ thống 12-factor stateless, deploy bằng container thì restart nhanh, không cần hot-swap — dùng Spring Boot trên classpath hợp lý hơn nhiều.</p></div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// BundleActivator: hook duy nhất vào lifecycle kiểu cũ</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">Activator</span> <span class="tok-keyword">implements</span> <span class="tok-class">BundleActivator</span> {
+  <span class="tok-keyword">public void</span> <span class="tok-function">start</span>(<span class="tok-class">BundleContext</span> ctx) {
+    <span class="tok-comment">// đăng ký service, mở tài nguyên</span>
+    ctx.<span class="tok-function">registerService</span>(<span class="tok-class">SensorReader</span>.<span class="tok-keyword">class</span>.<span class="tok-function">getName</span>(), <span class="tok-keyword">new</span> <span class="tok-class">SensorReaderImpl</span>(), <span class="tok-keyword">null</span>);
+  }
+  <span class="tok-keyword">public void</span> <span class="tok-function">stop</span>(<span class="tok-class">BundleContext</span> ctx) { <span class="tok-comment">// giải phóng tài nguyên, service tự bị gỡ</span> }
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Gateway công nghiệp chạy nhiều driver kết nối thiết bị: mỗi driver là một bundle. Khi cần thêm loại thiết bị mới hoặc vá lỗi driver, cài/update đúng bundle đó, các bundle khác và kết nối đang chạy vẫn tiếp tục.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Nhầm trạng thái <strong>RESOLVED</strong> — bundle đã resolve nhưng <em>chưa</em> chạy code, chỉ khi <code>start()</code> mới sang STARTING/ACTIVE. Cũng hay hỏi: "sao bundle cài rồi mà không chạy?" — thường do chưa resolve được (thiếu Import-Package) hoặc start-level thấp hơn mức đang active. Đừng quên <strong>UNINSTALLED</strong> là trạng thái cuối và không quay lại được.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>OSGi = module động trên JVM: version, isolation, lifecycle.</li>
+      <li>Lifecycle: INSTALLED → RESOLVED → STARTING → ACTIVE → STOPPING.</li>
+      <li>LAZY_ACTIVATION giảm thời gian khởi động.</li>
+      <li>Hợp thiết bị, IoT gateway, hệ plugin cập nhật runtime.</li>
+      <li>Chi phí tooling cao, không hợp app container hoá đơn giản.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q5</span> Vì sao mỗi bundle có classloader riêng và hệ quả với static/singleton, ClassCastException?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Mỗi bundle trong OSGi được nạp bởi một <strong>bundle classloader</strong> riêng, thay vì classloader phẳng của classpath. Bundle classloader tự nạp class trong chính bundle mình, và chỉ <em>uỷ quyền</em> nạp class của package khác nếu manifest khai <code>Import-Package</code> (hoặc <code>DynamicImport-Package</code>). Không có import thì không thấy — dù class đó có tồn tại ở bundle bên cạnh.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Đây chính là cơ chế tạo isolation và multi-version: hai bundle có thể cùng chứa package <code>com.foo</code> phiên bản khác nhau mà không đụng nhau, vì mỗi cái thấy bản của mình. Nhưng cũng vì thế, static/singleton chỉ có phạm vi trong một bundle: hai bundle nạp cùng một class <code>com.foo.Counter</code> sẽ giữ <em>hai</em> biến static riêng biệt, và đối tượng của chúng thuộc hai <code>Class</code> khác nhau dù tên giống hệt.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <p>Wiring diễn ra lúc resolve: framework tìm bundle nào <code>Export-Package</code> khớp với <code>Import-Package</code> của bundle cần, rồi "nối" classloader hai bên.</p>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Bundle A</div><div class="flow-node primary">Bundle B</div></div>
+        <div class="flow-arrow">↓ mỗi bundle có classloader riêng</div>
+        <div class="flow-row"><div class="flow-node">ClassLoader A</div><div class="flow-node">ClassLoader B</div></div>
+        <div class="flow-arrow">↓ Import-Package khớp Export-Package</div>
+        <div class="flow-row"><div class="flow-node success">Wire: A thấy class của B</div></div>
+        <div class="flow-arrow">↓ nếu KHÔNG khai import</div>
+        <div class="flow-row"><div class="flow-node warning">Không thấy class → NoClassDefFoundError</div></div>
+      </div>
+      <p>Hệ quả thực tế: state toàn cục, cache tĩnh, registry tự viết bằng static field đều bị "nhân bản" theo bundle. Đúng cách là trao đổi state qua <em>service</em> (một instance do một bundle đăng ký) chứ không qua static.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Hữu ích khi thật sự cần cô lập: plugin bên thứ ba không tin cậy, hai thư viện cần hai version, hoặc muốn thay nạp một phần code. Khi đó classloader riêng là công cụ đúng.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng dựa vào static làm state chia sẻ giữa các bundle — nó không chia sẻ gì cả. Cũng tránh <code>DynamicImport-Package</code> như cách chữa cháy cho mọi lỗi "không thấy class": nó phá tính xác định của wiring và che lỗi thiết kế manifest. Và nếu bạn chỉ muốn module hoá tĩnh thì classloader phẳng (hoặc JPMS) đơn giản hơn nhiều.</p></div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Bundle A và bundle B cùng nạp com.foo.Shared → HAI class object khác nhau</span>
+<span class="tok-class">Object</span> o = serviceFromB.<span class="tok-function">getShared</span>();
+<span class="tok-comment">// ClassCastException dù class name y hệt:</span>
+<span class="tok-class">Shared</span> s = (<span class="tok-class">Shared</span>) o; <span class="tok-comment">// ✗ "com.foo.Shared cannot be cast to com.foo.Shared"</span>
+
+<span class="tok-comment">// CÁCH ĐÚNG: chỉ bundle export package, các bundle khác import nó</span>
+<span class="tok-comment">// B export com.foo (version 1.0.0); A Import-Package: com.foo;version="[1.0,2)"</span>
+<span class="tok-comment">// → cả hai dùng CÙNG một Class object, cast thành công</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Lỗi kinh điển: hai bundle cùng gói sẵn một thư viện JSON ở trong jar thay vì import package của nó. Kết quả là mỗi bên có classloader riêng cho thư viện đó, và framework báo <em>ClassCastException cùng tên class</em> — dấu hiệu gần như chắc chắn rằng package đang bị đóng gói trùng thay vì import.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Câu hỏi bẫy kinh điển: "Vì sao ClassCastException khi cả hai class cùng tên?" — vì identity của một class là <strong>cặp (tên đầy đủ, classloader)</strong>, không chỉ tên. Cũng hỏi tiếp: "static trong OSGi ra sao?" — mỗi bundle một bản, singleton không xuyên bundle. Cách chữa đúng là export/import package, không phải reflection hay deserialize qua lại.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Mỗi bundle một classloader, chỉ thấy class được import.</li>
+      <li>Isolation tạo multi-version nhưng nhân bản static/singleton.</li>
+      <li>Class identity = tên + classloader.</li>
+      <li>ClassCastException cùng tên = đóng gói trùng package.</li>
+      <li>Chữa đúng: export/import package, không dùng static chia sẻ.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q6</span> OSGi services &amp; Declarative Services: component, service registry, Config Admin, dependency động?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>OSGi Services</strong> là cách các bundle hợp tác: một bundle đăng ký một object vào <strong>service registry</strong> theo tên interface, bundle khác lấy ra dùng — không cần biết nhau lúc compile. <strong>Declarative Services (DS)</strong> là mô hình khai báo cho việc này: bạn annotate một class (hoặc viết một file component XML) để framework tự tạo instance, tự inject service phụ thuộc và tự quản vòng đời của nó.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Service registry giải quyết vấn đề "bundle A cần bundle B" mà không tạo wired cứng: B có thể được thay, được nâng cấp, hoặc <em>biến mất</em> lúc runtime. DS biến dependency động đó thành an toàn — khi service phụ thuộc không còn, component tự deactivate thay vì ném NullPointerException. Đây là thứ khiến OSGi khác hẳn module tĩnh.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <p>DS quản lý component theo dependency: đủ service thì active, thiếu thì deactivate rồi chờ.</p>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Bundle B đăng ký SensorReader service</div></div>
+        <div class="flow-arrow">↓ registry</div>
+        <div class="flow-row"><div class="flow-node">Service Registry (theo interface + version)</div></div>
+        <div class="flow-arrow">↓ inject qua @Reference</div>
+        <div class="flow-row"><div class="flow-node success">Component A @Activate → ACTIVE</div></div>
+        <div class="flow-arrow">↓ B bị stop/gỡ service</div>
+        <div class="flow-row"><div class="flow-node warning">Component A @Deactivate → chờ</div></div>
+      </div>
+      <table class="feature-table">
+        <thead><tr><th>Thành phần</th><th>Vai trò</th></tr></thead>
+        <tbody>
+          <tr><td><code>@Component</code></td><td>Khai báo class là DS component, framework tự tạo instance</td></tr>
+          <tr><td><code>@Activate</code> / <code>@Deactivate</code></td><td>Hook khi component vào/ra khỏi trạng thái active</td></tr>
+          <tr><td><code>@Reference</code></td><td>Khai báo service phụ thuộc (mặc định là mandatory)</td></tr>
+          <tr><td>Service Registry</td><td>Trao đổi service theo interface, không phụ thuộc class cụ thể</td></tr>
+          <tr><td>Config Admin</td><td>Cấu hình bên ngoài, đổi được lúc runtime, component tự re-activate</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng DS cho hầu hết bundle cần trao đổi service (thay vì tự viết <code>ServiceTracker</code> hay <code>BundleActivator</code> — dễ rò service vì quên unregister). Config Admin dùng khi cấu hình phải đổi mà không build lại bundle: endpoint thiết bị, timeout, danh sách broker.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không lạm dụng dynamic reference mọi nơi: nhiều dependency động làm luồng khởi động và debug rối. Với service gần như luôn tồn tại (core nền tảng), khai <code>mandatory</code> rõ ràng rồi để bundle fail-fast nếu thiếu, thay vì cố sống chấp nhận trạng thái nửa vời. Cũng đừng dùng service registry làm message bus hay event bus — đó không phải mục đích của nó.</p></div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Component</span>(service = <span class="tok-class">TelemetryPublisher</span>.<span class="tok-keyword">class</span>)
+<span class="tok-keyword">public class</span> <span class="tok-class">TelemetryPublisherImpl</span> <span class="tok-keyword">implements</span> <span class="tok-class">TelemetryPublisher</span> {
+
+  <span class="tok-annotation">@Reference</span>                                <span class="tok-comment">// mandatory: không có thì component không active</span>
+  <span class="tok-keyword">private</span> <span class="tok-class">SensorReader</span> sensorReader;
+
+  <span class="tok-annotation">@Reference</span>(cardinality = <span class="tok-class">ReferenceCardinality</span>.OPTIONAL)
+  <span class="tok-keyword">private</span> <span class="tok-class">MqttBroker</span> broker;
+
+  <span class="tok-annotation">@Activate</span> <span class="tok-keyword">void</span> <span class="tok-function">start</span>(<span class="tok-class">Map</span>&lt;<span class="tok-class">String</span>, <span class="tok-class">Object</span>&gt; config) {
+    <span class="tok-class">String</span> topic = (<span class="tok-class">String</span>) config.<span class="tok-function">getOrDefault</span>(<span class="tok-string">"topic"</span>, <span class="tok-string">"telemetry/default"</span>);
+  }
+  <span class="tok-annotation">@Deactivate</span> <span class="tok-keyword">void</span> <span class="tok-function">stop</span>() { <span class="tok-comment">// đóng kết nối; SensorReader có thể đã biến mất trước đó</span> }
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Driver thiết bị (SensorReader) đăng ký service; tầng publish telemetry tham chiếu nó. Khi driver được cập nhật ở runtime, service tạm rút — component publish tự deactivate rồi activate lại với instance mới, không cần restart gateway.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Hay bị hỏi: "Điều gì xảy ra khi service biến mất?" — với DS, component phụ thuộc tự <code>@Deactivate</code>, rồi <code>@Activate</code> lại khi service trở về; đó là lý do phải viết đúng cặp activate/deactivate và không giữ state giả định service luôn tồn tại. Bẫy thứ hai: tự đăng ký service bằng tay qua <code>BundleContext</code> rồi quên <code>unregister</code> → <em>service leak</em> khi bundle dừng, framework vẫn giữ reference cũ.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Service registry: hợp tác theo interface, không wired cứng.</li>
+      <li>DS khai báo component, tự inject và quản lifecycle.</li>
+      <li>Service mất → @Deactivate, quay lại → @Activate.</li>
+      <li>Config Admin cho cấu hình đổi lúc runtime.</li>
+      <li>Đừng lạm dụng dynamic; core dependency để mandatory.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q7</span> Versioning &amp; Import/Export package: bundle A phụ thuộc B thì nâng cấp thế nào?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Trong OSGi, đơn vị version hoá là <strong>package</strong>, không phải cả jar. Mỗi package export được gắn một version theo <strong>semantic versioning</strong> <code>major.minor.micro[.qualifier]</code>; bundle import khai một <strong>version range</strong>. Framework chỉ resolve khi range của bên import giao với version export của bên kia.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Versioning ở mức package cho phép nâng cấp cục bộ đúng nơi thay đổi: sửa implementation mà API không đổi thì bump <em>micro</em>, mọi consumer cũ vẫn resolve bình thường. Nếu version hoá ở mức cả jar, bất kỳ thay đổi nhỏ nào cũng buộc mọi thứ phải nhảy version cùng nhau — đúng cái đau đầu mà OSGi muốn tránh.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <p>Quy tắc bump version và cách khai range quyết định việc nâng cấp có "êm" hay không.</p>
+      <table class="feature-table">
+        <thead><tr><th>Thay đổi</th><th>Bump</th><th>Hệ quả với consumer</th></tr></thead>
+        <tbody>
+          <tr><td>Sửa bug, không đổi signature</td><td>micro (1.4.0 → 1.4.1)</td><td>Range cũ vẫn khớp</td></tr>
+          <tr><td>Thêm method/class mới (backward compatible)</td><td>minor (1.4 → 1.5)</td><td>Range cũ vẫn khớp</td></tr>
+          <tr><td>Xoá/đổi signature, breaking change</td><td>major (1.x → 2.0)</td><td>Consumer phải mở rộng range</td></tr>
+        </tbody>
+      </table>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Bundle B export com.foo 1.4.0</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node">Bundle A Import-Package: com.foo;version="[1.4,2)"</div></div>
+        <div class="flow-arrow">↓ nâng B lên 1.5.0 (minor)</div>
+        <div class="flow-row"><div class="flow-node success">Resolve OK — không cần build lại A</div></div>
+        <div class="flow-arrow">↓ nâng B lên 2.0.0 (major)</div>
+        <div class="flow-row"><div class="flow-node warning">Resolve fail cho tới khi A mở rộng range</div></div>
+      </div>
+      <p>Nói cách khác: range do <em>consumer</em> khai, nên consumer là bên quyết định mình sẵn sàng nhận tới mức nào. Nhà cung cấp chỉ cam kết bằng cách bump đúng theo semver.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Khai range rõ ràng <em>luôn luôn</em> cho mọi Import-Package: để trống version nghĩa là chấp nhận mọi version, kể cả 2.0 breaking — nguy hiểm. Dùng range hẹp (<code>[1.4,1.5)</code>) khi API còn non và bạn muốn kiểm soát chặt.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng khai range quá rộng cho tiện (ví dụ <code>[1,3)</code> cho mọi thứ) — bạn nhận breaking change mà không hay. Cũng đừng bump major vì lý do nội bộ không ảnh hưởng API: bump major vô cớ đẩy hàng loạt consumer vào trạng thái không resolve được. Và khi nhiều provider cùng export một package (split package hoặc trùng), wiring trở nên khó đoán — nên giữ một nguồn export duy nhất cho mỗi package.</p></div>
+    <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Manifest của bundle B (provider)</span>
+Export-Package: com.foo.api;version="1.5.0", com.foo.spi;version="1.5.0"
+
+<span class="tok-comment"># Manifest của bundle A (consumer)</span>
+Import-Package: com.foo.api;version="[1.4,2)", com.foo.spi;version="[1.4,2)"
+
+<span class="tok-comment"># Kiểm tra wiring resolve được không (Bnd / bndtools)</span>
+bnd print --verify bundle-A.jar</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Bundle B được vá lỗi và nâng 1.4.0 → 1.4.1. Các bundle A, C, D đang khai <code>[1.4,2)</code> resolve lại ngay, không cần build lại — một lợi ích trực tiếp của việc version hoá theo package thay vì theo jar.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy hay gặp: bỏ version trong <code>Import-Package</code> — bundle "chạy được" ở dev nhưng có thể resolve nhầm một major version khác trong production. Bẫy thứ hai là <em>split package</em>: hai bundle cùng export một package làm wiring phụ thuộc thứ tự, hành vi không xác định — OSGi cho phép điều này (khác JPMS cấm hẳn) nhưng nên tránh. "Uses constraint" cũng là chủ đề hay bị hỏi: nó lan version của package bị một export dùng gián tiếp, nên một số breakage không nằm ở package bạn import trực tiếp.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Version hoá theo package, không theo jar.</li>
+      <li>Semver: micro/minor/patch không phá, major phá.</li>
+      <li>Consumer khai version range trong Import-Package.</li>
+      <li>Range khớp thì nâng cấp êm, không build lại.</li>
+      <li>Major bump bắt buộc consumer cập nhật.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="th-c-thi-ranh-gi-i-ki-n-tr-c-plugin">
+          <h2 class="section-title">Thực thi ranh giới & kiến trúc plugin</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q8</span> Enforce ranh giới module: Spring Modulith + ArchUnit trong CI thế nào?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Spring Modulith</strong> là bộ hỗ trợ module hoá ứng dụng Spring: mỗi package cấp dưới gốc là một module, chỉ package gốc của module được coi là API công khai, và các module giao tiếp qua event. <strong>ArchUnit</strong> là thư viện test kiến trúc: bạn viết luật phụ thuộc bằng code Java và chạy như unit test — phụ thuộc sai làm test đỏ.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Ranh giới module chỉ có giá trị khi bị <em>thi hành tự động</em>. Nếu chỉ là tài liệu hay quy ước, sau vài sprint ai cũng import chéo cho nhanh. Đưa luật vào CI biến "đừng phụ thuộc sai" thành một build gate: PR vi phạm bị chặn ngay, chi phí sửa luôn thấp vì sai mới sinh ra chứ chưa kịp nhân rộng.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <p>Kiểm ở hai lớp: Modulith verify cấu trúc/event, ArchUnit kiểm luật phụ thuộc chi tiết hơn.</p>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Viết module theo package</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node">Modulith verify + ArchUnit rules</div></div>
+        <div class="flow-arrow">↓ chạy như test</div>
+        <div class="flow-row"><div class="flow-node success">CI gate: build đỏ nếu vi phạm</div></div>
+        <div class="flow-arrow">↓ phát hiện sớm</div>
+        <div class="flow-row"><div class="flow-node warning">Dependency cycle → refactor ngay</div></div>
+      </div>
+      <table class="feature-table">
+        <thead><tr><th>Công cụ</th><th>Kiểm gì</th><th>Chạy ở đâu</th></tr></thead>
+        <tbody>
+          <tr><td>Spring Modulith</td><td>Module boundary, API công khai, event giữa module</td><td>Test tích hợp</td></tr>
+          <tr><td>ArchUnit</td><td>Luật phụ thuộc package, layer, cycle, naming</td><td>Unit test thường</td></tr>
+          <tr><td>javadoc/document</td><td>Sinh tài liệu quan hệ giữa module</td><td>Build/CI artifact</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng ngay khi dự án có hơn vài module nghiệp vụ và nhiều người cùng commit. ArchUnit đặc biệt hợp khi muốn giữ luật cụ thể: "controller không được import repository", "domain không được phụ thuộc framework". Spring Modulith hợp khi muốn giao tiếp giữa module theo event và có tài liệu kiến trúc tự sinh.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng viết 50 luật ArchUnit từ ngày đầu — đội sẽ tắt test vì "vỡ lung tung". Bắt đầu với vài luật then chốt (không cycle, không chạm internal, không phụ thuộc chéo tầng), rồi tăng dần. Cũng đừng ép event-based giữa module khi một lời gọi đồng bộ đơn giản là đủ: event thêm eventual consistency, tracing và độ phức tạp debug — chỉ dùng khi thật cần decouple.</p></div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Spring Modulith: verify ranh giới module trong test</span>
+<span class="tok-keyword">class</span> <span class="tok-class">ModularityTests</span> {
+  <span class="tok-annotation">@Test</span> <span class="tok-keyword">void</span> <span class="tok-function">verifyModules</span>() {
+    <span class="tok-class">ApplicationModules</span> modules = <span class="tok-class">ApplicationModules</span>.<span class="tok-function">of</span>(<span class="tok-class">ShopApplication</span>.<span class="tok-keyword">class</span>);
+    modules.<span class="tok-function">verify</span>();                      <span class="tok-comment">// không cycle, boundary đúng</span>
+    modules.<span class="tok-function">document</span>(<span class="tok-class">Documenter</span>.<span class="tok-class">Canvas</span>.<span class="tok-class">C4</span>);   <span class="tok-comment">// sinh tài liệu kiến trúc</span>
+  }
+}
+
+<span class="tok-comment">// ArchUnit: domain không được phụ thuộc framework</span>
+<span class="tok-annotation">@Test</span> <span class="tok-keyword">void</span> <span class="tok-function">domainHasNoFrameworkDependency</span>() {
+  <span class="tok-class">noClasses</span>().<span class="tok-function">that</span>().<span class="tok-function">resideInAPackage</span>(<span class="tok-string">"..domain.."</span>)
+    .<span class="tok-function">should</span>().<span class="tok-function">dependOnClassesThat</span>()
+    .<span class="tok-function">resideInAnyPackage</span>(<span class="tok-string">"org.springframework.."</span>)
+    .<span class="tok-function">check</span>(<span class="tok-keyword">new</span> <span class="tok-class">ClassFileImporter</span>().<span class="tok-function">importPackages</span>(<span class="tok-string">"com.example"</span>));
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Cửa hàng đang refactor hoá đơn: ArchUnit chặn một PR vô tình cho package <code>orders</code> import repository nội bộ của <code>inventory</code>. Build đỏ ngay trong CI, tác giả sửa sang gọi API của <code>inventory</code> — chưa kịp hình thành thói quen xấu.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Nhầm Spring Modulith là framework mới thay Spring Boot: nó là bổ trợ, chạy trên app Spring Boot sẵn có. Bẫy thứ hai: đặt ArchUnit test ở module không được chạy trong pipeline (bị exclude khỏi <code>mvn test</code>/<code>gradle check</code>) → luật tồn tại mà không bao giờ thi hành. Luôn kiểm rằng gate chạy trong CI thật, không chỉ trên máy dev.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Ranh giới chỉ đáng tin khi có gate tự động.</li>
+      <li>Spring Modulith: verify + tài liệu kiến trúc.</li>
+      <li>ArchUnit: luật phụ thuộc dạng code test.</li>
+      <li>Bắt đầu vài luật then chốt, tăng dần.</li>
+      <li>Đảm bảo test chạy trong CI, không chỉ máy dev.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q9</span> Kiến trúc plugin/extension: SPI + ServiceLoader, extension point, khi nào KHÔNG nên chọn OSGi?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Kiến trúc plugin cho phép mở rộng hệ thống mà không sửa core: core định nghĩa <strong>extension point</strong> (interface), plugin hiện thực nó. Cách nhẹ nhất trên JVM là <strong>SPI + <code>ServiceLoader</code></strong>: plugin khai implementation trong <code>META-INF/services/&lt;interface&gt;</code>, core nạp chúng lúc chạy. Bản "nặng" hơn là OSGi, thêm isolation và hot-swap nhưng kèm chi phí lớn.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Hai lựa chọn này khác nhau ở mức <em>cô lập và động</em>. <code>ServiceLoader</code> chạy trên classpath phẳng: đơn giản, không cần runtime đặc biệt, nhưng mọi plugin ở cùng một classloader — không có multi-version, không update lúc đang chạy, một plugin lỗi có thể ảnh hưởng cả tiến trình. OSGi cho isolation và hot-swap thật, đổi lại là toàn bộ chi phí vận hành kèm theo.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <p>Nguyên tắc chọn: đi từ nhẹ tới nặng, chỉ leo thang khi nhu cầu thực sự bắt buộc phiên bản nhẹ không đáp ứng được.</p>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node warning">Nhu cầu mở rộng?</div></div>
+        <div class="flow-arrow">↓ đủ dùng, không cần hot-swap</div>
+        <div class="flow-row"><div class="flow-node success">SPI + ServiceLoader</div></div>
+        <div class="flow-arrow">↓ cần cô lập / version / runtime cập nhật?</div>
+        <div class="flow-row"><div class="flow-node">DI container + interface config (Spring)</div></div>
+        <div class="flow-arrow">↓ thật sự cần isolation + hot-swap trên thiết bị</div>
+        <div class="flow-row"><div class="flow-node primary">OSGi (chỉ khi đủ lý do)</div></div>
+      </div>
+      <table class="feature-table">
+        <thead><tr><th>Tiêu chí</th><th>ServiceLoader</th><th>OSGi</th></tr></thead>
+        <tbody>
+          <tr><td>Độ phức tạp</td><td>Thấp</td><td>Cao</td></tr>
+          <tr><td>Cô lập plugin</td><td>Không (classpath chung)</td><td>Có (classloader riêng)</td></tr>
+          <tr><td>Multi-version thư viện</td><td>Không</td><td>Có</td></tr>
+          <tr><td>Update lúc runtime</td><td>Không (cần restart)</td><td>Có</td></tr>
+          <tr><td>Chi phí vận hành</td><td>Thấp</td><td>Cao (tooling, debug, học)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Chọn SPI/<code>ServiceLoader</code> khi plugin tin cậy, ít, và cập nhật cùng nhịp deploy — ví dụ nhiều implementation của một interface, driver nội bộ, hoặc mở rộng build-time. Chọn OSGi khi thật sự cần: plugin bên thứ ba không tin cậy, phải cập nhật từng phần lúc đang chạy trên thiết bị không thể restart, hoặc cần nhiều version thư viện cùng tồn tại.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p><strong>Không</strong> chọn OSGi khi: hệ thống deploy theo container và restart nhanh là chuyện bình thường; team chưa có người từng vận hành OSGi; plugin tin cậy, nội bộ; hoặc vấn đề thật chỉ là "muốn decouple code". Những trường hợp đó, Spring Boot trên classpath với interface rõ ràng tiết kiệm hàng tháng công sức. Đường chuyển từ OSGi sang Spring Boot: bỏ Manifest và service registry, thay <code>@Reference</code> bằng injection của DI container, thay activation bằng bean lifecycle, gộp bundle boundary thành module/package boundary, và chấp nhận restart thay vì hot-swap — isolation giảm nhưng độ phức tạp vận hành cũng giảm mạnh.</p></div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Extension point do core định nghĩa</span>
+<span class="tok-keyword">public interface</span> <span class="tok-class">PaymentProvider</span> {
+  <span class="tok-class">String</span> <span class="tok-function">id</span>();
+  <span class="tok-class">PaymentResult</span> <span class="tok-function">charge</span>(<span class="tok-class">PaymentRequest</span> req);
+}
+
+<span class="tok-comment">// Plugin khai trong META-INF/services/com.example.PaymentProvider</span>
+<span class="tok-comment">// com.acme.StripeProvider</span>
+
+<span class="tok-comment">// Core nạp plugin, không biết class cụ thể</span>
+<span class="tok-class">ServiceLoader</span>&lt;<span class="tok-class">PaymentProvider</span>&gt; loader = <span class="tok-class">ServiceLoader</span>.<span class="tok-function">load</span>(<span class="tok-class">PaymentProvider</span>.<span class="tok-keyword">class</span>);
+<span class="tok-keyword">for</span> (<span class="tok-class">PaymentProvider</span> p : loader) {
+  <span class="tok-keyword">if</span> (p.<span class="tok-function">id</span>().<span class="tok-function">equals</span>(requestedId)) <span class="tok-keyword">return</span> p.<span class="tok-function">charge</span>(req);
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Nền tảng thanh toán nội bộ có 4 cổng nội bộ, cập nhật cùng lúc deploy app: <code>ServiceLoader</code> đủ dùng, không cần OSGi. Ngược lại, hộp gateway ngoài hiện trường thêm driver thiết bị mới mà không được phép ngắt kết nối — đó mới là ca cần hot-swap.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy hay gặp: chọn OSGi cho một app web stateless — trả giá toàn bộ phức tạp để đổi lấy khả năng gần như không bao giờ dùng. Bẫy ngược lại: dùng <code>ServiceLoader</code> nhưng kỳ vọng nó cô lập plugin — nó không, mọi plugin chung classloader nên xung đột version vẫn xảy ra. Cần ghi nhớ: OSGi giải quyết isolation/version/hot-swap, không phải "decouple cho đẹp".</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Extension point + plugin qua SPI/ServiceLoader là nhẹ nhất.</li>
+      <li>ServiceLoader không cô lập, không hot-swap.</li>
+      <li>OSGi có isolation, multi-version, update runtime.</li>
+      <li>Đi từ nhẹ tới nặng, chỉ leo khi thật cần.</li>
+      <li>Chuyển sang Spring Boot: bỏ manifest/registry, dùng DI.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+['        <section class="section" id="audit-deepening"><h2 class="section-title">Đào sâu và đính chính phỏng vấn</h2><article class="qa-card" id="deepening-10"><h3 class="qa-question">OSGi dependency động: static/dynamic reference và classloader không phải sandbox</h3><div class="qa-answer"><div class="ans-block"><span class="ans-label">What</span><p>OSGi bundle wiring giải quyết package visibility/version, còn Declarative Services quản service dependency với cardinality và policy cụ thể. Mất service không phải lúc nào cũng deactivate component; classloader isolation cũng không phải security sandbox cho plugin không tin cậy.</p></div><div class="ans-block"><span class="ans-label">How / Trade-offs / Pitfalls</span><ul><li>Đính chính cách nói tuyệt đối ở card DS: mandatory reference không thỏa mãn khiến component không thể active/tiếp tục satisfied. Nhưng với dynamic policy có replacement phù hợp, SCR có thể bind/unbind mà không deactivate; optional dynamic reference có thể mất service mà component vẫn active. Static policy có vòng reactivation khi wiring cần đổi tùy policy option và replacement.</li><li>@Reference mặc định mandatory unary và static policy. Cần nêu cardinality (0..1, 1..1, 0..n, 1..n), static/dynamic và reluctant/greedy; không giữ service reference vĩnh viễn khi runtime thay đổi. Dynamic field thường dùng volatile hoặc cơ chế bind/unbind đúng spec, code phải chịu được service rút giữa các thao tác.</li><li>Bundle state ACTIVE không đồng nghĩa mọi DS component đã active: có thể unsatisfied reference/configuration; delayed component cũng chưa instantiate cho tới khi được yêu cầu. Debug manifest import/export và version range/uses constraint trước, rồi component satisfied/config và service ranking; không chữa mọi lỗi bằng DynamicImport-Package:*.</li><li>Class identity là tên đầy đủ + defining classloader. Static state chia theo class thực được define, không luôn “mỗi bundle một bản”: nhiều bundle import cùng API class từ exporter sẽ dùng cùng Class. Split copies mới sinh cast lỗi cùng tên. Update bundle có thể cần refresh dependent wiring; không hứa mọi dependent chuyển version tức thì.</li><li>Isolation classloader không ngăn malicious code truy cập filesystem/network hoặc gọi System.exit theo quyền process. Plugin không tin cậy cần process/container isolation, permission design và supply-chain controls. OSGi không thay sandbox.</li></ul></div><div class="flow-diagram">Evidence → bounded resource / transaction boundary → failure test → verify recovery</div><pre class="code-block"><code>@Reference(
+    cardinality = ReferenceCardinality.OPTIONAL,
+    policy = ReferencePolicy.DYNAMIC)
+volatile OptionalTelemetry telemetry;
+// Call site snapshot field và chấp nhận dependency vắng mặt.
+// Đây là minh hoạ DS, không phải Java Optional&lt;T&gt; wrapper.</code></pre><div class="ans-block"><span class="ans-label">Nguồn chính thức</span><ul><li><a href="https://docs.osgi.org/specification/osgi.cmpn/8.1.0/service.component.html">osgids — tài liệu chính thức</a></li><li><a href="https://docs.osgi.org/specification/osgi.core/8.0.0/framework.module.html">osgicore — tài liệu chính thức</a></li><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html">logging — tài liệu chính thức</a></li></ul></div></div></article></section>
+<div class="nav-pager">', '          <a class="prev" href="38-elasticsearch.html"><span class="label">Trước</span><span class="title">38. Elasticsearch</span></a>', '          <a class="next" href="40-build-tools-gradle-maven.html"><span class="label">Tiếp</span><span class="title">40. Build Tools &amp; Agile</span></a>', '        </div>']
+      </div>
+
+      <footer class="site-footer">
+        <p>Knowledge Gym — Module 39 / 42</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

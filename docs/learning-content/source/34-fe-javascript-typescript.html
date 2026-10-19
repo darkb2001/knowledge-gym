@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>34. JavaScript &amp; TypeScript cho Fullstack — Knowledge Gym</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Knowledge<br><span>Gym</span></h1>
+        <p>Java, AWS DVA-C02 &amp; Frontend</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>34. JavaScript &amp; TypeScript cho Fullstack</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 34</div>
+          <h1 class="module-title">JavaScript &amp; TypeScript cho Fullstack</h1>
+          <p class="module-subtitle">JavaScript hiện đại và TypeScript dùng hằng ngày ở fullstack: event loop, closure, async, module, type system, generic và kiểm tra kiểu ở ranh giới API.</p>
+        </div>
+
+        <section class="section" id="javascript-runtime-event-loop-scope-this-prototype">
+          <h2 class="section-title">JavaScript runtime — event loop, scope, this, prototype</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q1</span> Event loop hoạt động thế nào — vì sao setTimeout(fn, 0) chạy sau Promise.then?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>JavaScript chạy <strong>single-threaded</strong> trên một call stack; <strong>event loop</strong> điều phối phần bất đồng bộ qua hai hàng đợi: <strong>microtask</strong> (<code>Promise.then</code>, <code>queueMicrotask</code>, <code>MutationObserver</code>) và <strong>macrotask</strong> (<code>setTimeout</code>, <code>setInterval</code>, I/O, UI event). Mỗi vòng: chạy hết call stack → xả <em>sạch</em> microtask queue → lấy <em>một</em> macrotask → render nếu cần → lặp lại.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Microtask luôn được ưu tiên và phải cạn trước khi event loop nhích sang macrotask kế tiếp. Vì thế <code>Promise.then</code> chạy trước <code>setTimeout 0</code> dù <code>setTimeout</code> được gọi trước — đây là thứ tự bắt buộc của spec, không phải chuyện timing ngẫu nhiên. Nắm sai thứ tự này là nguồn bug "log ra sai chỗ" rất phổ biến.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Call stack rỗng</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node warning">Drain hết microtask (Promise.then)</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Lấy 1 macrotask (setTimeout, I/O)</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Render / repaint → lặp lại</div></div>
+      </div>
+      <p><code>await</code> trong async function thực chất cũng là microtask (phần sau <code>await</code> được schedule vào microtask queue), nên code sau <code>await</code> vẫn chạy trước <code>setTimeout 0</code> kế tiếp.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng khi cần debug thứ tự log, khi muốn defer việc nặng để UI kịp vẽ (<code>setTimeout 0</code> hoặc <code>scheduler.yield</code>), hoặc khi cần gộp nhiều cập nhật trong một microtask.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không đổ việc nặng vào microtask: một chuỗi <code>Promise.then</code> tự gọi lại sẽ <em>starvation</em> — event loop không bao giờ tới bước render, UI đứng hình. Việc cần "sau khi browser vẽ" thì dùng <code>requestAnimationFrame</code>, không phải microtask.</p></div>
+    <div class="code-block" data-lang="ts"><pre><code><span class="tok-class">console</span>.<span class="tok-function">log</span>(<span class="tok-string">"A"</span>);
+<span class="tok-function">setTimeout</span>(() =&gt; <span class="tok-class">console</span>.<span class="tok-function">log</span>(<span class="tok-string">"B"</span>), <span class="tok-number">0</span>);   <span class="tok-comment">// macrotask</span>
+<span class="tok-class">Promise</span>.<span class="tok-function">resolve</span>().<span class="tok-function">then</span>(() =&gt; <span class="tok-class">console</span>.<span class="tok-function">log</span>(<span class="tok-string">"C"</span>)); <span class="tok-comment">// microtask</span>
+<span class="tok-class">console</span>.<span class="tok-function">log</span>(<span class="tok-string">"D"</span>);
+
+<span class="tok-comment">// output: A, D, C, B</span>
+<span class="tok-comment">// A, D = synchronous trên stack; C = microtask; B = macrotask</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Autocomplete: gõ phím schedule một microtask để huỷ/refresh state, còn gọi API để trong <code>setTimeout</code> debounce — UI phản hồi ngay, không chờ network.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Người phỏng vấn hay trộn <code>setTimeout 0</code>, <code>Promise.then</code> và <code>await</code> trong một snippet rồi hỏi output. Nhớ: mỗi lần <code>await</code> nhường quyền cho microtask queue, và <code>setTimeout</code> bên trong <code>then</code> vẫn là macrotask — thứ tự thay đổi theo số lần nhường quyền.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>JS single-threaded: call stack + event loop + task queues.</li>
+      <li>Microtask (Promise.then) xả hết trước mỗi macrotask (setTimeout).</li>
+      <li>Vì vậy setTimeout 0 luôn sau Promise.then.</li>
+      <li>await = nhường quyền ở ranh giới microtask.</li>
+      <li>Microtask quá nhiều → starvation, UI không render.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q2</span> Closure là gì — giải thích bẫy vòng lặp var + setTimeout và cách sửa</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Closure</strong> là hàm "nhớ" được các biến thuộc scope nơi nó được tạo, kể cả sau khi scope đó đã kết thúc. Scope chain là chuỗi lexical environment: mỗi hàm giữ reference tới environment cha, lookup biến đi từ trong ra ngoài. Điểm cốt tử: closure bắt giữ <em>binding</em> (ô biến), không phải bản sao giá trị tại thời điểm tạo hàm.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p><code>var</code> là function-scoped: cả vòng lặp chỉ có <em>một</em> binding <code>i</code>, nên mọi callback đều trỏ vào cùng ô nhớ đó và đọc giá trị cuối cùng. <code>let</code> tạo binding mới cho từng iteration, nên mỗi callback giữ giá trị riêng — đó là lý do cùng một vòng lặp, đổi <code>var</code> thành <code>let</code> là output khác hẳn.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">for (var i = 0; i &lt; 3; i++)</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node warning">1 binding i dùng chung cho cả loop</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">3 closure cùng trỏ vào i</div><div class="flow-node">i = 3 khi callback chạy</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Sửa: let (binding per iteration) hoặc IIFE chụp bản sao</div></div>
+      </div>
+      <p>Cách sửa phổ biến: (1) dùng <code>let</code>; (2) wrap trong IIFE truyền <code>i</code> vào tham số; (3) dùng <code>arr.forEach((v) =&gt; ...)</code> — callback nhận tham số riêng mỗi lần gọi.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Closure là nền của debounce/throttle, module private state (biến "riêng tư" mà không cần class), memoization, currying và React hooks (<code>useState</code> trả về hàm giữ state qua closure — cũng là gốc của bug stale closure).</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không tự nhiên tạo closure bắt cả object lớn (cache, DOM node) rồi giữ nó sống mãi — GC không thu hồi được, gây memory leak trong SPA. Không "chữa" stale closure bằng cách thêm dependency mù quáng vào <code>useEffect</code>; hiểu binding trước.</p></div>
+    <div class="code-block" data-lang="ts"><pre><code><span class="tok-comment">// BUG: var dùng chung một binding</span>
+<span class="tok-keyword">for</span> (<span class="tok-keyword">var</span> i = <span class="tok-number">0</span>; i &lt; <span class="tok-number">3</span>; i++) {
+  <span class="tok-function">setTimeout</span>(() =&gt; <span class="tok-class">console</span>.<span class="tok-function">log</span>(i), <span class="tok-number">0</span>); <span class="tok-comment">// 3 3 3</span>
+}
+
+<span class="tok-comment">// FIX 1: let tạo binding mới mỗi iteration</span>
+<span class="tok-keyword">for</span> (<span class="tok-keyword">let</span> j = <span class="tok-number">0</span>; j &lt; <span class="tok-number">3</span>; j++) {
+  <span class="tok-function">setTimeout</span>(() =&gt; <span class="tok-class">console</span>.<span class="tok-function">log</span>(j), <span class="tok-number">0</span>); <span class="tok-comment">// 0 1 2</span>
+}
+
+<span class="tok-comment">// FIX 2: IIFE chụp bản sao giá trị</span>
+<span class="tok-keyword">for</span> (<span class="tok-keyword">var</span> k = <span class="tok-number">0</span>; k &lt; <span class="tok-number">3</span>; k++) {
+  (<span class="tok-keyword">function</span> (<span class="tok-class">n</span>) {
+    <span class="tok-function">setTimeout</span>(() =&gt; <span class="tok-class">console</span>.<span class="tok-function">log</span>(n), <span class="tok-number">0</span>); <span class="tok-comment">// 0 1 2</span>
+  })(k);
+}</code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Câu hỏi kinh điển "output của đoạn for-var-setTimeout là gì". Đáp án chuẩn: <code>3 3 3</code>, vì cả ba closure chia sẻ một binding <code>i</code>. Cũng hay bị hỏi closure trong event listener tạo trong loop — cùng bản chất, cùng cách sửa.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Closure = hàm nhớ scope nơi nó sinh ra.</li>
+      <li>Nó capture binding, không capture giá trị tại thời điểm tạo.</li>
+      <li>var: một binding cho cả loop → 3 3 3.</li>
+      <li>let: binding mỗi iteration → 0 1 2; hoặc dùng IIFE/forEach.</li>
+      <li>Closure mạnh cho debounce, module state, hooks.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q3</span> this trong JavaScript xác định thế nào — vì sao truyền method làm callback bị mất this?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><code>this</code> phụ thuộc <em>cách hàm được gọi</em> (call-site), không phải nơi định nghĩa: gọi như method thì <code>this</code> là object trước dấu chấm; gọi hàm trần thì <code>undefined</code> (strict mode) hoặc <code>globalThis</code>; <code>new</code> thì là instance đang tạo; <code>call</code>/<code>apply</code>/<code>bind</code> thì do caller chỉ định. <strong>Arrow function</strong> ngoại lệ: nó không có <code>this</code> riêng, kế thừa <code>this</code> từ lexical scope bao quanh.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Khi viết <code>setTimeout(obj.method, 0)</code>, JS chỉ truyền <em>function reference</em>, object bị bỏ lại phía sau. Call-site bây giờ là một lời gọi hàm trần nên <code>this</code> = <code>undefined</code> → lỗi <code>Cannot read properties of undefined</code> ngay khi method chạm vào field của nó. Đây là bug số một khi truyền method làm callback.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">obj.method()</div><div class="flow-node success">this = obj</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">const f = obj.method</div><div class="flow-node warning">f() → this = undefined</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Sửa: .bind(obj) hoặc arrow wrapper</div></div>
+      </div>
+      <p>Ba cách sửa: <code>obj.method.bind(obj)</code> (cố định this, tạo hàm mới mỗi lần gọi bind), arrow wrapper <code>() =&gt; obj.method()</code> (giữ this tại nơi gọi), hoặc khai báo method bằng <strong>class field arrow</strong> <code>method = () =&gt; {...}</code> để this luôn gắn với instance.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Bind/arrow khi truyền callback cho DOM listener, <code>setTimeout</code>, <code>then</code>/<code>catch</code>, hoặc khi destructure method ra khỏi object; <code>call</code>/<code>apply</code> khi cần mượn hàm hoặc gọi với this khác (<code>Array.prototype.slice.call(arguments)</code>).</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không arrow-field hoá mọi method: mỗi instance mang bản hàm riêng (memory tăng, không share trên prototype). Không dùng arrow làm method khi cần <code>this</code> động (ví dụ method của class cần gọi qua <code>super</code> hoặc qua delegate). Không <code>bind</code> lặp trong render — tạo hàm mới mỗi lần, phá memoization.</p></div>
+    <div class="code-block" data-lang="ts"><pre><code><span class="tok-keyword">const</span> counter = {
+  value: <span class="tok-number">0</span>,
+  <span class="tok-function">inc</span>() { <span class="tok-keyword">this</span>.value++; <span class="tok-keyword">return</span> <span class="tok-keyword">this</span>.value; },
+};
+
+<span class="tok-function">setTimeout</span>(counter.inc, <span class="tok-number">10</span>);                  <span class="tok-comment">// this = undefined → TypeError</span>
+<span class="tok-function">setTimeout</span>(counter.inc.<span class="tok-function">bind</span>(counter), <span class="tok-number">10</span>);    <span class="tok-comment">// OK</span>
+<span class="tok-function">setTimeout</span>(() =&gt; counter.<span class="tok-function">inc</span>(), <span class="tok-number">10</span>);         <span class="tok-comment">// OK — arrow giữ this ngoài</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>React class component trước đây hay khai báo <code>handleClick = () =&gt; this.setState(...)</code> đúng vì arrow field giữ <code>this</code> là instance; functional component + hooks bỏ hẳn vấn đề này.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy hay gặp: truyền <code>this.handleChange</code> vào <code>onChange</code> rồi mất this; hoặc dùng arrow trong object literal khiến <code>this</code> trỏ ra ngoài thay vì vào object. Nhớ thứ tự ưu tiên: <code>new</code> &gt; <code>bind</code> &gt; method call &gt; hàm trần, và arrow luôn "miễn nhiễm" với mọi quy tắc đó.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>this theo call-site, không theo nơi khai báo.</li>
+      <li>Truyền method làm callback → mất object → this undefined.</li>
+      <li>Sửa: bind, arrow wrapper, hoặc arrow class field.</li>
+      <li>Arrow không có this riêng — lấy từ scope ngoài.</li>
+      <li>Ưu tiên: new &gt; bind &gt; method &gt; hàm trần.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q4</span> Prototype chain và class trong JS hoạt động ra sao — instanceof kiểm tra gì?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Mỗi object có internal slot <code>[[Prototype]]</code> (đọc bằng <code>Object.getPrototypeOf</code>). Truy cập một property không có trên chính object sẽ đi theo <strong>prototype chain</strong> lên các prototype cha cho tới <code>Object.prototype</code> rồi <code>null</code>. <code>class</code> chỉ là cú pháp đường (sugar) trên prototype: method nằm trên <code>ClassName.prototype</code>, <code>extends</code> nối prototype chain, <code>super()</code> gọi constructor của lớp cha.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Method nằm trên prototype dùng chung một bản cho mọi instance thay vì copy vào từng object — tiết kiệm bộ nhớ đáng kể khi tạo nhiều instance. <code>instanceof</code> không kiểm tra "kiểu tĩnh" mà duyệt prototype chain của object, tìm xem có gặp <code>Constructor.prototype</code> hay không; vì thế <code>d instanceof Animal</code> đúng khi <code>Dog</code> kế thừa <code>Animal</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">d (instance)</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Dog.prototype</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Animal.prototype</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Object.prototype → null (hết chain)</div></div>
+      </div>
+      <p>Lookup dừng ở lần gặp property đầu tiên — nên method ở lớp con "che" (shadow) method cùng tên ở lớp cha. <code>Object.create(proto)</code> tạo object với prototype chỉ định, đúng cơ chế bên dưới của <code>class</code>.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng prototype/class khi cần chia sẻ hành vi giữa nhiều instance và muốn kế thừa có kiểm soát. Khi cần ghép nhiều nguồn hành vi mà không có quan hệ "là-một", ưu tiên <strong>composition</strong> hoặc mixin hơn là đào sâu cây kế thừa.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng xây cây kế thừa sâu 4–5 tầng chỉ để tái dùng vài hàm — dễ vỡ khi thay lớp giữa. Đừng nới quá nhiều thứ lên <code>Object.prototype</code> (monkey patching) vì có thể phá code của thư viện khác.</p></div>
+    <div class="code-block" data-lang="ts"><pre><code><span class="tok-keyword">class</span> <span class="tok-class">Animal</span> {
+  <span class="tok-function">constructor</span>(<span class="tok-keyword">public</span> name: <span class="tok-class">string</span>) {}
+  <span class="tok-function">speak</span>() { <span class="tok-keyword">return</span> <span class="tok-string">`${this.name} makes a sound`</span>; }
+}
+
+<span class="tok-keyword">class</span> <span class="tok-class">Dog</span> <span class="tok-keyword">extends</span> <span class="tok-class">Animal</span> {
+  <span class="tok-function">speak</span>() { <span class="tok-keyword">return</span> <span class="tok-string">`${this.name} barks`</span>; }
+}
+
+<span class="tok-keyword">const</span> d = <span class="tok-keyword">new</span> <span class="tok-class">Dog</span>(<span class="tok-string">"Rex"</span>);
+d <span class="tok-keyword">instanceof</span> <span class="tok-class">Dog</span>;                         <span class="tok-comment">// true</span>
+d <span class="tok-keyword">instanceof</span> <span class="tok-class">Animal</span>;                      <span class="tok-comment">// true — duyệt proto chain</span>
+<span class="tok-class">Object</span>.<span class="tok-function">getPrototypeOf</span>(<span class="tok-class">Dog</span>.prototype) === <span class="tok-class">Animal</span>.prototype; <span class="tok-comment">// true</span></code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p><code>instanceof</code> thất bại qua các realm khác nhau: một array tạo trong iframe có prototype khác nên <code>arr instanceof Array</code> = false — dùng <code>Array.isArray</code>. Trong TypeScript, class có cả type và runtime value, còn interface chỉ tồn tại lúc compile nên không dùng được với <code>instanceof</code>.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Property lookup đi theo prototype chain tới null.</li>
+      <li>class = sugar trên prototype, method share một bản.</li>
+      <li>extends nối prototype, super() gọi constructor cha.</li>
+      <li>instanceof duyệt proto chain tìm Constructor.prototype.</li>
+      <li>Kế thừa sâu dễ vỡ — ưu tiên composition.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="async-javascript-v-module">
+          <h2 class="section-title">Async JavaScript và module</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q5</span> Promise có những trạng thái nào — phân biệt Promise.all, allSettled, race, any và cách bắt lỗi đúng</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Promise có ba trạng thái: <strong>pending</strong> → <strong>fulfilled</strong> hoặc <strong>rejected</strong>, chuyển đúng một lần và bất biến sau đó. Bốn combinator chính: <code>all</code> trả mảng kết quả nhưng reject ngay khi một cái fail (fail-fast); <code>allSettled</code> luôn fulfilled với mảng <code>{status, value|reason}</code>; <code>race</code> lấy cái settle đầu tiên bất kể thành công hay lỗi; <code>any</code> lấy cái fulfilled đầu tiên, reject bằng <code>AggregateError</code> nếu tất cả fail.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Chọn sai combinator sinh bug khó thấy: dùng <code>all</code> khi một request phụ có thể fail sẽ làm cả màn hình lỗi dù phần lớn data đã về; dùng <code>allSettled</code> khi mọi kết quả đều bắt buộc sẽ khiến code phải tự kiểm tra status từng phần tử. Hiểu rõ semantics giúp viết code vừa đúng vừa ngắn.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">new Promise / async fn</div><div class="flow-node secondary">pending</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">resolve() → fulfilled → .then()</div><div class="flow-node warning">reject() / throw → rejected → .catch()</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">.finally() chạy dù thành công hay lỗi</div></div>
+      </div>
+      <p><code>.then</code> nhận giá trị fulfilled; ném lỗi bên trong <code>then</code> rơi thẳng xuống <code>catch</code> gần nhất. <code>catch</code> không re-throw sẽ "nuốt" lỗi và biến chuỗi thành fulfilled.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Cần <em>đủ hết</em> dữ liệu để render → <code>all</code>. Cần partial result, chấp nhận vài cái lỗi (dashboard nhiều widget) → <code>allSettled</code>. Timeout hoặc "ai nhanh nhất" → <code>race</code> (kèm một promise reject sau N giây). Gọi nhiều mirror/replica, chỉ cần một cái thành công → <code>any</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng <code>all</code> như một cơ chế cancel: khi một promise reject, các promise còn lại <em>vẫn chạy tiếp</em>, không bị huỷ — muốn huỷ thật phải dùng <code>AbortController</code>. Không dùng <code>any</code> rồi bỏ quên <code>AggregateError</code> để mất hết thông tin lỗi gốc.</p></div>
+    <div class="code-block" data-lang="ts"><pre><code><span class="tok-comment">// fail-fast: một request lỗi là cả mảng reject</span>
+<span class="tok-keyword">const</span> [user, orders] = <span class="tok-keyword">await</span> <span class="tok-class">Promise</span>.<span class="tok-function">all</span>([<span class="tok-function">fetchUser</span>(id), <span class="tok-function">fetchOrders</span>(id)]);
+
+<span class="tok-comment">// không throw: luôn trả về kèm status từng cái</span>
+<span class="tok-keyword">const</span> settled = <span class="tok-keyword">await</span> <span class="tok-class">Promise</span>.<span class="tok-function">allSettled</span>([<span class="tok-function">fetchUser</span>(id), <span class="tok-function">fetchReport</span>(id)]);
+<span class="tok-keyword">const</span> ok = settled.<span class="tok-function">filter</span>((r) =&gt; r.status === <span class="tok-string">"fulfilled"</span>);
+
+<span class="tok-comment">// timeout pattern với race</span>
+<span class="tok-keyword">const</span> withTimeout = <span class="tok-class">Promise</span>.<span class="tok-function">race</span>([<span class="tok-function">fetchSlow</span>(), <span class="tok-function">rejectAfter</span>(<span class="tok-number">3000</span>)]);</code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: <code>Promise.all</code> nhận mảng giá trị không phải Promise vẫn OK (coi như đã fulfilled); truyền một Promise <em>không</em> ở trong mảng mà gọi <code>Promise.all(p1, p2)</code> thì sai signature. Và lỗi hay gặp nhất: <code>catch</code> không re-throw làm lỗi biến mất im lặng, hoặc quên <code>return</code> promise trong <code>then</code> khiến chuỗi không chờ.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Promise: pending → fulfilled | rejected, một lần, bất biến.</li>
+      <li>all fail-fast, allSettled luôn resolve, race ai settle trước, any ai fulfilled trước.</li>
+      <li>throw trong then rơi xuống catch gần nhất.</li>
+      <li>catch không re-throw sẽ nuốt lỗi.</li>
+      <li>all không huỷ các promise còn lại — cần AbortController.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q6</span> async/await có những bẫy nào — quên await, xử lý lỗi song song, tuần tự hoá không cần thiết</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Một <code>async function</code> luôn trả về Promise; <code>await</code> tạm dừng thân hàm (chỉ dùng được trong async) và nhường quyền qua microtask queue. Ba bẫy chuẩn: quên <code>await</code> nên nhận về một Promise thay vì value, và lỗi cũng thoát khỏi <code>try/catch</code> thành unhandled rejection; <code>await</code> tuần tự trong vòng lặp dù các call độc lập; <code>await</code> trong <code>forEach</code> không hề chờ.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Tuần tự hoá không cần thiết làm latency bằng <em>tổng</em> các call thay vì giá trị lớn nhất — với 5 request 200ms là 1000ms thay vì 200ms. Quên <code>await</code> thì bug âm thầm: so sánh Promise với value luôn sai, điều kiện if luôn đúng, và stack trace báo unhandled rejection ở chỗ khác chứ không phải nơi gây lỗi.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node warning">await tuần tự: t1 + t2 + t3</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Promise.all([p1, p2, p3])</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Latency = max(t1, t2, t3)</div></div>
+      </div>
+      <p>Quy tắc: call <em>độc lập</em> thì khởi động hết rồi <code>await</code> một lần bằng <code>Promise.all</code>; call <em>phụ thuộc</em> (dùng kết quả trước làm input) thì bắt buộc tuần tự. Vòng lặp cần chờ thì dùng <code>for...of</code> với <code>await</code>, hoặc <code>await Promise.all(items.map(fn))</code> khi thứ tự không quan trọng.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng <code>Promise.all</code> khi gộp nhiều call API độc lập (user + settings + notification), hoặc khi nạp nhiều bảng song song. Khi cần lỗi từng phần thì bọc <code>allSettled</code> hoặc try/catch quanh từng call.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không <code>Promise.all</code> khi các call phải giữ thứ tự hoặc gây tác dụng phụ lên cùng tài nguyên (ghi đè cùng record). Không dùng <code>forEach</code> với callback async — nó trả <code>undefined</code> và không chờ gì cả. Không bọc <code>await</code> vào <code>try</code> chỉ để "cho chắc" mà bỏ qua việc hiểu promise nào fail khi nào.</p></div>
+    <div class="code-block" data-lang="ts"><pre><code><span class="tok-comment">// SAI: tuần tự, latency = t1 + t2</span>
+<span class="tok-keyword">const</span> u = <span class="tok-keyword">await</span> <span class="tok-function">fetchUser</span>(id);
+<span class="tok-keyword">const</span> o = <span class="tok-keyword">await</span> <span class="tok-function">fetchOrders</span>(id);
+
+<span class="tok-comment">// ĐÚNG: song song, latency = max(t1, t2)</span>
+<span class="tok-keyword">const</span> [user, orders] = <span class="tok-keyword">await</span> <span class="tok-class">Promise</span>.<span class="tok-function">all</span>([<span class="tok-function">fetchUser</span>(id), <span class="tok-function">fetchOrders</span>(id)]);
+
+<span class="tok-comment">// SAI: forEach không chờ await</span>
+items.<span class="tok-function">forEach</span>(<span class="tok-keyword">async</span> (it) =&gt; { <span class="tok-keyword">await</span> <span class="tok-function">save</span>(it); });
+<span class="tok-comment">// ĐÚNG</span>
+<span class="tok-keyword">await</span> <span class="tok-class">Promise</span>.<span class="tok-function">all</span>(items.<span class="tok-function">map</span>((it) =&gt; <span class="tok-function">save</span>(it)));</code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Trong <code>try/catch</code>, nếu chỉ <code>await</code> một lần mà quên await ở các call khác thì lỗi của call đó thoát ra ngoài và trở thành unhandled rejection. Bẫy thứ hai: <code>return await</code> bên trong <code>try</code> là cần thiết nếu muốn <code>catch</code> bắt lỗi — <code>return promise</code> không await sẽ thoát khỏi try trước khi lỗi xảy ra.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>async luôn trả Promise; await nhường microtask.</li>
+      <li>Quên await → nhận Promise, lỗi thành unhandled rejection.</li>
+      <li>Call độc lập thì Promise.all, latency = max.</li>
+      <li>Call phụ thuộc thì giữ tuần tự bằng for...of.</li>
+      <li>forEach + async không chờ — dùng Promise.all(map).</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q7</span> Vì sao immutability quan trọng — spread và structuredClone khác gì, và vì sao ưu tiên map/filter/reduce</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Immutability</strong> nghĩa là không sửa object/array sau khi tạo mà sinh ra bản mới. Spread <code>{...obj}</code> và <code>[...arr]</code> là <strong>shallow copy</strong> — chỉ copy một tầng, object lồng bên trong vẫn chia sẻ cùng reference. <code>structuredClone</code> deep clone theo chuẩn structured clone (hỗ trợ Date, Map, Set, TypedArray, ArrayBuffer) nhưng <em>không</em> clone được function, DOM node hay class instance giữ được prototype.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>React quyết định re-render bằng so sánh reference (<code>Object.is</code>). Mutate state tại chỗ làm reference không đổi nên React "tưởng" state cũ và bỏ qua render — bug kinh điển "setState rồi mà UI không đổi". Immutability cũng giúp so sánh nhanh, dễ trace thay đổi và tránh side-effect ngầm giữa các hàm dùng chung một object.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node warning">state.tags.push(x) → cùng reference</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">React so sánh Object.is → thấy bằng nhau</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node warning">Bỏ qua re-render → UI sai</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">setX({...x, tags: [...x.tags, v]}) → reference mới → render</div></div>
+      </div>
+      <p>Nguyên tắc: chỉ copy đúng nhánh bị thay đổi (spread từng tầng trên đường tới field cần sửa), thay vì deep clone cả state mỗi lần cập nhật để giữ hiệu năng.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng immutability trong reducer (Redux/Zustand), state của React, cache key theo reference, và mọi API trả về data dùng để so sánh lại về sau. <code>map</code>/<code>filter</code>/<code>reduce</code> trả về mảng mới — đúng tinh thần này; <code>for</code> + <code>push</code> sửa mảng gốc.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không <code>structuredClone</code> object/state lớn trong mỗi lần render — chi phí O(n) và mất hết memoization. Không dùng spread để "deep copy" rồi sửa object lồng (vẫn trỏ chung). Với vài chục phần tử, một vòng <code>for</code> tại chỗ nhanh hơn và không sai — immutability quan trọng ở ranh giới state/boundary, không phải mọi chỗ.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-keyword">type</span> <span class="tok-class">Filters</span> = { status: <span class="tok-class">string</span>; tags: <span class="tok-class">string</span>[] };
+
+<span class="tok-comment">// shallow merge — tags vẫn trỏ về mảng cũ</span>
+<span class="tok-function">setFilters</span>((f) =&gt; ({ ...f, status: <span class="tok-string">"DONE"</span> }));
+
+<span class="tok-comment">// đúng: copy nhánh bị đổi</span>
+<span class="tok-function">setFilters</span>((f) =&gt; ({ ...f, tags: [...f.tags, <span class="tok-string">"urgent"</span>] }));
+
+<span class="tok-comment">// deep clone chỉ khi cần bản độc lập hoàn toàn</span>
+<span class="tok-keyword">const</span> snapshot = <span class="tok-function">structuredClone</span>(state);
+
+<span class="tok-comment">// map/filter/reduce trả mảng mới, không mutate</span>
+<span class="tok-keyword">const</span> total = orders.<span class="tok-function">filter</span>((o) =&gt; o.status === <span class="tok-string">"PAID"</span>).<span class="tok-function">reduce</span>((s, o) =&gt; s + o.amount, <span class="tok-number">0</span>);</code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p><code>sort</code> và <code>reverse</code> mutate mảng gốc dù tên nghe như hàm thuần — phải copy trước: <code>[...arr].sort()</code>. Object lồng trong spread vẫn chung reference (bug aliasing âm thầm). Và khi truyền cùng <code>options</code> object cho nhiều component, một nơi mutate sẽ ảnh hưởng tất cả.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Immutability = tạo bản mới, không sửa tại chỗ.</li>
+      <li>Spread là shallow — object lồng vẫn share reference.</li>
+      <li>structuredClone deep nhưng không clone function/DOM.</li>
+      <li>React so sánh reference — mutate thì không re-render.</li>
+      <li>map/filter/reduce tạo mảng mới; sort/reverse thì mutate.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q8</span> ES modules khác CommonJS thế nào — tree-shaking nhờ đâu và import vòng xử lý ra sao</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>CommonJS</strong> dùng <code>require()</code> đồng bộ, evaluate lúc runtime, gán <code>module.exports</code>; export là object thường nên có thể thay đổi sau. <strong>ESM</strong> dùng <code>import/export</code> tĩnh, được phân tích lúc build, export là <strong>live binding</strong> (import luôn đọc giá trị hiện tại của biến nguồn), import bị hoist, hỗ trợ top-level await, và mỗi module chỉ evaluate đúng một lần.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Vì import/export của ESM là cấu trúc tĩnh, bundler (Vite, Rollup, webpack) dựng được dependency graph chính xác và biết export nào thực sự được dùng → <strong>tree-shaking</strong> loại được code chết. CommonJS mang tính động (export gán trong if, require trong hàm) nên rất khó tree-shake. ESM còn được browser hỗ trợ native qua <code>type="module"</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">a.ts: import { b } from "./b"</div><div class="flow-node secondary">b.ts: import { a } from "./a"</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">ESM: hoist binding, tạo live binding trước khi evaluate</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node warning">Dùng biến trước khi module kia evaluate → TDZ / undefined</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Sửa: gọi hàm lúc runtime, hoặc tách module shared</div></div>
+      </div>
+      <p>Với import vòng, ESM vẫn tạo được binding nhưng giá trị có thể chưa gán xong tại thời điểm module khác thực thi — thường chỉ an toàn nếu truy cập <em>bên trong function</em> gọi sau đó, chứ không phải ở top-level.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Viết library/ứng dụng mới thì dùng ESM; khai báo <code>"type": "module"</code> trong package.json hoặc đặt đuôi .mjs để Node hiểu là ESM. Đánh dấu <code>"sideEffects": false</code> khi code thực sự không có side-effect lúc import để bundler shake mạnh hơn.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không trông cậy vào named import từ package CommonJS — bundler phải đoán shape nên có package chạy, có package vỡ (thường phải dùng default import rồi destructure). Không tạo import vòng rồi hy vọng hoist "chữa" được: nên refactor tách type/constant hoặc hàm dùng chung ra module thứ ba.</p></div>
+    <div class="code-block" data-lang="ts"><pre><code><span class="tok-comment">// format.ts — named export, bundler phân tích tĩnh → tree-shake được</span>
+<span class="tok-keyword">export function</span> <span class="tok-function">formatPrice</span>(v: <span class="tok-class">number</span>): <span class="tok-class">string</span> { <span class="tok-keyword">return</span> <span class="tok-class">String</span>(v); }
+<span class="tok-keyword">export function</span> <span class="tok-function">parsePrice</span>(s: <span class="tok-class">string</span>): <span class="tok-class">number</span> { <span class="tok-keyword">return</span> <span class="tok-class">Number</span>(s); }
+
+<span class="tok-comment">// consumer.ts — chỉ formatPrice được kéo vào bundle</span>
+<span class="tok-keyword">import</span> { formatPrice } <span class="tok-keyword">from</span> <span class="tok-string">"./format"</span>;
+<span class="tok-keyword">import type</span> { <span class="tok-class">Order</span> } <span class="tok-keyword">from</span> <span class="tok-string">"./types"</span>; <span class="tok-comment">// bị xoá hoàn toàn khi build</span>
+
+<span class="tok-comment">// CommonJS tương đương — khó tree-shake vì export là object động</span>
+<span class="tok-comment">// module.exports = { formatPrice, parsePrice };</span></code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Dùng <code>import type</code> để type không lọt vào bundle. Side-effect import (<code>import "./polyfill"</code>) phá tree-shaking và có thể thứ tự chạy khác mong đợi. Khi trộn ESM/CJS trong Node, nhớ ESM không có <code>__dirname</code>/<code>require</code> — phải dùng <code>import.meta.url</code>.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>CJS động, runtime; ESM tĩnh, phân tích lúc build.</li>
+      <li>ESM export là live binding, module eval một lần.</li>
+      <li>Tree-shaking nhờ cấu trúc tĩnh của ESM.</li>
+      <li>import type và sideEffects: false giúp bundle nhỏ.</li>
+      <li>Import vòng: binding hoist nhưng dễ TDZ — nên tách module.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="typescript-h-th-ng-ki-u-an-to-n">
+          <h2 class="section-title">TypeScript — hệ thống kiểu an toàn</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q9</span> Khi nào dùng type, khi nào dùng interface — structural typing nghĩa là gì</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>interface</strong> mô tả shape của object, hỗ trợ <em>declaration merging</em> (khai báo cùng tên sẽ gộp) và có thể <code>extends</code> nhiều interface. <strong>type alias</strong> đặt tên cho bất kỳ kiểu nào: union, intersection, tuple, conditional type, mapped type — và không merge. Với shape object thuần, cả hai gần như tương đương; khác biệt nằm ở khả năng mở rộng và một vài ngữ cảnh compiler.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>TypeScript dùng <strong>structural typing</strong>: hai kiểu tương thích nếu cấu trúc khớp nhau, không cần khai báo <code>implements</code> hay quan hệ kế thừa danh nghĩa. Nghĩa là object literal nào có đủ field cần thiết đều gán được vào tham số — linh hoạt nhưng cũng là nguồn bug khi hai kiểu trùng cấu trúc mà ngữ nghĩa khác nhau (ví dụ hai kiểu đều có <code>{ id: string }</code>).</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <table class="feature-table">
+        <thead><tr><th></th><th>interface</th><th>type</th></tr></thead>
+        <tbody>
+          <tr><td>Mô tả object shape</td><td>Có</td><td>Có</td></tr>
+          <tr><td>Union / tuple / conditional</td><td>Không</td><td>Có</td></tr>
+          <tr><td>Declaration merging</td><td>Có (gộp khai báo)</td><td>Không (báo lỗi trùng tên)</td></tr>
+          <tr><td>Mở rộng</td><td><code>extends</code> nhiều interface</td><td>intersection <code>&amp;</code></td></tr>
+          <tr><td>Class implements</td><td>Có</td><td>Có (nếu là object type)</td></tr>
+        </tbody>
+      </table>
+      <p>Thực tế: interface cho API/contract công khai có thể được nơi khác mở rộng; type cho union, DTO dẫn xuất và các kiểu phức tạp không biểu diễn được bằng interface.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng <code>interface</code> cho shape object của service/repository, props của component, và mọi contract có thể được thư viện khác augment. Dùng <code>type</code> cho union trạng thái (<code>"idle" | "loading" | "error"</code>), tuple, và các kiểu dẫn xuất bằng utility type.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng interface để biểu diễn union — không làm được, phải dùng type. Không lạm dụng declaration merging: vô tình trùng tên interface ở hai file sẽ gộp âm thầm và che lỗi. Không trộn lẫn hai phong cách trong cùng một file tuỳ tiện — chọn quy ước và giữ nhất quán để review dễ.</p></div>
+    <div class="code-block" data-lang="ts"><pre><code><span class="tok-comment">// interface: object shape, có thể được merge/extends</span>
+<span class="tok-keyword">interface</span> <span class="tok-class">UserService</span> {
+  <span class="tok-function">findById</span>(id: <span class="tok-class">string</span>): <span class="tok-class">Promise</span>&lt;<span class="tok-class">User</span>&gt;;
+}
+
+<span class="tok-comment">// type: union trạng thái, tuple, kiểu dẫn xuất</span>
+<span class="tok-keyword">type</span> <span class="tok-class">LoadState</span> = <span class="tok-string">"idle"</span> | <span class="tok-string">"loading"</span> | <span class="tok-string">"error"</span>;
+<span class="tok-keyword">type</span> <span class="tok-class">Point</span> = [<span class="tok-class">number</span>, <span class="tok-class">number</span>];
+<span class="tok-keyword">type</span> <span class="tok-class">UserWithRole</span> = <span class="tok-class">User</span> &amp; { role: <span class="tok-class">string</span> };
+
+<span class="tok-comment">// structural typing: không cần implements, chỉ cần đủ shape</span>
+<span class="tok-keyword">function</span> <span class="tok-function">send</span>(u: { email: <span class="tok-class">string</span> }) { <span class="tok-comment">/* ... */</span> }
+<span class="tok-function">send</span>({ email: <span class="tok-string">"a@b.com"</span>, name: <span class="tok-string">"An"</span> }); <span class="tok-comment">// OK — field thừa vẫn hợp lệ</span></code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Structural typing khiến hai kiểu khác ngữ nghĩa nhưng cùng shape hoán đổi cho nhau được — dùng branded type (<code>type UserId = string &amp; { __brand: "UserId" }</code>) khi cần phân biệt. Object literal thừa field sẽ bị báo lỗi khi gán trực tiếp (excess property check) nhưng biến thì không — chi tiết hay bị hỏi.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>interface: object shape, merge được, extends nhiều.</li>
+      <li>type: union, tuple, conditional, kiểu dẫn xuất.</li>
+      <li>TS structural typing: cấu trúc khớp là tương thích.</li>
+      <li>Interface cho contract công khai; type cho union/utility.</li>
+      <li>Tránh merge vô tình — interface trùng tên sẽ gộp.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q10</span> Generic và utility type dùng thế nào trong code API thật — Partial, Pick, Omit, Record, ReturnType</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Generic</strong> tham số hoá kiểu, giữ quan hệ vào–ra mà không mất thông tin kiểu. <strong>Constraint</strong> <code>extends</code> giới hạn tập kiểu hợp lệ, ví dụ <code>&lt;T extends { id: string }&gt;</code> buộc mọi T phải có <code>id</code>. <strong>Utility types</strong> là mapped/conditional type dựng sẵn: <code>Partial</code> (mọi field thành optional), <code>Pick</code>/<code>Omit</code> (chọn/bỏ field), <code>Record</code> (map key → value), <code>ReturnType</code> (kiểu trả về của hàm).</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Generic cộng utility type loại bỏ hai thứ tệ: <code>any</code> và DTO trùng lặp. Một <code>ResponseDto&lt;T&gt;</code> dùng cho mọi entity; <code>Omit&lt;User, "id"&gt;</code> sinh CreateDto không cần id; <code>Pick</code> tạo view list gọn. Khi entity đổi field, mọi DTO dẫn xuất tự cập nhật — type là nguồn sự thật duy nhất.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Entity User { id, name, email, createdAt }</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Omit&lt;User, "id" | "createdAt"&gt;</div><div class="flow-node secondary">Pick&lt;User, "id" | "name"&gt;</div><div class="flow-node secondary">Partial&lt;...&gt;</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">CreateDto / ListItem / PatchDto — tất cả dẫn xuất, không copy tay</div></div>
+      </div>
+      <p>Generic áp cho <code>&lt;T extends BaseEntity&gt;</code> ở tầng service xử lý create/getById; utility type áp cho DTO ở biên API. Kiểm tra bằng <code>typeof</code> kết hợp <code>ReturnType</code> để tránh khai báo kiểu trả về trùng lặp với implementation.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Repo/service dùng chung logic cho nhiều entity (<code>BaseService&lt;T&gt;</code>), hook React generic (<code>useApi&lt;T&gt;()</code>), factory function giữ kiểu (<code>createStore&lt;S&gt;()</code>), và mọi nơi cần DTO dẫn xuất từ một entity type duy nhất.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không generic hoá khi chỉ có đúng một kiểu dùng thực tế — thêm T mà không có lợi gì, chỉ khó đọc. Không dùng <code>Record&lt;string, any&gt;</code> như escape hatch: nó tắt kiểm tra kiểu ở đúng nơi cần nhất. Không dùng <code>Partial</code> cho request body bắt buộc field — sẽ chấp nhận payload thiếu dữ liệu.</p></div>
+    <div class="code-block" data-lang="ts"><pre><code><span class="tok-keyword">interface</span> <span class="tok-class">User</span> { id: <span class="tok-class">string</span>; name: <span class="tok-class">string</span>; email: <span class="tok-class">string</span>; createdAt: <span class="tok-class">Date</span>; }
+
+<span class="tok-keyword">type</span> <span class="tok-class">CreateUserDto</span> = <span class="tok-class">Omit</span>&lt;<span class="tok-class">User</span>, <span class="tok-string">"id"</span> | <span class="tok-string">"createdAt"</span>&gt;;
+<span class="tok-keyword">type</span> <span class="tok-class">UserSummary</span> = <span class="tok-class">Pick</span>&lt;<span class="tok-class">User</span>, <span class="tok-string">"id"</span> | <span class="tok-string">"name"</span>&gt;;
+<span class="tok-keyword">type</span> <span class="tok-class">UserPatch</span> = <span class="tok-class">Partial</span>&lt;<span class="tok-class">CreateUserDto</span>&gt;;
+<span class="tok-keyword">type</span> <span class="tok-class">UserIndex</span> = <span class="tok-class">Record</span>&lt;<span class="tok-class">string</span>, <span class="tok-class">UserSummary</span>&gt;;
+
+<span class="tok-comment">// generic có constraint: T bắt buộc có id</span>
+<span class="tok-keyword">async function</span> <span class="tok-function">createOne</span>&lt;T <span class="tok-keyword">extends</span> { id: <span class="tok-class">string</span> }&gt;(dto: <span class="tok-class">Omit</span>&lt;T, <span class="tok-string">"id"</span>&gt;): <span class="tok-class">Promise</span>&lt;T&gt; {
+  <span class="tok-keyword">return</span> api.<span class="tok-function">post</span>&lt;T&gt;(<span class="tok-string">"/users"</span>, dto);
+}
+
+<span class="tok-comment">// ReturnType: lấy kiểu trả về, không khai báo lại</span>
+<span class="tok-keyword">function</span> <span class="tok-function">toSummary</span>(u: <span class="tok-class">User</span>): <span class="tok-class">UserSummary</span> { <span class="tok-keyword">return</span> { id: u.id, name: u.name }; }
+<span class="tok-keyword">type</span> <span class="tok-class">Summary</span> = <span class="tok-class">ReturnType</span>&lt;<span class="tok-keyword">typeof</span> toSummary&gt;; <span class="tok-comment">// UserSummary</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>API paged: <code>type Page&lt;T&gt; = { items: T[]; total: number; cursor?: string }</code> rồi <code>Page&lt;UserSummary&gt;</code>, <code>Page&lt;Order&gt;</code> — một định nghĩa phục vụ mọi endpoint danh sách.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p><code>Omit</code>/<code>Pick</code> chỉ hoạt động trên kiểu biết trước field; trên union hoặc generic chưa resolve có thể ra kiểu rộng hơn mong đợi. <code>Partial</code> làm field optional nhưng không làm nested optional — cần <code>DeepPartial</code> tự viết. Và generic quá lồng nhau (<code>T</code> xuất hiện sáu lần) là dấu hiệu abstraction sai.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Generic giữ quan hệ kiểu vào–ra, tránh any.</li>
+      <li>Constraint extends giới hạn tập kiểu hợp lệ.</li>
+      <li>Omit/Pick/Partial sinh DTO từ một entity gốc.</li>
+      <li>Record cho map key→value; ReturnType suy kiểu trả về.</li>
+      <li>Generic chỉ đáng khi có hơn một kiểu dùng thật.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q11</span> any và unknown khác nhau thế nào — narrowing, strict mode và kiểm tra kiểu ở ranh giới API</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><code>any</code> tắt hoàn toàn kiểm tra kiểu: đọc/ghi/gọi gì cũng được và lỗi chỉ nổ ở runtime. <code>unknown</code> an toàn hơn: nhận mọi giá trị nhưng bắt buộc phải <strong>narrow</strong> (thu hẹp) trước khi dùng — qua <code>typeof</code>, <code>instanceof</code>, <code>in</code>, <code>Array.isArray</code>, discriminated union, hoặc user-defined type guard. Type chỉ tồn tại lúc compile và bị xoá khi build, nên dữ liệu từ network vẫn cần validate ở runtime.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Vì type bị <em>erase</em> khi compile, TypeScript không bảo vệ bạn khỏi JSON sai shape từ API. Nếu dùng <code>any</code> ở biên, tính an toàn kiểu lan ngược ra toàn codebase và lỗi chỉ hiện khi người dùng gặp. <code>unknown</code> buộc phải kiểm tra ngay tại cửa vào — bug bị chặn tại ranh giới thay vì rải rác trong UI. Bật <code>strict</code> (gồm <code>noImplicitAny</code>, <code>strictNullChecks</code>) để compiler ép bạn làm điều đó.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">JSON từ API → kiểu unknown</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node warning">Validate runtime: zod / io-ts / type guard</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Nuôi vào typed object → dùng an toàn</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Nếu fail → lỗi rõ ràng tại biên</div></div>
+      </div>
+      <p>Trong <code>catch (e)</code>, JS cho <code>e</code> là <code>unknown</code> — phải kiểm tra <code>e instanceof Error</code> trước khi đọc <code>e.message</code>. Tránh <code>as SomeType</code> để "qua cửa" compiler: đó là ép kiểu không kiểm chứng, chỉ đổi chỗ lỗi runtime.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng <code>unknown</code> cho mọi thứ đi vào từ bên ngoài: response API, <code>JSON.parse</code>, message từ worker, tham số của error handler. Dùng type guard khi cùng một kiểm tra dùng lại nhiều nơi để compiler hiểu nhánh if đã narrow kiểu.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng <code>any</code> trong public API, props hay state — một <code>any</code> đủ để mất type của cả chuỗi gọi phía sau. Không dùng <code>as</code> thay validate. Không lạm dụng <code>unknown</code> cho biến nội bộ đã biết kiểu rõ — chỉ gây thêm bước narrow vô ích.</p></div>
+    <div class="code-block" data-lang="ts"><pre><code><span class="tok-comment">// any tắt kiểm tra; unknown buộc narrow trước khi dùng</span>
+<span class="tok-keyword">function</span> <span class="tok-function">parseUser</span>(raw: <span class="tok-class">unknown</span>): <span class="tok-class">UserSummary</span> {
+  <span class="tok-keyword">if</span> (<span class="tok-keyword">typeof</span> raw !== <span class="tok-string">"object"</span> || raw === <span class="tok-keyword">null</span>) <span class="tok-keyword">throw new</span> <span class="tok-class">Error</span>(<span class="tok-string">"invalid payload"</span>);
+  <span class="tok-keyword">const</span> o = raw <span class="tok-keyword">as</span> { id?: <span class="tok-class">unknown</span>; name?: <span class="tok-class">unknown</span> };
+  <span class="tok-keyword">if</span> (<span class="tok-keyword">typeof</span> o.id !== <span class="tok-string">"string"</span>) <span class="tok-keyword">throw new</span> <span class="tok-class">Error</span>(<span class="tok-string">"id required"</span>);
+  <span class="tok-keyword">return</span> { id: o.id, name: <span class="tok-class">String</span>(o.name ?? <span class="tok-string">""</span>) };
+}
+
+<span class="tok-comment">// user-defined type guard — compiler hiểu nhánh đã narrow</span>
+<span class="tok-keyword">function</span> <span class="tok-function">isUserSummary</span>(v: <span class="tok-class">unknown</span>): v <span class="tok-keyword">is</span> <span class="tok-class">UserSummary</span> {
+  <span class="tok-keyword">return</span> <span class="tok-keyword">typeof</span> v === <span class="tok-string">"object"</span> &amp;&amp; v !== <span class="tok-keyword">null</span> &amp;&amp; <span class="tok-string">"id"</span> <span class="tok-keyword">in</span> v;
+}
+
+<span class="tok-comment">// catch (e) → e là unknown</span>
+<span class="tok-keyword">try</span> { <span class="tok-function">parseUser</span>(payload); } <span class="tok-keyword">catch</span> (e) {
+  <span class="tok-keyword">if</span> (e <span class="tok-keyword">instanceof</span> <span class="tok-class">Error</span>) <span class="tok-class">console</span>.<span class="tok-function">error</span>(e.message);
+}
+
+<span class="tok-comment">// tsconfig.json — bật strict để ép noImplicitAny + strictNullChecks</span>
+<span class="tok-comment">// { "compilerOptions": { "strict": true } }</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Fetch layer: response luôn nhận <code>unknown</code> → qua schema (zod/io-ts) để parse → trả về kiểu đã khẳng định. Nếu schema và type lệch nhau, chính validator báo lỗi thay vì UI vỡ lúc runtime.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Narrowing không xuyên qua callback: biến đã narrow nhưng khi dùng trong closure (ví dụ <code>setTimeout</code>) TypeScript có thể mở rộng lại kiểu — copy ra biến const để giữ narrow. Và <code>as</code> không validate: <code>JSON.parse(s) as User</code> hoàn toàn không kiểm tra gì, đây là lỗi phổ biến trong review.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>any tắt kiểm tra; unknown buộc narrow.</li>
+      <li>Type bị erase khi compile — API cần validate runtime.</li>
+      <li>Narrow qua typeof, instanceof, in, type guard.</li>
+      <li>Bật strict để ép noImplicitAny và strictNullChecks.</li>
+      <li>Đừng dùng as để né validate.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+['        <div class="nav-pager">', '          <a class="prev" href="33-aws-observability-troubleshooting.html"><span class="label">Trước</span><span class="title">33. CloudWatch, X-Ray &amp; Debug</span></a>', '          <a class="next" href="35-react-fundamentals.html"><span class="label">Tiếp</span><span class="title">35. React Fundamentals</span></a>', '        </div>']
+      </div>
+
+      <footer class="site-footer">
+        <p>Knowledge Gym — Module 34 / 42</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

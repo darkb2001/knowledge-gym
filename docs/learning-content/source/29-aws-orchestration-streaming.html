@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Step Functions, Kinesis &amp; Orchestration — DVA-C02 Deep Dive</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="module-header">
+  <span class="module-tag">AWS · Integration</span>
+  <h1 class="module-title">Step Functions, Kinesis &amp; Orchestration — DVA-C02 Deep Dive</h1>
+  <p class="module-subtitle">State machine, stream và xử lý dữ liệu.</p>
+</div>
+<main class="content">
+
+  <section class="section" id="stepfunctions-core">
+    <h2 class="section-title">Step Functions: điều phối workflow</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS1</span> Step Functions: Standard vs Express khác nhau thế nào và có những state type nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>State machine là một workflow định nghĩa bằng JSON (Amazon States Language); mỗi bước là một <strong>state</strong>. Có hai loại workflow:</p>
+          <ul>
+            <li><strong>Standard</strong> — chạy dài tới <strong>1 năm</strong>, <strong>exactly-once</strong> execution, lịch sử đầy đủ từng bước (audit tốt), tối đa 2.000 execution khởi động/giây và 4.000 state transition/giây. Phù hợp quy trình nghiệp vụ dài (duyệt đơn, ETL, human approval).</li>
+            <li><strong>Express</strong> — chỉ tối đa <strong>5 phút</strong>, mô hình <strong>at-least-once</strong>; throughput rất cao (tới 100.000 execution/giây), rẻ hơn nhiều cho khối lượng lớn. Log đẩy sang CloudWatch Logs chứ không giữ history như Standard; không hỗ trợ <code>.sync</code>.</li>
+          </ul>
+          <p>Các <em>state type</em> chính: <strong>Task</strong> (gọi một việc), <strong>Choice</strong> (rẽ nhánh điều kiện), <strong>Parallel</strong> (nhiều nhánh song song), <strong>Map</strong> (lặp qua mảng), <strong>Pass</strong> (truyền/biến đổi dữ liệu), <strong>Wait</strong> (chờ), <strong>Succeed</strong>, <strong>Fail</strong>.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Event khởi động workflow → engine chạy tuần tự qua các state theo <code>Next</code>/<code>StartAt</code>, mang theo JSON input và tích luỹ kết quả qua từng bước.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico eventbridge"></span><span class="icon-label">Trigger</span><span class="icon-note">API / EventBridge / Schedule</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">StartExecution</span></div>
+            <div class="icon-node"><span class="aws-ico stepfunctions"></span><span class="icon-label">State machine</span><span class="icon-note">Task → Choice → Task</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">gọi service</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">xử lý 1 bước</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Code</span>
+          <div class="code-block" data-lang="json">
+<pre><code>{
+  "Comment": "Xu ly don hang",
+  "StartAt": "Validate",
+  "States": {
+    "Validate": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:ap-southeast-1:123456789012:function:validate",
+      "Next": "DuyetDon"
+    },
+    "DuyetDon": {
+      "Type": "Choice",
+      "Choices": [
+        { "Variable": "$.total", "NumericGreaterThan": 5000, "Next": "ChoDuyet" }
+      ],
+      "Default": "HoanTat"
+    },
+    "ChoDuyet": { "Type": "Wait", "Seconds": 60, "Next": "HoanTat" },
+    "HoanTat": { "Type": "Succeed" }
+  }
+}</code></pre>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Chọn <strong>Standard</strong> khi cần chạy lâu, audit từng bước, hoặc cần <code>.sync</code>/<code>waitForTaskToken</code>. Chọn <strong>Express</strong> khi là luồng xử lý sự kiện khối lượng lớn, thời gian ngắn (ví dụ pipeline biến đổi mỗi event vài giây). Đừng chọn Standard cho luồng hàng nghìn event/giây vì chi phí và throughput.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Pitfall</span>
+          <div class="callout">
+            <span class="callout-title">Dễ nhầm</span>
+            Express <em>không</em> có lịch sử execution đầy đủ như Standard và <em>không</em> hỗ trợ các integration đồng bộ <code>.sync</code>. Nếu đề cần "chờ job ECS/Glue hoàn thành rồi mới đi tiếp" thì đó là Standard.
+          </div>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/step-functions/latest/dg/concepts-standard-vs-express.html">AWS Docs — Standard vs Express workflows</a> · <a href="https://docs.aws.amazon.com/step-functions/latest/dg/concepts-statemachines.html">AWS Docs — State machine concepts</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS2</span> Tình huống: quy trình duyệt chi phí cần người bấm duyệt — Retry/Catch và waitForTaskToken dùng thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Ứng dụng cần một bước chờ <em>con người</em> duyệt (có thể vài giờ), đồng thời phải chịu lỗi tạm thời khi gọi API. Step Functions cho hai cơ chế:</p>
+          <ul>
+            <li><strong>Retry</strong> — khai báo <code>ErrorEquals</code>, <code>IntervalSeconds</code>, <code>MaxAttempts</code>, <code>BackoffRate</code>, <code>MaxDelaySeconds</code>, <code>JitterStrategy</code> (full/exponential) để thử lại với backoff.</li>
+            <li><strong>Catch</strong> — khi hết retry vẫn lỗi thì chuyển sang state khác (<code>Next</code>), ghi lỗi vào <code>ResultPath</code>.</li>
+            <li><strong>TimeoutSeconds</strong> / <strong>HeartbeatSeconds</strong> — giới hạn tổng thời lượng task và nhịp tim; vượt sẽ ném <code>States.Timeout</code> / <code>States.HeartbeatTimeout</code>. Mã lỗi phổ biến: <code>States.ALL</code>, <code>States.TaskFailed</code>, <code>States.Timeout</code>.</li>
+            <li><strong>waitForTaskToken</strong> — pattern callback: task phát ra một task token cho hệ thống ngoài (SQS/SNS/email), workflow <em>tạm dừng</em> cho tới khi bên ngoài gọi <code>SendTaskSuccess</code>/<code>SendTaskFailure</code>. Đây chính là mảnh ghép cho human approval.</li>
+          </ul>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico stepfunctions"></span><span class="icon-label">Task duyệt</span><span class="icon-note">sendMessage.waitForTaskToken</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">token ra ngoài</span></div>
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">Queue duyệt</span><span class="icon-note">chờ người duyệt</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">SendTaskSuccess</span></div>
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Manager</span><span class="icon-note">bấm duyệt</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Code</span>
+          <div class="code-block" data-lang="json">
+<pre><code>"ChoManagerDuyet": {
+  "Type": "Task",
+  "Resource": "arn:aws:states:::sqs:sendMessage.waitForTaskToken",
+  "Parameters": {
+    "QueueUrl": "https://sqs.ap-southeast-1.amazonaws.com/123456789012/approvals",
+    "MessageBody": {
+      "taskToken.$": "$$.Task.Token",
+      "orderId.$": "$.orderId"
+    }
+  },
+  "TimeoutSeconds": 86400,
+  "HeartbeatSeconds": 3600,
+  "Retry": [
+    { "ErrorEquals": ["States.TaskFailed"],
+      "IntervalSeconds": 5, "MaxAttempts": 3, "BackoffRate": 2.0 }
+  ],
+  "Catch": [
+    { "ErrorEquals": ["States.Timeout"], "Next": "HuyDon", "ResultPath": "$.error" }
+  ],
+  "Next": "HoanTat"
+}</code></pre>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng <code>waitForTaskToken</code> khi cần chờ sự kiện ngoài không xác định thời điểm (duyệt thủ công, callback từ hệ thống bên thứ ba). Luôn đặt <code>TimeoutSeconds</code> để tránh treo vô hạn; dùng <code>HeartbeatSeconds</code> cho job dài để phát hiện worker "chết".</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Pitfall</span>
+          <div class="callout">
+            <span class="callout-title">Dễ nhầm</span>
+            Retry và Catch gắn ở cấp state, không phải toàn workflow. Task token chỉ dùng được với Standard workflow, và phải có timeout — thiếu timeout là lỗi cấu hình kinh điển.
+          </div>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html">AWS Docs — Error handling (Retry/Catch)</a> · <a href="https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html">AWS Docs — Wait for callback with task token</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS3</span> Map, Parallel và Distributed Map khác nhau ra sao?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Ba state mở rộng song song trong Step Functions: <strong>Parallel</strong> (nhánh cố định chạy đồng thời rồi gộp), <strong>Map Inline</strong> (lặp mảng trong payload, tối đa ~40 concurrent) và <strong>Distributed Map</strong> (dataset lớn đọc từ S3, tới 10.000 concurrent).</p>
+          <ul>
+            <li><strong>Parallel</strong> — nhiều nhánh cố định chạy đồng thời, mỗi nhánh là một state machine con; chờ tất cả nhánh xong mới đi tiếp.</li>
+            <li><strong>Map (Inline)</strong> — lặp qua một mảng trong payload, chạy song song với <code>MaxConcurrency</code>. Giới hạn ~40 concurrent cho Inline và payload vào/ra bị chặn bởi kích thước state (256 KB).</li>
+            <li><strong>Distributed Map</strong> — xử lý dataset lớn (đọc object S3, hàng triệu item), concurrency tới <strong>10.000</strong>, chạy như các child execution độc lập. Có <code>ToleratedFailurePercentage</code>/<code>ToleratedFailureCount</code> và <code>ItemReader</code> từ S3 (JSON/CSV/Parquet).</li>
+          </ul>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico stepfunctions"></span><span class="icon-label">Map</span><span class="icon-note">ItemsPath = $.orders</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">MaxConcurrency</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Item × N</span><span class="icon-note">ProcessorConfig Mode</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">tổng hợp</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">ItemReader</span><span class="icon-note">đọc dataset lớn từ S3</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Code</span>
+          <div class="code-block" data-lang="json">
+<pre><code>"XuLyTatCa": {
+  "Type": "Map",
+  "ItemsPath": "$.orders",
+  "MaxConcurrency": 40,
+  "ItemSelector": { "orderId.$": "$$.Map.Item.Value.id" },
+  "ItemProcessor": {
+    "ProcessorConfig": { "Mode": "INLINE" },
+    "StartAt": "GoiLambda",
+    "States": {
+      "GoiLambda": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "End": true
+      }
+    }
+  }
+}</code></pre>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Chọn Parallel khi số nhánh <em>cố định và khác nhau</em>. Chọn Inline Map khi danh sách item nằm trong input và không quá lớn. Chọn Distributed Map khi phải quét hàng triệu object/file — đây là lựa chọn cho batch processing quy mô lớn.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Pitfall</span>
+          <div class="callout">
+            <span class="callout-title">Dễ nhầm</span>
+            Map không đảm bảo thứ tự hoàn thành theo thứ tự mảng. Distributed Map cần quyền <code>s3:GetObject</code> trên bucket chứa dataset. Vai trò của state machine phải có quyền gọi mọi service trong ItemProcessor.
+          </div>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/step-functions/latest/dg/state-map.html">AWS Docs — Map state</a> · <a href="https://docs.aws.amazon.com/step-functions/latest/dg/state-map-distributed.html">AWS Docs — Distributed Map</a> · <a href="https://docs.aws.amazon.com/step-functions/latest/dg/state-parallel.html">AWS Docs — Parallel state</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS4</span> Tình huống: nối Lambda, DynamoDB, SNS mà không muốn tự code glue — tích hợp SDK service thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Step Functions có <em>optimized service integrations</em> — gọi thẳng API của service thay vì tự bọc Lambda. Ví dụ <code>arn:aws:states:::lambda:invoke</code>, <code>arn:aws:states:::dynamodb:putItem</code>, <code>arn:aws:states:::sns:publish</code>, <code>arn:aws:states:::sqs:sendMessage</code>. Có ba pattern tích hợp:</p>
+          <ul>
+            <li><strong>Request Response</strong> — gọi rồi nhận kết quả ngay.</li>
+            <li><strong>Run a Job (.sync)</strong> — chờ job dài hoàn thành (ECS, Glue, Batch) — chỉ Standard.</li>
+            <li><strong>Wait for Callback (.waitForTaskToken)</strong> — chờ token như card AWS2.</li>
+          </ul>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Mỗi bước Task gọi một service; kết quả trả về được đặt vào <code>$.Payload</code>/<code>$.Record</code>… và có thể cắt gọn bằng <code>ResultSelector</code>, bỏ qua bằng <code>ResultPath: null</code>.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico stepfunctions"></span><span class="icon-label">Task</span><span class="icon-note">Resource ARN</span></div>
+            <div class="icon-node"><span class="aws-ico dynamodb"></span><span class="icon-label">DynamoDB</span><span class="icon-note">putItem / getItem</span></div>
+            <div class="icon-node"><span class="aws-ico sns"></span><span class="icon-label">SNS</span><span class="icon-note">publish</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">invoke</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Code</span>
+          <div class="code-block" data-lang="json">
+<pre><code>"GhiDon": {
+  "Type": "Task",
+  "Resource": "arn:aws:states:::dynamodb:putItem",
+  "Parameters": {
+    "TableName": "Orders",
+    "Item": {
+      "pk": { "S.$": "$.orderId" },
+      "status": { "S": "CREATED" }
+    }
+  },
+  "ResultPath": null,
+  "Next": "PhatSuKien"
+},
+"PhatSuKien": {
+  "Type": "Task",
+  "Resource": "arn:aws:states:::sns:publish",
+  "Parameters": {
+    "TopicArn": "arn:aws:sns:ap-southeast-1:123456789012:order-events",
+    "Message.$": "$.orderId"
+  },
+  "End": true
+}</code></pre>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng tích hợp trực tiếp để giảm số Lambda "keo dính", giảm chi phí và tăng khả năng quan sát từng bước. Vẫn dùng Lambda khi logic cần tính toán/xử lý phức tạp.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Pitfall</span>
+          <div class="callout">
+            <span class="callout-title">Dễ nhầm</span>
+            IAM role của state machine phải được cấp quyền tương ứng (ví dụ <code>dynamodb:PutItem</code>). Nếu thiếu quyền, execution fail với <code>States.TaskFailed</code> — lỗi rất hay bị bỏ sót khi test bằng console.
+          </div>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/step-functions/latest/dg/connect-supported-services.html">AWS Docs — Supported service integrations</a> · <a href="https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html">AWS Docs — Integration patterns</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="kinesis-streams">
+    <h2 class="section-title">Kinesis Data Streams</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS5</span> Tình huống: 10.000 thiết bị gửi telemetry, cần đúng thứ tự theo từng thiết bị — thiết kế stream thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Kinesis Data Streams là một <em>append-only log</em> chia thành các <strong>shard</strong>. Mỗi shard là đơn vị song song: ghi vào <strong>1 MB/s hoặc 1.000 record/s</strong>, đọc ra <strong>2 MB/s hoặc 2.000 record/s</strong>. <strong>Partition key</strong> được băm (MD5) để chọn shard; <em>thứ tự chỉ được đảm bảo trong cùng một shard</em>. <strong>Retention</strong> mặc định 24 giờ, cấu hình được từ 24 giờ đến <strong>365 ngày</strong>. <strong>Resharding</strong> = split (tăng shard) hoặc merge (giảm shard); chế độ <em>on-demand</em> tự co giãn.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Dùng <code>deviceId</code> làm partition key → mọi event của cùng thiết bị rơi vào cùng shard → consumer đọc tuần tự theo thiết bị. Nhiều shard để tăng throughput tổng.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico generic"></span><span class="icon-label">10k devices</span><span class="icon-note">partition-key = deviceId</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">hash → shard</span></div>
+            <div class="icon-node"><span class="aws-ico kinesis"></span><span class="icon-label">Shard 1..N</span><span class="icon-note">1 MB/s in · 2 MB/s out</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">ordered read</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Consumer</span><span class="icon-note">đọc theo shard</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Code</span>
+          <div class="code-block" data-lang="bash">
+<pre><code>aws kinesis put-record \
+  --stream-name telemetry \
+  --partition-key device-1234 \
+  --data '{"deviceId":"device-1234","temp":42.5}' \
+  --cli-binary-format raw-in-base64-out
+
+# tăng số shard khi lưu lượng vượt ngưỡng (resharding)
+aws kinesis update-shard-count \
+  --stream-name telemetry \
+  --target-shard-count 8 \
+  --scaling-type UNIFORM_SCALING</code></pre>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Chọn Kinesis Data Streams khi cần nhiều consumer đọc cùng dữ liệu, replay theo vị trí, giữ thứ tự theo key, hoặc lưu trữ dạng log có thời hạn dài (tới 365 ngày).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Pitfall</span>
+          <div class="callout">
+            <span class="callout-title">Dễ nhầm</span>
+            Partition key lệch (hot shard) gây <code>ProvisionedThroughputExceededException</code>. Dùng <code>PutRecords</code> để gửi lô (tối đa 500 record/5 MB) và có cơ chế retry cho record lỗi. Record đơn tối đa 1 MB.
+          </div>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/streams/latest/dev/key-concepts.html">AWS Docs — Kinesis Data Streams key concepts</a> · <a href="https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html">AWS Docs — Quotas and limits</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS6</span> Tình huống: nhiều ứng dụng cùng đọc một stream bị chậm — KCL, enhanced fan-out và Lambda giải quyết thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Với <em>shared throughput</em>, băng thông đọc 2 MB/s của mỗi shard bị <strong>chia đều</strong> cho các consumer (giới hạn ~5 lần đọc/shard). Ba cách mở rộng:</p>
+          <ul>
+            <li><strong>Enhanced fan-out (EFO)</strong> — mỗi consumer được cấp riêng <strong>2 MB/s</strong> per shard với độ trễ ~70 ms, không dùng chung băng thông; hỗ trợ tới 20 consumer/stream (nhiều hơn nếu bật On-demand Advantage).</li>
+            <li><strong>KCL (Kinesis Client Library)</strong> — thư viện quản lý <em>lease shard</em>, checkpoint (thường vào DynamoDB), cân bằng tải giữa các worker.</li>
+            <li><strong>Lambda event source mapping</strong> — Lambda tự đọc stream: <code>BatchSize</code>, <code>ParallelizationFactor</code> (1–10), tumbling window, retry + On-Failure destination.</li>
+          </ul>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico kinesis"></span><span class="icon-label">Shard</span><span class="icon-note">2 MB/s shared</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">EFO: 2 MB/s riêng/consumer</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda consumer</span><span class="icon-note">ParallelizationFactor</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">checkpoint</span></div>
+            <div class="icon-node"><span class="aws-ico dynamodb"></span><span class="icon-label">DynamoDB lease</span><span class="icon-note">KCL checkpoint table</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Code</span>
+          <div class="code-block" data-lang="bash">
+<pre><code># đăng ký consumer dùng enhanced fan-out
+aws kinesis register-stream-consumer \
+  --stream-arn arn:aws:kinesis:ap-southeast-1:123456789012:stream/telemetry \
+  --consumer-name analytics-efo
+
+# Lambda đọc stream, xử lý song song trong mỗi shard
+aws lambda create-event-source-mapping \
+  --function-name process-stream \
+  --event-source-arn arn:aws:kinesis:ap-southeast-1:123456789012:stream/telemetry \
+  --batch-size 100 --parallelization-factor 4 \
+  --starting-position LATEST</code></pre>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Bật EFO khi có nhiều consumer đọc cùng stream và cần độ trễ thấp. Dùng KCL khi chạy consumer trên EC2/ECS và cần tự quản lý checkpoint. Dùng Lambda ESM khi muốn serverless, ít vận hành.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Pitfall</span>
+          <div class="callout">
+            <span class="callout-title">Dễ nhầm</span>
+            Lambda scale theo <em>số shard × ParallelizationFactor</em>. Một record lỗi có thể chặn cả shard tới khi cạn retry — cấu hình <code>MaximumRetryAttempts</code> + On-Failure destination và theo dõi metric <code>IteratorAge</code> để phát hiện tụt hậu.
+          </div>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html">AWS Docs — Enhanced fan-out consumers</a> · <a href="https://docs.aws.amazon.com/streams/latest/dev/shared-throughput-kcl-consumers.html">AWS Docs — KCL shared-throughput consumers</a> · <a href="https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html">AWS Docs — Lambda with Kinesis</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="firehose-and-choice">
+    <h2 class="section-title">Firehose, MSK &amp; chọn service</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS7</span> Kinesis Data Firehose: buffer, transform và các sink hoạt động thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Firehose là dịch vụ <em>nạp</em> dữ liệu streaming tới storage/analytics theo kiểu gần thời gian thực. Nó <strong>không phải nơi lưu trữ</strong> và <strong>không replay</strong> được (khác Kinesis Data Streams). Dữ liệu được gom theo buffer:</p>
+          <ul>
+            <li><strong>Buffer size</strong> 1–128 MB (mặc định 5 MB) và <strong>buffer interval</strong> 60–900 giây (mặc định 300 giây) — điều kiện nào đến trước thì flush trước.</li>
+            <li><strong>Transform</strong> bằng Lambda (payload tối đa 6 MB, timeout tối đa 5 phút) để lọc/biến đổi record.</li>
+            <li><strong>Sink</strong>: S3, Redshift (qua S3), OpenSearch, Splunk, HTTP endpoint, third-party. Có thể chuyển đổi định dạng sang Parquet/ORC và dynamic partitioning.</li>
+          </ul>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico generic"></span><span class="icon-label">Producers</span><span class="icon-note">SDK / agent</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">PutRecordBatch</span></div>
+            <div class="icon-node"><span class="aws-ico kinesisfirehose"></span><span class="icon-label">Firehose</span><span class="icon-note">buffer 5 MB / 300 s</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">Lambda transform</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">S3 / Redshift</span><span class="icon-note">OpenSearch · Splunk</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Code</span>
+          <div class="code-block" data-lang="json">
+<pre><code>{
+  "RoleARN": "arn:aws:iam::123456789012:role/firehose-role",
+  "S3Configuration": {
+    "BucketARN": "arn:aws:s3:::telemetry-lake",
+    "RoleARN": "arn:aws:iam::123456789012:role/firehose-role"
+  },
+  "BufferingHints": { "SizeInMBs": 128, "IntervalInSeconds": 60 },
+  "ProcessingConfiguration": {
+    "Enabled": true,
+    "Processors": [
+      { "Type": "Lambda",
+        "Parameters": [
+          { "ParameterName": "LambdaArn",
+            "ParameterValue": "arn:aws:lambda:ap-southeast-1:123456789012:function:transform" }
+        ] }
+    ]
+  }
+}</code></pre>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng Firehose khi chỉ cần <em>đổ</em> dữ liệu vào S3/Redshift/OpenSearch mà không cần đọc lại nhiều consumer hay replay. Muốn replay theo vị trí và nhiều consumer thì dùng Kinesis Data Streams (có thể đặt Firehose làm consumer của stream).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Pitfall</span>
+          <div class="callout">
+            <span class="callout-title">Dễ nhầm</span>
+            Firehose <strong>không replay</strong> và ghi vào S3 theo buffer chứ không tức thời. Khi transform thất bại, record lỗi có thể được đẩy sang bucket S3 backup — nên bật để không mất dữ liệu.
+          </div>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/firehose/latest/dev/what-is-this-service.html">AWS Docs — What is Amazon Data Firehose</a> · <a href="https://docs.aws.amazon.com/firehose/latest/dev/buffering.html">AWS Docs — Buffering</a> · <a href="https://docs.aws.amazon.com/firehose/latest/dev/data-transformation.html">AWS Docs — Data transformation</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS8</span> Kinesis Data Streams vs SQS vs MSK — chọn cái nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Ba dịch vụ đều "chở" dữ liệu nhưng khác bản chất: SQS là <em>queue</em> (message bị xoá sau khi xử lý xong), Kinesis Data Streams là <em>log</em> (nhiều consumer đọc, replay theo vị trí, giữ theo thời hạn), MSK là <em>Apache Kafka do AWS quản lý</em> (hệ sinh thái Kafka, partition/topic, giữ dữ liệu dài).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">SQS</span><span class="icon-note">queue · 1 consumer group · xoá sau xử lý</span></div>
+            <div class="icon-node"><span class="aws-ico kinesis"></span><span class="icon-label">Kinesis DS</span><span class="icon-note">log · nhiều consumer · replay</span></div>
+            <div class="icon-node"><span class="aws-ico msk"></span><span class="icon-label">MSK</span><span class="icon-note">Kafka · partition/topic · giữ dài</span></div>
+          </div>
+          <table class="feature-table">
+            <thead>
+              <tr><th>Tiêu chí</th><th>SQS</th><th>Kinesis Data Streams</th><th>MSK (Kafka)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Mô hình</td><td>Queue, message bị xoá khi xử lý xong</td><td>Append-only log, giữ theo retention</td><td>Kafka topic/partition, giữ theo retention</td></tr>
+              <tr><td>Nhiều consumer</td><td>Một consumer group; message không chia sẻ lại</td><td>Nhiều consumer đọc cùng dữ liệu, mỗi consumer giữ vị trí riêng</td><td>Nhiều consumer group, mỗi group giữ offset</td></tr>
+              <tr><td>Replay</td><td>Không (message bị xoá)</td><td>Có — seek theo sequence number / timestamp</td><td>Có — reset offset</td></tr>
+              <tr><td>Thứ tự</td><td>Standard: best-effort; FIFO: theo message group</td><td>Theo shard (partition key → shard)</td><td>Theo partition</td></tr>
+              <tr><td>Retention</td><td>1 phút–14 ngày (mặc định 4 ngày)</td><td>24 giờ–365 ngày (mặc định 24 giờ)</td><td>Cấu hình theo topic (giờ/ngày)</td></tr>
+              <tr><td>Vận hành</td><td>Serverless hoàn toàn</td><td>Serverless (provisioned/on-demand)</td><td>Cần quản trị broker (hoặc Serverless MSK)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Code</span>
+          <div class="code-block" data-lang="bash">
+<pre><code># Tạo cluster MSK khi đã có hệ sinh thái Kafka cần giữ lâu
+aws kafka create-cluster \
+  --cluster-name events \
+  --kafka-version 3.6.0 \
+  --number-of-broker-nodes 3 \
+  --broker-node-group-info file://brokers.json</code></pre>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Đề nói "decouple, retry, DLQ, mỗi message xử lý một lần" → SQS. Đề nói "aggregate nhiều consumer đọc cùng dữ liệu, replay, analytics real-time" → Kinesis Data Streams. Đề nói "đã dùng Kafka, cần hệ sinh thái Kafka/Connect/Flink, giữ dữ liệu lâu, di trú từ on-prem" → MSK.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Pitfall</span>
+          <div class="callout">
+            <span class="callout-title">Dễ nhầm</span>
+            SQS <em>xoá</em> message sau khi xử lý nên không có khái niệm replay; Kinesis giữ dữ liệu và cho phép nhiều consumer, nhưng một shard bị giới hạn 1 MB/s ghi. Đừng chọn Kinesis chỉ vì "cần throughput cao" nếu không cần replay hay nhiều consumer.
+          </div>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/streams/latest/dev/key-concepts.html">AWS Docs — Kinesis key concepts</a> · <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html">AWS Docs — Amazon SQS</a> · <a href="https://docs.aws.amazon.com/msk/latest/developerguide/what-is-msk.html">AWS Docs — Amazon MSK</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS9</span> Tình huống: clickstream 5 triệu event/phút cần real-time + lưu S3 — và "exactly-once" thật ra đảm bảo tới đâu?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Bài toán kinh điển: thu lượng lớn event, vừa phân tích gần thời gian thực vừa lưu trữ dài hạn. Kiến trúc thường dùng: <strong>Kinesis Data Streams</strong> (on-demand) làm xương sống → nhiều consumer (Lambda/EFO) cho analytics → <strong>Firehose</strong> đổ vào S3. Về tính đúng đắn: Kinesis là <em>at-least-once</em>, nghĩa là record có thể bị giao lại; "exactly-once" thực sự chỉ tồn tại trong phạm vi hẹp.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico generic"></span><span class="icon-label">Clickstream</span><span class="icon-note">5M events/phút</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">partition key = sessionId</span></div>
+            <div class="icon-node"><span class="aws-ico kinesis"></span><span class="icon-label">Data Streams</span><span class="icon-note">on-demand, EFO</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">fan-out</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Analytics</span><span class="icon-note">idempotent sink</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">buffer</span></div>
+            <div class="icon-node"><span class="aws-ico kinesisfirehose"></span><span class="icon-label">Firehose</span><span class="icon-note">→ S3 (Parquet)</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Code</span>
+          <div class="code-block" data-lang="bash">
+<pre><code># gửi lô record (tối đa 500 record / 5 MB mỗi lần gọi)
+aws kinesis put-records \
+  --stream-name clickstream \
+  --records file://records.json
+
+# consumer idempotent: chỉ cộng 1 lần cho mỗi event đã xử lý
+aws dynamodb update-item --table-name sessions \
+  --key '{"sid":{"S":"s-1"}}' \
+  --update-expression "SET hits = hits + :one" \
+  --condition-expression "attribute_not_exists(processed)" \
+  --expression-attribute-values '{":one":{"N":"1"}}'</code></pre>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Thiết kế chuẩn: partition key phân tán đều (tránh hot shard), bật EFO khi nhiều consumer, dùng Firehose để nén/chuyển Parquet trước khi vào S3, và <em>luôn</em> làm idempotent ở tầng ghi cuối.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">Pitfall</span>
+          <div class="callout">
+            <span class="callout-title">Dễ nhầm</span>
+            "Exactly-once" end-to-end gần như không có sẵn: SQS FIFO chỉ dedup trong 5 phút, Step Functions Standard cho exactly-once ở mức <em>orchestration</em>, còn Kinesis/Lambda là at-least-once. Cách duy nhất chắc chắn không xử lý trùng là ghi kết quả bằng <em>conditional write</em> idempotent. Theo dõi <code>IteratorAge</code> và <code>WriteProvisionedThroughputExceeded</code> để phát hiện nghẽn.
+          </div>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/streams/latest/dev/key-concepts.html">AWS Docs — Kinesis key concepts</a> · <a href="https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html">AWS Docs — Enhanced fan-out</a> · <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html">AWS Docs — FIFO queues (dedup 5 phút)</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <div class="nav-pager"><a class="prev" href="28-aws-messaging.html">← Trước</a><a class="next" href="index.html">Mục lục →</a></div>
+</main>
+</body>
+</html>

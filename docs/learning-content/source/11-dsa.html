@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>11. Coding &amp; DSA — Java Interview Bank</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Java Interview<br><span>Bank</span></h1>
+        <p>Interview Prep Notes</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>11. Coding &amp; DSA</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 11</div>
+          <h1 class="module-title">Coding, Data Structures &amp; Algorithms</h1>
+          <p class="module-subtitle">String, Array, Linked List, Graph, Tree, DP, Backtracking, Union-Find — kèm code Java hoàn chỉnh cho từng pattern thường gặp trong phỏng vấn backend và WCS routing.</p>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-value">17</div><div class="stat-label">Bài toán</div></div>
+          <div class="stat-card"><div class="stat-value">9</div><div class="stat-label">Patterns</div></div>
+          <div class="stat-card"><div class="stat-value">O(n)</div><div class="stat-label">Mục tiêu độ phức tạp</div></div>
+        </div>
+
+        <!-- STRING & ARRAY -->
+        <section class="section" id="string-array">
+          <h2 class="section-title">Xử lý chuỗi &amp; Mảng</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q1</span> Reverse String không dùng hàm built-in</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Đảo ngược chuỗi <strong>in-place</strong> bằng <strong>two pointers</strong> trên <code>char[]</code> — không dùng <code>StringBuilder.reverse()</code> built-in.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Bài warmup phỏng vấn kiểm tra hiểu String immutable Java — mọi modify tạo object mới; char array swap O(1) space.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>left=0, right=len-1, swap chars, move inward until left>=right. Handle null/len<=1 edge.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Palindrome prep, string manipulation interview. Pattern two pointers opposite direction.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không dùng built-in reverse() khi interview yêu cầu in-place. Không mutate String trực tiếp — immutable. Không recursive nếu stack depth concern n lớn.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>Two pointers swap</td><td>O(n)</td><td>O(1)</td><td>Optimal in-place</td></tr><tr><td>StringBuilder reverse</td><td>O(n)</td><td>O(n)</td><td>Built-in disallowed interview</td></tr><tr><td>Recursive</td><td>O(n)</td><td>O(n) stack</td><td>Not preferred</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public class</span> <span class="tok-class">ReverseString</span> {
+  <span class="tok-keyword">public static</span> <span class="tok-class">String</span> <span class="tok-function">reverse</span>(<span class="tok-class">String</span> s) {
+    <span class="tok-keyword">if</span> (s == <span class="tok-keyword">null</span> || s.length() &lt;= <span class="tok-number">1</span>) <span class="tok-keyword">return</span> s;
+    <span class="tok-keyword">char</span>[] chars = s.toCharArray();
+    <span class="tok-keyword">int</span> left = <span class="tok-number">0</span>, right = chars.length - <span class="tok-number">1</span>;
+    <span class="tok-keyword">while</span> (left &lt; right) {
+      <span class="tok-keyword">char</span> tmp = chars[left];
+      chars[left++] = chars[right];
+      chars[right--] = tmp;
+    }
+    <span class="tok-keyword">return new</span> <span class="tok-class">String</span>(chars);
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    System.out.println(reverse(<span class="tok-string">"hello"</span>)); <span class="tok-comment">// olleh</span>
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Reverse SKU barcode string warehouse scanner validation.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>String immutable — s.toCharArray() first; Unicode surrogate pair rare edge.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Two pointers left right swap char[].</li>
+                  <li>O(n) time O(1) space in-place.</li>
+                  <li>String immutable — toCharArray first.</li>
+                  <li>Edge null length 0 or 1.</li>
+                  <li>Pattern opposite direction pointers.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q2</span> Kiểm tra Palindrome</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Kiểm tra <strong>palindrome</strong> bỏ ký tự không alphanumeric, compare lowercase two pointers.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Classic two pointers — skip invalid chars without extra string clean pass if combined.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>left/right skip !isLetterOrDigit, toLowerCase compare, move pointers. All valid chars match → true.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>String validation, phrase palindrome LeetCode 125. Two pointers converging.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không strip toàn chuỗi rồi compare — mất O(n) extra space nếu không cần. Không quên skip non-alphanumeric. Không Character.isLetterOrDigit locale edge Unicode rare.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>Two pointers</td><td>O(n)</td><td>O(1)</td><td>Optimal</td></tr><tr><td>Reverse compare</td><td>O(n)</td><td>O(n)</td><td>Extra space</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public class</span> <span class="tok-class">PalindromeCheck</span> {
+  <span class="tok-keyword">public static boolean</span> <span class="tok-function">isPalindrome</span>(<span class="tok-class">String</span> s) {
+    <span class="tok-keyword">int</span> left = <span class="tok-number">0</span>, right = s.length() - <span class="tok-number">1</span>;
+    <span class="tok-keyword">while</span> (left &lt; right) {
+      <span class="tok-keyword">while</span> (left &lt; right &amp;&amp; !Character.isLetterOrDigit(s.charAt(left))) left++;
+      <span class="tok-keyword">while</span> (left &lt; right &amp;&amp; !Character.isLetterOrDigit(s.charAt(right))) right--;
+      <span class="tok-keyword">if</span> (Character.toLowerCase(s.charAt(left++)) != Character.toLowerCase(s.charAt(right--)))
+        <span class="tok-keyword">return false</span>;
+    }
+    <span class="tok-keyword">return true</span>;
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    System.out.println(isPalindrome(<span class="tok-string">"A man, a plan, a canal: Panama"</span>)); <span class="tok-comment">// true</span>
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Validate palindrome product code ignore dashes.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Empty after strip → true; Unicode toLowerCase locale.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Two pointers skip non-alnum.</li>
+                  <li>toLowerCase compare chars.</li>
+                  <li>O(n) O(1) optimal.</li>
+                  <li>Move left++ right--.</li>
+                  <li>LeetCode 125 classic.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q3</span> Tìm phần tử trùng lặp trong mảng</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Tìm <strong>duplicate</strong> trong mảng dùng HashSet — phần tử add fail lần 2 = duplicate.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>O(n) single pass vs O(n²) nested loop. Variant Floyd cycle O(1) space nếu array as linked list [1..n].</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Iterate nums, seen.add(n) false → duplicate. Floyd: treat index as next pointer find cycle entry.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Find any/all duplicates unsorted. Floyd khi constraints [1..n] in-place O(1) space required.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không Floyd O(1) space khi array không phải [1..n] index mapping. Không nested loop O(n²) khi n lớn có HashSet O(n). Không sort+scan nếu cần online stream.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>HashSet</td><td>O(n)</td><td>O(n)</td><td>General array</td></tr><tr><td>Floyd cycle</td><td>O(n)</td><td>O(1)</td><td>Values in [1..n] index map</td></tr><tr><td>Sort+scan</td><td>O(n log n)</td><td>O(1)</td><td>If sort OK</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public class</span> <span class="tok-class">FindDuplicates</span> {
+  <span class="tok-keyword">public static</span> <span class="tok-class">List</span>&lt;<span class="tok-class">Integer</span>&gt; <span class="tok-function">findDuplicates</span>(<span class="tok-keyword">int</span>[] nums) {
+    <span class="tok-class">Set</span>&lt;<span class="tok-class">Integer</span>&gt; seen = <span class="tok-keyword">new</span> <span class="tok-class">HashSet</span>&lt;&gt;();
+    <span class="tok-class">List</span>&lt;<span class="tok-class">Integer</span>&gt; duplicates = <span class="tok-keyword">new</span> <span class="tok-class">ArrayList</span>&lt;&gt;();
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> n : nums) {
+      <span class="tok-keyword">if</span> (!seen.add(n)) duplicates.add(n);
+    }
+    <span class="tok-keyword">return</span> duplicates;
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    System.out.println(findDuplicates(<span class="tok-keyword">new int</span>[]{<span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>, <span class="tok-number">2</span>, <span class="tok-number">4</span>, <span class="tok-number">5</span>, <span class="tok-number">3</span>})); <span class="tok-comment">// [2, 3]</span>
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Detect duplicate pallet ID scan list.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Floyd only specific constraint; HashSet unbounded memory large n.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>HashSet add fail = duplicate.</li>
+                  <li>O(n) time O(n) space.</li>
+                  <li>Floyd O(1) if [1..n] index as link.</li>
+                  <li>Single pass iterate array.</li>
+                  <li>Interview mention Floyd variant.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q4</span> Ký tự đầu tiên không lặp lại</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Tìm <strong>ký tự đầu không lặp</strong> — count frequency array 128 ASCII hoặc LinkedHashMap giữ insertion order.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Frequency count pattern base cho nhiều string problem. Array 128 faster than HashMap ASCII.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Pass1 count[c]++. Pass2 iterate s if count[c]==1 return c. LinkedHashMap if need first non-repeating stable.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Stream character first unique. Queue+HashMap variant sliding.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không int[128] khi Unicode full charset — dùng HashMap. Không one pass HashMap khi cần first non-repeat order — cần two pass hoặc LinkedHashMap.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>int[128] count</td><td>O(n)</td><td>O(1)</td><td>ASCII fixed</td></tr><tr><td>HashMap</td><td>O(n)</td><td>O(k)</td><td>Unicode k charset</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public class</span> <span class="tok-class">FirstNonRepeating</span> {
+  <span class="tok-keyword">public static</span> <span class="tok-class">Character</span> <span class="tok-function">firstNonRepeating</span>(<span class="tok-class">String</span> s) {
+    <span class="tok-keyword">int</span>[] count = <span class="tok-keyword">new int</span>[<span class="tok-number">128</span>];
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">char</span> c : s.toCharArray()) count[c]++;
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">char</span> c : s.toCharArray()) {
+      <span class="tok-keyword">if</span> (count[c] == <span class="tok-number">1</span>) <span class="tok-keyword">return</span> c;
+    }
+    <span class="tok-keyword">return null</span>;
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    System.out.println(firstNonRepeating(<span class="tok-string">"swiss"</span>)); <span class="tok-comment">// w</span>
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>First unique error code char in log prefix.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Unicode beyond 128 need HashMap; all repeat return null.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Two pass count then find.</li>
+                  <li>int[128] ASCII O(1) space.</li>
+                  <li>First char count==1 return.</li>
+                  <li>LinkedHashMap if Unicode order.</li>
+                  <li>O(n) time standard.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- DATA STRUCTURES -->
+        <section class="section" id="data-structures">
+          <h2 class="section-title">Cấu trúc dữ liệu &amp; Thiết kế</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q5</span> LRU Cache — Doubly Linked List + HashMap</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>LRU Cache</strong> capacity K: HashMap key→node + Doubly Linked List order — get/put O(1) evict tail LRU.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Design data structure interview LeetCode 146 — combine two structures for O(1) lookup + order.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Dummy head/tail. Get: move node to head. Put: exist update move head; new add head; if size>capacity remove tail prev map.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Cache eviction policy Redis-like local Caffeine internals concept.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không LRU khi cache size unbounded — memory leak. Không thread-unsafe HashMap+DLL concurrent — cần lock hoặc ConcurrentHashMap+linked (Caffeine). Không TreeMap O(log K) khi cần O(1) strict.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>HashMap+DLL</td><td>O(1) get/put</td><td>O(K)</td><td>Optimal design</td></tr><tr><td>TreeMap timestamp</td><td>O(log K)</td><td>O(K)</td><td>Simpler worse</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public class</span> <span class="tok-class">LRUCache</span> {
+  <span class="tok-keyword">private static class</span> <span class="tok-class">Node</span> {
+    <span class="tok-keyword">int</span> key, value;
+    <span class="tok-class">Node</span> prev, next;
+    <span class="tok-class">Node</span>(<span class="tok-keyword">int</span> k, <span class="tok-keyword">int</span> v) { key = k; value = v; }
+  }
+
+  <span class="tok-keyword">private final int</span> capacity;
+  <span class="tok-keyword">private final</span> <span class="tok-class">Map</span>&lt;<span class="tok-class">Integer</span>, <span class="tok-class">Node</span>&gt; map = <span class="tok-keyword">new</span> <span class="tok-class">HashMap</span>&lt;&gt;();
+  <span class="tok-keyword">private final</span> <span class="tok-class">Node</span> head = <span class="tok-keyword">new</span> <span class="tok-class">Node</span>(<span class="tok-number">0</span>, <span class="tok-number">0</span>);
+  <span class="tok-keyword">private final</span> <span class="tok-class">Node</span> tail = <span class="tok-keyword">new</span> <span class="tok-class">Node</span>(<span class="tok-number">0</span>, <span class="tok-number">0</span>);
+
+  <span class="tok-keyword">public</span> <span class="tok-function">LRUCache</span>(<span class="tok-keyword">int</span> capacity) {
+    <span class="tok-keyword">this</span>.capacity = capacity;
+    head.next = tail; tail.prev = head;
+  }
+
+  <span class="tok-keyword">public int</span> <span class="tok-function">get</span>(<span class="tok-keyword">int</span> key) {
+    <span class="tok-class">Node</span> node = map.get(key);
+    <span class="tok-keyword">if</span> (node == <span class="tok-keyword">null</span>) <span class="tok-keyword">return</span> -<span class="tok-number">1</span>;
+    moveToHead(node);
+    <span class="tok-keyword">return</span> node.value;
+  }
+
+  <span class="tok-keyword">public void</span> <span class="tok-function">put</span>(<span class="tok-keyword">int</span> key, <span class="tok-keyword">int</span> value) {
+    <span class="tok-class">Node</span> node = map.get(key);
+    <span class="tok-keyword">if</span> (node != <span class="tok-keyword">null</span>) {
+      node.value = value;
+      moveToHead(node);
+      <span class="tok-keyword">return</span>;
+    }
+    node = <span class="tok-keyword">new</span> <span class="tok-class">Node</span>(key, value);
+    map.put(key, node);
+    addToHead(node);
+    <span class="tok-keyword">if</span> (map.size() &gt; capacity) {
+      <span class="tok-class">Node</span> lru = removeTail();
+      map.remove(lru.key);
+    }
+  }
+
+  <span class="tok-keyword">private void</span> <span class="tok-function">moveToHead</span>(<span class="tok-class">Node</span> node) {
+    removeNode(node); addToHead(node);
+  }
+  <span class="tok-keyword">private void</span> <span class="tok-function">addToHead</span>(<span class="tok-class">Node</span> node) {
+    node.prev = head; node.next = head.next;
+    head.next.prev = node; head.next = node;
+  }
+  <span class="tok-keyword">private void</span> <span class="tok-function">removeNode</span>(<span class="tok-class">Node</span> node) {
+    node.prev.next = node.next; node.next.prev = node.prev;
+  }
+  <span class="tok-keyword">private</span> <span class="tok-class">Node</span> <span class="tok-function">removeTail</span>() {
+    <span class="tok-class">Node</span> node = tail.prev;
+    removeNode(node);
+    <span class="tok-keyword">return</span> node;
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Local cache 1000 hot SKU product lookup WMS terminal.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Forget update map on evict; not thread-safe add lock.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>HashMap O(1) lookup node.</li>
+                  <li>Doubly linked list access order.</li>
+                  <li>Get/put move to head evict tail.</li>
+                  <li>Dummy head tail simplify insert.</li>
+                  <li>LeetCode 146 classic design.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q6</span> Producer-Consumer — BlockingQueue &amp; wait/notify</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Producer-Consumer</strong> bounded buffer: BlockingQueue production (put/take block) vs wait/notify synchronized manual.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Java concurrency classic — interview compare low-level wait/notify vs j.u.c higher abstraction.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>BlockingQueue ArrayBlockingQueue capacity 5 put take. wait/notify: while full wait, while empty wait, notifyAll on change.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>BlockingQueue: production code executor queue. wait/notify: understand monitor intrinsic lock interview.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không wait/notify production khi BlockingQueue đủ — bug-prone spurious wakeup. Không unbounded queue không backpressure — OOM. Không if thay while wait loop.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>BlockingQueue</td><td>O(1) amortized</td><td>O(capacity)</td><td>Preferred production</td></tr><tr><td>wait/notify</td><td>O(1)</td><td>O(capacity)</td><td>Manual condition wait</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.concurrent.*;
+
+<span class="tok-keyword">public class</span> <span class="tok-class">ProducerConsumerBlockingQueue</span> {
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) <span class="tok-keyword">throws</span> <span class="tok-class">InterruptedException</span> {
+    <span class="tok-class">BlockingQueue</span>&lt;<span class="tok-class">Integer</span>&gt; queue = <span class="tok-keyword">new</span> <span class="tok-class">ArrayBlockingQueue</span>&lt;&gt;(<span class="tok-number">5</span>);
+    <span class="tok-class">ExecutorService</span> pool = Executors.newFixedThreadPool(<span class="tok-number">2</span>);
+
+    pool.submit(() -&gt; {
+      <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">1</span>; i &lt;= <span class="tok-number">10</span>; i++) {
+        <span class="tok-keyword">try</span> {
+          queue.put(i);
+          System.out.println(<span class="tok-string">"Produced: "</span> + i);
+          Thread.sleep(<span class="tok-number">100</span>);
+        } <span class="tok-keyword">catch</span> (<span class="tok-class">InterruptedException</span> e) { Thread.currentThread().interrupt(); }
+      }
+    });
+
+    pool.submit(() -&gt; {
+      <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">1</span>; i &lt;= <span class="tok-number">10</span>; i++) {
+        <span class="tok-keyword">try</span> {
+          <span class="tok-keyword">int</span> item = queue.take();
+          System.out.println(<span class="tok-string">"Consumed: "</span> + item);
+          Thread.sleep(<span class="tok-number">200</span>);
+        } <span class="tok-keyword">catch</span> (<span class="tok-class">InterruptedException</span> e) { Thread.currentThread().interrupt(); }
+      }
+    });
+
+    pool.shutdown();
+    pool.awaitTermination(<span class="tok-number">5</span>, TimeUnit.SECONDS);
+  }
+}</code></pre></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public class</span> <span class="tok-class">ProducerConsumerWaitNotify</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">Queue</span>&lt;<span class="tok-class">Integer</span>&gt; queue = <span class="tok-keyword">new</span> <span class="tok-class">LinkedList</span>&lt;&gt;();
+  <span class="tok-keyword">private final int</span> capacity = <span class="tok-number">5</span>;
+
+  <span class="tok-keyword">public synchronized void</span> <span class="tok-function">produce</span>(<span class="tok-keyword">int</span> item) <span class="tok-keyword">throws</span> <span class="tok-class">InterruptedException</span> {
+    <span class="tok-keyword">while</span> (queue.size() == capacity) wait();
+    queue.offer(item);
+    System.out.println(<span class="tok-string">"Produced: "</span> + item);
+    notifyAll();
+  }
+
+  <span class="tok-keyword">public synchronized int</span> <span class="tok-function">consume</span>() <span class="tok-keyword">throws</span> <span class="tok-class">InterruptedException</span> {
+    <span class="tok-keyword">while</span> (queue.isEmpty()) wait();
+    <span class="tok-keyword">int</span> item = queue.poll();
+    System.out.println(<span class="tok-string">"Consumed: "</span> + item);
+    notifyAll();
+    <span class="tok-keyword">return</span> item;
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    <span class="tok-class">ProducerConsumerWaitNotify</span> pc = <span class="tok-keyword">new</span> <span class="tok-class">ProducerConsumerWaitNotify</span>();
+    <span class="tok-keyword">new</span> <span class="tok-class">Thread</span>(() -&gt; {
+      <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">1</span>; i &lt;= <span class="tok-number">10</span>; i++) {
+        <span class="tok-keyword">try</span> { pc.produce(i); Thread.sleep(<span class="tok-number">100</span>); }
+        <span class="tok-keyword">catch</span> (<span class="tok-class">Exception</span> e) { e.printStackTrace(); }
+      }
+    }).start();
+    <span class="tok-keyword">new</span> <span class="tok-class">Thread</span>(() -&gt; {
+      <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">1</span>; i &lt;= <span class="tok-number">10</span>; i++) {
+        <span class="tok-keyword">try</span> { pc.consume(); Thread.sleep(<span class="tok-number">200</span>); }
+        <span class="tok-keyword">catch</span> (<span class="tok-class">Exception</span> e) { e.printStackTrace(); }
+      }
+    }).start();
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>WCS task queue AGV dispatch producer consumer pattern.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>if instead while wait spurious wakeup; notify vs notifyAll.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>BlockingQueue put take block full empty.</li>
+                  <li>wait/notify synchronized while loop.</li>
+                  <li>Production prefer j.u.c BlockingQueue.</li>
+                  <li>Bounded buffer capacity backpressure.</li>
+                  <li>ExecutorService thread pool same pattern.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q7</span> Detect Cycle — Floyd's Tortoise and Hare</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Floyd cycle detection</strong> tortoise hare slow 1 step fast 2 steps — meet inside cycle exists.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>O(1) space vs HashSet O(n) detect linked list cycle. Phase 2 find cycle start optional.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>slow=head fast=head. While fast&&fast.next: slow=slow.next fast=fast.next.next. slow==fast cycle true.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Linked list cycle, happy number, array as linked list duplicate.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không Floyd directed graph cycle detection — cần DFS three-color. Không HashSet khi constraint O(1) space bắt buộc interview. Không quên fast null check fast.next.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>Floyd</td><td>O(n)</td><td>O(1)</td><td>Optimal space</td></tr><tr><td>HashSet visited</td><td>O(n)</td><td>O(n)</td><td>Easier code</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public class</span> <span class="tok-class">LinkedListCycle</span> {
+  <span class="tok-keyword">static class</span> <span class="tok-class">ListNode</span> {
+    <span class="tok-keyword">int</span> val;
+    <span class="tok-class">ListNode</span> next;
+    <span class="tok-class">ListNode</span>(<span class="tok-keyword">int</span> v) { val = v; }
+  }
+
+  <span class="tok-keyword">public static boolean</span> <span class="tok-function">hasCycle</span>(<span class="tok-class">ListNode</span> head) {
+    <span class="tok-class">ListNode</span> slow = head, fast = head;
+    <span class="tok-keyword">while</span> (fast != <span class="tok-keyword">null</span> &amp;&amp; fast.next != <span class="tok-keyword">null</span>) {
+      slow = slow.next;
+      fast = fast.next.next;
+      <span class="tok-keyword">if</span> (slow == fast) <span class="tok-keyword">return true</span>;
+    }
+    <span class="tok-keyword">return false</span>;
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Detect circular reference config graph WCS routing misconfig.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Fast null check order; find cycle entry phase 2 math.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Slow 1 step fast 2 steps.</li>
+                  <li>Meet → cycle exists.</li>
+                  <li>O(n) time O(1) space.</li>
+                  <li>Alternative HashSet visited.</li>
+                  <li>Extension find cycle start node.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q8</span> Top K Frequent Elements — PriorityQueue</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Top K frequent</strong> elements: count HashMap + min-heap size K keep largest frequencies.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Better than sort O(n log n) when K&lt;&lt;n — O(n log K). Bucket sort O(n) if freq bounded.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>freq map. Min-heap comparator freq ascending size K: offer poll if size>K. Extract heap to array.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Top K hot SKU, trending keyword, K largest elements pattern.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không sort O(n log n) khi K &lt;&lt; n và cần top K. Không max-heap size K nhầm min-heap — logic sai. Không bucket sort khi frequency unbounded range.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>Min-heap size K</td><td>O(n log K)</td><td>O(n+K)</td><td>General</td></tr><tr><td>Bucket sort freq</td><td>O(n)</td><td>O(n)</td><td>Freq bounded</td></tr><tr><td>Sort all</td><td>O(n log n)</td><td>O(n)</td><td>Simple K≈n</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public class</span> <span class="tok-class">TopKFrequent</span> {
+  <span class="tok-keyword">public static int</span>[] <span class="tok-function">topKFrequent</span>(<span class="tok-keyword">int</span>[] nums, <span class="tok-keyword">int</span> k) {
+    <span class="tok-class">Map</span>&lt;<span class="tok-class">Integer</span>, <span class="tok-class">Integer</span>&gt; freq = <span class="tok-keyword">new</span> <span class="tok-class">HashMap</span>&lt;&gt;();
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> n : nums) freq.merge(n, <span class="tok-number">1</span>, Integer::sum);
+
+    <span class="tok-class">PriorityQueue</span>&lt;<span class="tok-class">Integer</span>&gt; minHeap = <span class="tok-keyword">new</span> <span class="tok-class">PriorityQueue</span>&lt;&gt;(
+        (a, b) -&gt; freq.get(a) - freq.get(b));
+
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> num : freq.keySet()) {
+      minHeap.offer(num);
+      <span class="tok-keyword">if</span> (minHeap.size() &gt; k) minHeap.poll();
+    }
+
+    <span class="tok-keyword">return</span> minHeap.stream().mapToInt(Integer::intValue).toArray();
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    System.out.println(Arrays.toString(topKFrequent(<span class="tok-keyword">new int</span>[]{<span class="tok-number">1</span>,<span class="tok-number">1</span>,<span class="tok-number">1</span>,<span class="tok-number">2</span>,<span class="tok-number">2</span>,<span class="tok-number">3</span>}, <span class="tok-number">2</span>)); <span class="tok-comment">// [1, 2]</span>
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Top 10 picked SKU today warehouse report.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Max-heap vs min-heap size K confusion; tie frequency order.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Count freq HashMap first.</li>
+                  <li>Min-heap size K maintain top.</li>
+                  <li>O(n log K) better large n small K.</li>
+                  <li>Bucket sort O(n) alternative.</li>
+                  <li>LeetCode 347 pattern.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- LEETCODE PATTERNS -->
+        <section class="section" id="patterns">
+          <h2 class="section-title">LeetCode Medium — Patterns trọng tâm</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q9</span> Sliding Window — Longest Substring Without Repeating</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Sliding window</strong> longest substring without repeating — HashMap last index char, move start pointer skip duplicate.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Subarray/substring contiguous constraint → sliding window not static window. O(n) each char visited twice max.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>end pointer expand, lastSeen char if >=start move start. Update max end-start+1. Put lastSeen char end.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Substring max/min with constraint repeating char, at most K distinct.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không brute force O(n²) substring khi sliding window O(n) apply. Không quên move start = lastSeen+1 not lastSeen. Không fixed window khi constraint repeating chars — cần variable window.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>Sliding window+Map</td><td>O(n)</td><td>O(k)</td><td>k charset size</td></tr><tr><td>Brute force</td><td>O(n²)</td><td>O(k)</td><td>Check all substrings</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public class</span> <span class="tok-class">LongestSubstring</span> {
+  <span class="tok-keyword">public static int</span> <span class="tok-function">lengthOfLongestSubstring</span>(<span class="tok-class">String</span> s) {
+    <span class="tok-class">Map</span>&lt;<span class="tok-class">Character</span>, <span class="tok-class">Integer</span>&gt; lastSeen = <span class="tok-keyword">new</span> <span class="tok-class">HashMap</span>&lt;&gt;();
+    <span class="tok-keyword">int</span> max = <span class="tok-number">0</span>, start = <span class="tok-number">0</span>;
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> end = <span class="tok-number">0</span>; end &lt; s.length(); end++) {
+      <span class="tok-keyword">char</span> c = s.charAt(end);
+      <span class="tok-keyword">if</span> (lastSeen.containsKey(c) &amp;&amp; lastSeen.get(c) &gt;= start) {
+        start = lastSeen.get(c) + <span class="tok-number">1</span>;
+      }
+      lastSeen.put(c, end);
+      max = Math.max(max, end - start + <span class="tok-number">1</span>);
+    }
+    <span class="tok-keyword">return</span> max;
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    System.out.println(lengthOfLongestSubstring(<span class="tok-string">"abcabcbb"</span>)); <span class="tok-comment">// 3</span>
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Max unique SKU sequence scan barcode stream.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>start = lastSeen+1 not lastSeen; empty string return 0.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Expand end shrink start window.</li>
+                  <li>HashMap last index each char.</li>
+                  <li>O(n) each char enter leave once.</li>
+                  <li>Pattern contiguous substring.</li>
+                  <li>LeetCode 3 classic.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q10</span> Two Pointers / Prefix Sum — Subarray Sum Equals K</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Prefix sum + HashMap</strong> count subarray sum equals K — prefixCount map count prefix sums, add count[sum-K].</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Transform O(n²) all subarrays to O(n) — complement prefix sum K appears before. Base prefixCount[0]=1.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>sum+=num. count+=prefixCount.get(sum-k). prefixCount.merge(sum,1). Return count subarrays.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Subarray sum equals K, divisible by K, zero sum count. Cumulative sum pattern.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không brute force O(n²) subarray sum. Không quên prefixCount[0]=1 empty prefix. Không prefix sum khi cần subsequence not subarray.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>Prefix sum+HashMap</td><td>O(n)</td><td>O(n)</td><td>Optimal</td></tr><tr><td>Brute force</td><td>O(n²)</td><td>O(1)</td><td>All i,j</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public class</span> <span class="tok-class">SubarraySumK</span> {
+  <span class="tok-keyword">public static int</span> <span class="tok-function">subarraySum</span>(<span class="tok-keyword">int</span>[] nums, <span class="tok-keyword">int</span> k) {
+    <span class="tok-class">Map</span>&lt;<span class="tok-class">Integer</span>, <span class="tok-class">Integer</span>&gt; prefixCount = <span class="tok-keyword">new</span> <span class="tok-class">HashMap</span>&lt;&gt;();
+    prefixCount.put(<span class="tok-number">0</span>, <span class="tok-number">1</span>);
+    <span class="tok-keyword">int</span> sum = <span class="tok-number">0</span>, count = <span class="tok-number">0</span>;
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> num : nums) {
+      sum += num;
+      count += prefixCount.getOrDefault(sum - k, <span class="tok-number">0</span>);
+      prefixCount.merge(sum, <span class="tok-number">1</span>, Integer::sum);
+    }
+    <span class="tok-keyword">return</span> count;
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    System.out.println(subarraySum(<span class="tok-keyword">new int</span>[]{<span class="tok-number">1</span>,<span class="tok-number">1</span>,<span class="tok-number">1</span>}, <span class="tok-number">2</span>)); <span class="tok-comment">// 2</span>
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Count hour blocks inventory delta sum zero balance reconciliation.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Forget prefixCount[0]=1; negative numbers OK prefix sum.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Running prefix sum iterate.</li>
+                  <li>Map count prefix sum frequency.</li>
+                  <li>count += map.get(sum - k).</li>
+                  <li>Init map 0→1 empty prefix.</li>
+                  <li>O(n) subarray sum K.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q11</span> Graph BFS/DFS — Shortest Path (unweighted)</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>BFS shortest path</strong> unweighted graph vs <strong>DFS</strong> connected components — Queue level order vs stack recurse.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>BFS first reach = shortest hop unweighted. DFS simpler cycle/component. Warehouse AGV grid routing unweighted.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>BFS: queue offer start dist 0, poll neighbors unvisited dist+1 until end. DFS: visited recurse neighbors count component.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>BFS: shortest path maze grid word ladder. DFS: island count path exist all paths.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không BFS weighted graph — dùng Dijkstra. Không DFS shortest unweighted path — BFS first reach optimal. Không quên mark visited enqueue BFS.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>BFS</td><td>O(V+E)</td><td>O(V)</td><td>Shortest unweighted</td></tr><tr><td>DFS</td><td>O(V+E)</td><td>O(V)</td><td>Components/path</td></tr><tr><td>Dijkstra</td><td>O(E log V)</td><td>O(V)</td><td>Weighted graph</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public class</span> <span class="tok-class">GraphShortestPath</span> {
+  <span class="tok-keyword">public static int</span> <span class="tok-function">shortestPath</span>(<span class="tok-class">List</span>&lt;<span class="tok-class">List</span>&lt;<span class="tok-class">Integer</span>&gt;&gt; graph, <span class="tok-keyword">int</span> start, <span class="tok-keyword">int</span> end) {
+    <span class="tok-keyword">if</span> (start == end) <span class="tok-keyword">return</span> <span class="tok-number">0</span>;
+    <span class="tok-keyword">int</span> n = graph.size();
+    <span class="tok-keyword">int</span>[] dist = <span class="tok-keyword">new int</span>[n];
+    Arrays.fill(dist, -<span class="tok-number">1</span>);
+    <span class="tok-class">Queue</span>&lt;<span class="tok-class">Integer</span>&gt; queue = <span class="tok-keyword">new</span> <span class="tok-class">LinkedList</span>&lt;&gt;();
+    queue.offer(start);
+    dist[start] = <span class="tok-number">0</span>;
+
+    <span class="tok-keyword">while</span> (!queue.isEmpty()) {
+      <span class="tok-keyword">int</span> node = queue.poll();
+      <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> neighbor : graph.get(node)) {
+        <span class="tok-keyword">if</span> (dist[neighbor] == -<span class="tok-number">1</span>) {
+          dist[neighbor] = dist[node] + <span class="tok-number">1</span>;
+          <span class="tok-keyword">if</span> (neighbor == end) <span class="tok-keyword">return</span> dist[neighbor];
+          queue.offer(neighbor);
+        }
+      }
+    }
+    <span class="tok-keyword">return</span> -<span class="tok-number">1</span>;
+  }
+
+  <span class="tok-comment">// DFS for connected components</span>
+  <span class="tok-keyword">public static void</span> <span class="tok-function">dfs</span>(<span class="tok-class">List</span>&lt;<span class="tok-class">List</span>&lt;<span class="tok-class">Integer</span>&gt;&gt; graph, <span class="tok-keyword">int</span> node, <span class="tok-keyword">boolean</span>[] visited) {
+    visited[node] = <span class="tok-keyword">true</span>;
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> neighbor : graph.get(node)) {
+      <span class="tok-keyword">if</span> (!visited[neighbor]) dfs(graph, neighbor, visited);
+    }
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    <span class="tok-class">List</span>&lt;<span class="tok-class">List</span>&lt;<span class="tok-class">Integer</span>&gt;&gt; graph = Arrays.asList(
+        Arrays.asList(<span class="tok-number">1</span>, <span class="tok-number">2</span>), Arrays.asList(<span class="tok-number">0</span>, <span class="tok-number">3</span>),
+        Arrays.asList(<span class="tok-number">0</span>, <span class="tok-number">3</span>), Arrays.asList(<span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">4</span>), Arrays.asList(<span class="tok-number">3</span>));
+    System.out.println(shortestPath(graph, <span class="tok-number">0</span>, <span class="tok-number">4</span>)); <span class="tok-comment">// 3</span>
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>AGV grid shortest hop station to bin unweighted BFS.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>BFS wrong weighted graph use Dijkstra; forget mark visited enqueue.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>BFS Queue shortest unweighted path.</li>
+                  <li>DFS stack recurse components.</li>
+                  <li>Both O(V+E) time.</li>
+                  <li>dist array BFS level.</li>
+                  <li>Weighted → Dijkstra not BFS.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q12</span> Monotonic Stack — Next Greater Element</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Monotonic stack</strong> next greater element — decreasing stack store indices, pop smaller when current larger assign result.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Each element push pop once O(n) vs naive O(n²) compare forward.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>For i 0..n: while stack not empty && nums[peek]&lt;nums[i] result[pop]=nums[i]. push i. Remaining stack -1.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Next greater/smaller element, stock span, histogram largest rectangle.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không nested loop O(n²) next greater khi monotonic stack O(n). Không store value not index in stack. Không monotonic stack khi need all pairs compare — different pattern.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>Monotonic stack</td><td>O(n)</td><td>O(n)</td><td>Optimal</td></tr><tr><td>Nested loop</td><td>O(n²)</td><td>O(1)</td><td>Naive</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public class</span> <span class="tok-class">NextGreaterElement</span> {
+  <span class="tok-keyword">public static int</span>[] <span class="tok-function">nextGreaterElements</span>(<span class="tok-keyword">int</span>[] nums) {
+    <span class="tok-keyword">int</span> n = nums.length;
+    <span class="tok-keyword">int</span>[] result = <span class="tok-keyword">new int</span>[n];
+    Arrays.fill(result, -<span class="tok-number">1</span>);
+    <span class="tok-class">Deque</span>&lt;<span class="tok-class">Integer</span>&gt; stack = <span class="tok-keyword">new</span> <span class="tok-class">ArrayDeque</span>&lt;&gt;();
+
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">0</span>; i &lt; n; i++) {
+      <span class="tok-keyword">while</span> (!stack.isEmpty() &amp;&amp; nums[stack.peek()] &lt; nums[i]) {
+        result[stack.pop()] = nums[i];
+      }
+      stack.push(i);
+    }
+    <span class="tok-keyword">return</span> result;
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    System.out.println(Arrays.toString(nextGreaterElements(<span class="tok-keyword">new int</span>[]{<span class="tok-number">2</span>,<span class="tok-number">1</span>,<span class="tok-number">2</span>,<span class="tok-number">4</span>,<span class="tok-number">3</span>})); <span class="tok-comment">// [4, 2, 4, -1, -1]</span>
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Next busier conveyor segment throughput compare.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Store index not value; circular array duplicate double loop.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Stack decreasing indices.</li>
+                  <li>Pop smaller when current bigger.</li>
+                  <li>Assign result popped index.</li>
+                  <li>O(n) each element once.</li>
+                  <li>Pattern next greater element.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q13</span> Binary Search — Classic &amp; Binary Search on Answer</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Binary search</strong> classic sorted array vs <strong>binary search on answer</strong> minimize maximum capacity ship days.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>BS on answer: monotonic feasible function canShip(capacity) — search space answer not index.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Classic: lo hi mid compare target adjust. Answer: lo=max weight hi=sum weights, mid capacity check canShip days<=D.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Sorted array find, min max optimization monotonic — Koko eating bananas, ship packages.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không linear scan sorted array khi O(log n) BS. Không BS on answer khi feasible function không monotonic. Không mid overflow — dùng lo+(hi-lo)/2.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>Classic BS</td><td>O(log n)</td><td>O(1)</td><td>Sorted array</td></tr><tr><td>BS on answer</td><td>O(n log S)</td><td>O(1)</td><td>S search space range</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public class</span> <span class="tok-class">BinarySearchExamples</span> {
+  <span class="tok-comment">// Classic: find target in sorted array</span>
+  <span class="tok-keyword">public static int</span> <span class="tok-function">binarySearch</span>(<span class="tok-keyword">int</span>[] nums, <span class="tok-keyword">int</span> target) {
+    <span class="tok-keyword">int</span> lo = <span class="tok-number">0</span>, hi = nums.length - <span class="tok-number">1</span>;
+    <span class="tok-keyword">while</span> (lo &lt;= hi) {
+      <span class="tok-keyword">int</span> mid = lo + (hi - lo) / <span class="tok-number">2</span>;
+      <span class="tok-keyword">if</span> (nums[mid] == target) <span class="tok-keyword">return</span> mid;
+      <span class="tok-keyword">if</span> (nums[mid] &lt; target) lo = mid + <span class="tok-number">1</span>;
+      <span class="tok-keyword">else</span> hi = mid - <span class="tok-number">1</span>;
+    }
+    <span class="tok-keyword">return</span> -<span class="tok-number">1</span>;
+  }
+
+  <span class="tok-comment">// Binary Search on Answer: min capacity to ship in D days</span>
+  <span class="tok-keyword">public static int</span> <span class="tok-function">shipWithinDays</span>(<span class="tok-keyword">int</span>[] weights, <span class="tok-keyword">int</span> days) {
+    <span class="tok-keyword">int</span> lo = Arrays.stream(weights).max().getAsInt();
+    <span class="tok-keyword">int</span> hi = Arrays.stream(weights).sum();
+    <span class="tok-keyword">while</span> (lo &lt; hi) {
+      <span class="tok-keyword">int</span> mid = lo + (hi - lo) / <span class="tok-number">2</span>;
+      <span class="tok-keyword">if</span> (canShip(weights, days, mid)) hi = mid;
+      <span class="tok-keyword">else</span> lo = mid + <span class="tok-number">1</span>;
+    }
+    <span class="tok-keyword">return</span> lo;
+  }
+
+  <span class="tok-keyword">private static boolean</span> <span class="tok-function">canShip</span>(<span class="tok-keyword">int</span>[] weights, <span class="tok-keyword">int</span> days, <span class="tok-keyword">int</span> capacity) {
+    <span class="tok-keyword">int</span> d = <span class="tok-number">1</span>, load = <span class="tok-number">0</span>;
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> w : weights) {
+      <span class="tok-keyword">if</span> (load + w &gt; capacity) { d++; load = <span class="tok-number">0</span>; }
+      load += w;
+    }
+    <span class="tok-keyword">return</span> d &lt;= days;
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Min AGV fleet size capacity meet daily throughput binary search simulate.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>lo+hi mid overflow use lo+(hi-lo)/2; BS answer wrong monotonic direction.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Classic BS sorted array O(log n).</li>
+                  <li>BS on answer monotonic feasible.</li>
+                  <li>canShip helper check mid capacity.</li>
+                  <li>lo max single hi sum weights.</li>
+                  <li>Pattern minimize maximum.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q14</span> Tree BFS / DFS — Level Order &amp; Validate BST</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Tree <strong>BFS level order</strong> Queue size batch per level vs <strong>DFS validate BST</strong> min/max range propagate.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>BFS level-by-level zigzag diameter. BST validate inorder O(n) or range O(n) early exit.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>BFS: queue offer root while queue poll size batch add children. BST: validate node min max recurse left (min,val) right (val,max).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>BFS: level order right side view. DFS BST: validate search insert O(log n) avg.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không inorder BST validate khi range check O(n) early exit clearer interview. Không BFS khi chỉ cần path exists DFS enough. Không int min max BST — overflow dùng long.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>BFS level</td><td>O(n)</td><td>O(w) width</td><td>Queue max width</td></tr><tr><td>DFS BST</td><td>O(n)</td><td>O(h) height</td><td>Stack recurse</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public class</span> <span class="tok-class">TreeTraversal</span> {
+  <span class="tok-keyword">static class</span> <span class="tok-class">TreeNode</span> {
+    <span class="tok-keyword">int</span> val;
+    <span class="tok-class">TreeNode</span> left, right;
+    <span class="tok-class">TreeNode</span>(<span class="tok-keyword">int</span> v) { val = v; }
+  }
+
+  <span class="tok-comment">// BFS Level-order</span>
+  <span class="tok-keyword">public static</span> <span class="tok-class">List</span>&lt;<span class="tok-class">List</span>&lt;<span class="tok-class">Integer</span>&gt;&gt; <span class="tok-function">levelOrder</span>(<span class="tok-class">TreeNode</span> root) {
+    <span class="tok-class">List</span>&lt;<span class="tok-class">List</span>&lt;<span class="tok-class">Integer</span>&gt;&gt; result = <span class="tok-keyword">new</span> <span class="tok-class">ArrayList</span>&lt;&gt;();
+    <span class="tok-keyword">if</span> (root == <span class="tok-keyword">null</span>) <span class="tok-keyword">return</span> result;
+    <span class="tok-class">Queue</span>&lt;<span class="tok-class">TreeNode</span>&gt; queue = <span class="tok-keyword">new</span> <span class="tok-class">LinkedList</span>&lt;&gt;();
+    queue.offer(root);
+    <span class="tok-keyword">while</span> (!queue.isEmpty()) {
+      <span class="tok-keyword">int</span> size = queue.size();
+      <span class="tok-class">List</span>&lt;<span class="tok-class">Integer</span>&gt; level = <span class="tok-keyword">new</span> <span class="tok-class">ArrayList</span>&lt;&gt;();
+      <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">0</span>; i &lt; size; i++) {
+        <span class="tok-class">TreeNode</span> node = queue.poll();
+        level.add(node.val);
+        <span class="tok-keyword">if</span> (node.left != <span class="tok-keyword">null</span>) queue.offer(node.left);
+        <span class="tok-keyword">if</span> (node.right != <span class="tok-keyword">null</span>) queue.offer(node.right);
+      }
+      result.add(level);
+    }
+    <span class="tok-keyword">return</span> result;
+  }
+
+  <span class="tok-comment">// DFS Validate BST</span>
+  <span class="tok-keyword">public static boolean</span> <span class="tok-function">isValidBST</span>(<span class="tok-class">TreeNode</span> root) {
+    <span class="tok-keyword">return</span> validate(root, Long.MIN_VALUE, Long.MAX_VALUE);
+  }
+
+  <span class="tok-keyword">private static boolean</span> <span class="tok-function">validate</span>(<span class="tok-class">TreeNode</span> node, <span class="tok-keyword">long</span> min, <span class="tok-keyword">long</span> max) {
+    <span class="tok-keyword">if</span> (node == <span class="tok-keyword">null</span>) <span class="tok-keyword">return true</span>;
+    <span class="tok-keyword">if</span> (node.val &lt;= min || node.val &gt;= max) <span class="tok-keyword">return false</span>;
+    <span class="tok-keyword">return</span> validate(node.left, min, node.val) &amp;&amp; validate(node.right, node.val, max);
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Warehouse zone tree hierarchy level report BFS.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>BST duplicate definition left<= vs left<; null root edge.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>BFS queue level size batch.</li>
+                  <li>DFS BST min max range check.</li>
+                  <li>Both O(n) visit nodes.</li>
+                  <li>Use long min max avoid int overflow.</li>
+                  <li>Level order list of lists.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q15</span> Dynamic Programming — Climbing Stairs, Coin Change, LCS</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>DP</strong> three classics: climbing stairs fib O(1) space, coin change unbounded knapsack min coins, LCS 2D table.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>DP interview identify optimal substructure overlapping subproblems — bottom-up tabulation vs memo recursion.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Stairs: curr=prev1+prev2 slide. Coin: dp[i]=min(dp[i-coin]+1). LCS: match dp[i-1][j-1]+1 else max skip row/col.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Count ways, min cost fill, longest subsequence subsequence not substring.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không DP khi greedy optimal provable (coin change arbitrary coins NP). Không LCS code khi problem LSubstring — different table. Không recursion without memo exponential.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>Climb stairs</td><td>O(n)</td><td>O(1)</td><td>Fib variant</td></tr><tr><td>Coin change</td><td>O(n*amount)</td><td>O(amount)</td><td>Unbounded</td></tr><tr><td>LCS</td><td>O(mn)</td><td>O(mn)</td><td>2D table</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public class</span> <span class="tok-class">DynamicProgramming</span> {
+  <span class="tok-comment">// Climbing Stairs — O(n) space optimized</span>
+  <span class="tok-keyword">public static int</span> <span class="tok-function">climbStairs</span>(<span class="tok-keyword">int</span> n) {
+    <span class="tok-keyword">if</span> (n &lt;= <span class="tok-number">2</span>) <span class="tok-keyword">return</span> n;
+    <span class="tok-keyword">int</span> prev2 = <span class="tok-number">1</span>, prev1 = <span class="tok-number">2</span>;
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">3</span>; i &lt;= n; i++) {
+      <span class="tok-keyword">int</span> curr = prev1 + prev2;
+      prev2 = prev1; prev1 = curr;
+    }
+    <span class="tok-keyword">return</span> prev1;
+  }
+
+  <span class="tok-comment">// Coin Change — min coins</span>
+  <span class="tok-keyword">public static int</span> <span class="tok-function">coinChange</span>(<span class="tok-keyword">int</span>[] coins, <span class="tok-keyword">int</span> amount) {
+    <span class="tok-keyword">int</span>[] dp = <span class="tok-keyword">new int</span>[amount + <span class="tok-number">1</span>];
+    Arrays.fill(dp, amount + <span class="tok-number">1</span>);
+    dp[<span class="tok-number">0</span>] = <span class="tok-number">0</span>;
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">1</span>; i &lt;= amount; i++) {
+      <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> coin : coins) {
+        <span class="tok-keyword">if</span> (coin &lt;= i) dp[i] = Math.min(dp[i], dp[i - coin] + <span class="tok-number">1</span>);
+      }
+    }
+    <span class="tok-keyword">return</span> dp[amount] &gt; amount ? -<span class="tok-number">1</span> : dp[amount];
+  }
+
+  <span class="tok-comment">// Longest Common Subsequence</span>
+  <span class="tok-keyword">public static int</span> <span class="tok-function">longestCommonSubsequence</span>(<span class="tok-class">String</span> text1, <span class="tok-class">String</span> text2) {
+    <span class="tok-keyword">int</span> m = text1.length(), n = text2.length();
+    <span class="tok-keyword">int</span>[][] dp = <span class="tok-keyword">new int</span>[m + <span class="tok-number">1</span>][n + <span class="tok-number">1</span>];
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">1</span>; i &lt;= m; i++) {
+      <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> j = <span class="tok-number">1</span>; j &lt;= n; j++) {
+        <span class="tok-keyword">if</span> (text1.charAt(i - <span class="tok-number">1</span>) == text2.charAt(j - <span class="tok-number">1</span>))
+          dp[i][j] = dp[i - <span class="tok-number">1</span>][j - <span class="tok-number">1</span>] + <span class="tok-number">1</span>;
+        <span class="tok-keyword">else</span>
+          dp[i][j] = Math.max(dp[i - <span class="tok-number">1</span>][j], dp[i][j - <span class="tok-number">1</span>]);
+      }
+    }
+    <span class="tok-keyword">return</span> dp[m][n];
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    System.out.println(climbStairs(<span class="tok-number">5</span>)); <span class="tok-comment">// 8</span>
+    System.out.println(coinChange(<span class="tok-keyword">new int</span>[]{<span class="tok-number">1</span>,<span class="tok-number">2</span>,<span class="tok-number">5</span>}, <span class="tok-number">11</span>)); <span class="tok-comment">// 3</span>
+    System.out.println(longestCommonSubsequence(<span class="tok-string">"abcde"</span>, <span class="tok-string">"ace"</span>)); <span class="tok-comment">// 3</span>
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Min coin make change amount VND warehouse voucher.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Coin change init dp INF dp[0]=0; LCS substring not subsequence different.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Climb stairs fib DP O(1) space.</li>
+                  <li>Coin change unbounded min coins.</li>
+                  <li>LCS 2D if match diagonal+1.</li>
+                  <li>Identify DP substructure overlap.</li>
+                  <li>Bottom-up tabulation preferred.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q16</span> Backtracking — Permutations</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Backtracking</strong> permutations — choose/ unchoose recurse used[] boolean path build all n! permutations.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Generate all combinations explore decision tree prune early constraint. Template backtrack add remove undo.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>path.size==n add copy result. for i if !used[i]: used[i]=true path.add backtrack path.remove used[i]=false.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Permutations, combinations, subsets, N-Queens, Sudoku constraint satisfaction.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không backtracking khi n lớn n! explode — need DP or heuristic. Không quên undo path remove backtrack. Không duplicate input permutations without sort skip same.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>Permutations</td><td>O(n!*n)</td><td>O(n)</td><td>Output size n!</td></tr><tr><td>Subsets</td><td>O(2^n)</td><td>O(n)</td><td>Include exclude</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public class</span> <span class="tok-class">Permutations</span> {
+  <span class="tok-keyword">public static</span> <span class="tok-class">List</span>&lt;<span class="tok-class">List</span>&lt;<span class="tok-class">Integer</span>&gt;&gt; <span class="tok-function">permute</span>(<span class="tok-keyword">int</span>[] nums) {
+    <span class="tok-class">List</span>&lt;<span class="tok-class">List</span>&lt;<span class="tok-class">Integer</span>&gt;&gt; result = <span class="tok-keyword">new</span> <span class="tok-class">ArrayList</span>&lt;&gt;();
+    backtrack(nums, <span class="tok-keyword">new</span> <span class="tok-class">ArrayList</span>&lt;&gt;(), <span class="tok-keyword">new</span> <span class="tok-keyword">boolean</span>[nums.length], result);
+    <span class="tok-keyword">return</span> result;
+  }
+
+  <span class="tok-keyword">private static void</span> <span class="tok-function">backtrack</span>(<span class="tok-keyword">int</span>[] nums, <span class="tok-class">List</span>&lt;<span class="tok-class">Integer</span>&gt; path,
+      <span class="tok-keyword">boolean</span>[] used, <span class="tok-class">List</span>&lt;<span class="tok-class">List</span>&lt;<span class="tok-class">Integer</span>&gt;&gt; result) {
+    <span class="tok-keyword">if</span> (path.size() == nums.length) {
+      result.add(<span class="tok-keyword">new</span> <span class="tok-class">ArrayList</span>&lt;&gt;(path));
+      <span class="tok-keyword">return</span>;
+    }
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">0</span>; i &lt; nums.length; i++) {
+      <span class="tok-keyword">if</span> (used[i]) <span class="tok-keyword">continue</span>;
+      used[i] = <span class="tok-keyword">true</span>;
+      path.add(nums[i]);
+      backtrack(nums, path, used, result);
+      path.remove(path.size() - <span class="tok-number">1</span>);
+      used[i] = <span class="tok-keyword">false</span>;
+    }
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    System.out.println(permute(<span class="tok-keyword">new int</span>[]{<span class="tok-number">1</span>,<span class="tok-number">2</span>,<span class="tok-number">3</span>}));
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Generate all AGV visit order permutations small n route compare.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Forget copy path new ArrayList for result; duplicate input need sort skip same.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Template: choose explore unchoose.</li>
+                  <li>used boolean mark element.</li>
+                  <li>Base path size n add result.</li>
+                  <li>O(n!) permutations output.</li>
+                  <li>Same template subsets combinations.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q17</span> Union-Find (Disjoint Set Union)</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Union-Find DSU</strong> parent[] path compression + union by rank — O(α(n))≈O(1) find/union. Detect cycle undirected graph.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Dynamic connectivity better than BFS each query. Kruskal MST cycle detection warehouse zone connect.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>find(x) path compress parent. union(a,b) same root false cycle. rank merge attach smaller.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Connected components dynamic, Kruskal, detect undirected cycle, redundant connection.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không Union-Find directed cycle — DFS. Không BFS each query dynamic connectivity — UF near O(1). Không quên path compression union by rank.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Complexity Compare</span>
+                <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Time</th><th>Space</th><th>Note</th></tr></thead>
+                <tbody><tr><td>Union-Find</td><td>O(α(n))≈O(1)</td><td>O(n)</td><td>Amortized near constant</td></tr><tr><td>BFS each query</td><td>O(V+E)</td><td>O(V)</td><td>Static graph OK</td></tr></tbody>
+              </table>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public class</span> <span class="tok-class">UnionFind</span> {
+  <span class="tok-keyword">private final int</span>[] parent;
+  <span class="tok-keyword">private final int</span>[] rank;
+
+  <span class="tok-keyword">public</span> <span class="tok-function">UnionFind</span>(<span class="tok-keyword">int</span> n) {
+    parent = <span class="tok-keyword">new int</span>[n];
+    rank = <span class="tok-keyword">new int</span>[n];
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">0</span>; i &lt; n; i++) parent[i] = i;
+  }
+
+  <span class="tok-keyword">public int</span> <span class="tok-function">find</span>(<span class="tok-keyword">int</span> x) {
+    <span class="tok-keyword">if</span> (parent[x] != x) parent[x] = find(parent[x]);
+    <span class="tok-keyword">return</span> parent[x];
+  }
+
+  <span class="tok-keyword">public boolean</span> <span class="tok-function">union</span>(<span class="tok-keyword">int</span> a, <span class="tok-keyword">int</span> b) {
+    <span class="tok-keyword">int</span> rootA = find(a), rootB = find(b);
+    <span class="tok-keyword">if</span> (rootA == rootB) <span class="tok-keyword">return false</span>; <span class="tok-comment">// cycle detected</span>
+    <span class="tok-keyword">if</span> (rank[rootA] &lt; rank[rootB]) parent[rootA] = rootB;
+    <span class="tok-keyword">else if</span> (rank[rootA] &gt; rank[rootB]) parent[rootB] = rootA;
+    <span class="tok-keyword">else</span> { parent[rootB] = rootA; rank[rootA]++; }
+    <span class="tok-keyword">return true</span>;
+  }
+
+  <span class="tok-keyword">public static boolean</span> <span class="tok-function">hasCycle</span>(<span class="tok-keyword">int</span> n, <span class="tok-keyword">int</span>[][] edges) {
+    <span class="tok-class">UnionFind</span> uf = <span class="tok-keyword">new</span> <span class="tok-class">UnionFind</span>(n);
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span>[] edge : edges) {
+      <span class="tok-keyword">if</span> (!uf.union(edge[<span class="tok-number">0</span>], edge[<span class="tok-number">1</span>])) <span class="tok-keyword">return true</span>;
+    }
+    <span class="tok-keyword">return false</span>;
+  }
+
+  <span class="tok-keyword">public static void</span> <span class="tok-function">main</span>(<span class="tok-class">String</span>[] args) {
+    System.out.println(hasCycle(<span class="tok-number">3</span>, <span class="tok-keyword">new int</span>[][]{{<span class="tok-number">0</span>,<span class="tok-number">1</span>},{<span class="tok-number">1</span>,<span class="tok-number">2</span>},{<span class="tok-number">2</span>,<span class="tok-number">0</span>}})); <span class="tok-comment">// true</span>
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Detect AGV zone graph redundant edge cycle before enable path.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Directed graph cycle need DFS not UF; forget path compression slow.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Parent array find compress path.</li>
+                  <li>Union by rank attach root.</li>
+                  <li>Same root union → cycle undirected.</li>
+                  <li>O(alpha n) amortized inverse Ackermann.</li>
+                  <li>Pattern dynamic connectivity.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+<section class="section" id="deep-dive-dsa">
+  <h2 class="section-title">Deep Dive — Cấu trúc dữ liệu &amp; Graph nâng cao</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">D1</span> Amortized O(1) — vì sao ArrayList.add() và HashMap.put() &quot;nhanh&quot;?</h3>
+  <div class="qa-answer">
+    <div class="ans-block">
+  <span class="ans-label">What</span>
+  <p><strong>Amortized O(1)</strong> là chi phí <em>trung bình trên cả chuỗi thao tác</em>, không phải worst-case của <em>một</em> thao tác đơn lẻ. <code>ArrayList.add()</code> amortized O(1) nhưng lần resize là O(n); <code>HashMap.put()</code> amortized O(1) nhưng lần rehash là O(n).</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">Why</span>
+  <p>Câu hỏi phỏng vấn hay gài: &quot;add() có phải O(1) không?&quot; Trả lời đúng là <strong>O(1) amortized, worst-case O(n)</strong>. Hiểu amortization giúp chọn đúng cấu trúc và lý giải trade-off giữa độ trễ và bộ nhớ.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">How</span>
+  <p>ArrayList khi đầy tăng capacity khoảng 1.5 lần (<code>old + (old &gt;&gt; 1)</code>). Tổng chi phí copy cho n lần add từ đầu là n + n/1.5 + n/1.5² + … = O(n) → chia đều còn O(1). HashMap mặc định 16 bucket, load factor 0.75 → resize ×2 khi vượt threshold; từ Java 8, bucket có ≥ 8 phần tử chuyển thành cây đỏ-đen nên worst-case O(log n) thay vì O(n).</p>
+</div>
+    <div class="flow-diagram">
+  <div class="flow-row"><div class="flow-node">add phần tử thứ 10 → size = 10 (đầy)</div></div>
+  <div class="flow-arrow">↓ resize ×1.5: copy 10 phần tử sang mảng mới</div>
+  <div class="flow-row"><div class="flow-node primary">capacity 10 → 15</div></div>
+  <div class="flow-arrow">↓ 5 lần add nữa đều O(1)</div>
+  <div class="flow-row"><div class="flow-node success">resize tiếp 15 → 22 — bình quân vẫn O(1)</div></div>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">When</span>
+  <p>ArrayList khi cần truy cập theo index nhanh và thêm cuối; HashMap khi cần tra cứu theo key; LinkedList khi chèn/xoá giữa/đầu nhiều và đã có con trỏ node.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">When NOT</span>
+  <p>Không dùng ArrayList khi chèn/xoá giữa rất nhiều (O(n) dịch phần tử). Không nhầm &quot;amortized O(1)&quot; = &quot;mọi thao tác O(1)&quot;. Với hệ thống nhạy <em>latency</em>, một lần resize O(n) vẫn gây spike → cấp phát trước bằng <code>new ArrayList&lt;&gt;(n)</code>.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">Complexity &amp; trade-off</span>
+  <table class="feature-table">
+  <thead><tr><th>Cấu trúc</th><th>Truy cập index</th><th>Thêm cuối</th><th>Chèn/xoá giữa</th><th>Tìm theo key</th></tr></thead>
+  <tbody>
+    <tr><td>ArrayList</td><td>O(1)</td><td>O(1) amortized</td><td>O(n)</td><td>O(n)</td></tr>
+    <tr><td>LinkedList</td><td>O(n)</td><td>O(1)</td><td>O(1) nếu có node</td><td>O(n)</td></tr>
+    <tr><td>HashMap</td><td>—</td><td>O(1) amortized</td><td>O(1) amortized</td><td>O(1) avg</td></tr>
+    <tr><td>TreeMap</td><td>—</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td></tr>
+  </tbody>
+  </table>
+</div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public</span> <span class="tok-keyword">class</span> AmortizedDemo {
+  <span class="tok-keyword">public</span> <span class="tok-keyword">static</span> <span class="tok-keyword">void</span> main(String[] args) {
+    <span class="tok-comment">// ArrayList mac dinh capacity 10; khi day -&gt; grow = old + (old &gt;&gt; 1)</span>
+    List&lt;Integer&gt; list = <span class="tok-keyword">new</span> ArrayList&lt;&gt;();
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = 0; i &lt; 1_000_000; i++) list.add(i); <span class="tok-comment">// amortized O(1)</span>
+
+    <span class="tok-comment">// Biet truoc kich thuoc -&gt; cap phat truoc, tranh nhieu lan resize/copy</span>
+    List&lt;Integer&gt; presized = <span class="tok-keyword">new</span> ArrayList&lt;&gt;(1_000_000);
+
+    <span class="tok-comment">// HashMap: load factor 0.75, resize x2; bucket &gt; 8 -&gt; treeify (Java 8+)</span>
+    Map&lt;String, Integer&gt; map = <span class="tok-keyword">new</span> HashMap&lt;&gt;(16, 0.75f);
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = 0; i &lt; 1_000_000; i++) map.put("k" + i, i); <span class="tok-comment">// amortized O(1)</span>
+  }
+}</code></pre></div>
+    <div class="callout callout-info">
+  <div class="callout-title">Use case</div>
+  <p>Nạp 1 triệu bản ghi vào <code>ArrayList</code>/<code>HashMap</code> trong bộ đệm — tổng thời gian vẫn tuyến tính dù có vài lần resize.</p>
+</div>
+    <div class="callout callout-warning">
+  <div class="callout-title">Pitfall / Interview trap</div>
+  <p>Đừng khẳng định &quot;add() luôn O(1)&quot;. Worst-case 1 lần add là O(n); trên hệ thống real-time nên pre-size. HashMap worst-case (nhiều collision / hash kém) là O(n) trước Java 8, O(log n) sau treeify.</p>
+</div>
+    <p><small>Nguồn: <a href="https://en.wikipedia.org/wiki/Amortized_analysis">Wikipedia — Amortized analysis</a> · <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ArrayList.html">Java SE 21 — ArrayList</a> · <a href="https://www.bigocheatsheet.com/">Big-O Cheat Sheet</a></small></p>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">D2</span> Trie (prefix tree) — autocomplete &amp; prefix search</h3>
+  <div class="qa-answer">
+    <div class="ans-block">
+  <span class="ans-label">What</span>
+  <p><strong>Trie</strong> (prefix tree) là cây mà mỗi <em>cạnh</em> biểu diễn một ký tự; đường đi từ gốc tới một node tạo nên một tiền tố. Node kết thúc một từ được đánh dấu <code>isEnd</code>.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">Why</span>
+  <p>HashMap tìm <em>exact</em> rất tốt nhưng <strong>không hỗ trợ truy vấn theo prefix</strong> (autocomplete). Trie tìm/kiểm tra tiền tố trong O(L) (L = độ dài chuỗi), độc lập với số lượng từ đã lưu, và duyệt được mọi từ theo prefix bằng DFS.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">How</span>
+  <p><code>insert</code>: duyệt từng ký tự, tạo node con nếu chưa có, đánh dấu <code>isEnd</code> ở node cuối. <code>search</code>: duyệt hết chuỗi và node cuối phải có <code>isEnd</code>. <code>startsWith</code>: chỉ cần duyệt tới hết prefix, không cần <code>isEnd</code>.</p>
+</div>
+    <div class="flow-diagram">
+  <div class="flow-row"><div class="flow-node primary">root</div></div>
+  <div class="flow-arrow">↓ cạnh &quot;c&quot;</div>
+  <div class="flow-row"><div class="flow-node">c</div></div>
+  <div class="flow-arrow">↓ cạnh &quot;a&quot;</div>
+  <div class="flow-row"><div class="flow-node">a</div></div>
+  <div class="flow-arrow">↓ &quot;t&quot; → isEnd (&quot;cat&quot;); nhánh &quot;r&quot;→&quot;t&quot; (&quot;cart&quot;)</div>
+  <div class="flow-row"><div class="flow-node success">t (end) &nbsp;|&nbsp; r → t (end)</div></div>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">When</span>
+  <p>Autocomplete / gợi ý từ khóa, spell-check, tìm kiếm theo prefix, IP routing (longest-prefix match), word search trên bảng chữ.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">When NOT</span>
+  <p>Không dùng Trie khi chỉ cần tra cứu <em>exact match</em> — HashMap gọn và nhanh hơn. Không dùng mảng <code>Node[26]</code> cho Unicode/alphabet lớn (tốn bộ nhớ) — dùng <code>Map&lt;Character, Node&gt;</code>. Không dùng Trie cho dữ liệu ít khi truy vấn theo prefix.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">Trie vs cấu trúc khác</span>
+  <table class="feature-table">
+  <thead><tr><th>Cấu trúc</th><th>Tìm exact</th><th>Tìm theo prefix</th><th>Duyệt có thứ tự</th><th>Bộ nhớ</th></tr></thead>
+  <tbody>
+    <tr><td>HashMap</td><td>O(1) avg</td><td>Không hỗ trợ</td><td>Không</td><td>O(n)</td></tr>
+    <tr><td>TreeMap</td><td>O(log n)</td><td>Hỗ trợ (subMap)</td><td>Có</td><td>O(n)</td></tr>
+    <tr><td>Trie</td><td>O(L)</td><td>O(L)</td><td>Có (DFS)</td><td>Lớn (node × alphabet)</td></tr>
+  </tbody>
+  </table>
+</div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public</span> <span class="tok-keyword">class</span> Trie {
+  <span class="tok-keyword">private</span> <span class="tok-keyword">static</span> <span class="tok-keyword">class</span> Node {
+    Node[] child = <span class="tok-keyword">new</span> Node[26];   <span class="tok-comment">// a..z; dung Map cho Unicode/alphabet lon</span>
+    <span class="tok-keyword">boolean</span> isEnd;
+  }
+  <span class="tok-keyword">private</span> <span class="tok-keyword">final</span> Node root = <span class="tok-keyword">new</span> Node();
+
+  <span class="tok-keyword">public</span> <span class="tok-keyword">void</span> insert(String word) {
+    Node cur = root;
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">char</span> c : word.toCharArray()) {
+      <span class="tok-keyword">int</span> i = c - 'a';
+      <span class="tok-keyword">if</span> (cur.child[i] == <span class="tok-keyword">null</span>) cur.child[i] = <span class="tok-keyword">new</span> Node();
+      cur = cur.child[i];
+    }
+    cur.isEnd = <span class="tok-keyword">true</span>;
+  }
+
+  <span class="tok-keyword">public</span> <span class="tok-keyword">boolean</span> search(String word) {        <span class="tok-comment">// tu day du</span>
+    Node n = walk(word);
+    <span class="tok-keyword">return</span> n != <span class="tok-keyword">null</span> &amp;&amp; n.isEnd;
+  }
+
+  <span class="tok-keyword">public</span> <span class="tok-keyword">boolean</span> startsWith(String prefix) {  <span class="tok-comment">// chi can tien to</span>
+    <span class="tok-keyword">return</span> walk(prefix) != <span class="tok-keyword">null</span>;
+  }
+
+  <span class="tok-keyword">private</span> Node walk(String s) {
+    Node cur = root;
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">char</span> c : s.toCharArray()) {
+      cur = cur.child[c - 'a'];
+      <span class="tok-keyword">if</span> (cur == <span class="tok-keyword">null</span>) <span class="tok-keyword">return</span> <span class="tok-keyword">null</span>;
+    }
+    <span class="tok-keyword">return</span> cur;
+  }
+}</code></pre></div>
+    <div class="callout callout-info">
+  <div class="callout-title">Use case</div>
+  <p>Gợi ý SKU / từ khóa ngay khi người dùng gõ vài ký tự: <code>startsWith(prefix)</code> rồi DFS thu các từ kết thúc bằng <code>isEnd</code>.</p>
+</div>
+    <div class="callout callout-warning">
+  <div class="callout-title">Pitfall / Interview trap</div>
+  <p>Quên <code>isEnd</code> thì <code>search(&quot;car&quot;)</code> sai khi chỉ mới có &quot;cart&quot;. Mảng <code>Node[26]</code> tốn bộ nhớ khi ít từ — cân nhắc <code>HashMap</code> hoặc nén (radix tree / compressed trie).</p>
+</div>
+    <p><small>Nguồn: <a href="https://en.wikipedia.org/wiki/Trie">Wikipedia — Trie</a> · <a href="https://neetcode.io/roadmap">NeetCode — Roadmap (Tries)</a></small></p>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">D3</span> Graph nâng cao — Topological sort (Kahn) &amp; Dijkstra</h3>
+  <div class="qa-answer">
+    <div class="ans-block">
+  <span class="ans-label">What</span>
+  <p><strong>Topological sort</strong> sắp thứ tự tuyến tính các đỉnh của một DAG sao cho mọi cạnh u → v thì u đứng trước v (dùng Kahn BFS theo indegree, hoặc DFS). <strong>Dijkstra</strong> tìm đường đi ngắn nhất trên đồ thị có <strong>trọng số không âm</strong> bằng hàng đợi ưu tiên.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">Why</span>
+  <p>Topo sort giải bài <em>phụ thuộc</em>: thứ tự build, lịch chạy task, môn học tiên quyết. Dijkstra cần vì BFS chỉ đúng khi cạnh <em>không trọng số</em> (mỗi bước = 1); có trọng số thì phải ưu tiên đỉnh gần nhất. Cả hai đều O((V+E) log V) khi dùng heap.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">How</span>
+  <p>Kahn: tính <code>indegree</code> mọi đỉnh, đưa các đỉnh indegree 0 vào queue; pop ra, thêm vào thứ tự, giảm indegree láng giềng, ai về 0 thì enqueue. Nếu xử lý được ít hơn V đỉnh thì đồ thị <strong>có chu trình</strong> (không phải DAG). Dijkstra: <code>dist[src]=0</code>, dùng PriorityQueue lấy đỉnh có dist nhỏ nhất, <em>relax</em> các cạnh ra.</p>
+</div>
+    <div class="flow-diagram">
+  <div class="flow-row"><div class="flow-node primary">Tính indegree mọi đỉnh của DAG</div></div>
+  <div class="flow-arrow">↓ enqueue các đỉnh có indegree = 0</div>
+  <div class="flow-row"><div class="flow-node">Pop đỉnh → thêm vào thứ tự → giảm indegree láng giềng</div></div>
+  <div class="flow-arrow">↓ láng giềng nào về 0 thì enqueue tiếp</div>
+  <div class="flow-row"><div class="flow-node success">Duyệt hết V đỉnh → hợp lệ; thiếu đỉnh → có chu trình</div></div>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">When</span>
+  <p>Topo: thứ tự build module, scheduler theo dependency, phát hiện chu trình trong DAG. Dijkstra: đường đi ngắn nhất có trọng số (định tuyến, logistics, khoảng cách mạng).</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">When NOT</span>
+  <p>Không dùng topo sort cho đồ thị vô hướng hoặc có chu trình — phải là DAG. Không dùng Dijkstra khi có cạnh trọng số <strong>âm</strong> (dùng Bellman-Ford), và không dùng BFS cho đồ thị có trọng số. Không quên bỏ entry cũ trong PriorityQueue (<code>if (d &gt; dist[u]) continue;</code>).</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">Chọn thuật toán nào?</span>
+  <table class="feature-table">
+  <thead><tr><th>Thuật toán</th><th>Đồ thị</th><th>Trọng số</th><th>Trả về</th><th>Độ phức tạp</th></tr></thead>
+  <tbody>
+    <tr><td>BFS</td><td>vô hướng/có hướng</td><td>không</td><td>Shortest theo số cạnh</td><td>O(V+E)</td></tr>
+    <tr><td>Dijkstra</td><td>có hướng/vô hướng</td><td>không âm</td><td>Shortest weighted</td><td>O((V+E) log V)</td></tr>
+    <tr><td>Topological (Kahn)</td><td>DAG</td><td>bất kỳ</td><td>Thứ tự phụ thuộc</td><td>O(V+E)</td></tr>
+    <tr><td>Bellman-Ford</td><td>có hướng</td><td>âm được</td><td>Shortest + báo chu trình âm</td><td>O(V·E)</td></tr>
+  </tbody>
+  </table>
+</div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">import</span> java.util.*;
+
+<span class="tok-keyword">public</span> <span class="tok-keyword">class</span> GraphAdvanced {
+  <span class="tok-comment">// Topological sort - Kahn (BFS): CHI dung cho DAG</span>
+  <span class="tok-keyword">public</span> <span class="tok-keyword">static</span> <span class="tok-keyword">int</span>[] topoSort(List&lt;List&lt;Integer&gt;&gt; g) {
+    <span class="tok-keyword">int</span> n = g.size();
+    <span class="tok-keyword">int</span>[] indeg = <span class="tok-keyword">new</span> <span class="tok-keyword">int</span>[n];
+    <span class="tok-keyword">for</span> (List&lt;Integer&gt; nei : g) <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> v : nei) indeg[v]++;
+    Deque&lt;Integer&gt; q = <span class="tok-keyword">new</span> ArrayDeque&lt;&gt;();
+    <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = 0; i &lt; n; i++) <span class="tok-keyword">if</span> (indeg[i] == 0) q.offer(i);
+    <span class="tok-keyword">int</span>[] order = <span class="tok-keyword">new</span> <span class="tok-keyword">int</span>[n]; <span class="tok-keyword">int</span> idx = 0;
+    <span class="tok-keyword">while</span> (!q.isEmpty()) {
+      <span class="tok-keyword">int</span> u = q.poll();
+      order[idx++] = u;
+      <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> v : g.get(u)) <span class="tok-keyword">if</span> (--indeg[v] == 0) q.offer(v);
+    }
+    <span class="tok-keyword">if</span> (idx != n) <span class="tok-keyword">return</span> <span class="tok-keyword">new</span> <span class="tok-keyword">int</span>[0];   <span class="tok-comment">// co chu trinh -&gt; khong phai DAG</span>
+    <span class="tok-keyword">return</span> order;
+  }
+
+  <span class="tok-comment">// Dijkstra - canh khong am, dung PriorityQueue {node, dist}</span>
+  <span class="tok-keyword">public</span> <span class="tok-keyword">static</span> <span class="tok-keyword">int</span>[] dijkstra(List&lt;List&lt;<span class="tok-keyword">int</span>[]&gt;&gt; g, <span class="tok-keyword">int</span> src) {
+    <span class="tok-keyword">int</span> n = g.size();
+    <span class="tok-keyword">int</span>[] dist = <span class="tok-keyword">new</span> <span class="tok-keyword">int</span>[n];
+    Arrays.fill(dist, Integer.MAX_VALUE);
+    dist[src] = 0;
+    PriorityQueue&lt;<span class="tok-keyword">int</span>[]&gt; pq = <span class="tok-keyword">new</span> PriorityQueue&lt;&gt;((a, b) -&gt; a[1] - b[1]);
+    pq.offer(<span class="tok-keyword">new</span> <span class="tok-keyword">int</span>[]{src, 0});
+    <span class="tok-keyword">while</span> (!pq.isEmpty()) {
+      <span class="tok-keyword">int</span>[] cur = pq.poll();
+      <span class="tok-keyword">if</span> (cur[1] &gt; dist[cur[0]]) <span class="tok-keyword">continue</span>;          <span class="tok-comment">// entry cu, bo qua</span>
+      <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span>[] e : g.get(cur[0])) {               <span class="tok-comment">// e = {neighbor, weight}</span>
+        <span class="tok-keyword">if</span> (dist[cur[0]] + e[1] &lt; dist[e[0]]) {
+          dist[e[0]] = dist[cur[0]] + e[1];
+          pq.offer(<span class="tok-keyword">new</span> <span class="tok-keyword">int</span>[]{e[0], dist[e[0]]});
+        }
+      }
+    }
+    <span class="tok-keyword">return</span> dist;
+  }
+}</code></pre></div>
+    <div class="callout callout-info">
+  <div class="callout-title">Use case</div>
+  <p>Sắp thứ tự build/khởi động các service theo dependency (topo), rồi tính chi phí/đường đi rẻ nhất giữa các node có trọng số (Dijkstra).</p>
+</div>
+    <div class="callout callout-warning">
+  <div class="callout-title">Pitfall / Interview trap</div>
+  <p>Topo chỉ đúng cho DAG — có chu trình thì <code>order</code> thiếu đỉnh. Dijkstra sai khi cạnh âm; và nhớ bỏ <em>stale entry</em>, nếu không vẫn đúng nhưng chậm hơn.</p>
+</div>
+    <p><small>Nguồn: <a href="https://cp-algorithms.com/graph/topological-sort.html">CP-Algorithms — Topological Sorting</a> · <a href="https://cp-algorithms.com/graph/dijkstra.html">CP-Algorithms — Dijkstra</a> · <a href="https://www.bigocheatsheet.com/">Big-O Cheat Sheet</a></small></p>
+  </div>
+</article>
+</section>
+
+        <div class="nav-pager">
+          <a class="prev" href="09-cloud-cicd.html">
+            <span class="label">Trước</span>
+            <span class="title">9. Cloud &amp; CI/CD</span>
+          </a>
+          <a class="next" href="12-software-design.html">
+            <span class="label">Tiếp</span>
+            <span class="title">12. Software Design &amp; UML</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Module 11 / 14</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

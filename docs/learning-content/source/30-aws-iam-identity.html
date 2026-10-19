@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS IAM, STS &amp; Cognito — DVA-C02 Deep Dive</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="module-header">
+  <span class="module-tag">AWS · Security</span>
+  <h1 class="module-title">AWS IAM, STS &amp; Cognito — DVA-C02 Deep Dive</h1>
+  <p class="module-subtitle">Danh tính, quyền và luồng xác thực cho app.</p>
+</div>
+<main class="content">
+
+  <section class="section" id="iam-core">
+    <h2 class="section-title">IAM — danh tính &amp; policy</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS1</span> IAM có những thành phần nào? Vì sao zero-trust ưu tiên role thay vì access key?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p><strong>AWS IAM</strong> (Identity and Access Management) là dịch vụ <em>global</em> quản lý danh tính và quyền truy cập. Bốn thành phần cốt lõi: <strong>user</strong> (danh tính của một người hoặc app, có thể gắn access key dài hạn), <strong>group</strong> (gom nhiều user để gán chung một bộ quyền), <strong>role</strong> (danh tính <em>tạm thời</em>, không có access key cố định, được <em>assume</em> bởi người hay AWS service), và <strong>policy</strong> (document JSON mô tả quyền được phép hay bị cấm).</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Tạo user, thêm vào group, gắn policy. Nhưng app chạy trên AWS thì <strong>không nên</strong> dùng user: hãy để nó <em>assume một role</em> để nhận credential tạm thời, tự hết hạn và tự luân chuyển.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">IAM User</span><span class="icon-note">người, access key dài hạn</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">thêm vào</span></div>
+            <div class="icon-node"><span class="aws-ico iam"></span><span class="icon-label">IAM Group</span><span class="icon-note">Developers / Ops / Audit</span></div>
+            <div class="icon-arrow">↔<span class="icon-note"></span><span class="arrow-note">attach policy</span></div>
+            <div class="icon-node"><span class="aws-ico iam"></span><span class="icon-label">IAM Role</span><span class="icon-note">assume → temp credentials</span></div>
+          </div>
+        </div>
+        <table class="feature-table">
+          <thead><tr><th>Thành phần</th><th>Có credential?</th><th>Ai "sở hữu"?</th><th>Dùng khi</th></tr></thead>
+          <tbody>
+            <tr><td>User</td><td>Có (password / access key)</td><td>1 người hoặc 1 app cụ thể</td><td>Người cần đăng nhập console/CLI</td></tr>
+            <tr><td>Group</td><td>Không</td><td>Tập hợp user</td><td>Gán chung quyền cho nhiều user</td></tr>
+            <tr><td>Role</td><td>Không (nhận temp creds khi assume)</td><td>Bất kỳ principal được trust</td><td>App/service/AWS chạy cross-account</td></tr>
+            <tr><td>Policy</td><td>Không (chỉ là JSON)</td><td>Gắn vào user/group/role/resource</td><td>Định nghĩa cho-phép hoặc cấm</td></tr>
+          </tbody>
+        </table>
+        <div class="code-block" data-lang="bash"><pre><code>aws iam create-group --group-name Developers
+aws iam add-user-to-group --group-name Developers --user-name alice
+
+<span class="tok-comment"># Tạo role cho app và gắn quyền tối thiểu</span>
+aws iam create-role --role-name AppRole \
+  --assume-role-policy-document file://trust.json
+aws iam attach-role-policy --role-name AppRole \
+  --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess</code></pre></div>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Dùng <strong>group</strong> cho người dùng nội bộ để gán quyền một chỗ. Dùng <strong>role</strong> cho mọi thứ chạy tự động: EC2, Lambda, ECS task, pipeline CI/CD, ứng dụng cross-account.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không tạo IAM user chỉ để "lấy access key" cho một service chạy trên AWS — đó là <em>anti-pattern</em> zero-trust. Không dùng group lồng group (IAM không hỗ trợ group lồng nhau) và không gắn policy trực tiếp cho từng user khi đã có group.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p><strong>Access key dài hạn</strong> của IAM user là thứ hay bị lộ nhất (commit GitHub, nhúng app mobile, log). Root user thậm chí không thể assume role — luôn tránh dùng root. Câu hỏi DVA hay hỏi "làm sao app không cần lưu key" — đáp án là role + credential tạm thời.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html">AWS Docs — What is IAM?</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS2</span> Policy anatomy, wildcard và least privilege: một policy JSON gồm những gì?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>Một policy là JSON gồm <code>Version</code> (dùng <code>"2012-10-17"</code> cho policy hiện đại có hỗ trợ <code>Condition</code> và policy variable) và danh sách <code>Statement</code>. Mỗi statement có <strong>Effect</strong> (<code>Allow</code>/<code>Deny</code>), <strong>Action</strong>, <strong>Resource</strong>, tuỳ chọn <strong>Condition</strong>, và <strong>Principal</strong> (chỉ có trong <em>resource-based</em> policy và trust policy).</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Phân biệt hai dòng policy hay bị lẫn: <strong>identity-based</strong> (gắn vào user/group/role, trả lời "danh tính này được làm gì") và <strong>resource-based</strong> (gắn vào resource như S3 bucket, KMS key, SQS — trả lời "ai được chạm vào resource này").</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico iam"></span><span class="icon-label">Identity-based</span><span class="icon-note">gắn vào user/group/role</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Resource-based</span><span class="icon-note">bucket policy, key policy</span></div>
+            <div class="icon-node"><span class="aws-ico organizations"></span><span class="icon-label">SCP</span><span class="icon-note">trần quyền cả account</span></div>
+            <div class="icon-node"><span class="aws-ico iam"></span><span class="icon-label">Permissions boundary</span><span class="icon-note">trần quyền cho 1 identity</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadOwnPrefixOnly",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:ListBucket"],
+      "Resource": [
+        "arn:aws:s3:::app-data-bucket",
+        "arn:aws:s3:::app-data-bucket/uploads/${aws:username}/*"
+      ],
+      "Condition": {
+        "StringLike": {"s3:prefix": "uploads/${aws:username}/*"}
+      }
+    }
+  ]
+}</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Loại policy</th><th>Giới hạn kích thước (whitespace không tính)</th></tr></thead>
+          <tbody>
+            <tr><td>Customer managed policy</td><td>Tối đa 6.144 ký tự mỗi policy</td></tr>
+            <tr><td>Inline policy gắn user</td><td>Tổng inline của user ≤ 2.048 ký tự</td></tr>
+            <tr><td>Inline policy gắn group</td><td>Tổng inline của group ≤ 5.120 ký tự</td></tr>
+            <tr><td>Inline policy gắn role</td><td>Tổng inline của role ≤ 10.240 ký tự</td></tr>
+            <tr><td>Role trust policy</td><td>Mặc định 2.048 ký tự (có thể xin tăng tới 8.192)</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Ưu tiên <strong>managed policy</strong> (tái sử dụng, có version, dễ audit) thay vì inline; chỉ dùng inline khi policy gắn chặt vòng đời một identity duy nhất.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không dùng <code>"Action": "*"</code> kèm <code>"Resource": "*"</code> — đó là "admin toàn cầu". Cẩn thận <code>NotAction</code>/<code>NotResource</code>: chúng dễ vô tình mở rộng hơn ý muốn. Không nhồi mọi thứ vào một policy tới sát 6.144 ký tự — hãy tách thành nhiều managed policy theo mục đích.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Wildcard trong <strong>Resource ARN</strong> rất nguy hiểm: <code>arn:aws:s3:::bucket/*</code> (mọi object) khác hẳn <code>arn:aws:s3:::bucket</code> (chính bucket, dùng cho <code>ListBucket</code>). Thiếu dấu <code>/*</code> hoặc thừa dấu là lỗi kinh điển khiến <em>AccessDenied</em>.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html">AWS Docs — Policies and permissions</a> · <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html">AWS Docs — IAM and STS quotas</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS3</span> IAM policy evaluation logic: khi nào request bị deny?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>AWS quyết định allow/deny theo một <em>thứ tự ưu tiên</em> cố định. Điểm cốt lõi: <strong>một <code>Deny</code> tường minh (explicit deny) ở bất kỳ policy nào cũng thắng tất cả mọi <code>Allow</code></strong>. Còn khi nhiều nguồn cùng cho phép thì quyền là <em>union</em> (hợp), nhưng khi gặp <em>permissions boundary</em> hay <em>SCP</em> thì quyền lại là <em>intersection</em> (giao).</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Luồng đánh giá: AWS xác thực principal → dựng request context → áp các loại policy theo thứ tự. Trong cùng một account, quyền từ identity-based hợp với resource-based (nếu bên nào cho phép thì được phép). Nhưng nếu có SCP / permissions boundary, quyền bị <em>chặn trên</em> bởi giao của các tập đó.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Request</span><span class="icon-note">authenticate principal</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">hợp (union)</span></div>
+            <div class="icon-node"><span class="aws-ico iam"></span><span class="icon-label">Identity + Resource policy</span><span class="icon-note">ai cho Allow?</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">giao (intersection)</span></div>
+            <div class="icon-node"><span class="aws-ico organizations"></span><span class="icon-label">Boundary / SCP</span><span class="icon-note">trần quyền</span></div>
+            <div class="icon-arrow">⇒<span class="arrow-note">explicit Deny? → chặn ngay</span></div>
+            <div class="icon-node"><span class="aws-ico iam"></span><span class="icon-label">Allow / Deny</span><span class="icon-note">mặc định là Deny</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code><span class="tok-comment">// Ví dụ: cấm xoá bucket dù policy khác có Allow — Deny luôn thắng</span>
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Action": ["s3:DeleteBucket"],
+      "Resource": "*"
+    }
+  ]
+}</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Kết hợp policy</th><th>Kiểu tổ hợp quyền</th><th>Ghi chú</th></tr></thead>
+          <tbody>
+            <tr><td>Identity-based + Resource-based (cùng account)</td><td>Union (hợp)</td><td>Cho phép nếu ít nhất một bên Allow</td></tr>
+            <tr><td>Identity-based + Permissions boundary</td><td>Intersection (giao)</td><td>Phải được cả hai cho phép</td></tr>
+            <tr><td>Identity-based + SCP (member account)</td><td>Intersection (giao)</td><td>SCP chỉ giới hạn, không cấp quyền</td></tr>
+            <tr><td>Bất kỳ + explicit Deny</td><td>Deny thắng tuyệt đối</td><td>Override mọi Allow</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Dùng SCP ở cấp Organization để đặt "trần an toàn" cho toàn bộ account con (ví dụ chặn dùng Region ngoài danh sách). Dùng permissions boundary khi muốn tự giới hạn một identity (pattern <em>delegation</em>: cấp quyền tạo role nhưng không vượt trần của chính mình).</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Đừng kỳ vọng SCP hay boundary <em>cấp</em> quyền — chúng chỉ <em>thu hẹp</em>. Đừng quên mặc định của IAM là <strong>Deny ngầm định</strong>: không có Allow nào thì request bị từ chối dù chẳng có Deny nào.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Câu hỏi kinh điển: "policy role cho <code>Allow s3:*</code> mà request vẫn bị <em>AccessDenied</em>, tại sao?" — thường do <strong>explicit Deny</strong> ở SCP, permissions boundary, hoặc <strong>resource policy</strong> (bucket policy/key policy) từ chối, hoặc do thiếu quyền ở phía resource dùng KMS.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html">AWS Docs — Policy evaluation logic</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="sts-access">
+    <h2 class="section-title">STS, assume role &amp; credential chain</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS4</span> IAM role vs resource policy: khác nhau thế nào, khi nào dùng cái nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p><strong>Identity-based policy</strong> (gắn vào user/group/role) và <strong>resource-based policy</strong> (gắn vào resource như S3 bucket, KMS key, SQS queue, Lambda function) đều là JSON nhưng khác "điểm neo". Role đi kèm <strong>trust policy</strong> — về bản chất là một resource-based policy nói <em>ai được assume role này</em>; còn <strong>permissions policy</strong> nói <em>role làm được gì sau khi assume</em>.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Truy cập cross-account điển hình cần <em>cả hai phía</em>: account A phải có identity policy cho phép gọi <code>sts:AssumeRole</code> vào role của account B, và trust policy của role ở B phải trust account A. Với S3, bucket policy ở B là cách phổ biến để cấp quyền trực tiếp cho principal ở A.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Account A — user/app</span><span class="icon-note">identity policy: Allow AssumeRole</span></div>
+            <div class="icon-arrow">⇒<span class="arrow-note">AssumeRole (trust policy ở B)</span></div>
+            <div class="icon-node"><span class="aws-ico sts"></span><span class="icon-label">STS</span><span class="icon-note">temp credentials</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">bucket policy ở B cho phép role</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">S3 bucket (Account B)</span><span class="icon-note">resource-based</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code><span class="tok-comment">// 1. Trust policy của role (Account B) — ai được assume</span>
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {"AWS": "arn:aws:iam::111122223333:root"},
+    "Action": "sts:AssumeRole",
+    "Condition": {
+      "StringEquals": {"sts:ExternalId": "acme-partner-42"}
+    }
+  }]
+}
+
+<span class="tok-comment">// 2. Bucket policy (Account B) — cấp trực tiếp cho principal ở A</span>
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {"AWS": "arn:aws:iam::111122223333:role/ReportReader"},
+    "Action": ["s3:GetObject"],
+    "Resource": "arn:aws:s3:::shared-reports/*"
+  }]
+}</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Identity-based / Role</th><th>Resource-based policy</th></tr></thead>
+          <tbody>
+            <tr><td>Gắn vào đâu</td><td>User / group / role</td><td>Resource (S3, KMS, SQS, Lambda...)</td></tr>
+            <tr><td>Có <code>Principal</code> không</td><td>Không</td><td>Có (bắt buộc)</td></tr>
+            <tr><td>Cấp quyền cross-account</td><td>Cần trust policy + quyền phía gọi</td><td>Có thể cấp trực tiếp cho account/role ngoài</td></tr>
+            <tr><td>Dùng để làm gì</td><td>"danh tính này làm được gì"</td><td>"ai chạm được resource này"</td></tr>
+            <tr><td>Ví dụ điển hình</td><td>Role cho EC2/Lambda</td><td>Bucket policy, KMS key policy</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Dùng <strong>role + trust policy</strong> khi cần cấp danh tính tạm thời (cross-account, service chạy trên AWS, third-party). Dùng <strong>resource policy</strong> khi muốn kiểm soát truy cập <em>tại chính resource</em>, đặc biệt để chia sẻ dữ liệu với account/role ngoài mà không muốn quản lý user ở account kia.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không dùng <code>Principal: "*"</code> mà thiếu <code>Condition</code> — biến bucket thành public. Với third-party, không bỏ qua <code>ExternalId</code> vì đó là lớp chống "confused deputy". Và đừng cấp quyền cross-account chỉ bằng identity policy phía gọi — resource phía nhận vẫn phải cho phép.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>S3 trong cùng account: quyền là <em>union</em>, nên một bucket policy cấp cho principal cùng account có thể <em>cấp thêm</em> quyền mà identity policy không có. Đây là lý do bucket policy của bucket chứa dữ liệu nhạy cảm cần được rà kỹ. Riêng KMS thì khác: <strong>key policy là bắt buộc</strong> và IAM policy chỉ có tác dụng nếu key policy cho phép (xem module Mã hoá).</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_terms-and-concepts.html">AWS Docs — IAM role terms and concepts</a> · <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html">AWS Docs — Policies and permissions</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS5</span> Assume Role và AWS STS: temporary credentials, session duration, MFA và role chaining</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p><strong>AWS STS</strong> (Security Token Service) phát hành credential <em>tạm thời</em> gồm ba phần: <code>AccessKeyId</code>, <code>SecretAccessKey</code> và <code>SessionToken</code>. Các API chính: <code>AssumeRole</code> (người/app, thường cross-account), <code>AssumeRoleWithWebIdentity</code> (OIDC/IRSA, Cognito identity pool), <code>AssumeRoleWithSAML</code> (doanh nghiệp), <code>GetSessionToken</code> (kèm MFA cho user).</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Credential tạm thời phải được <em>làm mới</em> trước khi hết hạn. Bạn có thể truyền thêm <strong>session policy</strong> để <em>thu hẹp</em> quyền của phiên (không thể mở rộng hơn identity policy của role) và yêu cầu <strong>MFA</strong> qua <code>Condition</code>.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">EC2 / app / user</span><span class="icon-note">gọi AssumeRole</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">trust policy + (tuỳ chọn) MFA</span></div>
+            <div class="icon-node"><span class="aws-ico sts"></span><span class="icon-label">STS</span><span class="icon-note">AccessKey + Secret + SessionToken</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">gọi AWS API</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">AWS service</span><span class="icon-note">hết hạn → làm mới</span></div>
+          </div>
+        </div>
+        <table class="feature-table">
+          <thead><tr><th>Thông số</th><th>Giá trị (số liệu thật)</th></tr></thead>
+          <tbody>
+            <tr><td>Session mặc định của AssumeRole</td><td>3.600 giây (1 giờ)</td></tr>
+            <tr><td>Khoảng <code>DurationSeconds</code> hợp lệ</td><td>Tối thiểu 900 giây (15 phút), tối đa 43.200 giây (12 giờ)</td></tr>
+            <tr><td>MaxSessionDuration của role</td><td>Cấu hình từ 1 đến 12 giờ (mặc định trần 1 giờ)</td></tr>
+            <tr><td>Role chaining (role assume role khác)</td><td>Bị giới hạn tối đa 1 giờ cho phiên</td></tr>
+            <tr><td>Session policy inline</td><td>Không quá 2.048 ký tự; tối đa 10 managed policy ARN</td></tr>
+          </tbody>
+        </table>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Assume role cross-account, đặt tên session để audit</span>
+aws sts assume-role \
+  --role-arn arn:aws:iam::444455556666:role/ReportingRole \
+  --role-session-name nightly-report \
+  --duration-seconds 3600
+
+<span class="tok-comment"># Dùng role vừa assume cho lệnh tiếp theo (credential chỉ sống trong session)</span>
+aws sts get-caller-identity --profile reporting</code></pre></div>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Dùng <code>AssumeRole</code> cho cross-account, cho service trên AWS, và khi cần audit rõ "ai đã làm gì" qua <code>role-session-name</code>. Dùng <code>GetSessionToken</code> + MFA khi muốn bảo vệ thao tác nhạy cảm của người dùng.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không cố đặt session > 1 giờ khi đang <em>role chaining</em> — request sẽ fail. Không dùng session policy để <em>thêm</em> quyền. Không hardcode credential tạm thời vào file cấu hình lâu dài rồi quên nó hết hạn.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Câu hỏi về <strong>role chaining</strong>: nếu bạn assume role A rồi dùng A để assume role B, phiên bị chặn trên ở <strong>1 giờ</strong> bất kể <code>DurationSeconds</code> bạn truyền. Ngoài ra <em>không thể</em> assume role khi đang đăng nhập bằng <strong>root user</strong>.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html">AWS Docs — STS AssumeRole</a> · <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html">AWS Docs — Temporary security credentials</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS6</span> Credential provider chain trong code: EC2, ECS, Lambda và EKS lấy credential từ đâu?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>AWS SDK/CLI không cần hardcode key nhờ <strong>credential provider chain</strong> — nó lần lượt thử nhiều nguồn cho tới khi tìm được credential. Thứ tự điển hình: biến môi trường (<code>AWS_ACCESS_KEY_ID</code>/<code>AWS_SECRET_ACCESS_KEY</code>) → shared config/profile → web identity (OIDC) → SSO / IAM Identity Center → process provider → <strong>IMDS</strong> (instance profile trên EC2).</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Mỗi nền tảng gắn một <em>role</em> vào compute và SDK tự động lấy credential tạm thời từ đó:</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">EC2</span><span class="icon-note">instance profile → IMDS (169.254.169.254)</span></div>
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">ECS / Fargate</span><span class="icon-note">task role → ECS_CONTAINER_CREDENTIALS_RELATIVE_URI</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">execution role → env AWS_ACCESS_KEY_ID/SESSION_TOKEN</span></div>
+            <div class="icon-node"><span class="aws-ico eks"></span><span class="icon-label">EKS (IRSA)</span><span class="icon-note">service account → web identity → STS</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># EKS IRSA: ServiceAccount mang annotation role ARN</span>
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: order-sa
+  namespace: apps
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/order-s3-role</code></pre></div>
+        <div class="code-block" data-lang="python"><pre><code><span class="tok-comment"># Không truyền key: SDK tự chạy credential chain theo môi trường</span>
+import boto3
+
+s3 = boto3.client("s3")          <span class="tok-comment"># EC2/ECS/Lambda/EKS tự cấp credential</span>
+s3.list_buckets()</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Nền tảng</th><th>Nguồn credential</th><th>Lưu ý</th></tr></thead>
+          <tbody>
+            <tr><td>EC2</td><td>Instance profile qua IMDS; dùng IMDSv2 (token)</td><td>Không cấu hình key trên máy</td></tr>
+            <tr><td>ECS / Fargate</td><td><strong>Task role</strong> (khác task execution role)</td><td>Task execution role chỉ để kéo image/log</td></tr>
+            <tr><td>Lambda</td><td>Execution role; SDK đọc từ biến môi trường</td><td>Mỗi function một role, least privilege</td></tr>
+            <tr><td>EKS</td><td>IRSA: bind K8s service account ↔ IAM role</td><td>Tốt hơn dùng node role cho cả cluster</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Luôn ưu tiên chain này trong production: container/pod/lambda gắn role riêng, quyền tối thiểu. Chỉ set biến môi trường key cho môi trường dev cục bộ.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không nhầm <strong>task execution role</strong> với <strong>task role</strong> (code chạy trong container cần task role). Không dùng chung role cho mọi pod EKS — nên bật IRSA thay vì cấp node role to. Không commit file credential hay đặt key trong biến môi trường khi đã có role.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Thứ tự chain quan trọng: nếu vô tình để <code>AWS_ACCESS_KEY_ID</code> trong môi trường, SDK sẽ dùng <em>nó</em> thay vì role — che mất quyền tạm thời và gây lỗi khó tìm. Trên EC2 với IMDSv2, code cũ đọc metadata kiểu cũ có thể bị chặn.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html">AWS SDKs — Credential provider chain</a> · <a href="https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html">AWS Docs — IAM roles for service accounts</a> · <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html">AWS Docs — ECS task IAM roles</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS7</span> Tình huống: app nhúng access key bị lộ, sửa theo hướng zero-trust thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>Tình huống: một startup nhúng <code>AWS_ACCESS_KEY_ID</code>/<code>AWS_SECRET_ACCESS_KEY</code> của IAM user quyền <code>s3:*</code> vào app điện thoại để đọc/ghi S3. Key bị lộ (decompile app, commit nhầm). Đây là <em>long-lived credential</em> — kẻ tấn công giữ được quyền vô thời hạn cho tới khi bạn vô hiệu hoá.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Xử lý theo thứ tự: <strong>(1)</strong> vô hiệu hoá rồi xoá key bị lộ; <strong>(2)</strong> xác thực người dùng thật sự (Cognito user pool) — app không giữ key nào; <strong>(3)</strong> đổi lấy credential tạm thời qua Cognito identity pool (hoặc để backend assume role); <strong>(4)</strong> giới hạn role theo prefix dữ liệu của từng user.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico mobile"></span><span class="icon-label">Mobile app</span><span class="icon-note">KHÔNG còn key nào</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">đăng nhập</span></div>
+            <div class="icon-node"><span class="aws-ico cognito"></span><span class="icon-label">Cognito</span><span class="icon-note">user pool → identity pool</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">AssumeRoleWithWebIdentity</span></div>
+            <div class="icon-node"><span class="aws-ico sts"></span><span class="icon-label">STS</span><span class="icon-note">credential tạm thời</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">prefix theo user</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">S3</span><span class="icon-note">chỉ đọc/ghi thư mục của mình</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># 1. Vô hiệu hoá ngay key bị lộ, rồi xoá hẳn</span>
+aws iam update-access-key --user-name mobile-app \
+  --access-key-id AKIAIOSFODNN7EXAMPLE --status Inactive
+aws iam delete-access-key --user-name mobile-app \
+  --access-key-id AKIAIOSFODNN7EXAMPLE
+
+<span class="tok-comment"># 2. Rà lại toàn bộ key cũ và bật cảnh báo lạm dụng</span>
+aws iam list-access-keys --user-name mobile-app</code></pre></div>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Áp dụng ngay cho mọi app client (mobile/web) hoặc CI/CD chạm tới AWS. Với app nội bộ chạy trên server, thay vì nhúng key, hãy để server mang một role (instance profile / task role) và <em>tự</em> đọc S3.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không "xoay key rồi nhúng lại vào app" — vấn đề gốc (client giữ credential dài hạn) vẫn còn. Không dùng key của user <code>s3:*</code> cho app chỉ cần đọc một bucket. Không quên rằng credential tạm thời cần được làm mới định kỳ trong code.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Nếu app mobile cần gọi S3 <em>trực tiếp</em>, đáp án DVA gần như luôn là <strong>Cognito identity pool</strong> cấp credential tạm thời, chứ không phải bake key hay proxy qua server (tốn hạ tầng). Luôn gắn IAM role theo prefix <code>${cognito-identity.amazonaws.com:sub}</code> để cô lập dữ liệu từng user.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html">AWS Docs — Managing access keys</a> · <a href="https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-identity.html">AWS Docs — Cognito identity pools</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="cognito">
+    <h2 class="section-title">Amazon Cognito — xác thực &amp; cấp credential</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS8</span> Cognito user pool: sign-up/sign-in, JWT id token và hosted UI hoạt động ra sao?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p><strong>Cognito user pool</strong> là một <em>user directory</em> cho web/mobile app — dưới góc nhìn app nó là một <strong>OIDC identity provider</strong>. Nó lo đăng ký, đăng nhập, MFA, xác minh email/SMS, và <em>phát hành JWT</em>. Khi đăng nhập thành công, user pool trả về <strong>ID token</strong> (thông tin danh tính: <code>sub</code>, <code>email</code>...), <strong>access token</strong> (quyền/scopes để gọi API) và <strong>refresh token</strong> (đổi lấy token mới).</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Bạn cấu hình <em>app client</em> (public client cho mobile không có secret, confidential client cho server). Nếu không muốn tự viết UI, dùng <strong>hosted UI / managed login</strong> — các trang sign-in/sign-up do Cognito host sẵn, hỗ trợ cả social login (Google, Facebook, Apple) và SAML/OIDC federation.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">End user</span><span class="icon-note">đăng ký / đăng nhập</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">hosted UI</span></div>
+            <div class="icon-node"><span class="aws-ico cognito"></span><span class="icon-label">User pool</span><span class="icon-note">verify, MFA, directory</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cấp token</span></div>
+            <div class="icon-node"><span class="aws-ico cognito"></span><span class="icon-label">JWT</span><span class="icon-note">ID + Access + Refresh</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">Authorization: Bearer</span></div>
+            <div class="icon-node"><span class="aws-ico apigateway"></span><span class="icon-label">API / backend</span><span class="icon-note">verify token</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tự đăng ký (nếu bật self sign-up) rồi xác nhận</span>
+aws cognito-idp sign-up \
+  --client-id 1example23456789 \
+  --username alice@example.com \
+  --password 'S3cure!Pass#1'
+
+<span class="tok-comment"># Đăng nhập lấy token (USER_PASSWORD_AUTH / SRP)</span>
+aws cognito-idp initiate-auth \
+  --client-id 1example23456789 \
+  --auth-flow USER_PASSWORD_AUTH \
+  --auth-parameters USERNAME=alice@example.com,PASSWORD='S3cure!Pass#1'</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Token</th><th>Chứa gì</th><th>Dùng để</th></tr></thead>
+          <tbody>
+            <tr><td>ID token</td><td>Claims danh tính (sub, email, groups)</td><td>Cho app biết "ai đang đăng nhập"</td></tr>
+            <tr><td>Access token</td><td>Scopes / group / quyền truy cập</td><td>Gọi API, kiểm tra quyền</td></tr>
+            <tr><td>Refresh token</td><td>Tham chiếu để lấy token mới</td><td>Gia hạn phiên khi token hết hạn</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Dùng user pool khi app cần "đăng nhập và biết danh tính người dùng": mobile/web app, API cần xác thực, hoặc muốn dùng identity làm <em>IdP</em> cho identity pool.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>User pool <strong>không</strong> cấp credential AWS — nó chỉ xác thực và trả JWT. Với máy-máy (machine-to-machine) hãy dùng client credentials grant; đừng bật self sign-up cho app nội bộ kín.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Nhầm tưởng ID token dùng để gọi AWS API — <strong>sai</strong>: muốn có credential AWS phải đổi token qua <em>identity pool</em>. Cẩn thận khi bật <code>self sign-up</code>: bất kỳ ai trên internet cũng tạo được tài khoản. Access token mặc định thời hạn 1 giờ, ID token tương tự, refresh token lâu hơn (cấu hình được).</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools.html">AWS Docs — Cognito user pools</a> · <a href="https://docs.aws.amazon.com/cognito/latest/developerguide/authentication-flows-public-server-side.html">AWS Docs — Authentication flows</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS9</span> Cognito user pool vs identity pool: hai thứ này khác nhau ở đâu?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>Đây là cặp dễ nhầm nhất trong Cognito. <strong>User pool</strong> = <em>xác thực</em> (authentication): "bạn là ai?". <strong>Identity pool</strong> = <em>đổi danh tính đã xác thực lấy credential AWS</em> ("bạn được làm gì trên tài nguyên AWS"). Identity pool cấp credential tạm thời qua <code>AssumeRoleWithWebIdentity</code> và gắn IAM role cho người dùng.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Luồng phổ biến: user đăng nhập user pool → nhận ID/access token → gửi token cho identity pool → identity pool trả credential AWS tạm thời → app dùng credential đó gọi S3/DynamoDB trực tiếp. Identity pool có hai role: role cho <em>authenticated</em> và role cho <em>unauthenticated</em> (guest).</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico cognito"></span><span class="icon-label">User pool</span><span class="icon-note">authentication → JWT</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">đổi token</span></div>
+            <div class="icon-node"><span class="aws-ico cognito"></span><span class="icon-label">Identity pool</span><span class="icon-note">map → IAM role</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">AssumeRoleWithWebIdentity</span></div>
+            <div class="icon-node"><span class="aws-ico sts"></span><span class="icon-label">STS</span><span class="icon-note">credential tạm thời</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">gọi trực tiếp</span></div>
+            <div class="icon-node"><span class="aws-ico dynamodb"></span><span class="icon-label">DynamoDB / S3</span><span class="icon-note">theo IAM role</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># 1. Lấy identity id từ token (id token của user pool)</span>
+aws cognito-identity get-id \
+  --identity-pool-id ap-southeast-1:11111111-2222-3333-4444-555555555555 \
+  --logins cognito-idp.ap-southeast-1.amazonaws.com/ap-southeast-1_XXXXXXX=&lt;id-token&gt;
+
+<span class="tok-comment"># 2. Đổi lấy credential AWS tạm thời</span>
+aws cognito-identity get-credentials-for-identity \
+  --identity-id ap-southeast-1:abcd-1234 \
+  --logins cognito-idp.ap-southeast-1.amazonaws.com/ap-southeast-1_XXXXXXX=&lt;id-token&gt;</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>User pool</th><th>Identity pool</th></tr></thead>
+          <tbody>
+            <tr><td>Vai trò</td><td>Authentication + user directory</td><td>Cấp credential AWS (authorization)</td></tr>
+            <tr><td>Trả về gì</td><td>JWT (ID/Access/Refresh)</td><td>Access key + secret + session token</td></tr>
+            <tr><td>Cho guest chưa đăng nhập</td><td>Không</td><td>Có (unauthenticated identities)</td></tr>
+            <tr><td>Dùng để</td><td>Đăng nhập, biết danh tính</td><td>Gọi AWS service từ client</td></tr>
+            <tr><td>Gắn với IAM</td><td>Gián tiếp (qua identity pool)</td><td>Trực tiếp (chọn IAM role)</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Dùng user pool khi cần đăng nhập. Dùng identity pool khi client cần nói chuyện <em>trực tiếp</em> với AWS (S3, DynamoDB) mà không muốn đi qua backend.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không dùng identity pool chỉ để "đăng nhập" — nó không quản lý user. Không cấp unauthenticated role quyền ghi rộng (guest có thể lạm dụng). Không dùng identity pool cho user đã có sẵn hệ thống xác thực khác mà không cấu hình IdP tương ứng.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Câu hỏi chọn service: "app mobile cần ghi dữ liệu vào S3 trực tiếp, mỗi user chỉ thấy dữ liệu của mình" → ghép <strong>user pool (đăng nhập) + identity pool (credential)</strong> + IAM role lọc theo <code>sub</code>. Chỉ user pool là <em>chưa đủ</em> vì nó không tạo credential AWS.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-identity.html">AWS Docs — Cognito identity pools</a> · <a href="https://docs.aws.amazon.com/cognito/latest/developerguide/what-is-amazon-cognito.html">AWS Docs — What is Amazon Cognito?</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS10</span> Tình huống: app mobile đọc S3 trực tiếp và token hết hạn thì xử lý thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>Tình huống: app ảnh cho phép mỗi user upload/tải ảnh trong thư mục riêng trên S3, không muốn dựng backend trung gian. Yêu cầu: user không được giữ key dài hạn, không đọc được dữ liệu user khác, và phải tự xử lý khi token/credential hết hạn.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Ghép: user pool (đăng nhập) → identity pool (đổi JWT lấy credential tạm thời) → IAM role chỉ cho phép thao tác trên prefix <code>${cognito-identity.amazonaws.com:sub}/*</code>. Về <strong>hết hạn</strong>: AWS credential có thời hạn (mặc định 1 giờ cho basic, có thể cấu hình tới 12 giờ với role enhanced); SDK tự xin lại khi gần hết. ID/access token cũng hết hạn (mặc định 1 giờ) — dùng <strong>refresh token</strong> để lấy token mới. Khi gặp <code>ExpiredTokenException</code>, code cần re-get credential rồi retry request.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico mobile"></span><span class="icon-label">Mobile</span><span class="icon-note">đăng nhập</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">JWT</span></div>
+            <div class="icon-node"><span class="aws-ico cognito"></span><span class="icon-label">User + Identity pool</span><span class="icon-note">JWT → AWS creds</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">hết hạn → tự làm mới</span></div>
+            <div class="icon-node"><span class="aws-ico sts"></span><span class="icon-label">STS</span><span class="icon-note">role gắn theo user</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">prefix theo sub</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">S3</span><span class="icon-note">uploads/&lt;sub&gt;/*</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code><span class="tok-comment">// IAM role cho authenticated identities: chỉ chạm prefix của chính user</span>
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": ["s3:GetObject", "s3:PutObject"],
+    "Resource": "arn:aws:s3:::app-user-uploads/${cognito-identity.amazonaws.com:sub}/*"
+  }]
+}</code></pre></div>
+        <div class="code-block" data-lang="python"><pre><code><span class="tok-comment"># Khai thác credential từ identity pool, tự làm mới khi hết hạn</span>
+import boto3
+from botocore.exceptions import ClientError
+
+def upload(token_id):
+    ident = boto3.client("cognito-identity")
+    ident_id = ident.get_id(IdentityPoolId=POOL_ID,
+                            Logins={PROVIDER: token_id})["IdentityId"]
+    creds = ident.get_credentials_for_identity(
+        IdentityId=ident_id, Logins={PROVIDER: token_id})["Credentials"]
+    s3 = boto3.client("s3",
+        aws_access_key_id=creds["AccessKeyId"],
+        aws_secret_access_key=creds["SecretKey"],
+        aws_session_token=creds["SessionToken"])
+    return s3</code></pre></div>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Dùng khi client public cần truy cập AWS trực tiếp, muốn giảm hạ tầng backend, và chấp nhận gắn quyền theo danh tính Cognito.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không cache credential quá thời hạn của nó (dùng <code>Expiration</code> trả về). Không bỏ qua refresh token — bắt user đăng nhập lại mỗi giờ là trải nghiệm tệ. Không dùng <code>Resource: "*"</code> cho role này; và nhớ rằng đổi default encryption của bucket sang SSE-KMS yêu cầu thêm quyền <code>kms:GenerateDataKey</code>/<code>kms:Decrypt</code> cho role.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Ba lớp hết hạn khác nhau dễ rối: <strong>ID/access token</strong> (mặc định 1 giờ, gia hạn bằng refresh token), <strong>AWS credential</strong> (1–12 giờ, SDK tự làm mới nếu còn refresh token/identity hợp lệ), và <strong>refresh token</strong> (sống lâu, cấu hình được). Nếu refresh token cũng hết, buộc phải đăng nhập lại. Đừng quên role cần cả <code>s3:ListBucket</code> với ARN bucket (không <code>/*</code>) nếu app cần liệt kê.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/cognito/latest/developerguide/authentication-flows-public-server-side.html">AWS Docs — Authentication flows</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-iam-policies.html">AWS Docs — S3 IAM policies</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <div class="nav-pager">
+    <a class="prev" href="index.html">← Trang chủ</a>
+    <a class="next" href="31-aws-security-encryption.html">31. Mã hoá &amp; Secrets →</a>
+  </div>
+</main>
+</body>
+</html>

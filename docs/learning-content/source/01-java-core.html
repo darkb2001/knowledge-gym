@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1. Java Core &amp; Memory Internals — Java Interview Bank</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Java Interview<br><span>Bank</span></h1>
+        <p>Interview Prep Notes</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>1. Java Core &amp; Memory</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 01</div>
+          <h1 class="module-title">Java Core &amp; Memory Internals</h1>
+          <p class="module-subtitle">JVM, String Pool, Collections, Generics, Records, Exception Handling — nền tảng bắt buộc trong mọi vòng phỏng vấn Java.</p>
+        </div>
+
+        <!-- SECTION: JVM -->
+        <section class="section" id="jvm">
+          <h2 class="section-title">Nền tảng JVM &amp; Bộ nhớ</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q1</span> Phân biệt JDK, JRE và JVM?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>JVM</strong> (Java Virtual Machine) là engine thực thi bytecode (.class) — quản lý Heap, Stack, Metaspace, GC, JIT compilation. <strong>JRE</strong> (Java Runtime Environment) = JVM + thư viện runtime (java.lang, java.util, I/O, networking…) — đủ để <em>chạy</em> app đã compile. <strong>JDK</strong> (Java Development Kit) = JRE + công cụ phát triển: javac, javadoc, jdb, jconsole, jlink, jar. Quan hệ lồng nhau: <code>JDK ⊃ JRE ⊃ JVM</code>.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Phân biệt 3 khái niệm giúp trả lời câu hỏi phỏng vấn kinh điển: "Cài JDK hay JRE trên server?" — production container thường chỉ cần JRE (hoặc JRE slim), nhưng Docker image phổ biến dùng JDK vì tiện debug và jlink custom runtime. Hiểu JVM tách biệt khỏi ngôn ngữ Java — Kotlin, Scala, Groovy cũng compile ra bytecode chạy trên cùng JVM.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Luồng phát triển: viết <code>.java</code> → <strong>javac</strong> (JDK) compile → <code>.class</code> bytecode → <strong>JVM</strong> load class qua ClassLoader, verify bytecode, interpret hoặc JIT compile sang native code → thực thi. JRE cung cấp bootstrap classloader load rt modules (Java 9+ module system). Từ Java 11, Oracle phân phối JDK và có thể tạo custom runtime bằng <code>jlink</code> chỉ gồm modules cần thiết.</p>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">JDK</div></div>
+                  <div class="flow-arrow">↓ chứa</div>
+                  <div class="flow-row">
+                    <div class="flow-node secondary">JRE</div>
+                    <div class="flow-node">javac / jdb / javadoc / jlink</div>
+                  </div>
+                  <div class="flow-arrow">↓ chứa</div>
+                  <div class="flow-row">
+                    <div class="flow-node success">JVM</div>
+                    <div class="flow-node">Core Libraries + modules</div>
+                  </div>
+                </div>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Dùng <strong>JDK</strong> trên máy dev, CI/CD build pipeline. Dùng <strong>JRE/JDK slim</strong> trên production pod nếu không cần compile tại runtime. Chọn JVM vendor theo SLA: HotSpot (default), GraalVM (native image, polyglot), Amazon Corretto, Eclipse Temurin — cùng spec JVM nhưng support/patch khác nhau.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng nhầm "Java chạy trên OS" — luôn qua JVM (trừ GraalVM Native Image compile ahead-of-time). Đừng cài JRE-only trên dev machine — thiếu javac. Đừng assume JRE tách rời JDK trên mọi bản phân phối Java 11+ — nhiều vendor chỉ ship JDK. Không nhầm JVM với JRE: JVM là phần thực thi, JRE bao gồm cả libraries.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Thành phần</th><th>Chức năng</th><th>Có javac?</th><th>Typical use</th></tr></thead>
+                <tbody>
+                  <tr><td>JVM</td><td>Execute bytecode, GC, JIT</td><td>❌</td><td>Runtime engine (abstract)</td></tr>
+                  <tr><td>JRE</td><td>JVM + standard libraries</td><td>❌</td><td>Run compiled apps</td></tr>
+                  <tr><td>JDK</td><td>JRE + dev tools</td><td>✅</td><td>Develop, compile, debug</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Spring Boot microservice: CI dùng JDK 21 (Maven compile) → Docker image <code>eclipse-temurin:21-jre-alpine</code> chạy <code>java -jar app.jar</code>. Developer local cài full JDK để chạy tests, attach debugger, dùng jconsole monitor heap.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>"JRE có compiler không?" — Không. "Kotlin cần JVM riêng?" — Không, cùng JVM. "JDK 8 vs JRE 8 trên server?" — Java 8 còn ship JRE riêng; Java 11+ thường chỉ JDK. Bẫy: nhầm classpath (JRE libs) với module path (Java 9+).</p>
+              </div>
+              <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Kiểm tra version — JDK in ra compiler version</span>
+java -version
+javac -version
+
+<span class="tok-comment"># Custom runtime (Java 11+) — chỉ gồm modules cần</span>
+jlink --add-modules java.base,java.logging,java.sql \
+  --output custom-jre</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>JVM = chạy bytecode; JRE = JVM + libs; JDK = JRE + dev tools.</li>
+                  <li>Quan hệ: JDK ⊃ JRE ⊃ JVM — câu hỏi mở đầu phỏng vấn Java.</li>
+                  <li>Dev/CI cần JDK (javac); production thường chỉ cần runtime.</li>
+                  <li>Java 11+: nhiều vendor chỉ ship JDK; jlink tạo runtime tùy chỉnh.</li>
+                  <li>Kotlin/Scala/Groovy đều compile bytecode chạy trên JVM.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q2</span> String Pool là gì? Vì sao String immutable?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>String Pool</strong> (String Table) là vùng trong Heap (Java 7+ chuyển từ PermGen) lưu các literal string unique — khi gặp <code>"hello"</code> lần hai, JVM reuse cùng object thay vì allocate mới. <code>String.intern()</code> đưa string vào pool hoặc trả reference đã có. <strong>String immutable</strong>: sau khi tạo, nội dung char[] không đổi — mọi "thay đổi" (<code>concat</code>, <code>replace</code>) tạo object mới.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Pool tiết kiệm memory khi app dùng nhiều literal trùng (status code, SQL fragment, config key). Immutability bảo vệ security (class name, file path không bị mutate sau validation), thread-safety miễn phí, và cho phép cache hashCode — HashMap key hiệu quả. Compiler cũng tối ưu string concat constant-time vào pool lúc compile.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Literal <code>"hello"</code> → compile vào constant pool của class → runtime intern vào String Table. <code>new String("hello")</code> tạo object heap riêng (char[] copy hoặc share tùy version) — <code>==</code> với literal là false. <code>intern()</code> lookup String Table: có thì trả ref, không thì add và trả ref pool. Java 7+: pool trong Heap → không còn PermGen OOM riêng cho string.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Dùng literal/intern khi so sánh reference (<code>==</code>) an toàn và biết giá trị finite (enum-like strings). Immutable string làm Map key, cache key, constant. Dùng StringBuilder cho nối chuỗi trong loop.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng <code>intern()</code> mọi user input — String Table không GC được (Java 7+ vẫn có rủi ro memory leak với unique string vô hạn). Đừng dùng <code>==</code> so sánh nội dung string từ input/network — luôn <code>equals()</code>. Đừng concat string bằng <code>+</code> trong hot loop. Không mutate char[] reflection — phá immutability contract.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Cách tạo</th><th>Pool?</th><th>a == b (cùng literal)</th></tr></thead>
+                <tbody>
+                  <tr><td><code>String a = "hello"</code></td><td>✅</td><td>true</td></tr>
+                  <tr><td><code>new String("hello")</code></td><td>❌ (heap object)</td><td>false vs literal</td></tr>
+                  <tr><td><code>intern()</code></td><td>✅ sau intern</td><td>true vs literal</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>HTTP status mapping: <code>Map&lt;String, Handler&gt;</code> keyed by <code>"GET"</code>, <code>"POST"</code> — literal pool tiết kiệm memory across millions requests. Config constant <code>private static final String TOPIC = "order.created"</code> — immutable, thread-safe broadcast.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>"String Pool ở PermGen?" — Java 6 trở về trước; Java 7+ trong Heap. "String mutable qua reflection?" — Có thể nhưng phá contract. <code>String s = "a" + "b"</code> compile-time fold thành <code>"ab"</code> — 1 object pool. Runtime concat tạo StringBuilder tạm.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">String</span> a = <span class="tok-string">"hello"</span>;      <span class="tok-comment">// String Pool</span>
+<span class="tok-keyword">String</span> b = <span class="tok-string">"hello"</span>;      <span class="tok-comment">// reuse</span>
+<span class="tok-keyword">String</span> c = <span class="tok-keyword">new</span> <span class="tok-class">String</span>(<span class="tok-string">"hello"</span>); <span class="tok-comment">// heap object mới</span>
+
+System.out.println(a == b);        <span class="tok-comment">// true</span>
+System.out.println(a == c);        <span class="tok-comment">// false</span>
+System.out.println(a.equals(c));   <span class="tok-comment">// true</span>
+<span class="tok-keyword">String</span> d = c.intern();
+System.out.println(a == d);        <span class="tok-comment">// true</span></code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>String Pool intern literal — tiết kiệm memory, so sánh == được giữa literal.</li>
+                  <li>Immutable: security, thread-safe, hashCode cache cho HashMap key.</li>
+                  <li>new String() tạo object riêng; intern() đưa vào pool.</li>
+                  <li>Java 7+: pool trong Heap, không PermGen.</li>
+                  <li>Loop concat → StringBuilder; so sánh nội dung → equals().</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q3</span> So sánh == và .equals() — hợp đồng equals/hashCode</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><code>==</code> so sánh reference (2 biến trỏ cùng object trên heap) hoặc giá trị primitive. <code>.equals()</code> so sánh nội dung theo logic nghiệp vụ — override được. <strong>equals/hashCode contract</strong> (Object spec): nếu <code>a.equals(b)</code> thì <code>a.hashCode() == b.hashCode()</code>; reflexive, symmetric, transitive, consistent; <code>equals(null)</code> → false.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>HashMap/HashSet dùng hashCode chọn bucket, equals so khớp trong bucket — vi phạm contract khiến "equal" object không tìm thấy trong Map. String Pool dùng <code>==</code> hợp lệ cho literal; user input bắt buộc equals. Record (Java 16+) auto-generate equals/hashCode từ components.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Override equals: check <code>this == o</code>, null, class type (<code>instanceof</code> hoặc <code>getClass()</code>), so sánh từng field quyết định identity. hashCode: cùng fields với equals — dùng <code>Objects.hash(...)</code>. Integer cache -128..127: <code>Integer a=127; b=127; a==b</code> true; 128 false — autobox tạo object mới.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>equals cho mọi so sánh object content (String, DTO, entity business key). Override cả equals + hashCode khi object làm Map/Set key. <code>==</code> cho primitive, null check, hoặc singleton/literal đã biết intern.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng dùng <code>==</code> so String từ user/DB. Đừng override equals mà quên hashCode — bug HashMap khó debug. Đừng dùng <code>instanceof</code> equals với subclass nếu cần symmetry strict — cân nhắc getClass(). Không include mutable field trong equals/hashCode nếu object làm key.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Tiêu chí</th><th><code>==</code></th><th><code>.equals()</code></th></tr></thead>
+                <tbody>
+                  <tr><td>So sánh</td><td>Reference / primitive value</td><td>Nội dung logic</td></tr>
+                  <tr><td>String literal</td><td>Cùng pool → true</td><td>Luôn so nội dung</td></tr>
+                  <tr><td>Null-safe</td><td>null == null → true</td><td><code>Objects.equals(a,b)</code></td></tr>
+                  <tr><td>HashMap key</td><td>❌ không đủ</td><td>✅ + hashCode contract</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Employee keyed by <code>id</code> trong <code>Map&lt;Employee, Team&gt;</code> — equals/hashCode chỉ trên <code>id</code>, bỏ qua name (có thể đổi). Order dedup Set: equals theo orderNumber + warehouseId.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Lombok <code>@EqualsAndHashCode</code> thiếu <code>callSuper</code> trên inheritance → bug. <code>BigDecimal</code>: <code>new BigDecimal("1.0")</code> vs <code>"1.00"</code> equals false (scale khác) — dùng <code>compareTo</code> cho số. Default Object.equals là <code>==</code>.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public class</span> <span class="tok-class">Employee</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">String</span> id;
+
+  <span class="tok-annotation">@Override</span>
+  <span class="tok-keyword">public boolean</span> <span class="tok-function">equals</span>(<span class="tok-class">Object</span> o) {
+    <span class="tok-keyword">if</span> (<span class="tok-keyword">this</span> == o) <span class="tok-keyword">return true</span>;
+    <span class="tok-keyword">if</span> (!(o <span class="tok-keyword">instanceof</span> <span class="tok-class">Employee</span> e)) <span class="tok-keyword">return false</span>;
+    <span class="tok-keyword">return</span> Objects.equals(id, e.id);
+  }
+
+  <span class="tok-annotation">@Override</span>
+  <span class="tok-keyword">public int</span> <span class="tok-function">hashCode</span>() { <span class="tok-keyword">return</span> Objects.hash(id); }
+}</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>== = reference/primitive; equals = nội dung, override được.</li>
+                  <li>Contract: equal objects → cùng hashCode — bắt buộc cho HashMap.</li>
+                  <li>String user input: equals, không ==.</li>
+                  <li>Override cả hai; dùng Objects.equals/hash cho null-safe.</li>
+                  <li>Record auto equals/hashCode từ components.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q4</span> String vs StringBuilder vs StringBuffer</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>String</strong> immutable — mỗi concat tạo object mới. <strong>StringBuilder</strong> mutable char buffer, không synchronized — single-thread. <strong>StringBuffer</strong> giống Builder nhưng mọi method <code>synchronized</code> — thread-safe, chậm hơn. Java 9+ compiler tối ưu string concat trong method thành StringBuilder tự động, nhưng loop vẫn O(n²) nếu dùng <code>+=</code>.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Immutable String an toàn share giữa threads nhưng tốn allocation khi build chuỗi lớn. StringBuilder amortized O(n) nhờ buffer resize. StringBuffer legacy (pre-concurrent util) — ngày nay hiếm cần vì thường build string per-thread rồi publish immutable result.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>StringBuilder internal char[] (hoặc byte[] compact strings Java 9+). <code>append</code> fill buffer, double capacity khi đầy. <code>toString()</code> copy ra String immutable. StringBuffer lock mỗi append → contention multi-thread. Alternative hiện đại: <code>String.join</code>, <code>String.formatted</code>, stream <code>Collectors.joining</code>.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>String cho constant, template nhỏ, key. StringBuilder loop/build SQL/log message trong single thread. StringBuffer chỉ khi thực sự share builder giữa threads (rất hiếm — prefer local Builder).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng StringBuffer "cho an toàn" khi mỗi thread có builder riêng. Đừng <code>+=</code> trong loop lớn. Không dùng StringBuilder làm Map key (mutable). Tránh sync StringBuffer trong hot path — bottleneck.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>String</th><th>StringBuilder</th><th>StringBuffer</th></tr></thead>
+                <tbody>
+                  <tr><td>Mutable</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                  <tr><td>Thread-safe</td><td>✅ immutable</td><td>❌</td><td>✅ synchronized</td></tr>
+                  <tr><td>Loop concat</td><td>O(n²) với +=</td><td>O(n)</td><td>O(n) + lock cost</td></tr>
+                  <tr><td>Khuyến nghị</td><td>Default</td><td>Build string</td><td>Legacy, tránh</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Export CSV 100k rows: StringBuilder per chunk, append line, flush to writer. JSON manual build (trước Jackson): Builder trong loop. Multi-thread report: mỗi worker Builder riêng → merge String cuối.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p><code>String s = "a" + "b"</code> compile-time constant — 1 pool object, không Builder. <code>String s = x + y</code> runtime — Builder. "StringBuffer thread-safe nên tốt hơn" — sai nếu không share; Builder + immutable publish nhanh hơn.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// ❌ O(n²) — mỗi += tạo String mới</span>
+<span class="tok-class">String</span> s = <span class="tok-string">""</span>;
+<span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">0</span>; i &lt; <span class="tok-number">10000</span>; i++) s += i;
+
+<span class="tok-comment">// ✅ O(n)</span>
+<span class="tok-class">StringBuilder</span> sb = <span class="tok-keyword">new</span> <span class="tok-class">StringBuilder</span>(<span class="tok-number">4096</span>);
+<span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">0</span>; i &lt; <span class="tok-number">10000</span>; i++) sb.append(i);
+<span class="tok-class">String</span> result = sb.toString();</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>String immutable; Builder/Buffer mutable cho nối chuỗi.</li>
+                  <li>Builder single-thread nhanh; Buffer synchronized — legacy.</li>
+                  <li>Loop += String → O(n²); dùng StringBuilder O(n).</li>
+                  <li>Constant concat compile-time fold — không cần Builder.</li>
+                  <li>Hiện đại: String.join, formatted, Collectors.joining.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q5</span> Java Memory Model (JMM) — Stack, Heap, Metaspace</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Java Memory Model (JMM)</strong> là specification mô tả cách các thread trong JVM tương tác với bộ nhớ: khi nào một thread <em>thấy</em> thay đổi do thread khác ghi, và thứ tự thực thi nào được đảm bảo. Song song đó, JVM chia bộ nhớ runtime thành các vùng: <strong>Stack</strong> (mỗi thread một stack riêng), <strong>Heap</strong> (shared — chứa object/array), <strong>Metaspace</strong> (class metadata, thay PermGen từ Java 8), cộng thêm <strong>PC Register</strong> và <strong>Native Method Stack</strong>. Stack lưu stack frames (local variables, operand stack, reference trỏ tới object trên heap); heap là nơi <code>new</code> cấp phát; Metaspace lưu bytecode, constant pool, method metadata của class đã load.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>CPU và compiler tối ưu hóa mạnh (instruction reordering, store buffer, cache per core) khiến code tuân thủ Java syntax vẫn có thể cho kết quả khác nhau giữa các thread nếu không có quy tắc chung. JMM giải quyết bằng quan hệ <strong>happens-before</strong>: nếu action A happens-before B thì mọi thay đổi memory do A gây ra phải visible với B. Phân vùng Stack/Heap/Metaspace giúp GC chỉ quét heap, thread crash không làm hỏng heap của thread khác, và class metadata tách khỏi object heap để tránh PermGen overflow kiểu Java 7. Hiểu JMM là nền tảng trả lời câu hỏi double-checked locking, visibility của <code>volatile</code>, và tại sao <code>synchronized</code> không chỉ là mutex.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Luồng thực thi: mỗi method call đẩy frame lên Stack; local variable chứa primitive hoặc reference; object thực sự nằm trên Heap. GC bắt đầu từ <strong>GC Roots</strong> (static fields, local ref trên stack, JNI handles, synchronized monitor) rồi mark-reachability. JMM định nghĩa happens-before qua: unlock monitor happens-before lock cùng monitor; write <code>volatile</code> happens-before read volatile đó; thread start happens-before mọi action trong thread con; thread join happens-before code sau <code>join()</code>; write final field (sau constructor) happens-before đọc final sau khi object fully constructed.</p>
+                <div class="flow-diagram">
+                  <div class="flow-row">
+                    <div class="flow-node primary">Stack (per thread)</div>
+                    <div class="flow-node secondary">Heap (shared)</div>
+                    <div class="flow-node success">Metaspace</div>
+                  </div>
+                  <div class="flow-arrow">↓ reference trỏ từ Stack → object trên Heap</div>
+                  <div class="flow-row">
+                    <div class="flow-node">Local vars / frames</div>
+                    <div class="flow-node">Young Gen → Old Gen</div>
+                    <div class="flow-node">Class metadata, constant pool</div>
+                  </div>
+                </div>
+                <p><strong>volatile</strong> đảm bảo visibility (mọi read thấy write mới nhất) và cấm reorder một số instruction quanh volatile access — nhưng không atomic cho <code>i++</code>. <strong>synchronized</strong> vừa mutual exclusion vừa flush cache / establish happens-before khi release lock.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Dùng kiến thức JMM khi thiết kế code đa luồng: shared mutable state cần <code>synchronized</code>, <code>volatile</code>, <code>Atomic*</code>, hoặc immutable objects. Metaspace tuning khi deploy nhiều class (Spring, dynamic proxy, Groovy) — flag <code>-XX:MaxMetaspaceSize</code>. Phân biệt Stack vs Heap khi debug <code>StackOverflowError</code> (đệ quy sâu, stack frame lớn) vs <code>OutOfMemoryError: Java heap space</code> (object leak, heap nhỏ).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng giả định “code viết trước chạy trước” trên multi-core — đó là lỗi phỏng vấn kinh điển. Không dùng <code>volatile</code> thay cho lock khi cần atomic read-modify-write phức tạp. Không nhầm JMM với physical memory layout: JMM là abstract model; actual heap có thể compact, object di chuyển khi GC. Không cố “tối ưu” bằng cách bỏ <code>synchronized</code> mà không hiểu visibility — race condition khó reproduce hơn deadlock.</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>Stack</h4>
+                  <ul>
+                    <li>Per-thread, LIFO frames</li>
+                    <li>Primitive + reference (không chứa object)</li>
+                    <li>Tự giải phóng khi method return</li>
+                    <li>Overflow → <code>StackOverflowError</code></li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>Heap &amp; Metaspace</h4>
+                  <ul>
+                    <li>Heap: shared, GC-managed objects</li>
+                    <li>Metaspace: class metadata, native memory</li>
+                    <li>Heap OOM → leak hoặc <code>-Xmx</code> thấp</li>
+                    <li>Metaspace OOM → quá nhiều classloader / classes</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Web server xử lý request: mỗi request chạy trên thread pool — stack frame của handler chứa local <code>OrderDto dto</code> (reference), object <code>OrderDto</code> nằm heap; static <code>Map&lt;String, Cache&gt;</code> là GC root. Dùng <code>volatile boolean shutdown</code> để worker thread thấy flag dừng service ngay lập tức mà không cần lock toàn bộ pipeline.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Interviewer hỏi: “<code>volatile</code> có thread-safe không?” — Trả lời: visibility yes, atomicity no (<code>count++</code> vẫn race). Bẫy khác: “String nằm ở đâu?” — literal trong String Pool (heap, Java 7+), object <code>new String()</code> cũng heap. “happens-before và execution order khác nhau” — reorder được phép miễn không phá happens-before edge.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public class</span> <span class="tok-class">VisibilityDemo</span> {
+  <span class="tok-keyword">private volatile boolean</span> ready = <span class="tok-keyword">false</span>;
+  <span class="tok-keyword">private int</span> value = <span class="tok-number">0</span>;
+
+  <span class="tok-keyword">void</span> <span class="tok-function">writer</span>() {
+    value = <span class="tok-number">42</span>;       <span class="tok-comment">// plain write</span>
+    ready = <span class="tok-keyword">true</span>;     <span class="tok-comment">// volatile write → reader thấy value=42</span>
+  }
+
+  <span class="tok-keyword">void</span> <span class="tok-function">reader</span>() {
+    <span class="tok-keyword">while</span> (!ready) { }  <span class="tok-comment">// volatile read</span>
+    <span class="tok-class">System</span>.out.println(value); <span class="tok-comment">// guaranteed 42</span>
+  }
+}</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>JMM = quy tắc visibility &amp; ordering giữa threads trên multi-core, không phải diagram bộ nhớ vật lý.</li>
+                  <li>Stack per-thread (frames, locals); Heap shared (objects); Metaspace (class metadata, thay PermGen).</li>
+                  <li>happens-before: synchronized, volatile, thread start/join, final fields — đảm bảo thread khác thấy write.</li>
+                  <li>volatile = visibility, không atomic; synchronized = lock + happens-before.</li>
+                  <li>GC Roots: static, stack refs, JNI — điểm bắt đầu mark object còn sống.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q6</span> Garbage Collection — Young Gen, Old Gen, G1GC, ZGC</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Garbage Collection (GC)</strong> tự động thu hồi object trên Heap không còn reachable từ GC Roots. Generational hypothesis: hầu hết object chết sớm → heap chia <strong>Young Generation</strong> (Eden + 2 Survivor S0/S1) và <strong>Old Generation</strong> (Tenured). <strong>Minor GC</strong> (Young GC) dọn Eden/Survivor — thường nhanh, stop-the-world ngắn. <strong>Major/Full GC</strong> dọn Old Gen — pause dài hơn, đôi khi compact heap. Mỗi object sống sót qua Minor GC tăng <strong>age</strong>; vượt <code>-XX:MaxTenuringThreshold</code> (mặc định 15) thì <strong>promote</strong> lên Old Gen. Collectors phổ biến: Serial, Parallel (throughput), G1 (region-based, pause target), ZGC/Shenandoah (ultra-low latency, concurrent).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Manual memory management dễ leak và dangling pointer; GC trade-off pause time vs throughput. Young Gen tách riêng vì Minor GC copy-only (Mark-Copy) trên vùng nhỏ — hiệu quả khi mortality cao. Old Gen dùng Mark-Sweep hoặc Mark-Compact tùy collector. Ứng dụng latency-sensitive (trading, gaming, realtime API) cần collector giới hạn pause; batch ETL ưu tiên throughput với Parallel GC. G1 chia heap thành regions (~1–32MB) để thu gom từng phần thay vì cả heap — phù hợp heap multi-GB. ZGC dùng colored pointers + load barriers để concurrent compaction — pause sub-millisecond dù heap TB.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Vòng đời object: <code>new</code> trong Eden → Eden đầy → <strong>Minor GC</strong>: mark live objects, copy sang Survivor (from-space → to-space), swap S0/S1, age++. Object long-lived sau nhiều Minor GC → promote Old Gen. Old Gen đầy → <strong>Full GC</strong> (G1: Mixed GC thu gom một phần Old regions có nhiều garbage nhất). G1 chọn collection set theo <code>-XX:MaxGCPauseMillis</code> target. ZGC chạy concurrent mark, relocate, remap — hầu hết công việc ngoài STW pause ngắn.</p>
+                <div class="flow-diagram">
+                  <div class="flow-row">
+                    <div class="flow-node primary">Eden (new objects)</div>
+                  </div>
+                  <div class="flow-arrow">↓ Minor GC — live copy</div>
+                  <div class="flow-row">
+                    <div class="flow-node secondary">Survivor S0 ↔ S1</div>
+                  </div>
+                  <div class="flow-arrow">↓ age ≥ threshold (promote)</div>
+                  <div class="flow-row">
+                    <div class="flow-node success">Old Generation</div>
+                  </div>
+                  <div class="flow-arrow">↓ Full GC / Mixed GC (G1) / concurrent relocate (ZGC)</div>
+                  <div class="flow-row">
+                    <div class="flow-node">Reclaimed / compacted</div>
+                  </div>
+                </div>
+                <p><strong>Minor vs Full:</strong> Minor chỉ Young; Full thu gom Old (và thường cả Young). Triệu chứng: log <code>[GC (Allocation Failure)</code> = Minor; <code>[Full GC</code> = toàn heap — nếu Full GC liên tục → heap nhỏ, leak, hoặc promotion quá nhanh.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p><strong>G1GC</strong> (default Java 9+): heap 4GB– vài chục GB, cần pause ổn định ~100–200ms, microservices đa số case. Flag: <code>-XX:+UseG1GC</code>, <code>-XX:MaxGCPauseMillis=200</code>, set <code>-Xms=-Xmx</code> tránh resize. <strong>ZGC</strong> (Java 15+ production, Java 21 generational ZGC): heap lớn, SLA pause &lt;10ms, financial/realtime — chấp nhận overhead CPU hơn G1. <strong>Parallel GC</strong>: offline batch, không care pause. Monitor: <code>jstat -gcutil</code>, GC logs (<code>-Xlog:gc*</code>), Micrometer, async-profiler.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng chọn ZGC cho heap nhỏ (&lt;4GB) app đơn giản — overhead không xứng. Đừng tăng <code>-Xmx</code> vô hạn thay vì fix memory leak — chỉ trì hoãn Full GC. Tránh allocate object không cần trong hot path (boxing, <code>String</code> concat trong loop) vì tăng Minor GC frequency. Không nhầm “object trong Old Gen = leak” — long-lived cache hợp lệ cũng promote. Không tune GC khi chưa có metrics — đo trước, đo sau.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Collector</th><th>Pause</th><th>Throughput</th><th>Khi chọn</th></tr></thead>
+                <tbody>
+                  <tr><td><code>G1GC</code></td><td>Target ms (typical 50–200ms)</td><td>Tốt</td><td>Default production, heap lớn vừa, latency vừa phải</td></tr>
+                  <tr><td><code>ZGC</code></td><td>&lt;1ms STW</td><td>Trung bình (barrier cost)</td><td>Ultra-low latency, heap rất lớn (Java 15+)</td></tr>
+                  <tr><td><code>Parallel GC</code></td><td>Dài hơn</td><td>Cao nhất</td><td>Batch, analytics, không SLA latency</td></tr>
+                  <tr><td><code>Serial GC</code></td><td>STW tuần tự</td><td>Thấp</td><td>Single-core, heap &lt;100MB, embedded</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>E-commerce API (G1): heap 8GB, <code>-Xms8g -Xmx8g -XX:+UseG1GC -XX:MaxGCPauseMillis=150</code> — P99 latency ổn khi Minor GC vài chục ms. HFT order matching (ZGC): heap 64GB+, pause &lt;2ms bắt buộc — ZGC concurrent relocate tránh stop world khi Old Gen lớn. Nightly report job (Parallel): throughput max, pause 2s chấp nhận được.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>“Minor GC có dọn Old Gen không?” — Không, chỉ Young (trừ một số edge promotion). “G1 eliminater Full GC?” — Không hoàn toàn; evacuation failure vẫn trigger Full GC. “Object age reset khi nào?” — Khi Survivor không đủ chỗ, object có thể promote sớm dù age thấp. Nói ZGC cần Java 11+ (experimental) vs 15+ production-ready — thể hiện biết timeline.</p>
+              </div>
+              <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># G1 tuning cơ bản</span>
+java -Xms4g -Xmx4g \
+  -XX:+UseG1GC \
+  -XX:MaxGCPauseMillis=200 \
+  -Xlog:gc*,gc+heap=debug:file=gc.log \
+  -jar app.jar
+
+<span class="tok-comment"># ZGC (Java 21+ generational)</span>
+java -XX:+UseZGC -XX:+ZGenerational -Xms16g -Xmx16g -jar app.jar</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Object sinh Eden → Minor GC copy sang Survivor, age++ → promote Old khi đủ age.</li>
+                  <li>Minor GC nhanh (Young); Full GC chậm hơn — dọn Old Gen.</li>
+                  <li>G1: region-based, pause target — default production Java 9+.</li>
+                  <li>ZGC: pause sub-ms, concurrent — latency cực thấp, heap lớn.</li>
+                  <li>Chọn collector theo SLA latency vs throughput; đo bằng GC logs trước khi tune.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Collections -->
+        <section class="section" id="collections">
+          <h2 class="section-title">Collections Framework</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q7</span> HashMap hoạt động như thế nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>HashMap</strong> là implementation của <code>Map</code> dựa trên hash table: lưu các cặp key-value trong mảng <strong>buckets</strong> (mặc định capacity 16). Mỗi key qua <code>hashCode()</code> rồi spread bit bằng <code>hash(key)</code> (XOR high bits — Java 8+) để giảm collision khi capacity là power of 2. Index bucket: <code>(n - 1) &amp; hash</code> với <code>n</code> = table length. Entry nội bộ là <code>Node&lt;K,V&gt;</code> (Java 8+) chứa hash, key, value, next pointer. Average case get/put O(1); worst case O(log n) khi bucket treeified hoặc O(n) nếu hash xấu và chưa treeify.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Hash table trade-off memory vs speed lookup — O(1) average là lý do HashMap là default map trong Java. Load factor 0.75 cân bằng: factor cao → ít memory nhưng collision nhiều; thấp → ít collision nhưng lãng phí bucket. Treeify (Java 8) giải quyết collision attack / hash xấu: linked list dài O(n) → Red-Black Tree O(log n) khi cùng bucket ≥ 8 nodes và table size ≥ 64. Resizing (rehash) khi <code>size &gt; threshold</code> (<code>capacity × loadFactor</code>) — double capacity và redistribute entries — costly nên khởi tạo capacity hợp lý nếu biết trước size.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p><strong>put(key, value):</strong> tính hash → index → nếu bucket null, tạo Node mới; nếu có entry, so sánh hash rồi <code>equals()</code> key — trùng thì replace value; không trùng append linked list (hoặc insert tree). Nếu list length ≥ TREEIFY_THRESHOLD (8) và table ≥ MIN_TREEIFY_CAPACITY (64) → convert sang TreeNode (Red-Black Tree). <strong>get(key):</strong> cùng hash/index, traverse list hoặc tree, so sánh equals. <strong>resize:</strong> capacity × 2, rehash mọi entry — Java 8 tối ưu: chỉ recalc index bằng bit (e.hash &amp; oldCap) thay vì mod lại.</p>
+                <div class="flow-diagram">
+                  <div class="flow-row">
+                    <div class="flow-node primary">key.hashCode() → spread hash</div>
+                  </div>
+                  <div class="flow-arrow">↓ index = (n-1) &amp; hash</div>
+                  <div class="flow-row">
+                    <div class="flow-node secondary">Bucket[i]</div>
+                  </div>
+                  <div class="flow-arrow">↓ collision → Linked List</div>
+                  <div class="flow-row">
+                    <div class="flow-node">Node → Node → Node</div>
+                  </div>
+                  <div class="flow-arrow">↓ size ≥ 8 &amp; table ≥ 64 → treeify</div>
+                  <div class="flow-row">
+                    <div class="flow-node success">Red-Black Tree (TreeNode)</div>
+                  </div>
+                </div>
+                <p><strong>equals/hashCode contract:</strong> nếu <code>a.equals(b)</code> thì <code>a.hashCode() == b.hashCode()</code> — vi phạm → get trả null dù key “bằng” nhau. Key mutable (object thay đổi sau put) → mất entry. Fail-fast iterator: throw <code>ConcurrentModificationException</code> nếu structurally modify khi iterate (không phải thread-safe).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Single-thread hoặc chỉ read sau build (immutable map). Cache in-memory, index lookup, deduplication. Khởi tạo <code>new HashMap&lt;&gt;(expectedSize)</code> khi biết trước ~N entries để tránh resize nhiều lần (capacity = N / 0.75 + 1). Dùng immutable key (<code>String</code>, <code>Integer</code>, record) và override equals/hashCode đúng cho custom key.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Không dùng HashMap khi nhiều thread write/read đồng thời — race corrupt internal table. Không dùng mutable object làm key. Không dùng khi cần sorted order — dùng <code>TreeMap</code>. Không wrap HashMap bằng <code>Collections.synchronizedMap</code> rồi iterate — vẫn phải sync manually; prefer ConcurrentHashMap. Tránh hash collision cố ý (DoS) trên Java 7 — Java 8+ đã treeify mitigate.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Product catalog: <code>Map&lt;String, Product&gt;</code> keyed by SKU — O(1) lookup. <code>computeIfAbsent</code> cho lazy cache per key. Build map một lần từ DB rồi wrap <code>Collections.unmodifiableMap</code> share read-only giữa threads (safe nếu không ai mutate).</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>“HashMap thread-safe với synchronized get?” — Không; resize/rehash có thể infinite loop (Java 7) hoặc lost update. “Load factor 1.0 được không?” — Được nhưng collision tăng mạnh. “Tại sao capacity luôn power of 2?” — Bitwise index nhanh; trade-off clustering nếu hash kém → cần spread hash. Hỏi Java 7 vs 8: head insert (7) vs tail insert (8) linked list; 8 thêm treeify.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-class">Map</span>&lt;<span class="tok-class">String</span>, <span class="tok-class">Integer</span>&gt; map = <span class="tok-keyword">new</span> <span class="tok-class">HashMap</span>&lt;&gt;(<span class="tok-number">16</span>, <span class="tok-number">0.75f</span>);
+
+<span class="tok-comment">// put flow: hash → bucket → equals → list/tree</span>
+map.put(<span class="tok-string">"apple"</span>, <span class="tok-number">1</span>);
+map.get(<span class="tok-string">"apple"</span>);  <span class="tok-comment">// O(1) average</span>
+
+<span class="tok-comment">// Custom key — BẮT BUỘC equals + hashCode</span>
+<span class="tok-keyword">record</span> <span class="tok-class">UserKey</span>(<span class="tok-class">String</span> id) {}
+
+map.computeIfAbsent(<span class="tok-string">"banana"</span>, k -&gt; <span class="tok-number">2</span>);
+
+<span class="tok-comment">// Initial capacity hint: expectedSize / 0.75 + 1</span>
+<span class="tok-keyword">int</span> n = (<span class="tok-keyword">int</span>) (expectedSize / <span class="tok-number">0.75f</span>) + <span class="tok-number">1</span>;
+<span class="tok-keyword">new</span> <span class="tok-class">HashMap</span>&lt;&gt;(n);</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>HashMap = array buckets; index = (n-1) &amp; spreadHash(key).</li>
+                  <li>Collision: linked list; Java 8 treeify ≥8 nodes + table ≥64 → Red-Black Tree O(log n).</li>
+                  <li>Load factor 0.75 → resize double capacity khi vượt threshold.</li>
+                  <li>equals/hashCode contract bắt buộc; mutable key nguy hiểm.</li>
+                  <li>Không thread-safe — concurrent dùng ConcurrentHashMap.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q18</span> HashSet liên hệ HashMap thế nào? Override equals/hashCode khi nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>HashSet</strong> là implementation của <code>Set</code> — collection không trùng lặp, không đảm bảo thứ tự (LinkedHashSet giữ insertion order; TreeSet sorted). Bản chất: <strong>HashSet được backed bởi HashMap</strong> — mỗi phần tử Set là <em>key</em> trong internal <code>HashMap&lt;E, Object&gt;</code>, value luôn là dummy object <code>PRESENT</code> (static final Object). Add/remove/contains delegate sang <code>map.put(key, PRESENT)</code>, <code>map.remove(key)</code>, <code>map.containsKey(key)</code>. Uniqueness = HashMap key uniqueness: cùng bucket + <code>equals()</code> → coi trùng, không add thêm.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Tái sử dụng HashMap đã tối ưu (bucket, treeify, resize) thay viết hash table riêng — DRY trong JDK. Set cần contract <strong>equals/hashCode</strong> giống Map key: nếu <code>a.equals(b)</code> thì <code>a.hashCode() == b.hashCode()</code>; vi phạm → phần tử "bằng" nhau nhưng Set coi khác bucket → duplicate ảo hoặc <code>contains</code> trả false. <strong>Mutable key/element</strong> nguy hiểm: object thay đổi field ảnh hưởng hashCode sau khi add → mất trong Set (không tìm thấy, không remove được) — "leak" memory. Immutable key (String, Integer, record) hoặc ID-only equality là best practice.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p><strong>HashSet internals:</strong> constructor <code>new HashMap&lt;&gt;()</code>; <code>add(e)</code> → <code>map.put(e, PRESENT) == null</code> (true nếu element mới). <code>size()</code> → <code>map.size()</code>. Iterator = <code>map.keySet().iterator()</code>.</p>
+                <div class="arch-diagram" data-caption="HashSet backed by HashMap">
+                  <div class="arch-row">
+                    <div class="arch-box host">HashSet&lt;User&gt;<span class="arch-sub">add(user) / contains(user)</span></div>
+                  </div>
+                  <div class="arch-arrow"><span class="arrow-label">delegates to</span></div>
+                  <div class="arch-row">
+                    <div class="arch-box server">HashMap&lt;User, Object&gt;<span class="arch-sub">key = element, value = PRESENT</span></div>
+                  </div>
+                  <div class="arch-arrow"><span class="arrow-label">hashCode → bucket → equals</span></div>
+                  <div class="arch-row">
+                    <div class="arch-box edge">Bucket[i]<span class="arch-sub">unique keys only</span></div>
+                  </div>
+                </div>
+                <p><strong>equals/hashCode contract</strong> (dùng làm Map key hoặc Set element): (1) reflexive: <code>x.equals(x)</code>; (2) symmetric, transitive, consistent; (3) <code>null</code> → false; (4) equal objects → same hashCode. Override <strong>cả hai</strong> — chỉ equals không đủ (HashMap/HashSet dùng hashCode trước). IDE/Lombok generate cả pair.</p>
+                <div class="compare-grid">
+                  <div class="compare-col">
+                    <h4>❌ Trước — default Object.equals (reference)</h4>
+                    <ul>
+                      <li>Hai User cùng id vẫn khác nhau trong Set</li>
+                      <li>Cache Map miss dù data giống</li>
+                      <li>hashCode identity → bucket riêng</li>
+                    </ul>
+                  </div>
+                  <div class="compare-col">
+                    <h4>✅ Sau — equals/hashCode theo business key (id)</h4>
+                    <ul>
+                      <li>Set dedup theo id, không trùng entity</li>
+                      <li>Map lookup ổn định với cùng key logic</li>
+                      <li>Immutable id field — an toàn sau add</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Override equals/hashCode khi object dùng làm <strong>HashMap key</strong>, <strong>HashSet element</strong>, hoặc so sánh trong <code>contains</code>. Entity equality theo <strong>business ID</strong> (Long id) — không gồm mutable fields (name, status). DTO/value object: Lombok <code>@EqualsAndHashCode(of = "id")</code> hoặc Java <code>record</code> (auto từ components). Cache key: immutable composite record. JPA entity: chỉ id (hoặc business natural key ổn định), <code>callSuper = false</code> trên subclass.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng override nếu identity reference là đúng (socket handle, thread-local wrapper). Không dùng <code>@Data</code> trên JPA entity hierarchy — Lombok equals/hashCode mọi field + <code>callSuper</code> mặc định → lazy proxy, collection bug, infinite loop. Không include mutable collections trong equals/hashCode. Không dùng entity đang managed làm Set element rồi mutate field trong equals — Hibernate session confusion. Tránh hashCode trả constant (mọi object cùng bucket → O(n)).</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>WMS: <code>Set&lt;OrderLine&gt;</code> dedup theo <code>skuId</code> — override equals/hashCode chỉ <code>skuId</code>. In-memory cache <code>Map&lt;UserKey, Profile&gt;</code> với <code>record UserKey(String tenantId, String userId)</code>. JPA: <code>@EqualsAndHashCode(onlyExplicitlyIncluded = true)</code> + <code>@Include Long id</code> — Hibernate khuyến nghị.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>"HashSet lưu value ở đâu?" — Chỉ key; value dummy PRESENT. "Chỉ override equals?" — HashSet miss duplicate. Mutable key: add vào Set, đổi field ảnh hưởng hash → ghost entry. Lombok <code>@Data</code> entity: equals cả lazy collection → StackOverflow. Record equals all components — thêm field = breaking change. "TreeSet cần hashCode?" — Cần Comparable/Comparator, không dùng hash — khác HashSet.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// HashSet internals (simplified JDK source)</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">HashSet</span>&lt;E&gt; {
+  <span class="tok-keyword">private transient</span> <span class="tok-class">HashMap</span>&lt;E, <span class="tok-class">Object</span>&gt; map;
+  <span class="tok-keyword">private static final</span> <span class="tok-class">Object</span> PRESENT = <span class="tok-keyword">new</span> <span class="tok-class">Object</span>();
+  <span class="tok-keyword">public boolean</span> <span class="tok-function">add</span>(E e) { <span class="tok-keyword">return</span> map.put(e, PRESENT) == <span class="tok-keyword">null</span>; }
+}
+
+<span class="tok-comment">// ❌ Mutable key — add rồi setName → mất trong Set</span>
+<span class="tok-class">User</span> u = <span class="tok-keyword">new</span> <span class="tok-class">User</span>(<span class="tok-number">1L</span>, <span class="tok-string">"Alice"</span>);
+set.add(u);
+u.setName(<span class="tok-string">"Bob"</span>);  <span class="tok-comment">// hashCode đổi nếu name trong hashCode</span>
+set.contains(u);       <span class="tok-comment">// có thể false!</span>
+
+<span class="tok-comment">// ✅ Record — auto equals/hashCode immutable components</span>
+<span class="tok-keyword">public record</span> <span class="tok-class">UserKey</span>(<span class="tok-class">Long</span> id) {}
+<span class="tok-class">Set</span>&lt;<span class="tok-class">UserKey</span>&gt; active = <span class="tok-keyword">new</span> <span class="tok-class">HashSet</span>&lt;&gt;();
+
+<span class="tok-comment">// ✅ JPA entity — chỉ id</span>
+<span class="tok-annotation">@EqualsAndHashCode</span>(onlyExplicitlyIncluded = <span class="tok-keyword">true</span>)
+<span class="tok-annotation">@Entity</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">Order</span> {
+  <span class="tok-annotation">@Id</span> <span class="tok-annotation">@Include</span> <span class="tok-keyword">private</span> <span class="tok-class">Long</span> id;
+  <span class="tok-keyword">private</span> <span class="tok-class">String</span> status; <span class="tok-comment">// KHÔNG include trong equals/hashCode</span>
+}</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>HashSet = HashMap keys + dummy value PRESENT.</li>
+                  <li>Uniqueness: hashCode bucket + equals trong bucket.</li>
+                  <li>Override cả equals và hashCode; equal → same hashCode.</li>
+                  <li>Mutable key nguy hiểm — dùng immutable id, record, hoặc Long id only.</li>
+                  <li>JPA: @EqualsAndHashCode chỉ id; tránh @Data trên entity.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q8</span> HashMap vs ConcurrentHashMap</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>HashMap</strong> không thread-safe — concurrent read/write có thể corrupt table, infinite loop (Java 7), hoặc lost update. <strong>ConcurrentHashMap (CHM)</strong> cho phép nhiều thread get/put đồng thời với throughput cao hơn <code>Hashtable</code> hay <code>Collections.synchronizedMap</code> vì lock granularity nhỏ. Java 7 CHM: chia table thành <strong>16 Segments</strong>, mỗi segment là HashMap mini với <code>ReentrantLock</code> riêng — lock theo segment, không lock cả map. Java 8+ CHM: bỏ Segment, dùng cùng cấu trúc Node như HashMap nhưng concurrent control bằng <strong>CAS</strong> (lock-free insert vào bucket empty) + <strong>synchronized</strong> lock first node của bucket khi collision/tree update. Size/count dùng <code>LongAdder</code> / counter cells để giảm contention.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Hashtable synchronize mọi public method → serial hóa toàn bộ access — bottleneck trên multi-core. <code>synchronizedMap(HashMap)</code> cũng lock toàn map. CHM target <strong>concurrency level</strong>: Java 7 segment count (default 16) giới hạn parallel writes; Java 8 lock per-bucket (finer) + CAS cho empty bucket insert → scale tốt hơn read-heavy workload. CHM cấm null key/value vì <code>null</code> ambiguous trong concurrent context (get trả null = không có hay value null?). Iterator <strong>weakly consistent</strong> — reflect state tại thời điểm tạo iterator, không throw CME, có thể miss entry add sau nhưng không corrupt.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p><strong>Java 7 put:</strong> hash → segment index → lock segment → put như HashMap trong segment → unlock. <strong>Java 8 put:</strong> nếu bucket null → CAS insert Node; nếu đang resize → help transfer; nếu bucket có node → synchronized lock head node → insert list/tree hoặc update value. <code>size()</code> approximate (đủ cho monitoring). Atomic compound ops: <code>putIfAbsent</code>, <code>replace</code>, <code>compute</code>, <code>merge</code> — lock bucket tương ứng. <code>ConcurrentHashMap.newKeySet()</code> cho concurrent Set.</p>
+                <div class="flow-diagram">
+                  <div class="flow-row">
+                    <div class="flow-node primary">Java 7: Segment[n]</div>
+                  </div>
+                  <div class="flow-arrow">↓ lock 1 segment / hash</div>
+                  <div class="flow-row">
+                    <div class="flow-node secondary">Segment → mini HashMap + ReentrantLock</div>
+                  </div>
+                  <div class="flow-arrow">↓ Java 8+: same Node[] table</div>
+                  <div class="flow-row">
+                    <div class="flow-node">Empty bucket → CAS insert</div>
+                    <div class="flow-node">Collision → sync(head Node)</div>
+                  </div>
+                </div>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Shared cache, session store, rate limiter counters, in-memory registry nhiều thread read/write. Read-heavy web app: CHM scale tốt vì get thường không lock (volatile read Node array). Dùng <code>computeIfAbsent</code> atomic lazy init per key — tránh double-create race. Chọn initial capacity / concurrencyLevel (Java 7) hoặc size hint (Java 8) nếu biết trước load.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Single-thread → HashMap đơn giản hơn, cho phép null. Cần strict snapshot iteration consistent → copy-on-write (<code>ConcurrentHashMap</code> iterator weakly consistent) hoặc lock toàn map khi iterate. Strong consistency cross-key transaction → dùng DB/lock service, không phải CHM. Đừng dùng CHM thay Redis cho distributed cache — CHM chỉ in-process JVM.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>HashMap</th><th>ConcurrentHashMap</th></tr></thead>
+                <tbody>
+                  <tr><td>Thread-safe</td><td>❌</td><td>✅</td></tr>
+                  <tr><td>Java 7 mechanism</td><td>—</td><td>16 Segment + ReentrantLock</td></tr>
+                  <tr><td>Java 8+ mechanism</td><td>—</td><td>CAS (empty bucket) + synchronized (node lock)</td></tr>
+                  <tr><td>Null key/value</td><td>1 null key, nhiều null value</td><td>❌ throw NPE</td></tr>
+                  <tr><td>Iterator</td><td>Fail-fast (CME)</td><td>Weakly consistent</td></tr>
+                  <tr><td>Performance multi-thread</td><td>Unsafe / corrupt</td><td>Near-linear read scale</td></tr>
+                </tbody>
+              </table>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>Java 7 Segment lock</h4>
+                  <ul>
+                    <li>Fixed segment count (default 16)</li>
+                    <li>Lock cả segment khi write</li>
+                    <li>2x hash: segment + bucket</li>
+                    <li>Resize per-segment</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>Java 8 CAS + synchronized</h4>
+                  <ul>
+                    <li>Lock per bucket head (finer)</li>
+                    <li>CAS insert khi bucket empty</li>
+                    <li>Help transfer khi resize</li>
+                    <li>Treeify giống HashMap</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Spring singleton bean cache: <code>ConcurrentHashMap&lt;String, ConnectionPool&gt;</code> — nhiều request thread get/put pool reference. Rate limit: <code>merge(userId, 1, Integer::sum)</code> atomic increment per window. Config hot-reload map shared giữa admin thread (write) và worker threads (read).</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>“CHM lock-free hoàn toàn?” — Không; get lock-free-ish, put collision dùng synchronized. “size() chính xác realtime?” — approximate, có thể stale briefly. “computeIfAbsent block thread khác?” — Có, synchronized bucket — đừng chạy slow IO trong mapping function. So sánh Hashtable: legacy, slow, avoid. <code>ConcurrentHashMap</code> vs <code>HashMap + ReadWriteLock</code>: CHM optimized hơn cho typical mix read/write.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-class">ConcurrentHashMap</span>&lt;<span class="tok-class">String</span>, <span class="tok-class">User</span>&gt; cache = <span class="tok-keyword">new</span> <span class="tok-class">ConcurrentHashMap</span>&lt;&gt;();
+
+<span class="tok-comment">// Atomic lazy load — chỉ 1 thread tạo value cho key</span>
+cache.computeIfAbsent(userId, id -&gt; loadFromDb(id));
+
+<span class="tok-comment">// Atomic merge counter</span>
+cache.merge(<span class="tok-string">"hits"</span>, <span class="tok-number">1</span>, <span class="tok-class">Integer</span>::sum);
+
+<span class="tok-comment">// ❌ HashMap concurrent — race corrupt</span>
+<span class="tok-class">Map</span>&lt;<span class="tok-class">String</span>, <span class="tok-class">Integer</span>&gt; unsafe = <span class="tok-keyword">new</span> <span class="tok-class">HashMap</span>&lt;&gt;();
+<span class="tok-comment">// threads put concurrently → undefined behavior</span></code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>HashMap: không thread-safe; CHM: concurrent read/write an toàn.</li>
+                  <li>Java 7 CHM: 16 Segment lock; Java 8+: CAS empty bucket + sync node head.</li>
+                  <li>CHM cấm null key/value; iterator weakly consistent.</li>
+                  <li>Prefer CHM over Hashtable / synchronizedMap — finer lock, throughput cao.</li>
+                  <li>Dùng computeIfAbsent/merge cho atomic per-key ops.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q9</span> ArrayList vs LinkedList</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>ArrayList</strong> wrap dynamic array (Object[]), resize ×1.5 khi đầy. <strong>LinkedList</strong> doubly-linked nodes — mỗi node chứa prev/next pointer + element. Cả hai implement List; LinkedList thêm Deque (addFirst, pollLast). Big-O không phản ánh hết thực tế do CPU cache và constant factor.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>ArrayList contiguous memory → cache-friendly, random access O(1) thực sự nhanh. LinkedList insert đầu O(1) lý thuyết nhưng mỗi node rải rác heap → pointer chasing chậm hơn ArrayList shift nhỏ. Benchmark thực tế: ArrayList thường thắng LinkedList hầu hết scenario trừ deque-heavy edge case.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>ArrayList <code>get(i)</code>: index vào array. <code>add(0, e)</code>: shift toàn bộ phần tử O(n). LinkedList <code>get(i)</code>: traverse từ head/tail O(n). <code>addFirst</code>: relink pointer O(1). Iterator LinkedList không cần copy khi concurrent read — nhưng CopyOnWriteArrayList cho read-heavy khác use case.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Default: <strong>ArrayList</strong> — index access, iterate, append cuối. LinkedList khi cần Deque operations hai đầu liên tục và list nhỏ/vừa. <code>ArrayDeque</code> thường tốt hơn LinkedList cho queue/stack.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng chọn LinkedList vì "insert O(1)" khi cần get by index. Không LinkedList cho list lớn + random access. ArrayList không phù hợp insert đầu liên tục trên list rất lớn — cân nhắc Deque hoặc linked structure chuyên dụng.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>ArrayList</th><th>LinkedList</th></tr></thead>
+                <tbody>
+                  <tr><td>Cấu trúc</td><td>Contiguous array</td><td>Doubly linked nodes</td></tr>
+                  <tr><td>get(i)</td><td>O(1)</td><td>O(n)</td></tr>
+                  <tr><td>add đầu</td><td>O(n) shift</td><td>O(1)</td></tr>
+                  <tr><td>Cache</td><td>✅ Tốt</td><td>❌ Pointer chase</td></tr>
+                  <tr><td>Memory</td><td>Ít overhead</td><td>2 pointer/node</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Order lines trong memory: ArrayList — iterate, get by index. LRU cache nội bộ nhỏ: <code>LinkedHashMap</code> hoặc <code>ArrayDeque</code>, không raw LinkedList. Task queue hai đầu: <code>ArrayDeque</code> lock-free alternative tùy scenario.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>"LinkedList insert giữa O(1)" — cần iterator đúng vị trí; tìm vị trí O(n). "LinkedList tiết kiệm memory" — sai, overhead node lớn hơn array sparse. Effective Java: prefer ArrayList over LinkedList.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-class">List</span>&lt;<span class="tok-class">String</span>&gt; array = <span class="tok-keyword">new</span> <span class="tok-class">ArrayList</span>&lt;&gt;(<span class="tok-number">1000</span>); <span class="tok-comment">// default choice</span>
+<span class="tok-class">Deque</span>&lt;<span class="tok-class">Task</span>&gt; queue = <span class="tok-keyword">new</span> <span class="tok-class">ArrayDeque</span>&lt;&gt;();     <span class="tok-comment">// thay LinkedList</span>
+queue.addLast(task);
+queue.pollFirst();</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>ArrayList = dynamic array, cache-friendly, get O(1).</li>
+                  <li>LinkedList = nodes + pointers; get O(n), add đầu O(1).</li>
+                  <li>Thực tế ArrayList thắng hầu hết — LinkedList hiếm dùng.</li>
+                  <li>Queue/Deque → ArrayDeque, không LinkedList.</li>
+                  <li>Big-O không đủ — cache locality quan trọng.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q10</span> Comparable vs Comparator</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Comparable&lt;T&gt;</strong> — interface trong class, method <code>compareTo(T o)</code> định nghĩa <em>natural ordering</em> (vd: Integer tăng dần, String lexicographic). <strong>Comparator&lt;T&gt;</strong> — class/lambda riêng, method <code>compare(a, b)</code> — nhiều strategy sort không sửa class gốc. Cả hai trả về âm/0/dương.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>TreeSet, TreeMap, Collections.sort cần ordering. Comparable cho default (Employee sort by id). Comparator linh hoạt: sort theo salary, name, department tùy API query param. Tách Comparator giữ class domain không phụ thuộc UI sort option.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p><code>compareTo</code> phải consistent với equals (khuyến nghị: equal objects → compareTo 0). Comparator factory Java 8+: <code>Comparator.comparing(Employee::getSalary).reversed().thenComparing(Employee::getName)</code>. Null handling: <code>Comparator.nullsLast(...)</code>. TimSort O(n log n) stable — equal giữ thứ tự.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Comparable khi có 1 thứ tự "tự nhiên" rõ (id, timestamp). Comparator cho sort đa tiêu chí, dynamic sort field từ client, sort class third-party không sửa được.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng implement Comparable với logic không stable (random). Không compareTo inconsistent với equals nếu dùng TreeSet — mất element. Tránh anonymous Comparator dài — dùng method reference. Không sort mutable object thay đổi field sau khi đã add TreeSet.</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>Comparable</h4>
+                  <ul>
+                    <li><code>compareTo</code> trong class</li>
+                    <li>Natural ordering, 1 default</li>
+                    <li>TreeSet/TreeMap default</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>Comparator</h4>
+                  <ul>
+                    <li>Lambda / class ngoài</li>
+                    <li>Nhiều strategy</li>
+                    <li>comparing / thenComparing</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Product catalog API: <code>?sort=price_desc</code> → Comparator chọn runtime. Employee TreeSet natural by employeeId (Comparable). Leaderboard: Comparator.comparing(Score::getPoints).reversed().</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>compareTo return a-b overflow với int — dùng Integer.compare(a,b). BigDecimal trong TreeSet: natural ordering ≠ numeric value nếu scale khác. Comparator không bắt buộc consistent với equals — TreeSet cho phép nhưng confusing.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public class</span> <span class="tok-class">Employee</span> <span class="tok-keyword">implements</span> <span class="tok-class">Comparable</span>&lt;<span class="tok-class">Employee</span>&gt; {
+  <span class="tok-keyword">public int</span> <span class="tok-function">compareTo</span>(<span class="tok-class">Employee</span> o) {
+    <span class="tok-keyword">return</span> Long.compare(<span class="tok-keyword">this</span>.id, o.id);
+  }
+}
+
+list.sort(<span class="tok-class">Comparator</span>.comparing(<span class="tok-class">Employee</span>::getSalary)
+    .reversed()
+    .thenComparing(<span class="tok-class">Employee</span>::getName));</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Comparable = natural order trong class (compareTo).</li>
+                  <li>Comparator = sort strategy ngoài, nhiều cách.</li>
+                  <li>Java 8: comparing, thenComparing, reversed.</li>
+                  <li>TreeSet/TreeMap cần ordering; TimSort stable.</li>
+                  <li>Dùng Integer.compare — tránh overflow a-b.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Language -->
+        <section class="section" id="language">
+          <h2 class="section-title">Keyword, Generics, Modern Java</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q11</span> final / finally / finalize()</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>final</strong> keyword: final variable — gán 1 lần (blank final gán trong constructor); final method — không override; final class — không extend (String, Integer). <strong>finally</strong> block — luôn execute sau try/catch trước khi rời method (trừ System.exit, JVM crash, thread kill). <strong>finalize()</strong> — callback Object trước GC, deprecated Java 9, removed discussion — không deterministic.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>final giúp immutability, safe publication, design intent (class không subclass). finally đảm bảo release resource dù exception. finalize() lịch sử cho native resource cleanup — thay bằng try-with-resources (AutoCloseable) và java.lang.ref.Cleaner (Java 9+) vì finalize chạy muộn, không đảm bảo, và làm chậm GC (F-finalizer queue).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>finally chạy cả khi try return — return value được "giữ" nhưng finally có thể override nếu finally cũng return (anti-pattern). try-with-resources compile thành try/finally gọi close(). final field JMM: constructor write final → happens-before đọc sau publish object. Finalizer thread riêng (deprecated path) — object phải survive thêm 1 GC cycle.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>final field cho dependency injection immutable. final class khi security/design cấm extend. finally hoặc try-with-resources cho JDBC, stream, lock release. Cleaner cho off-heap buffer native.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng finalize() cho cleanup — deprecated. Đừng return trong finally — che return try. final không làm object mutable fields immutable — chỉ reference binding. Không final mọi biến local — chỉ khi cần intent hoặc lambda capture.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Keyword</th><th>Scope</th><th>Thay thế hiện đại</th></tr></thead>
+                <tbody>
+                  <tr><td>final</td><td>var / method / class</td><td>record (immutable DTO)</td></tr>
+                  <tr><td>finally</td><td>exception cleanup</td><td>try-with-resources</td></tr>
+                  <tr><td>finalize()</td><td>pre-GC hook</td><td>Cleaner, AutoCloseable</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Service với final dependency qua constructor injection. File processing: try (InputStream in = Files.newInputStream(path)) { ... } — auto close. DirectByteBuffer cleanup: Cleaner.register.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>finally chạy khi try có return — nhưng exception trong finally che exception gốc. "final object immutable?" — chỉ reference; <code>final List list</code> vẫn list.add(). finalize resurrection: object revive trong finalize → memory leak.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">try</span> (<span class="tok-class">Connection</span> conn = dataSource.getConnection()) {
+  conn.prepareStatement(<span class="tok-string">"UPDATE ..."</span>).executeUpdate();
+} <span class="tok-comment">// AutoCloseable → finally close()</span>
+
+<span class="tok-keyword">public final class</span> <span class="tok-class">SecurityToken</span> { <span class="tok-comment">/* không extend */</span> }</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>final = không gán lại / override / extend.</li>
+                  <li>finally = luôn chạy sau try/catch — cleanup.</li>
+                  <li>finalize deprecated — dùng try-with-resources, Cleaner.</li>
+                  <li>try-with-resources cho JDBC, streams, AutoCloseable.</li>
+                  <li>final field → safe publication trong JMM.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q12</span> Overloading vs Overriding</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Overloading</strong> (compile-time polymorphism): cùng tên method, khác parameter list (type/số/thứ tự) trong cùng class (hoặc inherited + new overload). <strong>Overriding</strong> (runtime polymorphism): subclass cung cấp implementation mới cho method instance đã có ở parent — cùng signature, compatible return, access không hẹp hơn.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Overloading API tiện (println int/String/Object). Overriding hỗ trợ Liskov substitution — code gọi qua reference parent chạy behavior child. JVM dynamic dispatch qua vtable — virtual method call. @Override annotation bắt lỗi typo signature lúc compile.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Overload: compiler chọn method best match lúc compile (static binding). Override: runtime chọn method thực tế của object (dynamic dispatch). static method "hide" không override. private/final không override. Covariant return: child trả subtype được (Java 5+).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Overload cho convenience method (process(Order), process(Order, Options)). Override khi polymorphism — template method pattern, strategy qua inheritance, equals/hashCode/toString.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng overload chỉ khác return type — compile error. Override không được thu hẹp access (public → private). Không override static — đó là hide, gọi qua reference type quyết định. Tránh override không @Override — dễ tạo overload nhầm.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>Overloading</th><th>Overriding</th></tr></thead>
+                <tbody>
+                  <tr><td>Binding</td><td>Compile-time</td><td>Runtime (vtable)</td></tr>
+                  <tr><td>Signature</td><td>Khác params</td><td>Giống params</td></tr>
+                  <tr><td>Return type</td><td>Có thể khác</td><td>Covariant OK</td></tr>
+                  <tr><td>Access</td><td>Bất kỳ</td><td>≥ parent</td></tr>
+                  <tr><td>Annotation</td><td>—</td><td>@Override khuyến nghị</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>PaymentService.process(Payment) overload process(Payment, RetryPolicy). Animal.makeSound() override Dog.makeSound() — polymorphism zoo loop. PrintWriter overload print(int), print(String).</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Overload vs override với varargs — ưu tiên fixed arg. "static override?" — không, static hide. Parent ref = new Child(); ref.overrideMethod() → Child; ref.staticMethod() → Parent. Autoboxing tạo overload ambiguous.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">class</span> <span class="tok-class">Parent</span> {
+  <span class="tok-keyword">void</span> <span class="tok-function">print</span>(<span class="tok-class">Number</span> n) { System.out.println(<span class="tok-string">"parent"</span>); }
+}
+<span class="tok-keyword">class</span> <span class="tok-class">Child</span> <span class="tok-keyword">extends</span> <span class="tok-class">Parent</span> {
+  <span class="tok-annotation">@Override</span>
+  <span class="tok-keyword">void</span> <span class="tok-function">print</span>(<span class="tok-class">Number</span> n) { System.out.println(<span class="tok-string">"child"</span>); } <span class="tok-comment">// override</span>
+  <span class="tok-keyword">void</span> <span class="tok-function">print</span>(<span class="tok-class">Integer</span> i) { } <span class="tok-comment">// overload (different param)</span>
+}</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Overload = cùng tên, khác params, compile-time.</li>
+                  <li>Override = subclass thay implementation, runtime dispatch.</li>
+                  <li>@Override bắt lỗi signature; access không thu hẹn.</li>
+                  <li>static hide, không override.</li>
+                  <li>Parent ref + Child obj → virtual call chạy Child.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q13</span> Pass-by-value trong Java</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p>Java <strong>chỉ pass-by-value</strong> — mọi method call copy giá trị argument vào parameter. Primitive: copy bit pattern. Object: copy <em>reference value</em> (pointer) — hai reference trỏ cùng object heap. Không có pass-by-reference như C++ <code>int&</code>.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Hiểu đúng giải thích vì sao swap(int a, int b) không hoạt động, nhưng mutate object qua reference thì có. Phỏng vấn hay hỏi "Java pass by reference?" — trả lời value of reference. Ảnh hưởng design API: không thể reseat caller variable, cần return object mới hoặc wrapper holder.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Method nhận copy ref → gọi method trên object (mutate state) → caller thấy thay đổi. Gán parameter = object khác → chỉ đổi local copy ref, caller không đổi. Immutable object (String): "modify" tạo object mới — caller giữ ref cũ. Arrays là object — pass copy ref, mutate element visible.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Mutate object khi cần side effect (append StringBuilder, fill array). Return new object khi cần thay reference (functional style). Optional/wrapper cho "out parameter" pattern thay pass-by-ref.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng expect reassign parameter thay đổi caller variable. Đừng nói "Java pass object by reference" — gây hiểu nhầm. Không dùng single-element array hack trừ legacy — prefer return value.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>void fillBuffer(StringBuilder sb, data) — append visible caller. String s = transform(s) — immutable phải return. int[] results shared mutate OK; reassign results = new int[] không affect caller.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>swap(Object a, Object b) { Object t=a; a=b; b=t; } — vô hiệu. C++ programmer nhầm. Integer i=1; modify(i) không đổi i vì Integer immutable — phải return hoặc AtomicInteger.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">void</span> <span class="tok-function">trick</span>(<span class="tok-class">StringBuilder</span> sb) {
+  sb.append(<span class="tok-string">"X"</span>);          <span class="tok-comment">// mutate object — caller thấy</span>
+  sb = <span class="tok-keyword">new</span> <span class="tok-class">StringBuilder</span>(<span class="tok-string">"Y"</span>); <span class="tok-comment">// reassign local ref only</span>
+}
+
+<span class="tok-keyword">void</span> <span class="tok-function">swapWrong</span>(<span class="tok-class">Integer</span> a, <span class="tok-class">Integer</span> b) { <span class="tok-comment">/* không swap caller */</span> }</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Java luôn pass-by-value — kể cả object.</li>
+                  <li>Object = copy reference; mutate object → caller thấy.</li>
+                  <li>Reassign parameter → không đổi caller variable.</li>
+                  <li>Immutable (String) phải return object mới.</li>
+                  <li>Không pass-by-reference như C++.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q14</span> Generics — PECS &amp; Type Erasure</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Generics</strong> (Java 5+) thêm type parameter compile-time safety — <code>List&lt;String&gt;</code> không nhận Integer. <strong>PECS</strong>: Producer Extends (<code>? extends T</code> — đọc T), Consumer Super (<code>? super T</code> — ghi T). <strong>Type Erasure</strong>: compiler xóa type parameter lúc runtime — bytecode dùng raw type + cast; không có <code>List&lt;String&gt;.class</code>.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Tránh ClassCastException runtime từ raw collection. Wildcard linh hoạt API (copy List bất kỳ subtype). Erasure giữ backward compatibility với pre-Java 5 bytecode — trade-off mất reified generics (khác C#).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>extends upper bound: đọc T, không add (trừ null) — covariant read. super lower bound: add T, đọc Object — contravariant write. Erasure: <code>T → Object</code>, <code>T extends Number → Number</code>. Bridge methods generate cho override generic. Reifiable types: primitive, non-generic class, array, wildcard with extends super Object.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>PECS cho utility copy, compare, consume/produce API. Bounded type parameter <code>&lt;T extends Comparable&lt;T&gt;&gt;</code> cho sort. Generic method khi type infer từ argument.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng raw type trừ legacy interop. Không <code>new T()</code> / <code>T[]</code> trực tiếp — dùng Class&lt;T&gt; reflect hoặc factory. Không instanceof parameterized type. Tránh wildcard phức tạp khi method generic đơn giản hơn.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Wildcard</th><th>Đọc</th><th>Ghi</th><th>Vai trò</th></tr></thead>
+                <tbody>
+                  <tr><td><code>? extends T</code></td><td>T</td><td>❌ (null only)</td><td>Producer</td></tr>
+                  <tr><td><code>? super T</code></td><td>Object</td><td>T</td><td>Consumer</td></tr>
+                  <tr><td><code>&lt;T&gt;</code> unbounded</td><td>T</td><td>T</td><td>Both</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Collections.copy(List&lt;? super T&gt; dest, List&lt;? extends T&gt; src). Comparator&lt;? super T&gt; nhận mọi comparator cho T hoặc parent. Repository method &lt;S extends T&gt; save(S entity).</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>List&lt;Integer&gt; không phải List&lt;Number&gt; — invariance. List&lt;? extends Number&gt; không add Integer (compile error). Heap pollution: varargs generic array warning. Kotlin reified inline khác Java erasure.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public static</span> &lt;T&gt; <span class="tok-keyword">void</span> <span class="tok-function">copy</span>(
+    <span class="tok-class">List</span>&lt;? <span class="tok-keyword">extends</span> T&gt; src,   <span class="tok-comment">// producer — read T</span>
+    <span class="tok-class">List</span>&lt;? <span class="tok-keyword">super</span> T&gt; dest) {  <span class="tok-comment">// consumer — write T</span>
+  <span class="tok-keyword">for</span> (T item : src) dest.add(item);
+}</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Generics = type safety compile-time; erasure xóa runtime.</li>
+                  <li>PECS: extends = producer read; super = consumer write.</li>
+                  <li>List&lt;Integer&gt; ≠ List&lt;Number&gt; — invariance.</li>
+                  <li>Không new T(), instanceof List&lt;String&gt;, generic array.</li>
+                  <li>Wildcard cho API linh hoạt copy/consume/produce.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q15</span> Records &amp; Sealed Classes</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Record</strong> (Java 16 final): compact immutable data carrier — compiler generate canonical constructor, accessors (không prefix get), equals, hashCode, toString. <strong>Sealed classes/interfaces</strong> (Java 17): giới hạn subclass bằng <code>permits</code> — closed hierarchy. Kết hợp <strong>pattern matching switch</strong> (Java 21) cho exhaustive case without default.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Record thay boilerplate DTO (Lombok @Value alternative chuẩn Java). Immutability thread-safe, hash-friendly. Sealed + pattern matching thay visitor pattern verbose — compiler check cover all subtypes — domain modeling an toàn (Payment type, Shape).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Record components là final fields; có thể compact constructor validate. Không extend class (implicit final), implement interface OK. Sealed: parent khai báo permits; subclass final/sealed/non-sealed. Pattern switch: <code>case Circle c -> c.radius()</code>. Non-sealed cho phép mở rộng bên ngoài module.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Record cho API response, event payload, value object. Sealed cho ADT domain (Result Success/Failure, Payment types). Pattern switch render UI/logic theo subtype.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Record không cho entity JPA mutable (cần setter, lazy) — DTO OK. Không sealed nếu cần plugin/third-party extend tự do. Record không inherit record/class khác. Tránh record với nhiều logic — tách behavior service.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Feature</th><th>Java version</th><th>Lợi ích</th></tr></thead>
+                <tbody>
+                  <tr><td>Record</td><td>16+</td><td>Immutable DTO, ít boilerplate</td></tr>
+                  <tr><td>Sealed</td><td>17+</td><td>Closed hierarchy, exhaustive switch</td></tr>
+                  <tr><td>Pattern switch</td><td>21</td><td>Type pattern + null handling</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>OrderCreatedEvent record (orderId, timestamp). sealed interface Command permits MoveCommand, StopCommand — WCS dispatcher switch exhaustive. REST response record thay 50-line POJO.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Record accessor <code>point.x()</code> không getX(). Record equals trên tất cả components — thêm field = breaking. Sealed thiếu permits subclass → compile error. JPA @Entity không nên record (Hibernate 6+ hỗ trợ hạn chế).</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public record</span> <span class="tok-class">Point</span>(<span class="tok-keyword">int</span> x, <span class="tok-keyword">int</span> y) {
+  <span class="tok-keyword">public</span> <span class="tok-class">Point</span> { <span class="tok-keyword">if</span> (x &lt; <span class="tok-number">0</span>) <span class="tok-keyword">throw new</span> <span class="tok-class">IllegalArgumentException</span>(); }
+}
+
+<span class="tok-keyword">public sealed interface</span> <span class="tok-class">Shape</span> <span class="tok-keyword">permits</span> <span class="tok-class">Circle</span>, <span class="tok-class">Rectangle</span> {}
+<span class="tok-keyword">public final record</span> <span class="tok-class">Circle</span>(<span class="tok-keyword">double</span> radius) <span class="tok-keyword">implements</span> <span class="tok-class">Shape</span> {}
+
+<span class="tok-keyword">double</span> area = <span class="tok-keyword">switch</span> (shape) {
+  <span class="tok-keyword">case</span> <span class="tok-class">Circle</span> c -&gt; Math.PI * c.radius() * c.radius();
+  <span class="tok-keyword">case</span> <span class="tok-class">Rectangle</span> r -&gt; r.w() * r.h();
+};</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Record = immutable DTO, auto equals/hashCode/accessors.</li>
+                  <li>Sealed = giới hạn subclass, closed ADT.</li>
+                  <li>Pattern switch exhaustive — compiler check đủ case.</li>
+                  <li>Record cho value object; không JPA entity mutable.</li>
+                  <li>Java 16/17/21 feature progression phỏng vấn senior.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q19</span> So sánh Java 8, 11, 17, 21 — nên chọn bản nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p>Bốn <strong>LTS (Long-Term Support)</strong> quan trọng nhất hiện nay: <strong>Java 8</strong> (2014), <strong>11</strong> (2018), <strong>17</strong> (2021), <strong>21</strong> (2023). Mỗi bản LTS nhận patch/security update nhiều năm. Java 8 vẫn phổ biến enterprise legacy; 11 là bước nhảy module system + loại JRE riêng; 17 là LTS "modern baseline" (records, sealed); 21 thêm virtual threads, pattern matching mature, Generational ZGC. Non-LTS (9, 10, 12–16, 18–20, 22+) thường không chọn production trừ early adopter.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Chọn version ảnh hưởng security patch, library support, GC behavior, và syntax team dùng. Java 8 EOL public updates — enterprise cần vendor support (Oracle, Azul, Amazon Corretto). Spring Boot 3.x yêu cầu <strong>Java 17+</strong> — blocker migrate từ 8/11. Java 11 loại <strong>PermGen</strong> → <strong>Metaspace</strong> (từ Java 8 đã Metaspace nhưng 11 cleanup module). Java 17+ sealed + records giảm boilerplate, pattern switch giảm instanceof chain. Java 21 virtual threads giảm thread pool complexity cho I/O-bound — Project Loom.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <table class="feature-table">
+                  <thead>
+                    <tr><th>Feature / Thay đổi</th><th>Java 8</th><th>Java 11</th><th>Java 17</th><th>Java 21</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Lambda, Stream, Optional</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td><code>var</code> local (LVTI)</td><td>—</td><td>✅ (10 preview→11)</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Module system (JPMS)</td><td>—</td><td>✅ (9+)</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>PermGen → Metaspace</td><td>✅ Metaspace</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td><code>record</code></td><td>—</td><td>—</td><td>✅ (16 finalized)</td><td>✅</td></tr>
+                    <tr><td><code>sealed</code> classes</td><td>—</td><td>—</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Pattern matching <code>instanceof</code></td><td>—</td><td>—</td><td>✅ (16+)</td><td>✅</td></tr>
+                    <tr><td>Pattern <code>switch</code></td><td>—</td><td>—</td><td>preview</td><td>✅ finalized</td></tr>
+                    <tr><td>Virtual threads</td><td>—</td><td>—</td><td>—</td><td>✅</td></tr>
+                    <tr><td>Text blocks <code>"""</code></td><td>—</td><td>—</td><td>✅ (15+)</td><td>✅</td></tr>
+                    <tr><td>HTTP Client (<code>java.net.http</code>)</td><td>—</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Default GC server</td><td>Parallel / G1 optional</td><td>G1 default</td><td>G1 default</td><td>G1; Generational ZGC exp.</td></tr>
+                    <tr><td>JRE riêng ship</td><td>✅</td><td>❌ chỉ JDK</td><td>❌</td><td>❌</td></tr>
+                    <tr><td>Spring Boot 3.x</td><td>❌</td><td>❌</td><td>✅ min</td><td>✅ recommended</td></tr>
+                  </tbody>
+                </table>
+                <div class="flow-diagram">
+                  <div class="flow-row">
+                    <div class="flow-node primary"><span class="step-badge">1</span>Java 8</div>
+                    <div class="flow-arrow"><span class="arrow-label">2018 LTS</span>→</div>
+                    <div class="flow-node secondary"><span class="step-badge">2</span>Java 11</div>
+                    <div class="flow-arrow"><span class="arrow-label">2021 LTS</span>→</div>
+                    <div class="flow-node success"><span class="step-badge">3</span>Java 17</div>
+                    <div class="flow-arrow"><span class="arrow-label">2023 LTS</span>→</div>
+                    <div class="flow-node warning"><span class="step-badge">4</span>Java 21</div>
+                  </div>
+                </div>
+                <p><strong>Migration path:</strong> 8 → 11: loại Java EE modules (JAXB, JAX-WS) khỏi JDK — thêm dependency Maven. 11 → 17: ít breaking hơn; bật records/sealed khi sẵn sàng. 17 → 21: virtual threads opt-in; review deprecated SecurityManager removal. Tooling: <code>jdeps</code>, <code>jdeprscan</code>, Spring Boot upgrade plugin.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p><strong>Greenfield 2024+:</strong> Java 21 LTS + Spring Boot 3.3+ — virtual threads, modern syntax. <strong>Enterprise mới:</strong> Java 17 minimum nếu ecosystem chưa sẵn sàng 21. <strong>Migrate từ 8:</strong> nhảy thẳng 17 hoặc 21 nếu có budget test — tránh dừng 11 lâu (11→17 dễ hơn 8→11+17 gộp). Dùng LTS Corretto/Temurin cho production patch. CI/CD matrix test trên target JDK trước cutover.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng ở Java 8 cho project mới — thiếu patch, Spring Boot 2 EOL. Không nhảy non-LTS production (22, 23) trừ khi team track release cadence. Tránh migrate big-bang không test: reflection break (module), removed APIs (Nashorn JS engine Java 15), illegal access warnings thành errors. Legacy vendor lib chỉ support 8 → cần wrapper hoặc thay lib trước upgrade. Đừng bật virtual threads mọi workload — CPU-bound vẫn cần platform threads pool sizing.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Startup mới: Java 21 + Spring Boot 3.3, virtual threads cho REST gateway I/O. Bank legacy: Java 8 + Boot 2.7 — plan 17 với vendor support contract. Microservice greenfield trong corp đã 17: thử 21 cho service I/O-heavy trước, giữ 17 cho batch CPU-heavy.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>"Java 8 vẫn OK?" — Security/compliance risk, Boot 2 EOL. "11 vs 17?" — 17 = records/sealed/text blocks; Boot 3 cần 17+. "JRE 11 cài server?" — Không còn JRE riêng, dùng jlink hoặc full JDK. PermGen: Java 7 trở xuống; 8+ Metaspace. "Virtual thread = faster mọi thứ?" — Chỉ I/O-bound; synchronized pin carrier thread (improved 21+). Oracle JDK vs OpenJDK licensing thay đổi 11+ — dùng Temurin/Corretto.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Java 11+ — var, HTTP Client</span>
+<span class="tok-keyword">var</span> response = <span class="tok-class">HttpClient</span>.newHttpClient()
+  .send(<span class="tok-class">HttpRequest</span>.newBuilder(uri).build(), <span class="tok-class">BodyHandlers</span>.ofString());
+
+<span class="tok-comment">// Java 17+ — record + sealed + pattern switch</span>
+<span class="tok-keyword">public sealed interface</span> <span class="tok-class">Result</span> <span class="tok-keyword">permits</span> <span class="tok-class">Ok</span>, <span class="tok-class">Err</span> {}
+<span class="tok-keyword">public record</span> <span class="tok-class">Ok</span>(<span class="tok-class">String</span> data) <span class="tok-keyword">implements</span> <span class="tok-class">Result</span> {}
+<span class="tok-keyword">String</span> msg = <span class="tok-keyword">switch</span> (result) {
+  <span class="tok-keyword">case</span> <span class="tok-class">Ok</span> o -&gt; o.data();
+  <span class="tok-keyword">case</span> <span class="tok-class">Err</span> e -&gt; e.message();
+};
+
+<span class="tok-comment">// Java 21 — virtual threads</span>
+<span class="tok-keyword">try</span> (<span class="tok-keyword">var</span> executor = <span class="tok-class">Executors</span>.newVirtualThreadPerTaskExecutor()) {
+  executor.submit(() -&gt; fetchOrder(orderId));
+}</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>LTS: 8, 11, 17, 21 — production chọn LTS, patch vendor.</li>
+                  <li>8 = legacy; 11 = modules, no JRE; 17 = records/sealed, Boot 3 min.</li>
+                  <li>21 = virtual threads, pattern switch finalized.</li>
+                  <li>Greenfield: 21; migrate 8 → nhảy 17/21, test jdeps + integration.</li>
+                  <li>Enterprise 8/11: Spring Boot 2 EOL — plan upgrade, không project mới.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q16</span> Streams &amp; Lambda — Lazy evaluation</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Stream API</strong> (Java 8) xử lý collection functional style — pipeline operations trên sequence elements. <strong>Lambda</strong> (<code>(x) -&gt; x * 2</code>) implement functional interface (SAM). <strong>Lazy evaluation</strong>: intermediate ops (filter, map) build pipeline; terminal op (collect, forEach) mới execute — short-circuit (findFirst, anyMatch) dừng sớm.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Declarative code dễ đọc, compose filter/map/reduce. Lazy fusion tránh intermediate collection. Parallel stream tận dụng multi-core cho CPU-bound pure ops. Lambda giảm anonymous class boilerplate — captured variables phải effectively final.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Source (collection, array, generate) → intermediate stream → terminal. Stream không mutate source. parallelStream() fork JoinPool.commonPool(). Method reference <code>Employee::getName</code>. Collectors: toList, groupingBy, joining. Primitive streams IntStream tránh boxing.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Transform/filter/aggregate in-memory collection. Parallel cho dataset lớn, operation pure CPU (map math). Optional thay null return. Stream cho business logic read; không side effect trong map nếu parallel.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng parallelStream với I/O blocking — starve common pool. Không mutate external state trong forEach parallel — race. Stream one-shot — không reuse sau terminal. Simple loop có thể rõ hơn stream phức tạp. Không stream cho very small collection (overhead).</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Loại op</th><th>Ví dụ</th><th>Lazy?</th></tr></thead>
+                <tbody>
+                  <tr><td>Intermediate</td><td>filter, map, flatMap, sorted</td><td>✅</td></tr>
+                  <tr><td>Terminal</td><td>collect, reduce, forEach, count</td><td>Trigger</td></tr>
+                  <tr><td>Short-circuit</td><td>findFirst, anyMatch, limit</td><td>Stop early</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Filter active employees, group by dept, sum salary: stream + Collectors.groupingBy. FlatMap nested order lines. IntStream.range for numeric loop performance.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>peek() debug không guarantee chạy nếu không terminal. sorted() O(n log n) — lazy nhưng stateful. Lambda capture biến loop — phải effectively final. Stream closed after terminal — IllegalStateException.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-class">List</span>&lt;<span class="tok-class">String</span>&gt; names = employees.stream()
+  .filter(e -&gt; e.getSalary() &gt; <span class="tok-number">1000</span>)   <span class="tok-comment">// lazy</span>
+  .map(<span class="tok-class">Employee</span>::getName)
+  .sorted()
+  .collect(<span class="tok-class">Collectors</span>.toList());     <span class="tok-comment">// terminal — execute</span>
+
+<span class="tok-keyword">long</span> total = orders.stream()
+  .mapToInt(<span class="tok-class">Order</span>::getAmount)
+  .sum(); <span class="tok-comment">// IntStream — no boxing</span></code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Stream = pipeline functional; intermediate lazy, terminal execute.</li>
+                  <li>Lambda = SAM interface; variable effectively final.</li>
+                  <li>parallelStream CPU-bound; tránh blocking I/O common pool.</li>
+                  <li>Collectors: group, join, toMap; IntStream tránh boxing.</li>
+                  <li>Short-circuit: findFirst, limit — dừng sớm.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q17</span> Checked vs Unchecked Exception</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Checked exception</strong> extends <code>Exception</code> (không phải RuntimeException) — compiler bắt buộc try-catch hoặc throws (IOException, SQLException). <strong>Unchecked</strong> extends <code>RuntimeException</code> hoặc <code>Error</code> — không bắt buộc (NPE, IllegalArgumentException, OutOfMemoryError). Throwable hierarchy: Error (JVM serious) vs Exception (recoverable).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Checked force caller handle failure — I/O, network có thể recover. Unchecked cho programming bug — không ép catch mọi nơi. Debate: checked verbose (Effective Java khuyên runtime cho business). Spring/JPA wrap checked thành unchecked DataAccessException. Cause chain preserve stack trace root.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>try-catch-finally hoặc try-with-resources. Multi-catch <code>catch (IOException | SQLException e)</code>. throws khai báo caller handle. Rethrow wrap: <code>throw new ServiceException("msg", cause)</code>. @ControllerAdvice map exception → HTTP status.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Checked: boundary I/O, parse file, JDBC trực tiếp. Unchecked: business rule violation, validation fail, custom domain exception. Error không catch (OutOfMemory) — log và fail fast.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng empty catch — nuốt exception. Không catch Exception rồi ignore. Tránh checked exception leak qua mọi layer — wrap ở boundary. Không dùng exception cho flow control thường xuyên. Không throw Error subclass.</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>Checked</h4>
+                  <ul>
+                    <li>Compile-time enforce</li>
+                    <li>IOException, SQLException</li>
+                    <li>Recoverable external failure</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>Unchecked</h4>
+                  <ul>
+                    <li>RuntimeException, Error</li>
+                    <li>NPE, IAE, OOM</li>
+                    <li>Bugs / fatal</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>OrderService throws OrderNotFoundException (runtime) → @ExceptionHandler 404. File import: catch IOException log + retry. Spring DataAccessException wrap SQLException unchecked.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>catch (Exception e) { } — mất stack. finally return che exception try. "Checked tốt hơn?" — Kotlin/Scala bỏ checked; Java trade-off verbosity. Throwable vs Exception — catch Throwable bắt cả Error nguy hiểm.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public void</span> <span class="tok-function">readConfig</span>() <span class="tok-keyword">throws</span> <span class="tok-class">IOException</span> { <span class="tok-comment">// checked</span>
+  Files.readString(Path.of(<span class="tok-string">"config.yml"</span>));
+}
+
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderNotFoundException</span> <span class="tok-keyword">extends</span> <span class="tok-class">RuntimeException</span> {
+  <span class="tok-keyword">public</span> <span class="tok-class">OrderNotFoundException</span>(<span class="tok-class">Long</span> id) {
+    <span class="tok-keyword">super</span>(<span class="tok-string">"Order not found: "</span> + id);
+  }
+}</code></pre></div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Checked = bắt buộc handle; Unchecked = RuntimeException.</li>
+                  <li>Checked cho I/O recoverable; unchecked cho bugs/business.</li>
+                  <li>Spring wrap checked → DataAccessException runtime.</li>
+                  <li>Giữ cause chain; không empty catch.</li>
+                  <li>Custom business exception → extend RuntimeException.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+<section class="section" id="deep-dive-equality">
+          <h2 class="section-title">Deep Dive — Autoboxing &amp; Integer Cache</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D1</span> Autoboxing và bộ đệm Integer cache — vì sao <code>==</code> trên wrapper gây bug?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Autoboxing</strong> (Java 5+) là cơ chế compiler tự chuyển giữa primitive và wrapper: <code>Integer x = 5;</code> biên dịch thành <code>Integer.valueOf(5)</code>, còn <code>int y = x;</code> thành <code>x.intValue()</code> (unboxing). Điểm mấu chốt: <strong><code>Integer.valueOf</code> có bộ đệm (cache)</strong> cho giá trị <code>−128..127</code> — JLS §5.1.7 bắt buộc hai lần boxing cùng một giá trị nhỏ phải trả về <em>cùng một instance</em>. Ngoài khoảng này, mỗi lần boxing thường tạo object mới.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Vì sao có cache? Các giá trị nhỏ xuất hiện liên tục (chỉ số vòng lặp, status code, ký tự ASCII) nên dùng lại instance giúp tiết kiệm bộ nhớ và thời gian cấp phát. Nhưng cache tạo ra hành vi <em>không đối xứng</em>: toán tử <code>==</code> so sánh <strong>reference (identity)</strong>, còn <code>.equals()</code> so sánh <strong>giá trị</strong>. Với wrapper, <code>==</code> chỉ đúng khi hai biến trỏ cùng một instance — đúng trong khoảng cache, sai ngoài khoảng. Đây là bẫy phỏng vấn kinh điển vì code chạy đúng lúc test với số nhỏ nhưng nổ ở production với số lớn.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p><code>Integer.valueOf(int)</code> kiểm tra <code>i &gt;= IntegerCache.low (−128)</code> và <code>i &lt;= IntegerCache.high (127 mặc định)</code>: trong khoảng trả phần tử trong cache, ngoài khoảng gọi <code>new Integer(i)</code>. Ngưỡng trên chỉnh được qua <code>-XX:AutoBoxCacheMax=size</code> hoặc system property <code>java.lang.Integer.IntegerCache.high</code>. Các wrapper khác cũng có cache: <code>Long/Short/Byte</code> cố định −128..127, <code>Character</code> 0..127, <code>Boolean</code> chỉ hai hằng <code>TRUE</code>/<code>FALSE</code>. Lưu ý <code>new Integer(127)</code> (deprecated) <em>luôn</em> tạo object mới nên <code>==</code> sẽ cho <code>false</code>.</p>
+                <div class="compare-grid">
+                  <div class="compare-col">
+                    <h4><code>==</code> — so sánh reference</h4>
+                    <ul>
+                      <li>Đúng cho primitive (giá trị)</li>
+                      <li>Wrapper: chỉ đúng khi cùng instance</li>
+                      <li>Trong cache: thường <code>true</code></li>
+                      <li>Ngoài cache: <code>false</code> dù cùng giá trị</li>
+                    </ul>
+                  </div>
+                  <div class="compare-col">
+                    <h4><code>.equals()</code> / <code>Objects.equals()</code> — so sánh giá trị</h4>
+                    <ul>
+                      <li>Luôn đúng cho cùng giá trị</li>
+                      <li>Khuyến nghị cho mọi wrapper</li>
+                      <li><code>Objects.equals</code> an toàn với <code>null</code></li>
+                      <li>Đúng khi dùng làm Map key / Set element</li>
+                    </ul>
+                  </div>
+                </div>
+                <table class="feature-table">
+                  <thead><tr><th>Wrapper</th><th>Khoảng cache</th><th>Ghi chú</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>Integer</code></td><td>−128..127 (mở rộng bằng flag)</td><td>nguồn gây bẫy <code>==</code> phổ biến nhất</td></tr>
+                    <tr><td><code>Long / Short / Byte</code></td><td>−128..127</td><td>cố định, không đổi được</td></tr>
+                    <tr><td><code>Character</code></td><td>0..127 (<code>\u0000</code>..<code>\u007f</code>)</td><td>ký tự ASCII</td></tr>
+                    <tr><td><code>Boolean</code></td><td><code>false</code>, <code>true</code></td><td>hai hằng số dùng lại</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Dùng <code>.equals()</code>/<code>Objects.equals()</code> khi so sánh wrapper. Dùng primitive <code>int</code> trong vòng lặp hoặc hot path để tránh cấp phát. Wrapper vẫn hợp lệ làm key <code>HashMap</code>/phần tử <code>HashSet</code> vì <code>equals</code>/<code>hashCode</code> đúng. Luôn kiểm tra null trước khi unbox, đặc biệt với input từ ngoài (<code>Integer.valueOf(String)</code> ném <code>NumberFormatException</code>).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng dùng <code>==</code> cho wrapper để so giá trị — kể cả khi cả hai nằm trong cache, vì ngưỡng có thể thay đổi và người đọc dễ hiểu sai. Đừng boxing trong vòng lặp lớn (allocation + áp lực GC). Đừng để <code>Integer</code> null rồi gán vào <code>int</code> (NullPointerException khi unbox). Đừng coi cache range là hằng số cố định toàn cục.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-class">Integer</span> a = <span class="tok-number">100</span>, b = <span class="tok-number">100</span>;   <span class="tok-comment">// trong cache → cùng instance</span>
+<span class="tok-class">Integer</span> c = <span class="tok-number">1000</span>, d = <span class="tok-number">1000</span>; <span class="tok-comment">// ngoài cache → instance khác</span>
+
+System.out.println(a == b);        <span class="tok-comment">// true</span>
+System.out.println(c == d);        <span class="tok-comment">// false  ← bẫy kinh điển</span>
+System.out.println(c.equals(d));   <span class="tok-comment">// true   → dùng equals</span>
+
+<span class="tok-class">Integer</span> n = <span class="tok-keyword">null</span>;
+<span class="tok-keyword">int</span> x = n;                         <span class="tok-comment">// NullPointerException (unbox)</span>
+
+<span class="tok-keyword">long</span> sum = <span class="tok-number">0</span>;
+<span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> i = <span class="tok-number">0</span>; i &lt; <span class="tok-number">1_000_000</span>; i++) sum += i; <span class="tok-comment">// primitive — không boxing</span></code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Status code, mã lỗi, chỉ số nhỏ tận dụng cache rất tốt về bộ nhớ — nhưng khi so sánh phải dùng <code>equals</code>, ví dụ <code>order.getStatus().equals(expected)</code>. Với API trả về giá trị có thể null, ưu tiên <code>Objects.equals(a, b)</code> để vừa null-safe vừa so giá trị.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p><code>Integer a=127, b=127; a==b</code> cho <code>true</code>, nhưng <code>Integer c=128, d=128; c==d</code> cho <code>false</code>. <code>new Integer(1) == 1</code> luôn <code>false</code>. “Vậy tăng <code>AutoBoxCacheMax</code> cho đúng hết?” — không; đó là chữa cháy, gốc rễ là dùng <code>==</code> sai. Điều kiện <code>if (i == 1)</code> với <code>Integer</code> cũng so reference chứ không so giá trị.</p>
+              </div>
+              <p><small>Nguồn: <a href="https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html">JLS §5.1.7 — Boxing Conversion</a> · <a href="https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/Integer.java">OpenJDK Integer.java (IntegerCache)</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Deep Dive Iterators -->
+        <section class="section" id="deep-dive-iterators">
+          <h2 class="section-title">Deep Dive — fail-fast vs fail-safe Iterator</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D2</span> fail-fast vs fail-safe iterator — vì sao có ConcurrentModificationException?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>fail-fast</strong> là iterator của các collection trong <code>java.util</code> (<code>ArrayList</code>, <code>HashMap</code>, <code>TreeSet</code>): nếu collection bị sửa cấu trúc (thêm/xóa) trong lúc đang duyệt — trừ khi qua chính iterator — thì lần gọi <code>next()</code> kế tiếp ném <strong><code>ConcurrentModificationException</code></strong> (CME). <strong>fail-safe</strong> (chính xác hơn là <em>weakly consistent</em>) là iterator của <code>java.util.concurrent</code> (<code>ConcurrentHashMap</code>, <code>CopyOnWriteArrayList</code>, <code>ConcurrentLinkedQueue</code>): duyệt trên snapshot hoặc view chịu được thay đổi đồng thời, KHÔNG ném CME.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>fail-fast phát hiện bug “sửa collection trong lúc duyệt” càng sớm càng tốt — nhưng Oracle nói rõ nó chỉ là <em>best-effort</em>, không đảm bảo, và <strong>không được dùng để kiểm soát tính đúng đắn</strong>. Weakly consistent cho phép nhiều thread đọc/ghi mà không cần khóa, đổi lại iterator không hứa phản ánh mọi thay đổi mới nhất (có thể thấy hoặc không). Hiểu hai cơ chế này để chọn collection đúng: fail-fast cho single-thread (bắt bug sớm), weakly consistent khi thực sự concurrent.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p><code>ArrayList.Itr</code> giữ một biến <code>expectedModCount</code>; mỗi lần <code>next()</code>/<code>remove()</code> gọi <code>checkForComodification()</code> và so với <code>modCount</code> hiện tại của list — lệch thì ném CME. Vì <code>modCount</code> tăng khi add/remove trực tiếp trên list, vòng <code>for-each</code> vừa duyệt vừa <code>list.remove()</code> sẽ nổ. Cách đúng là dùng <code>Iterator.remove()</code> (có cập nhật lại <code>expectedModCount</code>) hoặc <code>list.removeIf(...)</code>. <code>CopyOnWriteArrayList</code> giữ tham chiếu tới một array bất biến; mỗi thao tác ghi tạo array mới, nên iterator đang chạy vẫn thấy array cũ (snapshot) — không CME nhưng có thể bỏ sót phần tử vừa thêm.</p>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">for-each tạo Iterator (expectedModCount = N)</div></div>
+                  <div class="flow-arrow">↓ trong vòng lặp</div>
+                  <div class="flow-row"><div class="flow-node">list.remove(x) → modCount = N+1</div></div>
+                  <div class="flow-arrow">↓ gọi next() → checkForComodification()</div>
+                  <div class="flow-row"><div class="flow-node success">modCount ≠ expectedModCount → ConcurrentModificationException</div></div>
+                </div>
+                <table class="feature-table">
+                  <thead><tr><th>Collection</th><th>Kiểu iterator</th><th>Ném CME?</th><th>Ghi chú</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>ArrayList</code>, <code>HashMap</code>, <code>TreeSet</code></td><td>fail-fast</td><td>✅ (best-effort)</td><td>phát hiện sửa đồng thời</td></tr>
+                    <tr><td><code>CopyOnWriteArrayList</code></td><td>weakly consistent (snapshot)</td><td>❌</td><td>mỗi ghi copy toàn bộ array</td></tr>
+                    <tr><td><code>ConcurrentHashMap</code></td><td>weakly consistent</td><td>❌</td><td>duyệt đồng thời an toàn</td></tr>
+                    <tr><td><code>ConcurrentLinkedQueue</code></td><td>weakly consistent</td><td>❌</td><td>queue lock-free</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Dùng fail-fast iterator trong code single-thread để bắt bug sớm. Khi vừa duyệt vừa xóa, dùng <code>Iterator.remove()</code> hoặc <code>removeIf</code>. Dùng <code>CopyOnWriteArrayList</code> cho danh sách <em>đọc nhiều ghi ít</em> (listener, cấu hình), <code>ConcurrentHashMap</code> cho map chia sẻ giữa nhiều thread, <code>ConcurrentLinkedQueue</code>/<code>BlockingQueue</code> cho hàng đợi.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng bắt <code>ConcurrentModificationException</code> rồi nuốt — đó là dấu hiệu bug chứ không phải lỗi cần phục hồi. Đừng dựa vào CME như cơ chế đồng bộ (nó best-effort). Đừng dùng <code>CopyOnWriteArrayList</code> cho workload ghi nhiều — mỗi lần ghi copy toàn bộ array O(n) và tốn GC. Đừng dùng <code>ArrayList</code> rồi add/remove trực tiếp trong <code>for-each</code>.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-class">List</span>&lt;<span class="tok-class">String</span>&gt; list = <span class="tok-keyword">new</span> <span class="tok-class">ArrayList</span>&lt;&gt;(<span class="tok-class">List</span>.of(<span class="tok-string">"A"</span>, <span class="tok-string">"B"</span>, <span class="tok-string">"C"</span>));
+
+<span class="tok-keyword">for</span> (<span class="tok-class">String</span> s : list) {
+    <span class="tok-keyword">if</span> (s.equals(<span class="tok-string">"B"</span>)) list.remove(s);   <span class="tok-comment">// ConcurrentModificationException</span>
+}
+
+<span class="tok-comment">// Đúng: dùng iterator.remove() — cập nhật expectedModCount</span>
+<span class="tok-class">Iterator</span>&lt;<span class="tok-class">String</span>&gt; it = list.iterator();
+<span class="tok-keyword">while</span> (it.hasNext()) {
+    <span class="tok-keyword">if</span> (it.next().equals(<span class="tok-string">"B"</span>)) it.remove();
+}
+list.removeIf(s -&gt; s.equals(<span class="tok-string">"C"</span>));              <span class="tok-comment">// OK</span>
+
+<span class="tok-comment">// Weakly consistent — không ném CME</span>
+<span class="tok-class">ConcurrentHashMap</span>&lt;<span class="tok-class">String</span>, <span class="tok-class">Integer</span>&gt; map = <span class="tok-keyword">new</span> <span class="tok-class">ConcurrentHashMap</span>&lt;&gt;();
+map.put(<span class="tok-string">"a"</span>, <span class="tok-number">1</span>);
+<span class="tok-keyword">for</span> (<span class="tok-keyword">var</span> e : map.entrySet()) map.put(<span class="tok-string">"b"</span>, <span class="tok-number">2</span>); <span class="tok-comment">// an toàn</span></code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Cache in-memory chia sẻ giữa nhiều request: dùng <code>ConcurrentHashMap</code> và duyệt <code>entrySet()</code> đồng thời. Danh sách listener/observer đăng ký một lần, gọi nhiều lần: <code>CopyOnWriteArrayList</code> để vòng lặp gọi listener không bao giờ văng CME.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>CME có thể ném ngay cả trong <em>single-thread</em> nếu sửa collection trực tiếp khi duyệt — không phải chỉ do đa luồng. CME là “best-effort”: không đảm bảo luôn phát hiện. <code>list.subList(...)</code> là view nên sửa list gốc cũng làm nó ném. Weakly consistent không ném CME nhưng có thể <em>bỏ sót</em> phần tử vừa thêm — đừng giả định iterator phản ánh trạng thái mới nhất.</p>
+              </div>
+              <p><small>Nguồn: <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ArrayList.html">Oracle — ArrayList (fail-fast)</a> · <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html">Oracle — ConcurrentHashMap (weakly consistent)</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Deep Dive Immutability -->
+        <section class="section" id="deep-dive-immutability">
+          <h2 class="section-title">Deep Dive — Immutable Class &amp; Defensive Copy</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D3</span> Viết immutable class đúng cách — defensive copy và safe publication?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Immutable object</strong> là object có trạng thái không đổi sau khi khởi tạo. <strong>Immutable class</strong> đạt được điều đó bằng: mọi field là <code>private final</code>, không có setter, và nếu field trỏ tới mutable object (<code>Date</code>, <code>List</code>, array) thì phải <strong>defensive copy</strong> cả lúc nhận vào (constructor) và lúc trả ra (getter). Ví dụ chuẩn trong JDK: <code>String</code>, các wrapper, <code>java.time.*</code>, và <code>record</code> (Java 16) cho value trong suốt.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Immutable object <strong>thread-safe miễn phí</strong>: không cần đồng bộ vì không ai đổi được trạng thái. Đặc biệt JLS §17.5 cho <em>final-field freeze</em> — field final gán xong trong constructor được đảm bảo visible với mọi thread đọc reference, ngay cả khi publish không an toàn (miễn <code>this</code> không escape khỏi constructor). Ngoài ra immutable object an toàn khi làm key <code>HashMap</code>/phần tử <code>HashSet</code> (hashCode ổn định) và có thể cache/ chia sẻ thoải mái.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Công thức: (1) khai báo <code>public final class</code> (hoặc constructor private + factory) để cấm subclass phá vỡ; (2) mọi field <code>private final</code>; (3) <strong>copy phòng vệ lúc vào</strong> — gán <code>this.start = new Date(start.getTime())</code> thay vì gán thẳng reference; (4) <strong>copy phòng vệ lúc ra</strong> — getter trả bản sao, không trả reference gốc; (5) với collection, dùng <code>List.copyOf</code>/<code>Map.copyOf</code>/<code>Set.copyOf</code> (Java 10+) để tạo bản bất biến; (6) không để <code>this</code> escape (đăng ký listener, truyền <code>this</code> ra ngoài) trong constructor.</p>
+                <div class="compare-grid">
+                  <div class="compare-col">
+                    <h4>❌ Trông immutable nhưng không</h4>
+                    <ul>
+                      <li><code>final List</code> nhưng getter trả list gốc → caller <code>add()</code> được</li>
+                      <li>Field <code>Date</code> lưu thẳng reference → caller <code>setTime()</code> đổi được</li>
+                      <li><code>this</code> escape trong constructor → mất final-field guarantee</li>
+                      <li>Class không final, subclass thêm setter</li>
+                    </ul>
+                  </div>
+                  <div class="compare-col">
+                    <h4>✅ Immutable đúng nghĩa</h4>
+                    <ul>
+                      <li><code>List.copyOf(input)</code> → không sửa được</li>
+                      <li>Copy <code>Date</code> cả vào lẫn ra</li>
+                      <li>Class <code>final</code>, field <code>private final</code></li>
+                      <li>An toàn chia sẻ giữa thread, làm cache key</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Dùng cho value object/DTO (<code>Money</code>, <code>Range</code>, <code>Period</code>), config bất biến chia sẻ giữa nhiều thread, cache key, tham số bất biến của service. <code>record</code> (Java 16) tự sinh constructor/accessor/equals/hashCode/toString và field là final — dùng khi data là “shallow immutable” (các component cũng nên immutable).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng gọi là immutable nếu còn lộ reference mutable ra ngoài. Đừng copy phòng vệ trong hot path một cách mù quáng nếu chi phí đáng kể — khi collection đã build xong và không ai mutate, có thể dùng <code>Collections.unmodifiableList</code> (view rẻ) thay vì copy. <code>final</code> chỉ chặn gán lại reference, KHÔNG làm object bên trong bất biến — <code>final List</code> vẫn <code>add()</code> được.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public final class</span> <span class="tok-class">Period</span> {                 <span class="tok-comment">// final class</span>
+    <span class="tok-keyword">private final</span> <span class="tok-class">Date</span> start;              <span class="tok-comment">// field final</span>
+    <span class="tok-keyword">private final</span> <span class="tok-class">Date</span> end;
+
+    <span class="tok-keyword">public</span> <span class="tok-class">Period</span>(<span class="tok-class">Date</span> start, <span class="tok-class">Date</span> end) {
+        <span class="tok-keyword">this</span>.start = <span class="tok-keyword">new</span> <span class="tok-class">Date</span>(start.getTime()); <span class="tok-comment">// defensive copy IN</span>
+        <span class="tok-keyword">this</span>.end   = <span class="tok-keyword">new</span> <span class="tok-class">Date</span>(end.getTime());
+    }
+    <span class="tok-keyword">public</span> <span class="tok-class">Date</span> <span class="tok-function">start</span>() { <span class="tok-keyword">return new</span> <span class="tok-class">Date</span>(start.getTime()); } <span class="tok-comment">// copy OUT</span>
+}
+
+<span class="tok-comment">// Java 10+: immutable copy rẻ hơn và gọn hơn</span>
+<span class="tok-keyword">public final class</span> <span class="tok-class">Team</span> {
+    <span class="tok-keyword">private final</span> <span class="tok-class">List</span>&lt;<span class="tok-class">String</span>&gt; members;
+    <span class="tok-keyword">public</span> <span class="tok-class">Team</span>(<span class="tok-class">List</span>&lt;<span class="tok-class">String</span>&gt; m) { <span class="tok-keyword">this</span>.members = <span class="tok-class">List</span>.copyOf(m); }
+    <span class="tok-keyword">public</span> <span class="tok-class">List</span>&lt;<span class="tok-class">String</span>&gt; <span class="tok-function">members</span>() { <span class="tok-keyword">return</span> members; }   <span class="tok-comment">// an toàn — copy bất biến</span>
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Config đọc một lần lúc khởi động rồi chia sẻ read-only giữa mọi request thread — không cần khóa. Cache key là record gồm các field bất biến, tránh bug “key đổi hash sau khi put”. DTO trả về từ API dùng record để tự có equals/hashCode/toString đúng.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Getter trả thẳng <code>Date</code>/<code>List</code> là lỗi immutability kinh điển — người nhận sửa được object bên trong. <code>final List</code> chỉ cố định reference: <code>list.add()</code> vẫn chạy. Để <code>this</code> escape trong constructor (gọi method override, đăng ký listener) khiến thread khác thấy field chưa gán — final-field guarantee bị vô hiệu. Sửa field final bằng reflection cũng phá guarantee.</p>
+              </div>
+              <p><small>Nguồn: <a href="https://docs.oracle.com/javase/tutorial/essential/concurrency/imstrat.html">Oracle Tutorial — A Strategy for Defining Immutable Objects</a> · <a href="https://docs.oracle.com/javase/specs/jls/se21/html/jls-17.html">JLS §17.5 — Final Field Semantics</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        
+<section class="section" id="interview-oom-runbook"><h2 class="section-title">Bổ sung chiều sâu phỏng vấn</h2><article class="qa-card" id="deep-oom-runbook"><h3 class="qa-question">OOM dù máy còn RAM: G1/ZGC và runbook production</h3><div class="qa-answer"><div class="ans-block"><span class="ans-label">What</span><p>RAM trống của host không bảo đảm JVM còn bộ nhớ: heap bị giới hạn bởi Xmx, native memory và cgroup có ngân sách riêng. Phải phân biệt Java OOME với kernel OOMKilled trước khi chọn cách xử lý.</p></div><div class="ans-block"><span class="ans-label">Phân loại trước khi sửa</span><p>Ghi nguyên thông báo: Java heap space, GC overhead limit exceeded, Metaspace, Direct buffer memory hoặc unable to create native thread. Exit 137 chỉ cho biết SIGKILL, chưa đủ kết luận OOM; đối chiếu container state, kernel log và memory.events của cgroup. OOMKilled có thể không sinh heap dump vì JVM bị kill từ ngoài.</p></div><div class="ans-block"><span class="ans-label">Vì sao còn RAM vẫn chết</span><p>Xmx là trần heap riêng, không tự tăng theo RAM host. Tổng RSS còn gồm metaspace, code cache, stack mỗi thread, direct buffer, thư viện native và overhead GC. Limit container có thể thấp hơn RAM host; nhiều container chia sẻ host. Heap còn khoảng trống nhưng không đáp ứng allocation cụ thể cũng cần kiểm tra GC log và loại allocation.</p></div><div class="ans-block"><span class="ans-label">G1 và ZGC</span><p>G1 có humongous object từ nửa region trở lên: cần chuỗi region liên tiếp; fragmentation và evacuation failure có thể dẫn đến Full GC hay allocation failure. ZGC cần headroom để concurrent relocation và tốc độ GC đuổi kịp allocation; low pause không đồng nghĩa không bao giờ OOM. Không đổi collector để chữa reference leak.</p></div><div class="ans-block"><span class="ans-label">Runbook an toàn</span><p>1. Lưu timestamp, version, traffic, limit/RSS/heap và GC log. 2. Kiểm tra GC.heap_info, Thread.print; NMT chỉ có ích nếu bật NativeMemoryTracking trước đó. 3. So histogram/dominator retained size và đường tới GC roots. 4. Giảm tải/giới hạn queue/cache hoặc scale có kiểm soát. 5. Reproduce với tải đại diện và so live set sau GC. Histogram/heap dump có thể gây pause và I/O lớn: cần quyền vận hành, dung lượng và redaction; dump có thể chứa token/PII, không upload công khai.</p></div><div class="ans-block"><span class="ans-label">Phỏng vấn và giới hạn</span><p>Cache Map tăng mãi: tìm GC root giữ entry và đặt eviction, không chỉ tăng Xmx. RSS tăng nhưng heap ổn: kiểm tra thread/direct/native. Chỉ nâng heap sau khi dành ngân sách native dưới cgroup limit. Không force Full GC trên production như bước đầu.</p></div><div class="flow-diagram">Alert → phân biệt OOME / OOMKilled → heap / native / cgroup → bằng chứng → giảm tải → sửa nguyên nhân</div><pre class="code-block"><code>jcmd {pid} GC.heap_info
+jcmd {pid} Thread.print
+jcmd {pid} VM.native_memory summary
+# NMT cần -XX:NativeMemoryTracking=summary từ lúc khởi động
+# Chuẩn bị trước: -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath={secure-volume}
+# GC log: -Xlog:gc*:file={secure-volume}/gc.log:time,uptime,level,tags</code></pre><div class="ans-block"><span class="ans-label">Nguồn chính thức / tài liệu dự án</span><ul><li><a href="https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html">jvm — tài liệu tham khảo</a></li></ul></div></div></article></section>
+<section class="section" id="audit-deepening"><h2 class="section-title">Đào sâu và đính chính phỏng vấn</h2><article class="qa-card" id="deepening-24"><h3 class="qa-question">Mốc Java 8–21: finalized, preview và sửa các nhầm lẫn migration</h3><div class="qa-answer"><div class="ans-block"><span class="ans-label">What</span><p>Trong phạm vi Java 8–21, phải phân biệt feature final với preview: var final ở 10, records và instanceof pattern final ở 16, sealed final ở 17, virtual threads cùng pattern switch và record patterns final ở 21.</p></div><div class="ans-block"><span class="ans-label">How / Trade-offs / Pitfalls</span><ul><li>Đính chính card so sánh cũ: Generational ZGC được giao ở Java 21 theo JEP 439, bật -XX:+UseZGC -XX:+ZGenerational; không phải experimental feature cần UnlockExperimentalVMOptions. ZGC thường đã production từ 15. Đây không phải khuyến nghị collector cho mọi workload.</li><li>8: lambdas, streams, Optional, default methods, java.time. 9: JPMS và collection factories. 10: local var (không phải dynamic typing, không phải preview). 11: HTTP Client standard, String.isBlank/lines/strip, Files.readString; var không phải feature mới lần đầu ở 11.</li><li>14: switch expressions final. 15: text blocks final. 16: records và pattern instanceof final. 17: sealed classes final; pattern switch còn preview. 21: pattern switch, record patterns, virtual threads và sequenced collections final; structured concurrency, scoped values và string templates ở 21 là preview. Không copy ví dụ pattern switch sang Java 17 mà quên --enable-preview và test tooling.</li><li>Metaspace thay PermGen từ Java 8, không phải 11. Java 21 synchronized có thể pin virtual thread vào carrier khi blocking; không gán cải tiến của JDK sau 21 cho 21. Hỗ trợ LTS/patch phụ thuộc vendor; đây là mapping lịch sử 8–21, không tuyên bố 21 là LTS mới nhất. Migration cần jdeps/jdeprscan, dependency compatibility, reflection/module tests và benchmark.</li></ul></div><div class="flow-diagram">Evidence → bounded resource / transaction boundary → failure test → verify recovery</div><pre class="code-block"><code>// Java 17 final:
+if (value instanceof String text) { System.out.println(text.length()); }
+// Java 21 final: switch pattern
+String kind = switch (value) {
+    case String text -&gt; &quot;text&quot;;
+    case Integer number -&gt; &quot;integer&quot;;
+    case null -&gt; &quot;null&quot;;
+    default -&gt; &quot;other&quot;;
+};</code></pre><div class="ans-block"><span class="ans-label">Nguồn chính thức</span><ul><li><a href="https://openjdk.org/jeps/286">var — tài liệu chính thức</a></li><li><a href="https://openjdk.org/jeps/441">switch — tài liệu chính thức</a></li><li><a href="https://openjdk.org/jeps/444">java — tài liệu chính thức</a></li><li><a href="https://openjdk.org/jeps/439">zgc — tài liệu chính thức</a></li></ul></div></div></article></section>
+<div class="nav-pager">
+          <a class="prev" href="index.html">
+            <span class="label">Trước</span>
+            <span class="title">Trang chủ</span>
+          </a>
+          <a class="next" href="02-multithreading.html">
+            <span class="label">Tiếp</span>
+            <span class="title">2. Multithreading &amp; Concurrency</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Module 01 / 14</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

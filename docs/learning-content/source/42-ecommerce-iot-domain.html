@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>42. Miền nghiệp vụ E-commerce, Enterprise &amp; IoT — Knowledge Gym</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Knowledge<br><span>Gym</span></h1>
+        <p>Java, AWS DVA-C02 &amp; Frontend</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>42. Miền nghiệp vụ E-commerce, Enterprise &amp; IoT</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 42</div>
+          <h1 class="module-title">Miền nghiệp vụ E-commerce, Enterprise &amp; IoT</h1>
+          <p class="module-subtitle">Kiến thức miền giúp trả lời phỏng vấn fullstack: mô hình bán hàng, vòng đời đơn hàng, thanh toán idempotent, khuyến mãi, tìm kiếm và hệ thống IoT (MQTT, device twin, telemetry).</p>
+        </div>
+
+        <section class="section" id="e-commerce-catalog-n-h-ng-thanh-to-n">
+          <h2 class="section-title">E-commerce: catalog, đơn hàng & thanh toán</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q1</span> Catalog/product variant, tồn kho và giá — tách read model/write model khi nào, và vì sao order phải lưu snapshot giá?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Catalog</strong> chia product (SPU) thành variant (SKU): tồn kho quản lý theo SKU × location, giá theo price list có hiệu lực theo thời gian. Read model (list, search, detail) được denormalize để đọc nhanh, write model chuẩn hóa để ghi đúng — và mỗi order line bắt buộc lưu snapshot giá tại thời điểm đặt hàng.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Traffic đọc catalog thường lớn hơn ghi hàng chục đến hàng trăm lần, đồng thời cần join nhiều bảng (variant, attribute, price, stock, khuyến mãi). Nếu để chung một mô hình, mỗi lần đọc phải join nặng và mỗi lần ghi giá/tồn kho lại ảnh hưởng path đọc. Tách read model giúp scale độc lập; snapshot giá trong order đảm bảo hoá đơn, thuế và đối soát không đổi khi catalog thay đổi giá về sau.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Write model (Product / Variant / PriceList / Stock)</div></div>
+        <div class="flow-arrow">↓ domain event (ProductUpdated, PriceChanged, StockAdjusted)</div>
+        <div class="flow-row"><div class="flow-node">Projection / Outbox</div><div class="flow-node secondary">Search index (denormalized doc)</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Read model cho list/detail/search</div><div class="flow-node">Order line: snapshot giá + tax + discount</div></div>
+      </div>
+      <p>Ghi vào write model trong một transaction, phát event ra ngoài, projection cập nhật read model. Order khi tạo chỉ đọc giá hiện hành rồi <em>sao chép</em> các con số vào chính order line.</p>
+    </div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Entity</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderLine</span> {
+  <span class="tok-keyword">private</span> <span class="tok-class">Long</span> skuId;
+  <span class="tok-keyword">private</span> <span class="tok-class">String</span> productName;      <span class="tok-comment">// snapshot</span>
+  <span class="tok-keyword">private</span> <span class="tok-class">BigDecimal</span> unitPrice;     <span class="tok-comment">// snapshot giá tại thời điểm đặt</span>
+  <span class="tok-keyword">private</span> <span class="tok-class">String</span> currency;         <span class="tok-comment">// VND</span>
+  <span class="tok-keyword">private</span> <span class="tok-class">BigDecimal</span> discountAmount; <span class="tok-comment">// snapshot khuyến mãi đã áp</span>
+  <span class="tok-keyword">private</span> <span class="tok-class">BigDecimal</span> taxRate;        <span class="tok-comment">// snapshot thuế</span>
+  <span class="tok-keyword">private</span> <span class="tok-class">Long</span> priceVersion;        <span class="tok-comment">// trỏ tới price list version đã dùng</span>
+}</code></pre></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Tách read/write khi catalog lớn (hàng trăm nghìn SKU trở lên), traffic đọc cao và có nhiều view khác nhau (mobile, web, feed). Snapshot giá dùng trong mọi hệ thống có hoá đơn: thương mại điện tử, B2B báo giá, dịch vụ thuê theo gói.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không tách CQRS chỉ vì "nghe hay" — dưới vài nghìn SKU và traffic thấp thì một DB với index đúng là đủ, tách chỉ thêm độ trễ đồng bộ và phức tạp vận hành. Không tham chiếu động giá catalog vào order cũ. Không để read model là nguồn sự thật cho tồn kho.</p></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Nền tảng dịch vụ không gian: catalog sản phẩm/thiết bị có nhiều variant theo công suất và phụ kiện; trang danh mục đọc read model đã denormalize, còn đơn hàng lưu snapshot giá và cấu hình gói tại thời điểm mua để đối soát sau này.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy kinh điển: lưu <code>sku_id</code> trong order rồi lúc in hoá đơn lại join sang catalog để lấy giá — giá đã đổi thì hoá đơn sai. Cũng đừng nhầm tồn kho "hiển thị" (read model, có thể trễ vài giây) với tồn kho "giữ chỗ" (write model, phải chính xác).</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Catalog = SPU → SKU variant; tồn kho theo SKU × location; giá theo price list.</li>
+      <li>Tách read model (denormalized, scale đọc) khỏi write model (chuẩn hóa, nguồn sự thật).</li>
+      <li>Đồng bộ bằng domain event + outbox, chấp nhận eventual consistency.</li>
+      <li>Order luôn snapshot giá/thuế/discount để hoá đơn bất biến.</li>
+      <li>Không tách CQRS khi quy mô nhỏ.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q2</span> State machine cho vòng đời đơn hàng/fulfillment — transition nào hợp lệ, chống double-processing thế nào?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Vòng đời đơn hàng</strong> là một state machine hữu hạn: mỗi trạng thái chỉ cho phép một tập transition hợp lệ (CREATED → PENDING_PAYMENT → PAID → ALLOCATED → PICKING → PACKED → SHIPPED → DELIVERED, cùng nhánh CANCELLED/RETURNED). Mọi thay đổi trạng thái đi qua một lệnh duy nhất kèm idempotency key, để một event lặp lại không đẩy đơn đi hai bước.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Đơn hàng nhận event từ nhiều nguồn (payment webhook, WMS, carrier, con người) nên gần như chắc chắn có event đến trùng hoặc đến sai thứ tự. Không có state machine thì một webhook retry có thể ship hai lần hoặc chuyển PAID → SHIPPED bỏ qua bước giữ tồn kho. Transition map biến quy tắc nghiệp vụ thành dữ liệu kiểm tra được, và idempotency key biến thao tác thành an toàn khi lặp.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Nhận order event + idempotency key</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node">Đã xử lý key này? → bỏ qua (return sớm)</div><div class="flow-node secondary">Lock order (SELECT FOR UPDATE)</div></div>
+        <div class="flow-arrow">↓ canTransitionTo(next)?</div>
+        <div class="flow-row"><div class="flow-node success">Cập nhật status + outbox event</div><div class="flow-node warning">Không hợp lệ → reject, ghi log</div></div>
+      </div>
+      <p>Đọc order với khoá bi quan hoặc optimistic version, kiểm tra transition, ghi trạng thái mới và phát event trong cùng transaction bằng outbox.</p>
+    </div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public enum</span> <span class="tok-class">OrderStatus</span> {
+  CREATED, PENDING_PAYMENT, PAID, ALLOCATED, PICKING, PACKED, SHIPPED, DELIVERED, CANCELLED, RETURNED;
+
+  <span class="tok-keyword">private static final</span> <span class="tok-class">Map</span>&lt;<span class="tok-class">OrderStatus</span>, <span class="tok-class">Set</span>&lt;<span class="tok-class">OrderStatus</span>&gt;&gt; TRANSITIONS = <span class="tok-class">Map</span>.of(
+      CREATED,        <span class="tok-class">Set</span>.of(PENDING_PAYMENT, CANCELLED),
+      PENDING_PAYMENT,<span class="tok-class">Set</span>.of(PAID, CANCELLED),
+      PAID,           <span class="tok-class">Set</span>.of(ALLOCATED, CANCELLED),
+      ALLOCATED,      <span class="tok-class">Set</span>.of(PICKING, CANCELLED),
+      PICKING,        <span class="tok-class">Set</span>.of(PACKED),
+      PACKED,         <span class="tok-class">Set</span>.of(SHIPPED),
+      SHIPPED,        <span class="tok-class">Set</span>.of(DELIVERED, RETURNED),
+      DELIVERED,      <span class="tok-class">Set</span>.of(RETURNED)
+  );
+
+  <span class="tok-keyword">public boolean</span> <span class="tok-function">canTransitionTo</span>(<span class="tok-class">OrderStatus</span> next) {
+    <span class="tok-keyword">return</span> TRANSITIONS.getOrDefault(<span class="tok-keyword">this</span>, <span class="tok-class">Set</span>.of()).contains(next);
+  }
+}
+
+<span class="tok-annotation">@Transactional</span>
+<span class="tok-keyword">public void</span> <span class="tok-function">applyTransition</span>(<span class="tok-class">Long</span> orderId, <span class="tok-class">OrderStatus</span> next, <span class="tok-class">String</span> idemKey) {
+  <span class="tok-keyword">if</span> (!processedRepo.tryInsert(idemKey)) <span class="tok-keyword">return</span>;   <span class="tok-comment">// đã xử lý → bỏ qua</span>
+  <span class="tok-class">Order</span> order = orderRepo.findByIdForUpdate(orderId).orElseThrow();
+  <span class="tok-keyword">if</span> (!order.getStatus().canTransitionTo(next))
+    <span class="tok-keyword">throw new</span> <span class="tok-class">InvalidTransitionException</span>(order.getStatus(), next);
+  order.setStatus(next);
+  outbox.publish(<span class="tok-keyword">new</span> <span class="tok-class">OrderStatusChangedEvent</span>(orderId, next));
+}</code></pre></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Mọi hệ thống có đơn hàng hoặc job chạy qua nhiều bước: bán lẻ, đặt lịch dịch vụ, vận hành kho (picking/packing/shipping), quy trình onboarding nhiều bước. Đặc biệt cần khi có webhook từ bên thứ ba.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng state machine cho dữ liệu không có ràng buộc thứ tự (ví dụ gắn thẻ, ghi log). Không cho phép transition "nhảy" tùy tiện như PAID → SHIPPED bỏ ALLOCATED. Đừng giữ idempotency key vô hạn — cần TTL hoặc bảng riêng có dọn dẹp.</p></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Webhook thanh toán bị retry 3 lần: lần 1 chuyển đơn PENDING_PAYMENT → PAID; lần 2, 3 cùng idempotency key nên bị bỏ qua, đơn không bị đẩy sang bước fulfillment hai lần.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy hay gặp: kiểm tra trạng thái bằng chuỗi if/else rải rác thay vì một transition map duy nhất, khiến hai nơi code cho ra hai kết quả khác nhau. Ngoài ra, event đến sai thứ tự (PAID đến sau khi đã CANCELLED) phải bị state machine từ chối một cách chủ động, không im lặng nuốt lỗi.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Order = state machine với transition map tường minh.</li>
+      <li>Chỉ cho phép bước kế tiếp hợp lệ, chặn skip bước.</li>
+      <li>Mỗi lệnh kèm idempotency key để chống double-processing.</li>
+      <li>Lock order + kiểm tra transition + outbox trong cùng TX.</li>
+      <li>Event sai thứ tự/trùng phải bị từ chối, không âm thầm bỏ qua.</li>
+    </ul></div>
+  </div>
+</article>
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q3</span> Thiết kế thanh toán: idempotency, webhook retry, reconciliation và xử lý callback đến trễ?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Thanh toán</strong> gồm luồng đồng bộ (authorize/capture do hệ thống chủ động gọi) và luồng bất đồng bộ (webhook từ gateway báo kết quả). Idempotency key chống thu tiền hai lần, webhook phải chịu được retry và đến trễ, còn reconciliation đối chiếu ledger nội bộ với settlement của gateway theo lô định kỳ. Trạng thái chuẩn: PENDING, PAID, FAILED, REFUNDED.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Mạng chập, client double-click, gateway retry webhook và callback đến trễ đều là chuyện bình thường, không phải ngoại lệ. Không có idempotency thì một cú retry thành hai lần trừ tiền — hậu quả về niềm tin và pháp lý. Không có reconciliation thì các lệch lạc âm thầm (gateway đã thu nhưng ledger nội bộ chưa ghi) sẽ chỉ lộ ra khi khách khiếu nại.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">POST /payments (Idempotency-Key)</div><div class="flow-arrow">→</div><div class="flow-node">Payment PENDING</div></div>
+        <div class="flow-arrow">↓ gọi gateway authorize/capture</div>
+        <div class="flow-row"><div class="flow-node secondary">Webhook báo PAID/FAILED</div><div class="flow-node">Kiểm tra signature + eventId</div><div class="flow-node success">Cập nhật nếu chưa có kết quả</div></div>
+        <div class="flow-arrow">↓ job hằng ngày</div>
+        <div class="flow-row"><div class="flow-node">Reconciliation vs settlement</div></div>
+      </div>
+      <p>Ghi PENDING trước khi gọi gateway. Webhook đến thì xác thực chữ ký, dedupe theo eventId, chỉ chuyển trạng thái khi đang còn PENDING; callback đến trễ khi đã PAID thì bị coi là trùng và bỏ qua.</p>
+    </div>
+    <div class="code-block" data-lang="http"><pre><code>POST /webhooks/payments HTTP/1.1
+Host: api.internal
+Content-Type: application/json
+X-Signature: t=1760581200,v1=8f3a91...
+
+{ "eventId": "evt_9f2c", "type": "payment.captured",
+  "paymentId": "pay_771", "orderId": "ord_204",
+  "amount": 1250000, "currency": "VND", "status": "PAID",
+  "occurredAt": "2026-10-16T03:12:44Z" }</code></pre></div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- Reconciliation: tìm lệch giữa ledger nội bộ và settlement của gateway</span>
+<span class="tok-keyword">SELECT</span> p.order_id,
+       p.amount              <span class="tok-keyword">AS</span> ledger_amount,
+       g.amount              <span class="tok-keyword">AS</span> gateway_amount,
+       p.status              <span class="tok-keyword">AS</span> ledger_status,
+       g.status              <span class="tok-keyword">AS</span> gateway_status
+<span class="tok-keyword">FROM</span> payments p
+<span class="tok-keyword">FULL OUTER JOIN</span> gateway_settlement g
+  <span class="tok-keyword">ON</span> g.txn_ref = p.gateway_ref
+<span class="tok-keyword">WHERE</span> p.amount &lt;&gt; g.amount
+   <span class="tok-keyword">OR</span> p.status &lt;&gt; g.status
+   <span class="tok-keyword">OR</span> g.txn_ref <span class="tok-keyword">IS NULL</span>;   <span class="tok-comment">-- gateway có, nội bộ thiếu</span></code></pre></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Checkout thương mại điện tử, thu phí định kỳ, ví nội bộ, thanh toán COD có đối soát với đơn vị vận chuyển. Cần mỗi khi tiền đi qua một bên thứ ba không kiểm soát được.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng float/double cho tiền — dùng BigDecimal hoặc đơn vị nhỏ nhất (long cents). Không xoá bản ghi payment, chỉ thêm bản ghi reversal. Không trả tiền trong cùng transaction với gọi gateway (không thể 2PC ra ngoài). Không bỏ qua xác thực chữ ký webhook.</p></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Khách bấm "Thanh toán" hai lần trong 2 giây: cùng Idempotency-Key nên lần hai trả về đúng paymentId cũ, không phát sinh giao dịch thứ hai. Webhook "captured" đến trễ 30 phút khi đơn đã PAID cũng chỉ bị dedupe.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: webhook đến trước khi response đồng bộ về, hoặc đến trễ sau khi đơn đã hủy — phải có quy tắc thắng thua rõ ràng (thường trạng thái cuối của gateway thắng, nhưng chỉ một lần). Một bẫy khác: idempotency key lưu theo request nhưng quên scope theo merchant/user, khiến hai khách khác nhau va vào cùng key.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Idempotency-Key + dedupe eventId chống thu tiền hai lần.</li>
+      <li>Ghi PENDING trước khi gọi gateway, đối chiếu sau.</li>
+      <li>Webhook: xác thực chữ ký, retry được, callback trễ bị bỏ qua.</li>
+      <li>Trạng thái: PENDING / PAID / FAILED / REFUNDED, chỉ thêm reversal.</li>
+      <li>Reconciliation hàng ngày với settlement của gateway.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q4</span> Luồng cart → checkout → payment → fulfillment: chỗ nào cần transaction, chỗ nào cần saga và bù trừ?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Luồng cart → checkout → payment → fulfillment</strong> trải qua nhiều bounded context nên không thể bọc trong một transaction: chỉ giữ transaction ACID cục bộ ở nơi có bất biến dữ liệu (giữ tồn kho, ghi payment, tạo order), phần điều phối cross-service dùng saga với các bước bù trừ khi một bước thất bại.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Checkout chạm tới tính tồn kho, thu tiền, và khởi tạo fulfillment (WMS: picking, packing, shipping) — mỗi phần có DB riêng và bên thứ ba riêng. Cố gắng dùng một transaction phân tán (2PC) vừa không khả thi với gateway bên ngoài vừa làm giảm khả dụng. Saga cho phép tiến triển độc lập và quay lui logic khi cần: nhả tồn kho, hoàn tiền.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Cart (Redis)</div><div class="flow-arrow">→</div><div class="flow-node">Checkout</div><div class="flow-arrow">→</div><div class="flow-node">Payment authorize/capture</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Order PAID (TX cục bộ)</div><div class="flow-node">Reserve inventory</div><div class="flow-node">WMS: picking → packing</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node">Carrier / shipping</div><div class="flow-node secondary">Bù trừ khi lỗi: nhả tồn kho / hoàn tiền</div></div>
+      </div>
+      <p>Orchestrator điều phối tuần tự; mỗi bước ghi trạng thái saga để có thể retry và bù trừ idempotent khi bước sau thất bại.</p>
+    </div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Transactional</span>
+<span class="tok-keyword">public</span> <span class="tok-class">Long</span> <span class="tok-function">reserveStock</span>(<span class="tok-class">Long</span> orderId, <span class="tok-class">List</span>&lt;<span class="tok-class">OrderLine</span>&gt; lines) {
+  <span class="tok-keyword">for</span> (<span class="tok-class">OrderLine</span> line : lines) {
+    <span class="tok-comment">// optimistic: chỉ trừ khi còn đủ, atomic trong 1 câu UPDATE</span>
+    <span class="tok-keyword">int</span> updated = stockRepo.decrementIfAvailable(line.getSkuId(), line.getQty());
+    <span class="tok-keyword">if</span> (updated == <span class="tok-number">0</span>)
+      <span class="tok-keyword">throw new</span> <span class="tok-class">InsufficientStockException</span>(line.getSkuId());
+  }
+  <span class="tok-keyword">return</span> orderId;   <span class="tok-comment">// bước saga: reserve-inventory</span>
+}
+
+<span class="tok-comment">// Bù trừ (compensation) — phải idempotent</span>
+<span class="tok-keyword">public void</span> <span class="tok-function">releaseStock</span>(<span class="tok-class">Long</span> orderId, <span class="tok-class">List</span>&lt;<span class="tok-class">OrderLine</span>&gt; lines) {
+  <span class="tok-keyword">for</span> (<span class="tok-class">OrderLine</span> line : lines) stockRepo.increment(line.getSkuId(), line.getQty());
+}</code></pre></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng transaction cục bộ cho: giữ/trừ tồn kho, ghi order và order line, ghi payment. Dùng saga cho: chuỗi reserve tồn kho → thu tiền → tạo shipment → (nếu cần) carrier. Áp dụng khi số bước từ ba trở lên và chấp nhận eventual consistency vài giây.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng saga cho thao tác nằm gọn trong một DB — chỉ tổn thêm độ phức tạp. Không bù trừ bằng cách xoá bản ghi đã ghi (chỉ ghi bản ghi đối ứng). Không gọi chuỗi 5 service đồng bộ không timeout, không circuit breaker. Không giữ tồn kho vô thời hạn — cần timeout nhả chỗ.</p></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Đơn dịch vụ không gian gồm thiết bị + gói lắp đặt: hệ thống giữ tồn kho thiết bị, thu tiền, rồi tạo lệnh picking cho kho. Nếu bước tạo shipment lỗi, saga nhả tồn kho và hoàn tiền, không để đơn treo nửa vời.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: bước bù trừ không idempotent, chạy retry lại nhả tồn kho hai lần gây oversell. Một bẫy khác: thu tiền trước nhưng không có đường hoàn khi tồn kho thất bại giữa chừng — thứ tự bước và ma trận bù trừ phải được thiết kế trước khi code.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Transaction cục bộ chỉ ở nơi có bất biến: tồn kho, order, payment.</li>
+      <li>Cross-service dùng saga + bù trừ, không dùng 2PC.</li>
+      <li>Mỗi bước idempotent, ghi trạng thái saga để retry được.</li>
+      <li>Tồn kho giữ chỗ có timeout, không treo vô hạn.</li>
+      <li>Compensation luôn là bản ghi đối ứng, không xoá dữ liệu.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="khuy-n-m-i-pricing-t-m-ki-m">
+          <h2 class="section-title">Khuyến mãi, pricing & tìm kiếm</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q5</span> Promo/pricing rule engine: thứ tự áp dụng giảm giá, chống lạm dụng voucher, tính giá theo thời điểm?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Pricing/promotion engine</strong> tách luật giảm giá khỏi code thành dữ liệu có phiên bản: mỗi rule gồm điều kiện, hành động, độ ưu tiên, khả năng xếp chồng và khoảng thời gian hiệu lực. Engine áp dụng theo một thứ tự xác định để kết quả tính giá luôn tái lập được, và mọi kết quả đều lưu lại rule nào đã thắng.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Khuyến mãi thay đổi liên tục và do bộ phận kinh doanh đặt, nếu hard-code vào service thì mỗi đợt sale là một lần deploy. Thứ tự áp dụng quyết định số tiền giảm (giảm giá trước hay sau khi trừ voucher, có cộng dồn hay không), và tính theo thời điểm quyết định khách có được giá đó hay không khi giá đổi giữa lúc bỏ giỏ và lúc thanh toán.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Giỏ hàng (line, qty, subtotal)</div><div class="flow-arrow">→</div><div class="flow-node">Lọc rule còn hiệu lực tại thời điểm T</div></div>
+        <div class="flow-arrow">↓ xếp theo priority</div>
+        <div class="flow-row"><div class="flow-node">1. Item-level (giảm theo line)</div><div class="flow-node">2. Order-level (giảm theo tổng)</div><div class="flow-node">3. Voucher/free-ship</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Tổng tiền cuối + breakdown rule đã áp</div></div>
+      </div>
+      <p>Quy tắc vàng: item-level trước, order-level sau, voucher sau cùng, và mọi phép tính dùng một thứ tự cố định. Rule xung đột (exclusiveWith) bị loại; nếu nhiều rule cùng priority, chọn cái cho khách lợi nhất và ghi lại lý do.</p>
+    </div>
+    <div class="code-block" data-lang="json"><pre><code>{
+  "ruleId": "promo_season_2026",
+  "priority": 20,
+  "stackable": true,
+  "conditions": {
+    "minSubtotal": 1000000,
+    "channel": ["WEB", "APP"],
+    "customerTier": "GOLD"
+  },
+  "actions": [
+    { "type": "PERCENT_OFF", "value": 10, "maxDiscount": 200000,
+      "appliesTo": "CATEGORY", "target": "air-treatment" }
+  ],
+  "exclusiveWith": ["promo_free_ship"],
+  "validFrom": "2026-01-20T00:00:00+07:00",
+  "validTo":   "2026-01-27T23:59:59+07:00"
+}</code></pre></div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- Chống lạm dụng voucher: ràng buộc ở DB, không chỉ ở app</span>
+<span class="tok-keyword">CREATE TABLE</span> voucher_redemption (
+  voucher_id  <span class="tok-keyword">BIGINT</span> <span class="tok-keyword">NOT NULL</span>,
+  user_id     <span class="tok-keyword">BIGINT</span> <span class="tok-keyword">NOT NULL</span>,
+  order_id    <span class="tok-keyword">BIGINT</span> <span class="tok-keyword">NOT NULL</span>,
+  redeemed_at <span class="tok-keyword">TIMESTAMPTZ NOT NULL DEFAULT</span> now(),
+  <span class="tok-keyword">CONSTRAINT</span> uk_voucher_user <span class="tok-keyword">UNIQUE</span> (voucher_id, user_id)
+);
+
+<span class="tok-comment">-- Chỉ trừ lượt khi đơn thực sự PAID, dùng 1 câu UPDATE điều kiện</span>
+<span class="tok-keyword">UPDATE</span> voucher
+<span class="tok-keyword">SET</span> used_count = used_count + <span class="tok-number">1</span>
+<span class="tok-keyword">WHERE</span> id = :id
+  <span class="tok-keyword">AND</span> used_count &lt; max_uses
+  <span class="tok-keyword">AND</span> status = <span class="tok-string">'ACTIVE'</span>;</code></pre></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng khi có nhiều loại ưu đãi cùng tồn tại (giảm giá sản phẩm, mã đơn hàng, freeship, quà tặng), khi có nhiều kênh bán, hoặc khi giá thay đổi theo thời điểm (giá theo giờ cao điểm, giá thuê theo gói). Chống lạm dụng quan trọng khi chi phí mỗi lượt giảm giá đáng kể.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dựng rule engine nếu chỉ có một chương trình giảm giá cố định — một bảng config là đủ. Không tin dữ liệu giá gửi từ client; luôn tính lại phía server. Không áp rule theo thời gian "now" của từng request mà không chốt thời điểm — cần một mốc thời gian dùng chung cho cả phiên tính giá.</p></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Chiến dịch bán thiết bị lọc không khí: giảm 10% theo danh mục, cộng mã freeship nếu không đối kháng, trừ thêm cho hạng thành viên. Engine trả về breakdown để hiển thị "tiết kiệm 320.000đ" và lưu lại để đối soát doanh thu khuyến mãi.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: kiểm tra lượt dùng voucher bằng đọc rồi ghi (read-then-write) — hai request đồng thời cùng vượt được. Phải ràng buộc bằng UNIQUE và UPDATE điều kiện ở DB. Bẫy thứ hai: áp mã ở giỏ hàng bằng thời điểm bỏ giỏ, nhưng lúc thanh toán rule đã hết hạn — cần chốt giá theo thời điểm checkout và báo rõ nếu đổi.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Rule = dữ liệu có version: điều kiện, hành động, priority, hiệu lực.</li>
+      <li>Thứ tự cố định: item-level → order-level → voucher/freeship.</li>
+      <li>Chốt thời điểm tính giá, tính lại phía server.</li>
+      <li>Chống lạm dụng bằng UNIQUE + UPDATE điều kiện ở DB.</li>
+      <li>Lưu breakdown để hiển thị và đối soát.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q6</span> Tìm kiếm và đề xuất trong e-commerce: full-text, filter facet và ranking theo doanh thu/tồn kho?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Tìm kiếm e-commerce</strong> chạy trên search engine (inverted index + facet) chứ không phải LIKE trên DB giao dịch. Ranking kết hợp relevance văn bản với tín hiệu kinh doanh như doanh thu và tồn kho; phần đề xuất là bài toán riêng dùng quan hệ cùng xuất hiện và vector tương đồng để gợi ý sản phẩm liên quan.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Người mua bỏ đi rất nhanh nếu tìm sai hoặc kết quả chậm, và <code>LIKE '%...%'</code> trên bảng giao dịch vừa không dùng được index vừa tranh tài nguyên với đơn hàng. Facet cần đếm theo thuộc tính (hãng, khoảng giá, công suất) — đây là việc search engine làm rất tốt. Đẩy sản phẩm còn tồn kho và bán chạy lên trên giúp tăng chuyển đổi và giảm hàng tồn.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Write model DB</div><div class="flow-arrow">→</div><div class="flow-node">Indexer (event + CDC)</div><div class="flow-arrow">→</div><div class="flow-node secondary">Search index</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node">Query: match + filter + facet</div><div class="flow-node">Ranking: relevance × business signal</div><div class="flow-node success">Kết quả + facet counts</div></div>
+      </div>
+      <p>Indexer đẩy document denormalized (tên, mô tả, thuộc tính, giá, còn hàng, doanh thu 30 ngày) vào index. Query lọc trước rồi mới tính điểm; tín hiệu kinh doanh nhân vào score sau relevance để không phá vỡ tính liên quan.</p>
+    </div>
+    <div class="code-block" data-lang="json"><pre><code>{
+  "query": {
+    "function_score": {
+      "query": {
+        "bool": {
+          "must":   [ { "multi_match": { "query": "may loc khong khi",
+                        "fields": ["name^3", "brand", "keywords"] } } ],
+          "filter": [ { "term": { "status": "ACTIVE" } },
+                      { "term": { "in_stock": true } } ]
+        }
+      },
+      "functions": [
+        { "field_value_factor": { "field": "revenue_30d", "modifier": "log1p",
+                                  "factor": 0.01, "missing": 0 } },
+        { "gauss": { "stock_age_days": { "origin": 0, "scale": 30, "decay": 0.5 } } }
+      ],
+      "score_mode": "sum",
+      "boost_mode": "multiply"
+    }
+  },
+  "aggs": {
+    "by_brand": { "terms": { "field": "brand.keyword" } },
+    "by_price": { "range": { "field": "price",
+        "ranges": [ { "to": 2000000 }, { "from": 2000000, "to": 5000000 },
+                    { "from": 5000000 } ] } }
+  }
+}</code></pre></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng search engine khi catalog từ vài nghìn SKU trở lên, cần facet, gợi ý gõ tới đâu ra tới đó, hoặc cần xếp hạng theo nghiệp vụ. Đề xuất liên quan phù hợp ở trang chi tiết sản phẩm và giỏ hàng trống.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng search engine làm nguồn sự thật cho tồn kho hay giá — chỉ là bản sao có thể trễ. Không trả kết quả hết hàng mà không đánh dấu. Không để index lệch quá lâu so với DB. Không ép toàn bộ listing lên RAM cho mọi collection nhỏ.</p></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Người dùng gõ "máy lọc không khí cho phòng 20m2": filter theo khoảng giá và hãng trả facet counts, sản phẩm còn tồn kho và bán chạy được đẩy lên đầu; trang chi tiết gợi ý filter thay thế dựa trên quan hệ cùng xuất hiện trong đơn hàng.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: để <code>in_stock</code> trong index lệch nhiều phút nên khách bấm vào báo hết hàng — cần đồng bộ gần thời gian thực cho các field quan trọng và xác nhận lại khi thêm vào giỏ. Một bẫy nữa: ghi điểm theo doanh thu quá mạnh khiến kết quả không còn liên quan tới truy vấn.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Search engine cho full-text + facet, không LIKE trên DB giao dịch.</li>
+      <li>Index document denormalized, cập nhật bằng event/CDC.</li>
+      <li>Ranking = relevance × tín hiệu kinh doanh (doanh thu, tồn kho).</li>
+      <li>Đề xuất dùng co-occurrence và vector tương đồng.</li>
+      <li>Index là bản sao, DB vẫn là nguồn sự thật.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="iot-ingestion-device-shadow-telemetry">
+          <h2 class="section-title">IoT: ingestion, device shadow & telemetry</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q7</span> IoT ingestion: MQTT hay HTTP, QoS 0/1/2, at-least-once vs exactly-once và buffer khi mất mạng?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>MQTT</strong> là giao thức pub/sub nhẹ chạy trên TCP cho thiết bị băng thông thấp, hỗ trợ QoS 0/1/2 và session bền qua broker; <strong>HTTP</strong> phù hợp thiết bị gửi thưa hoặc cần request/response rõ ràng. Ingestion trên thực tế gần như luôn là at-least-once, nên consumer phải idempotent theo cặp (deviceId, seq) chứ không mơ tới exactly-once đầu-cuối.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Hàng nghìn thiết bị có thể mất mạng bất cứ lúc nào, băng thông rất hẹp và nguồn pin hạn chế. MQTT giữ một kết nối dài và overhead header nhỏ, tiết kiệm hơn nhiều so với mở lại TLS cho từng message HTTP. Hiểu QoS để chọn đúng: gửi số liệu cảm biến định kỳ không cần QoS 2, còn lệnh điều khiển thì không được mất.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Thiết bị</div><div class="flow-arrow">→</div><div class="flow-node">Gateway (TLS, auth)</div><div class="flow-arrow">→</div><div class="flow-node secondary">MQTT broker (QoS 1, session bền)</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node">Ingestion service</div><div class="flow-node">Kafka (partition theo deviceId)</div><div class="flow-node success">TSDB / Rules engine</div></div>
+        <div class="flow-arrow">↓ khi mất uplink</div>
+        <div class="flow-row"><div class="flow-node warning">Store-and-forward buffer (disk trên gateway)</div></div>
+      </div>
+      <p>Thiết bị gửi QoS 1 kèm số thứ tự tăng dần; gateway đẩy vào topic, ingestion dedupe theo (deviceId, seq) trước khi ghi. Khi mất uplink, gateway ghi message xuống đĩa và replay khi có mạng.</p>
+    </div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Gateway: giữ session để nhận lại message QoS 1 chưa được ack</span>
+<span class="tok-class">MqttClient</span> client = <span class="tok-keyword">new</span> <span class="tok-class">MqttClient</span>(
+    <span class="tok-string">"ssl://broker.internal:8883"</span>, clientId, <span class="tok-keyword">new</span> <span class="tok-class">MemoryPersistence</span>());
+
+<span class="tok-class">MqttConnectOptions</span> opts = <span class="tok-keyword">new</span> <span class="tok-class">MqttConnectOptions</span>();
+opts.setCleanSession(<span class="tok-keyword">false</span>);        <span class="tok-comment">// giữ session, không mất QoS 1 đang chờ</span>
+opts.setAutomaticReconnect(<span class="tok-keyword">true</span>);
+opts.setMaxInflight(<span class="tok-number">100</span>);            <span class="tok-comment">// chặn tràn bộ nhớ khi mạng kém</span>
+client.connect(opts);
+client.subscribe(<span class="tok-string">"site/+/device/+/telemetry"</span>, <span class="tok-number">1</span>);
+
+client.setCallback((topic, msg) -&gt; {
+  <span class="tok-keyword">try</span> {
+    kafka.send(<span class="tok-string">"iot.telemetry"</span>, topic, msg.getPayload());
+  } <span class="tok-keyword">catch</span> (<span class="tok-class">Exception</span> e) {
+    diskBuffer.append(topic, msg.getPayload());   <span class="tok-comment">// replay sau</span>
+  }
+});</code></pre></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>MQTT khi thiết bị gửi thường xuyên, cần đẩy lệnh xuống (server push), hoặc kết nối chập chờn. HTTP khi thiết bị gửi thưa (vài lần mỗi giờ), dùng thiết bị đơn giản không giữ kết nối, hoặc cần đi qua proxy/hạ tầng sẵn có. QoS 1 là lựa chọn mặc định cho telemetry; QoS 2 chỉ khi trùng lặp gây hậu quả thật.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng QoS 2 cho mọi telemetry — tốn round-trip, giảm throughput. Không dùng QoS 0 cho lệnh điều khiển hoặc sự kiện cảnh báo. Không dựa vào MQTT để bảo đảm exactly-once đầu-cuối — consumer vẫn phải idempotent. Không để buffer ở gateway phình vô hạn làm đầy đĩa.</p></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Thiết bị khử trùng gửi số liệu mỗi 30 giây: gateway giữ buffer khi mất mạng trong 2 giờ, khi có mạng gửi lại theo đúng thứ tự; ingestion dedupe nên số liệu không bị đếm trùng dù message có thể được gửi lại nhiều lần.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: nhầm QoS cao với exactly-once — QoS 2 chỉ bảo đảm giữa client và broker, không bảo đảm phía sau broker. Bẫy thứ hai: dùng <code>cleanSession=true</code> khiến message QoS 1 đang chờ bị mất khi thiết bị ngắt kết nối. Bẫy thứ ba: không giới hạn <code>maxInflight</code> làm thiết bị hết RAM khi mạng chậm.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>MQTT pub/sub nhẹ cho thiết bị thường xuyên; HTTP cho thiết bị gửi thưa.</li>
+      <li>QoS 0 hao nhất và có thể mất; QoS 1 ít nhất một lần; QoS 2 chỉ với lệnh quan trọng.</li>
+      <li>Thực tế là at-least-once → consumer dedupe theo (deviceId, seq).</li>
+      <li>Session bền + memoryPersistence để không mất message chờ ack.</li>
+      <li>Store-and-forward ở gateway khi mất uplink, có giới hạn đĩa.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q8</span> Device twin/shadow và điều khiển thiết bị: desired vs reported, command/ack, đồng bộ offline, versioning firmware?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Device shadow</strong> (twin) là bản sao trạng thái thiết bị trên cloud gồm hai phần: <em>desired</em> (cloud muốn) và <em>reported</em> (thiết bị báo về). Điều khiển bằng cách ghi desired rồi phát command; thiết bị thực thi và gửi ack. Chênh lệch giữa desired và reported chính là phần việc còn phải làm, gọi là delta.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Thiết bị IoT thường xuyên mất mạng, nên không thể giả định lệnh được thực thi ngay. Shadow tách "ý muốn" khỏi "thực tế" và cho phép gửi lại khi thiết bị online. Versioning trên shadow tránh việc ghi cũ ghi đè ghi mới, còn versioning firmware giúp rollout và rollback có kiểm soát thay vì mỗi máy một phiên bản không rõ.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">App ghi desired</div><div class="flow-arrow">→</div><div class="flow-node">Shadow (desired / reported, version++)</div></div>
+        <div class="flow-arrow">↓ tính delta</div>
+        <div class="flow-row"><div class="flow-node">Command xuống thiết bị (QoS 1, có TTL)</div><div class="flow-arrow">→</div><div class="flow-node secondary">Thiết bị thực thi</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Ack → cập nhật reported</div><div class="flow-node warning">Quá TTL vô ack → command hết hạn</div></div>
+      </div>
+      <p>Thiết bị online thì nhận delta ngay; thiết bị offline thì desired được giữ và gửi khi nó kết nối lại. Mỗi cập nhật shadow mang version để chống ghi đè ngược.</p>
+    </div>
+    <div class="code-block" data-lang="json"><pre><code>{
+  "deviceId": "unit-8841",
+  "state": {
+    "desired":  { "mode": "AUTO", "targetLevel": 12, "fanSpeed": 3, "fwVersion": "2.4.1" },
+    "reported": { "mode": "AUTO", "targetLevel": 12, "fanSpeed": 2, "rssi": -58,
+                  "filterLifePct": 41, "fwVersion": "2.4.0" }
+  },
+  "metadata": {
+    "desired":  { "fwVersion": { "ts": 1760581200, "version": 17 } },
+    "reported": { "fwVersion": { "ts": 1760578000, "version": 12 } }
+  },
+  "version": 42,
+  "timestamp": 1760581230
+}</code></pre></div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public void</span> <span class="tok-function">syncShadow</span>(<span class="tok-class">String</span> deviceId) {
+  <span class="tok-class">Shadow</span> shadow = shadowRepo.find(deviceId);
+  <span class="tok-class">Map</span>&lt;<span class="tok-class">String</span>, <span class="tok-class">Object</span>&gt; delta = delta(shadow);   <span class="tok-comment">// desired != reported</span>
+  <span class="tok-keyword">if</span> (delta.isEmpty()) <span class="tok-keyword">return</span>;
+
+  <span class="tok-class">Command</span> cmd = <span class="tok-class">Command</span>.builder()
+      .deviceId(deviceId)
+      .payload(delta)
+      .ttl(<span class="tok-class">Duration</span>.ofMinutes(<span class="tok-number">5</span>))          <span class="tok-comment">// không treo vĩnh viễn</span>
+      .build();
+  commandQueue.enqueue(cmd);   <span class="tok-comment">// QoS 1; chỉ xoá khỏi hàng đợi khi có ack</span>
+}</code></pre></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng khi điều khiển thiết bị có trạng thái cần giữ (chế độ, mức cài đặt, lịch chạy) hoặc khi thiết bị có thể offline lâu. Versioning firmware cần khi triển khai OTA cho nhiều máy với nhóm rollout theo đợt.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không giả định desired sẽ thành reported ngay — luôn chờ ack. Không để command không TTL, nằm mãi trong hàng đợi rồi thực thi khi đã vô nghĩa. Không cho thiết bị ghi đè reported bằng dữ liệu cũ hơn version hiện tại. Không nhét toàn bộ telemetry vào shadow — shadow chỉ giữ trạng thái, không phải nơi lưu chuỗi thời gian.</p></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Người dùng đặt thiết bị chạy chế độ tự động qua app trong lúc máy mất wifi: desired được ghi lại, khi máy kết nối trở lại sẽ nhận delta, thực thi, gửi reported và ack; app hiển thị trạng thái "đang chờ đồng bộ" cho tới lúc đó.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: hai nguồn cùng ghi desired gây tranh chấp (app của khách với bản tin tự động) — cần quy tắc ưu tiên và version. Bẫy thứ hai: coi "đã gửi lệnh" là "đã thực thi" khiến UI báo sai trạng thái. Bẫy thứ ba: downgrade firmware ngoài ý muốn nếu không so sánh phiên bản trước khi rollout.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Shadow = desired (ý muốn) + reported (thực tế) + metadata version.</li>
+      <li>Delta = desired trừ reported; đó là việc cần làm.</li>
+      <li>Command có TTL, chỉ xoá khi có ack từ thiết bị.</li>
+      <li>Thiết bị offline thì desired chờ, gửi khi kết nối lại.</li>
+      <li>Firmware versioning để rollout theo đợt và rollback được.</li>
+    </ul></div>
+  </div>
+</article>
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q9</span> Dữ liệu chuỗi thời gian và vận hành IoT: lưu telemetry, retention/downsampling, cảnh báo ngưỡng và OTA an toàn?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Telemetry IoT</strong> là dữ liệu chuỗi thời gian ghi rất nhiều và đọc theo khoảng: lưu vào time-series store partition theo thời gian, downsample theo cửa sổ và đặt retention rõ ràng. Vận hành cần cảnh báo ngưỡng có khử rung, quản lý certificate cho từng thiết bị, và OTA cập nhật firmware có kiểm tra chữ ký cùng khả năng rollback.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Một đội thiết bị gửi số liệu mỗi 30 giây sinh ra hàng tỷ điểm dữ liệu mỗi năm; giữ toàn bộ ở độ phân giải gốc là tốn kém vô ích vì dashboard chỉ cần trung bình theo phút. Ngược lại, cảnh báo cần dữ liệu gốc gần thời gian thực để bắt sự cố. Bảo mật thiết bị quan trọng vì thiết bị nằm ngoài vành đai mạng, và một bản OTA không kiểm tra chữ ký là lỗ hổng cho toàn bộ đội máy.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Thiết bị</div><div class="flow-arrow">→</div><div class="flow-node">Broker</div><div class="flow-arrow">→</div><div class="flow-node secondary">Stream (Kafka)</div></div>
+        <div class="flow-arrow">↓ song song</div>
+        <div class="flow-row"><div class="flow-node">TSDB raw (retention ngắn)</div><div class="flow-node">Rules engine → cảnh báo</div><div class="flow-node success">Aggregate 5 phút (retention dài)</div></div>
+      </div>
+      <p>Ghi raw ngay để phục vụ cảnh báo; job định kỳ tổng hợp theo cửa sổ rồi xoá dữ liệu gốc quá hạn. Certificate mỗi thiết bị được cấp phát và thu hồi; bản OTA được ký, thiết bị xác minh chữ ký trước khi ghi và giữ phân vùng cũ để rollback.</p>
+    </div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- Time-series: partition theo thời gian, nén sau, xoá theo retention</span>
+<span class="tok-keyword">SELECT</span> create_hypertable(<span class="tok-string">'telemetry'</span>, <span class="tok-string">'ts'</span>,
+       chunk_time_interval =&gt; <span class="tok-class">INTERVAL</span> <span class="tok-string">'1 day'</span>);
+<span class="tok-keyword">SELECT</span> add_retention_policy(<span class="tok-string">'telemetry'</span>, <span class="tok-class">INTERVAL</span> <span class="tok-string">'90 days'</span>);
+
+<span class="tok-comment">-- Downsampling: giữ min/max/avg mỗi 5 phút cho dashboard &amp; báo cáo</span>
+<span class="tok-keyword">INSERT INTO</span> telemetry_5m (device_id, bucket, avg_level, max_level, samples)
+<span class="tok-keyword">SELECT</span> device_id,
+       time_bucket(<span class="tok-class">INTERVAL</span> <span class="tok-string">'5 minutes'</span>, ts) <span class="tok-keyword">AS</span> bucket,
+       avg(level)  <span class="tok-keyword">AS</span> avg_level,
+       max(level)  <span class="tok-keyword">AS</span> max_level,
+       count(*)    <span class="tok-keyword">AS</span> samples
+<span class="tok-keyword">FROM</span> telemetry
+<span class="tok-keyword">WHERE</span> ts &gt;= now() - <span class="tok-class">INTERVAL</span> <span class="tok-string">'5 minutes'</span>
+<span class="tok-keyword">GROUP BY</span> device_id, bucket;</code></pre></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng khi số điểm dữ liệu vượt khả năng của DB quan hệ thông thường, khi dashboard cần đọc theo khoảng thời gian, hoặc khi cảnh báo cần độ trễ khử rung. OTA an toàn bắt buộc với thiết bị đặt ở nơi khó tiếp cận vật lý.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không ghi mỗi điểm thành một dòng trong DB giao dịch dùng chung — sẽ làm chậm cả hệ thống. Không đặt retention vô hạn cho raw data. Không cảnh báo trên từng điểm đơn lẻ mà không khử rung — nhiễu cảm biến gây bão thông báo. Không phát OTA không ký, không chia đợt, không có rollback.</p></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Nền tảng vận hành thiết bị làm sạch không khí: raw telemetry giữ 90 ngày để điều tra sự cố, bản tổng hợp 5 phút giữ 2 năm cho báo cáo; cảnh báo kích hoạt khi mức bụi mịn vượt ngưỡng trong 3 điểm liên tiếp; firmware cập nhật theo đợt 5% rồi mở rộng khi tỷ lệ lỗi thấp.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: ghi raw và aggregate vào cùng một bảng làm truy vấn lẫn lộn. Bẫy thứ hai: cảnh báo theo ngưỡng tức thời khiến một điểm nhiễu đã bắn thông báo — cần trung bình theo cửa sổ hoặc số lần liên tiếp. Bẫy thứ ba: OTA cắt điện giữa lúc ghi làm hỏng máy — cần ghi vào phân vùng dự phòng, xác minh chữ ký và có cơ chế quay về bản cũ.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Telemetry là time-series: partition theo thời gian, không nhét vào DB giao dịch.</li>
+      <li>Raw retention ngắn cho điều tra; aggregate 5 phút giữ lâu cho báo cáo.</li>
+      <li>Downsampling tự động, không giữ raw vô hạn.</li>
+      <li>Cảnh báo ngưỡng phải khử rung (trung bình/nhiều điểm liên tiếp).</li>
+      <li>Bảo mật: certificate mỗi thiết bị, OTA ký + xác minh + rollback.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+['        <div class="nav-pager">', '          <a class="prev" href="41-sql-performance-tuning.html"><span class="label">Trước</span><span class="title">41. SQL Performance Tuning</span></a>', '        </div>']
+      </div>
+
+      <footer class="site-footer">
+        <p>Knowledge Gym — Module 42 / 42</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

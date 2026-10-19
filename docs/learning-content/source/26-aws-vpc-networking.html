@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VPC &amp; Load Balancing cho Developer — DVA-C02 Deep Dive</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="module-header">
+  <span class="module-tag">AWS · Networking</span>
+  <h1 class="module-title">VPC &amp; Load Balancing cho Developer</h1>
+  <p class="module-subtitle">Subnet, security group, endpoint và cân bằng tải.</p>
+</div>
+<main class="content">
+
+  <section class="section" id="vpc-core">
+    <h2 class="section-title">VPC anatomy &amp; thiết kế subnet</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS1</span> VPC anatomy: CIDR, subnet, route table, IGW và NAT gateway</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Amazon VPC</strong> là mạng riêng ảo cô lập trong một <strong>Region</strong>. Bạn tự chia dải IP bằng <strong>CIDR</strong> (thường /16 private RFC1918, cho phép /16–/28), rồi cắt thành các <strong>subnet</strong>. Mỗi subnet gắn <strong>đúng một Availability Zone</strong> — subnet không bao giờ trải qua nhiều AZ. Điều hướng nội/ngoại mạng do <strong>route table</strong> quyết định.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Internet vào VPC qua <strong>Internet Gateway (IGW)</strong> — subnet nào có route <code>0.0.0.0/0 → igw-…</code> thì là <em>public subnet</em>. Chiều ra cho private subnet đi qua <strong>NAT gateway</strong> (đặt trong public subnet, có Elastic IP): nó cho phép kết nối ra ngoài nhưng chặn kết nối vào từ internet.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Internet</span><span class="icon-note">client</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">0.0.0.0/0</span></div>
+            <div class="icon-node"><span class="aws-ico igw"></span><span class="icon-label">IGW</span><span class="icon-note">gắn vào VPC</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">public subnet</span></div>
+            <div class="icon-node"><span class="aws-ico nat-gateway"></span><span class="icon-label">NAT GW</span><span class="icon-note">egress one-way</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">private route</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">Private subnet</span><span class="icon-note">không route tới IGW</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code>aws ec2 create-vpc --cidr-block 10.0.0.0/16 --query 'Vpc.VpcId'
+aws ec2 create-subnet --vpc-id vpc-0abc --cidr-block 10.0.1.0/24 \
+  --availability-zone ap-southeast-1a
+aws ec2 create-internet-gateway
+aws ec2 attach-internet-gateway --vpc-id vpc-0abc --internet-gateway-id igw-0def
+aws ec2 create-route --route-table-id rtb-pub \
+  --destination-cidr-block 0.0.0.0/0 --gateway-id igw-0def
+aws ec2 allocate-address --domain vpc   # Elastic IP cho NAT gateway
+aws ec2 create-nat-gateway --subnet-id subnet-pub1a --allocation-id eipalloc-0aaa</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Thành phần</th><th>Vai trò</th><th>Lưu ý khi thi</th></tr></thead>
+          <tbody>
+            <tr><td>VPC CIDR</td><td>Dải IP gốc, vd 10.0.0.0/16 (65.536 IP)</td><td>Không được trùng với VPC/on-prem sẽ peer</td></tr>
+            <tr><td>Subnet</td><td>Cắt con từ VPC CIDR, 1 AZ</td><td>AWS giữ 5 IP đầu/cuối → /24 còn 251 IP</td></tr>
+            <tr><td>Route table</td><td>Quyết định next hop theo destination</td><td>Subnet public = có route tới IGW</td></tr>
+            <tr><td>IGW</td><td>Cổng vào/ra internet hai chiều</td><td>1 IGW/VPC, gắn trực tiếp vào VPC</td></tr>
+            <tr><td>NAT gateway</td><td>Egress từ private subnet, managed</td><td>Nằm ở public subnet, cần Elastic IP, theo AZ</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>NAT gateway thuộc <strong>một AZ</strong> — hỏng AZ là mất egress. Best practice: mỗi AZ một NAT gateway + route table riêng cho private subnet cùng AZ. NAT gateway <strong>không gắn được Security Group</strong> (chỉ NACL áp dụng).</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html">AWS Docs — What is Amazon VPC</a> · <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html">AWS Docs — NAT gateways</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS2</span> Tình huống: ứng dụng 3 tier — chọn subnet nào cho web, app, database?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Một ứng dụng web 3 tier (ALB → app → RDS) cần chia <strong>public subnet</strong> cho ALB, <strong>private subnet</strong> cho compute, <strong>private DB subnet</strong> cho RDS — nhân đôi trên ≥2 AZ để HA. Public subnet là subnet có route tới IGW; private subnet không có route ra IGW trực tiếp.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Trải 3 tầng lên 2 AZ, mỗi AZ một bộ subnet. App ở private subnet có thể ra internet (pull image, gọi API ngoài) qua NAT gateway, nhưng internet <em>không</em> vào được app/RDS.</p>
+          <div class="stack">
+            <div class="stack-title">Region ap-southeast-1</div>
+            <div class="sub-grid">
+              <div class="stack">
+                <div class="stack-title">AZ ap-southeast-1a</div>
+                <div class="icon-node"><span class="aws-ico alb"></span><span class="icon-label">Public subnet</span><span class="icon-note">10.0.0.0/24 · ALB + NAT</span></div>
+                <div class="icon-node"><span class="aws-ico fargate"></span><span class="icon-label">Private subnet</span><span class="icon-note">10.0.10.0/24 · app</span></div>
+                <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">DB subnet</span><span class="icon-note">10.0.20.0/24 · RDS</span></div>
+              </div>
+              <div class="stack">
+                <div class="stack-title">AZ ap-southeast-1b</div>
+                <div class="icon-node"><span class="aws-ico alb"></span><span class="icon-label">Public subnet</span><span class="icon-note">10.0.1.0/24 · ALB + NAT</span></div>
+                <div class="icon-node"><span class="aws-ico fargate"></span><span class="icon-label">Private subnet</span><span class="icon-note">10.0.12.0/24 · app</span></div>
+                <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">DB subnet</span><span class="icon-note">10.0.21.0/24 · RDS Multi-AZ</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># Route table cho private subnet: default route đi NAT gateway (không đi IGW)
+aws ec2 create-route --route-table-id rtb-priv \
+  --destination-cidr-block 0.0.0.0/0 --nat-gateway-id nat-0abc
+aws ec2 associate-route-table --route-table-id rtb-priv --subnet-id subnet-priv1a
+
+# RDS nằm trong DB subnet group (không route ra internet)
+aws rds create-db-subnet-group --db-subnet-group-name db-subnets \
+  --subnet-ids subnet-db1a subnet-db1b --db-subnet-group-description "private db"</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tầng</th><th>Subnet</th><th>Route 0.0.0.0/0</th><th>Truy cập</th></tr></thead>
+          <tbody>
+            <tr><td>ALB / web</td><td>Public</td><td>IGW</td><td>Từ internet (443)</td></tr>
+            <tr><td>App / compute</td><td>Private</td><td>NAT gateway</td><td>Chỉ từ ALB, egress qua NAT</td></tr>
+            <tr><td>Database</td><td>Private DB</td><td>Không có</td><td>Chỉ từ app SG, không ra internet</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-info"><div class="callout-title">Use case</div><p>Đề DVA hay hỏi: "app trong private subnet cần cài package lúc khởi động" → thêm NAT gateway (hoặc VPC endpoint nếu chỉ cần AWS service). "RDS không được truy cập từ internet" → private subnet + SG nguồn là app SG.</p></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Một subnet <strong>chỉ thuộc 1 AZ</strong>; muốn 2 AZ phải tạo 2 subnet. Nhiều AZ + cùng route table bị coi là "public" nếu route có IGW. Đừng nhầm "private" với "không có route nào" — private subnet vẫn thường có route đi NAT.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/vpc/latest/userguide/configure-subnets.html">AWS Docs — Subnets for your VPC</a> · <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-route-tables.html">AWS Docs — Route tables</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="network-security">
+    <h2 class="section-title">Kiểm soát truy cập &amp; VPC endpoint</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS3</span> Security Group vs Network ACL: stateful/stateless và thứ tự đánh giá</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Security Group (SG)</strong> là firewall ở cấp instance/ENI, <em>stateful</em>: chỉ có rule <strong>allow</strong>, và return traffic tự động được phép. <strong>Network ACL (NACL)</strong> là firewall cấp <em>subnet</em>, <em>stateless</em>: có cả allow lẫn deny, đánh giá theo số thứ tự, và return traffic phải được mở tường minh.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Gói tin vào VPC đi qua NACL của subnet trước, rồi tới SG của resource. Vì SG stateful nên chỉ cần rule chiều request; NACL stateless nên phải mở cả chiều về (dải <strong>ephemeral port 1024–65535</strong>).</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico generic"></span><span class="icon-label">Inbound packet</span><span class="icon-note">từ internet</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">subnet boundary</span></div>
+            <div class="icon-node"><span class="aws-ico vpc"></span><span class="icon-label">NACL</span><span class="icon-note">stateless · allow+deny · theo thứ tự</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">instance boundary</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">Security Group</span><span class="icon-note">stateful · chỉ allow</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">app port 8080</span></div>
+            <div class="icon-node"><span class="aws-ico generic"></span><span class="icon-label">Resource</span><span class="icon-note">EC2/ENI</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># SG: cho phép app nhận traffic từ SG của ALB (reference SG, không dùng CIDR)
+aws ec2 authorize-security-group-ingress --group-id sg-app \
+  --protocol tcp --port 8080 --source-group sg-alb
+
+# NACL stateless: phải mở CẢ hai chiều cho traffic về qua ephemeral ports
+aws ec2 create-network-acl-entry --network-acl-id acl-0abc --ingress \
+  --rule-number 100 --protocol tcp --port-range From=1024,To=65535 \
+  --cidr-block 0.0.0.0/0 --rule-action allow</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Security Group</th><th>Network ACL</th></tr></thead>
+          <tbody>
+            <tr><td>Mức áp dụng</td><td>Instance / ENI</td><td>Subnet</td></tr>
+            <tr><td>Loại rule</td><td>Chỉ allow</td><td>Allow và deny</td></tr>
+            <tr><td>Đánh giá</td><td>Tất cả rule trước khi quyết định</td><td>Theo số thứ tự tăng dần, dừng ở match đầu tiên</td></tr>
+            <tr><td>Return traffic</td><td>Tự động cho phép (stateful)</td><td>Phải mở tường minh (stateless)</td></tr>
+            <tr><td>Reference SG khác</td><td>Có (source/dest là SG)</td><td>Không (chỉ CIDR)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>NACL mặc định cho phép tất cả; nếu tạo rule <strong>deny</strong> số thấp hơn rule allow thì nó chặn trước. Lỗi kinh điển: app kết nối ra được nhưng response bị nuốt vì NACL không mở ephemeral port chiều về. Debug: mở Flow Logs lọc <code>REJECT</code>.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/vpc/latest/userguide/infrastructure-security.html">AWS Docs — VPC security (so sánh SG/NACL)</a> · <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html">AWS Docs — Network ACLs</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS4</span> VPC Endpoint: Gateway (S3/DynamoDB) vs Interface (PrivateLink) và vì sao Lambda trong VPC cần chúng</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Gateway endpoint</strong> chỉ hỗ trợ <strong>Amazon S3</strong> và <strong>DynamoDB</strong>: gắn vào route table, miễn phí, không cần IGW/NAT. <strong>Interface endpoint</strong> dùng <strong>AWS PrivateLink</strong>: tạo ENI có private IP trong subnet, hỗ trợ hầu hết AWS service (Secrets Manager, SSM, ECR, KMS…), tính phí theo giờ + data xử lý.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Khi bạn gắn <strong>Lambda vào VPC</strong>, hàm chạy trong subnet private và <em>mất internet mặc định</em>. Muốn gọi S3/DynamoDB → dùng gateway endpoint (rẻ, không NAT); muốn gọi Secrets Manager/ECR → dùng interface endpoint hoặc NAT gateway cho egress.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico vpc-endpoint"></span><span class="icon-label">Gateway endpoint</span><span class="icon-note">S3 · DynamoDB · route table · free</span></div>
+            <div class="icon-node"><span class="aws-ico privatelink"></span><span class="icon-label">Interface endpoint</span><span class="icon-note">PrivateLink · ENI + SG · phần lớn service</span></div>
+            <div class="icon-node"><span class="aws-ico nat-gateway"></span><span class="icon-label">NAT gateway</span><span class="icon-note">egress ra internet, không dùng cho endpoint</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># Gateway endpoint cho S3 — gắn vào route table của private subnet
+aws ec2 create-vpc-endpoint --vpc-id vpc-0abc \
+  --service-name com.amazonaws.ap-southeast-1.s3 \
+  --vpc-endpoint-type Gateway --route-table-ids rtb-priv
+
+# Interface endpoint (PrivateLink) cho Secrets Manager — tạo ENI trong subnet
+aws ec2 create-vpc-endpoint --vpc-id vpc-0abc \
+  --service-name com.amazonaws.ap-southeast-1.secretsmanager \
+  --vpc-endpoint-type Interface --subnet-ids subnet-priv1a</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Gateway endpoint</th><th>Interface endpoint</th></tr></thead>
+          <tbody>
+            <tr><td>Service hỗ trợ</td><td>Chỉ S3, DynamoDB</td><td>Hầu hết AWS service + service của bạn</td></tr>
+            <tr><td>Cơ chế</td><td>Route table (prefix list)</td><td>ENI + private IP (PrivateLink)</td></tr>
+            <tr><td>Security group</td><td>Không</td><td>Có (gắn vào ENI)</td></tr>
+            <tr><td>Chi phí</td><td>Miễn phí</td><td>Phí theo giờ + data</td></tr>
+            <tr><td>Quota mặc định</td><td>20/Region (tối đa 255/VPC)</td><td>50 interface endpoint/VPC</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Gateway endpoint không có Security Group — kiểm soát bằng route table + endpoint policy. Interface endpoint <strong>có</strong> SG nên nhớ mở port 443 inbound từ SG của consumer. Đừng chọn "Gateway endpoint cho Secrets Manager" — sai, chỉ S3/DynamoDB mới có gateway endpoint.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html">AWS Docs — Gateway endpoints</a> · <a href="https://docs.aws.amazon.com/vpc/latest/privatelink/concepts.html">AWS Docs — PrivateLink concepts</a> · <a href="https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html">AWS Docs — Lambda in a VPC</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="connectivity-lb">
+    <h2 class="section-title">Kết nối liên VPC &amp; cân bằng tải</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS5</span> Nối nhiều VPC: VPC peering vs Transit Gateway vs VPN/Direct Connect</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>VPC peering</strong> nối trực tiếp 1-1 hai VPC (cùng/khác account, cùng/khác Region) qua backbone AWS, <em>không transitive</em>, CIDR không được trùng. <strong>Transit Gateway (TGW)</strong> là hub-and-spoke: nối nhiều VPC + on-prem thành một mô hình, hỗ trợ <em>transitive</em>. <strong>Site-to-Site VPN</strong> đi qua internet có mã hoá IPsec; <strong>Direct Connect</strong> là đường truyền riêng vật lý, độ trễ ổn định.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Peering cần tạo ở <em>cả hai</em> VPC và cập nhật route table ở <em>cả hai</em>. Với nhiều VPC, nối full-mesh bằng peering rất tốn công (N VPC cần N×(N−1)/2 peering) → chuyển sang TGW hub-and-spoke.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico vpc"></span><span class="icon-label">VPC A</span><span class="icon-note">10.0.0.0/16</span></div>
+            <div class="icon-arrow">↔<span class="arrow-note">1-1, non-transitive</span></div>
+            <div class="icon-node"><span class="aws-ico vpc"></span><span class="icon-label">VPC B</span><span class="icon-note">10.1.0.0/16</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">hub</span></div>
+            <div class="icon-node"><span class="aws-ico transit-gateway"></span><span class="icon-label">Transit Gateway</span><span class="icon-note">nhiều VPC + on-prem</span></div>
+            <div class="icon-arrow">↔<span class="arrow-note">IPsec / private</span></div>
+            <div class="icon-node"><span class="aws-ico onprem"></span><span class="icon-label">On-premises</span><span class="icon-note">VPN hoặc Direct Connect</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># VPC peering: tạo ở một bên, accept ở bên kia
+aws ec2 create-vpc-peering-connection --vpc-id vpc-a --peer-vpc-id vpc-b
+aws ec2 accept-vpc-peering-connection --vpc-peering-connection-id pcx-0abc
+
+# Transit Gateway: gom hub-and-spoke
+aws ec2 create-transit-gateway --description "shared-tgw"
+aws ec2 create-transit-gateway-vpc-attachment \
+  --transit-gateway-id tgw-0abc --vpc-id vpc-a --subnet-ids subnet-a1 subnet-a2</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Giải pháp</th><th>Mô hình</th><th>Transitive</th><th>Khi nào dùng</th></tr></thead>
+          <tbody>
+            <tr><td>VPC peering</td><td>1-1</td><td>Không</td><td>Ít VPC (2–4), đơn giản, độ trễ thấp</td></tr>
+            <tr><td>Transit Gateway</td><td>Hub-and-spoke</td><td>Có</td><td>Nhiều VPC/account/Region, hybrid</td></tr>
+            <tr><td>Site-to-Site VPN</td><td>Qua internet (IPsec)</td><td>—</td><td>Setup nhanh, băng thông vừa phải, backup cho DX</td></tr>
+            <tr><td>Direct Connect</td><td>Đường riêng</td><td>—</td><td>Băng thông lớn, độ trễ ổn định, setup lâu</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Peering <strong>không transitive</strong>: A peer B, B peer C nhưng A KHÔNG tới được C qua B. CIDR trùng nhau thì peering/TGW không định tuyến được (dùng private NAT gateway cho VPC trùng CIDR). Direct Connect một mình <em>không</em> mã hoá — thêm VPN cho mã hoá.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html">AWS Docs — What is VPC peering</a> · <a href="https://docs.aws.amazon.com/vpc/latest/tgw/what-is-transit-gateway.html">AWS Docs — What is a Transit Gateway</a> · <a href="https://docs.aws.amazon.com/directconnect/latest/UserGuide/Welcome.html">AWS Docs — AWS Direct Connect</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS6</span> Application Load Balancer: target group, health check, path/host routing</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>ALB</strong> hoạt động ở <strong>Layer 7</strong> (HTTP/HTTPS/gRPC/WebSocket), terminate TLS, và định tuyến theo nội dung request. Một <strong>listener</strong> (vd 443) chứa nhiều <strong>rule</strong>; mỗi rule gồm <em>condition</em> (path, host, header, method, source IP) và <em>action</em> (forward/redirect/fixed-response). Rule đánh giá theo <strong>priority</strong> từ thấp tới cao, default rule chạy cuối.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Request khớp rule được forward vào một <strong>target group</strong> — nơi đăng ký target (instance, IP, Lambda). Health check cấu hình theo từng target group; target unhealthy bị loại khỏi vòng xoay. Đây là cách chạy nhiều microservice sau một ALB.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Client</span><span class="icon-note">HTTPS 443</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">listener + rule</span></div>
+            <div class="icon-node"><span class="aws-ico alb"></span><span class="icon-label">ALB</span><span class="icon-note">/api/* · host</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">forward</span></div>
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">tg-api</span><span class="icon-note">ECS tasks</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">health /health</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">tg-web</span><span class="icon-note">target Lambda</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code>aws elbv2 create-target-group --name tg-app --protocol HTTP --port 8080 \
+  --vpc-id vpc-0abc --target-type ip \
+  --health-check-path /health --health-check-interval-seconds 15
+aws elbv2 create-load-balancer --name alb-app --type application \
+  --scheme internet-facing --subnets subnet-pub1a subnet-pub1b --security-groups sg-alb
+aws elbv2 create-rule --listener-arn arn:aws:elasticloadbalancing:...:listener/app/... \
+  --priority 10 --conditions Field=path-pattern,Values='/api/*' \
+  --actions Type=forward,TargetGroupArn=arn:aws:...:targetgroup/tg-app/...</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Khái niệm</th><th>Ý nghĩa</th></tr></thead>
+          <tbody>
+            <tr><td>Listener</td><td>Cổng + protocol nhận request (80/443)</td></tr>
+            <tr><td>Rule</td><td>Condition + action, đánh giá theo priority</td></tr>
+            <tr><td>Path-based routing</td><td>/api/* → tg-api, /images/* → tg-images</td></tr>
+            <tr><td>Host-based routing</td><td>api.example.com khác www.example.com</td></tr>
+            <tr><td>Health check</td><td>per target group: path, interval, healthy/unhealthy threshold</td></tr>
+            <tr><td>Sticky session</td><td>Cookie AWSALB giữ client trên một target</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>ALB <strong>không có static IP</strong> — DNS name thay đổi IP. Weighted target group <em>không</em> tự failover sang target group khỏe khi một group rỗng. Cross-zone load balancing của ALB bật mặc định; của NLB thì tính phí khi bật.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html">AWS Docs — What is an Application Load Balancer</a> · <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-rules.html">AWS Docs — Listener rules</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS7</span> So sánh: ALB vs NLB (Layer 7 vs Layer 4, static IP, extreme performance)</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>ALB</strong> là load balancer Layer 7 cho HTTP/HTTPS với định tuyến nâng cao. <strong>NLB</strong> là Layer 4 (TCP/UDP/TLS), xử lý <strong>hàng triệu request/giây</strong> với độ trễ cực thấp, giữ nguyên source IP client, và cung cấp <strong>static IP / Elastic IP</strong> mỗi AZ. <strong>CLB</strong> (Classic) là thế hệ cũ, tránh dùng cho hệ mới.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Chọn theo tầng giao thức: cần route theo path/host, HTTP/2, WAF → ALB. Cần TCP/UDP thuần, IP tĩnh, cực nhanh, PrivateLink → NLB. Muốn cả hai: đặt <strong>NLB làm mặt tiền</strong> (target type = alb) để có static IP + PrivateLink, còn ALB làm định tuyến nâng cao.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico alb"></span><span class="icon-label">ALB — L7</span><span class="icon-note">path/host, HTTP/2, gRPC, WAF</span></div>
+            <div class="icon-node"><span class="aws-ico nlb"></span><span class="icon-label">NLB — L4</span><span class="icon-note">triệu req/s, static IP, TCP/UDP</span></div>
+            <div class="icon-node"><span class="aws-ico clb"></span><span class="icon-label">CLB — legacy</span><span class="icon-note">EC2-Classic, không dùng mới</span></div>
+            <div class="icon-node"><span class="aws-ico global-accelerator"></span><span class="icon-label">Global Accelerator</span><span class="icon-note">anycast IP toàn cầu</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># NLB với static Elastic IP mỗi AZ (ALB không làm được điều này)
+aws elbv2 create-load-balancer --name nlb-app --type network \
+  --scheme internet-facing \
+  --subnet-mappings SubnetId=subnet-pub1a,AllocationId=eipalloc-0aaa \
+                    SubnetId=subnet-pub1b,AllocationId=eipalloc-0bbb</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>ALB</th><th>NLB</th></tr></thead>
+          <tbody>
+            <tr><td>OSI layer</td><td>Layer 7</td><td>Layer 4</td></tr>
+            <tr><td>Protocol</td><td>HTTP, HTTPS, gRPC, WebSocket</td><td>TCP, UDP, TLS</td></tr>
+            <tr><td>Static IP</td><td>Không</td><td>Có (Elastic IP mỗi AZ)</td></tr>
+            <tr><td>Throughput</td><td>Cao, đủ cho web</td><td>Triệu request/giây, latency cực thấp</td></tr>
+            <tr><td>Routing</td><td>Path/host/header/query</td><td>Chỉ theo port/protocol</td></tr>
+            <tr><td>PrivateLink</td><td>Không</td><td>Có (TCP/TLS)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>ALB <strong>không thể làm Layer 4</strong>; nếu đề yêu cầu "làm việc với TCP thuần hoặc IP tĩnh", đáp án là NLB. Nếu đề cần "static IP cho ALB", câu trả lời là đặt NLB phía trước ALB (NLB target type = application load balancer).</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html">AWS Docs — What is a Network Load Balancer</a> · <a href="https://aws.amazon.com/elasticloadbalancing/features/">AWS — ELB feature comparison</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS8</span> Lambda/ECS sau ALB và deploy blue/green bằng weighted target group</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>ALB target group nhận nhiều loại target: <strong>instance</strong>, <strong>IP</strong> (ECS/Fargate), hoặc <strong>Lambda</strong>. Với deploy an toàn, tạo <strong>2 target group</strong> (blue = bản cũ, green = bản mới) và dùng <em>weighted forward</em> để chuyển dần traffic. ECS cũng hỗ trợ deployment type <strong>blue/green</strong> (CodeDeploy) ngoài rolling update.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Mỗi target group có trọng số 0–999; đặt green weight nhỏ trước, theo dõi metric, rồi tăng dần tới 100 (canary/blue-green). Rollback chỉ là đổi trọng số về 0 cho green.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico alb"></span><span class="icon-label">ALB listener</span><span class="icon-note">weighted forward</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">90%</span></div>
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">tg-blue</span><span class="icon-note">v1 · weight 90</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">10%</span></div>
+            <div class="icon-node"><span class="aws-ico fargate"></span><span class="icon-label">tg-green</span><span class="icon-note">v2 · weight 10</span></div>
+            <div class="icon-arrow">⇒<span class="arrow-note">OK → 100% green</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Metric</span><span class="icon-note">error rate giám sát</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code>[
+  {
+    "Type": "forward",
+    "ForwardConfig": {
+      "TargetGroups": [
+        { "TargetGroupArn": "arn:aws:...:targetgroup/tg-blue/...", "Weight": 90 },
+        { "TargetGroupArn": "arn:aws:...:targetgroup/tg-green/...", "Weight": 10 }
+      ],
+      "TargetGroupStickinessConfig": { "Enabled": true, "DurationSeconds": 300 }
+    }
+  }
+]</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Cách deploy</th><th>Traffic chuyển</th><th>Rollback</th></tr></thead>
+          <tbody>
+            <tr><td>All-at-once (ECS)</td><td>Đổi hết một lúc</td><td>Deploy lại bản cũ</td></tr>
+            <tr><td>Rolling (ECS)</td><td>Theo min/max percent</td><td>Tự động khi task fail</td></tr>
+            <tr><td>Blue/Green (CodeDeploy)</td><td>Shift theo bước, test listener</td><td>Đổi lại listener/weight</td></tr>
+            <tr><td>Weighted TG (ALB)</td><td>Canary theo %</td><td>Set weight green = 0</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Weighted target group <strong>không tự failover</strong> khi một group rỗng/chỉ có target lỗi. Sticky session với nhiều target group phải bật <em>target group stickiness</em> (cookie AWSALBTG). Với Lambda làm ALB target, health check cần endpoint trả 200.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-action-types.html">AWS Docs — Rule actions (weighted forward)</a> · <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html">AWS Docs — Target groups</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="troubleshooting">
+    <h2 class="section-title">Debug kết nối trong VPC</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS9</span> Tình huống: app ở private subnet không kết nối được RDS/S3 — kiểm gì, theo thứ tự nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Khi app trong private subnet không reach được RDS (nội VPC) hoặc S3 (ra AWS), nguyên nhân nằm ở một trong bốn lớp: <strong>route table</strong>, <strong>NACL</strong>, <strong>security group</strong>, hoặc <strong>endpoint/DNS</strong>. Debug theo thứ tự từ ngoài vào trong để loại trừ nhanh.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Kiểm route trước (có route tới đích không), rồi NACL (stateless — đủ hai chiều chưa), rồi SG (inbound/outbound đúng nguồn/port chưa), cuối cùng là endpoint + DNS. Đối chiếu triệu chứng để chốt nguyên nhân.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico vpc"></span><span class="icon-label">1. Route table</span><span class="icon-note">có route tới đích?</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">nếu sai: blackhole</span></div>
+            <div class="icon-node"><span class="aws-ico network-firewall"></span><span class="icon-label">2. NACL</span><span class="icon-note">stateless · 2 chiều</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">ephemeral 1024-65535</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">3. Security Group</span><span class="icon-note">port + source SG/CIDR</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">nếu S3: endpoint/DNS</span></div>
+            <div class="icon-node"><span class="aws-ico vpc-endpoint"></span><span class="icon-label">4. Endpoint</span><span class="icon-note">gateway/interface đúng route table</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code>aws ec2 describe-route-tables --filters Name=vpc-id,Values=vpc-0abc
+aws ec2 describe-security-groups --group-ids sg-db \
+  --query 'SecurityGroups[].IpPermissions'
+aws ec2 describe-network-acls --filters Name=association.subnet-id,Values=subnet-priv1a
+aws ec2 describe-vpc-endpoints --filters Name=vpc-id,Values=vpc-0abc
+
+# Bắt gói bị từ chối để thấy ngay ai chặn
+aws ec2 create-flow-logs --resource-type Subnet --resource-ids subnet-priv1a \
+  --traffic-type REJECT --log-destination-type cloud-watch-logs \
+  --log-group-name /vpc/flow</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Triệu chứng</th><th>Nguyên nhân thường gặp</th><th>Cách kiểm</th></tr></thead>
+          <tbody>
+            <tr><td>Connect timeout tới RDS</td><td>SG DB thiếu rule từ SG app hoặc sai port</td><td>describe-security-groups (source = SG app)</td></tr>
+            <tr><td>Kết nối mở nhưng treo</td><td>NACL thiếu return ephemeral ports</td><td>Flow logs REJECT, kiểm NACL 2 chiều</td></tr>
+            <tr><td>App không tới S3</td><td>Không có route/NAT, chưa tạo gateway endpoint</td><td>describe-vpc-endpoints + route table</td></tr>
+            <tr><td>Lambda (trong VPC) gọi Secrets Manager fail</td><td>Thiếu interface endpoint hoặc NAT</td><td>Kiểm ENI + SG của endpoint</td></tr>
+            <tr><td>Route "blackhole"</td><td>Target (NAT/peering) bị xoá</td><td>describe-route-tables state</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-info"><div class="callout-title">Use case</div><p>Công cụ đắc lực: <strong>Reachability Analyzer</strong> phân tích path giữa source/destination để chỉ đúng lớp chặn, và <strong>VPC Flow Logs</strong> để xem ACCEPT/REJECT thực tế. Nhớ: SG stateful nên hiếm khi là thủ phạm của return traffic; NACL stateless mới hay chặn chiều về.</p></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Đừng mở 0.0.0.0/0 cho RDS để "fix nhanh". Với S3/DynamoDB trong private subnet, đáp án đúng thường là <strong>gateway endpoint</strong> (rẻ, không cần internet) chứ không phải mở NAT cho mọi thứ.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/vpc/latest/reachability/what-is-reachability-analyzer.html">AWS Docs — Reachability Analyzer</a> · <a href="https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html">AWS Docs — VPC Flow Logs</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <div class="nav-pager"><a class="prev" href="index.html">← Trang chủ</a><a class="next" href="27-aws-edge-apigw.html">Tiếp →</a></div>
+</main>
+</body>
+</html>

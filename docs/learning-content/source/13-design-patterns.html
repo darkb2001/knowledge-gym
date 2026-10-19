@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>13. Design Patterns — Java Interview Bank</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Java Interview<br><span>Bank</span></h1>
+        <p>Interview Prep Notes</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>13. Design Patterns</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 13</div>
+          <h1 class="module-title">Design Patterns</h1>
+          <p class="module-subtitle">23 Gang of Four patterns + SOLID, anti-patterns, và cách Spring Framework áp dụng sẵn — trọng tâm phỏng vấn Java backend &amp; WMS domain.</p>
+        </div>
+
+        <!-- CREATIONAL -->
+        <section class="section" id="creational">
+          <h2 class="section-title">Creational Patterns</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q1</span> Singleton — eager, lazy, Bill Pugh, enum</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Singleton</strong> đảm bảo class chỉ có một instance duy nhất trong JVM và cung cấp điểm truy cập global (<code>getInstance()</code>). Các biến thể: <strong>Eager</strong> (static final field khởi tạo khi class load), <strong>Lazy</strong> (double-checked locking với <code>volatile</code>), <strong>Bill Pugh</strong> (static holder class — JVM lazy init thread-safe), <strong>Enum Singleton</strong> (Joshua Bloch — chống reflection &amp; serialization break).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Dùng khi tài nguyên đắt hoặc phải unique: connection pool config, logger facade, registry. Tránh tạo nhiều instance gây inconsistency (2 config khác nhau) hoặc lãng phí memory. Trong Spring, bean scope <code>singleton</code> (default) quản lý lifecycle thay vì tự implement GoF Singleton.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Client gọi getInstance()</div></div>
+                  <div class="flow-arrow">↓</div>
+                  <div class="flow-row"><div class="flow-node secondary">Bill Pugh Holder</div><div class="flow-node">Enum INSTANCE</div><div class="flow-node success">Spring @Scope singleton</div></div>
+                </div>
+                <p>Eager: đơn giản, thread-safe, nhưng load sớm. Lazy DCL: cần <code>volatile</code> từ Java 5+. Bill Pugh: inner static class chỉ load khi <code>getInstance()</code> được gọi — không cần synchronized. Enum: <code>public enum Config { INSTANCE; }</code> — best practice nếu không dùng DI container.</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Config manager, metric registry, in-memory cache coordinator. Trong interview: so sánh 4 cách và giải thích tại sao enum/Bill Pugh tốt hơn lazy DCL thuần.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng Singleton cho stateful service có request context (user session) — vi phạm thread-safety. Không dùng thay DI container trong Spring — test khó (global state), hidden dependency. Không implement thủ công nếu Spring bean đủ — over-engineering.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>Spring: mọi <code>@Service</code> mặc định singleton — một instance <code>InventoryService</code> inject vào nhiều controller; container đảm bảo single instance per context.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Reflection (<code>setAccessible</code>) và deserialization có thể tạo instance thứ 2 nếu không chặn trong <code>readResolve()</code> hoặc dùng enum. Double-checked locking thiếu <code>volatile</code> → broken trên JMM cũ.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Bill Pugh — khuyến nghị khi không có Spring</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">DbConfig</span> {
+  <span class="tok-keyword">private</span> <span class="tok-class">DbConfig</span>() {}
+  <span class="tok-keyword">private static class</span> <span class="tok-class">Holder</span> {
+    <span class="tok-keyword">static final</span> <span class="tok-class">DbConfig</span> INSTANCE = <span class="tok-keyword">new</span> <span class="tok-class">DbConfig</span>();
+  }
+  <span class="tok-keyword">public static</span> <span class="tok-class">DbConfig</span> <span class="tok-function">getInstance</span>() { <span class="tok-keyword">return</span> <span class="tok-class">Holder</span>.INSTANCE; }
+}
+
+<span class="tok-comment">// Enum — chống reflection/serialization</span>
+<span class="tok-keyword">public enum</span> <span class="tok-class">AppRegistry</span> { <span class="tok-class">INSTANCE</span>; }</code></pre></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Singleton = 1 instance, global access — config, registry.</li><li>Eager load sớm; Lazy DCL cần volatile; Bill Pugh dùng holder class — JVM thread-safe.</li><li>Enum singleton là best practice thuần Java.</li><li>Spring bean scope singleton ≠ GoF — container quản lý, dễ test hơn.</li><li>Tránh singleton stateful — race condition giữa requests.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q2</span> Factory Method vs Abstract Factory</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Factory Method</strong>: subclass quyết định instantiate class con nào (<code>createDocument()</code> → PDF/Word). <strong>Abstract Factory</strong>: interface factory tạo <em>family</em> related products (<code>GUIFactory</code> → Button + Checkbox cùng theme Win/Mac).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Tách client khỏi concrete class — tuân OCP &amp; DIP. Factory Method khi chỉ 1 product hierarchy. Abstract Factory khi nhiều product phải consistent (cùng DB driver family + connection + statement).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div><p>Factory Method: abstract creator + <code>factoryMethod()</code> override ở subclass. Abstract Factory: interface với nhiều <code>createX()</code>, concrete factory implement full set.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Factory Method: framework hook (Spring <code>BeanFactory</code> tạo bean theo type). Abstract Factory: chọn stack integration (SAP vs Oracle EBS message format + parser + validator cùng bộ).</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Chỉ 1 implementation — gọi <code>new</code> hoặc DI đủ. Không nhầm Simple Factory (static method) với GoF Factory Method — interview hay hỏi.</p></div>
+              <div class="compare-grid">
+                <div class="compare-col"><h4>Factory Method</h4><ul><li>1 product type / hierarchy</li><li>Inheritance — subclass override</li><li><code>DocumentCreator.create()</code></li></ul></div>
+                <div class="compare-col"><h4>Abstract Factory</h4><ul><li>Family nhiều product liên quan</li><li>Composition — inject factory</li><li><code>UIFactory.createButton() + createCheckbox()</code></li></ul></div>
+              </div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>WMS: <code>LabelPrinterFactory</code> (Factory Method) tạo Zebra vs Honeywell printer. <code>WcsIntegrationFactory</code> (Abstract Factory) tạo cặp MessageEncoder + PlcAdapter + AckHandler cho từng vendor WMS/Muratec.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Thêm product mới vào Abstract Factory → sửa interface tất cả implement — vi phạm OCP; cân nhắc Factory Method + registry thay vì AF cứng.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">interface</span> <span class="tok-class">PickTaskFactory</span> {
+  <span class="tok-class">PickTask</span> <span class="tok-function">createTask</span>(<span class="tok-class">OrderLine</span> line); <span class="tok-comment">// Factory Method style</span>
+}
+<span class="tok-keyword">class</span> <span class="tok-class">BatchPickFactory</span> <span class="tok-keyword">implements</span> <span class="tok-class">PickTaskFactory</span> {
+  <span class="tok-keyword">public</span> <span class="tok-class">PickTask</span> <span class="tok-function">createTask</span>(<span class="tok-class">OrderLine</span> line) { <span class="tok-keyword">return new</span> <span class="tok-class">BatchPickTask</span>(line); }
+}</code></pre></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Factory Method: 1 sản phẩm, subclass quyết định class con.</li><li>Abstract Factory: cả họ sản phẩm compatible — button + checkbox cùng theme.</li><li>Simple Factory không phải GoF pattern — chỉ helper static.</li><li>Spring BeanFactory là Factory Method ở scale framework.</li><li>Chọn FM khi 1 hierarchy; AF khi family consistency.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q3</span> Builder Pattern</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Tách construction complex object khỏi representation — build từng bước qua fluent API (<code>builder().sku().qty().build()</code>).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Constructor telescoping (10 params) khó đọc; object nhiều optional field; immutable object cần validate trước khi expose.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div><p>Inner static Builder, chain methods return <code>this</code>, <code>build()</code> gọi private constructor. Java 16+ record có thể dùng compact constructor; Lombok <code>@Builder</code> generate code.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>DTO phức tạp, HTTP request builder, test data builder, config object nhiều flag.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Object 2–3 field bắt buộc — constructor hoặc record đủ. Không mix Builder với JavaBean setter mutable — mất immutability.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p><code>AllocationRequest.builder().orderId("O1").priority(HIGH).allowPartial(true).build()</code> — WMS allocation gửi sang optimization engine.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Quên validate trong <code>build()</code> → invalid object. Builder không thread-safe nếu share giữa threads — tạo builder per thread.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-class">Shipment</span> s = <span class="tok-class">Shipment</span>.<span class="tok-function">builder</span>()
+  .<span class="tok-function">trackingNo</span>(<span class="tok-string">"TRK-99"</span>)
+  .<span class="tok-function">carrier</span>(<span class="tok-class">Carrier</span>.DHL)
+  .<span class="tok-function">build</span>();</code></pre></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Builder = step-by-step construction, fluent API.</li><li>Giải quyết telescoping constructor và nhiều optional params.</li><li>build() validate + gọi private ctor → immutable safe.</li><li>Lombok @Builder phổ biến trong Spring DTO.</li><li>Đơn giản thì record/ctor — đừng over-use Builder.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q4</span> Prototype Pattern</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Clone object có sẵn thay vì <code>new</code> từ đầu — shallow copy (<code>clone()</code>) hoặc deep copy (serialize/copy constructor).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Tạo object tốn kém (load template từ DB/file) hoặc cần bản sao gần giống với vài field khác — pick wave template, report layout.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div><p>Implement <code>Cloneable</code> + override <code>clone()</code>, hoặc copy constructor / factory <code>from(other)</code>. Deep copy: manual recursive, JSON round-trip, hoặc library.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Game entity spawn, document template, sandbox order từ production order snapshot.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Object có shared mutable nested refs mà chỉ shallow clone — bug silent aliasing. Prefer immutable + builder thay clone nếu structure đơn giản.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p><code>Cloneable</code> marker interface broken design — không bắt buộc public <code>clone()</code>; deep vs shallow hay sai với <code>List</code> bên trong.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public class</span> <span class="tok-class">WaveTemplate</span> <span class="tok-keyword">implements</span> <span class="tok-class">Cloneable</span> {
+  <span class="tok-keyword">private</span> <span class="tok-class">List</span>&lt;<span class="tok-class">String</span>&gt; zones;
+  <span class="tok-keyword">public</span> <span class="tok-class">WaveTemplate</span> <span class="tok-function">deepCopy</span>() {
+    <span class="tok-class">WaveTemplate</span> c = (<span class="tok-class">WaveTemplate</span>) <span class="tok-keyword">super</span>.clone();
+    c.zones = <span class="tok-keyword">new</span> <span class="tok-class">ArrayList</span>&lt;&gt;(zones);
+    <span class="tok-keyword">return</span> c;
+  }
+}</code></pre></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Prototype = clone thay vì new — tiết kiệm init cost.</li><li>Shallow copy share nested refs; deep copy duplicate tree.</li><li>Cloneable interface yếu — copy constructor rõ ràng hơn.</li><li>WMS: duplicate wave template cho shift mới.</li><li>Immutable objects ít cần prototype.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- STRUCTURAL -->
+        <section class="section" id="structural">
+          <h2 class="section-title">Structural Patterns</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q5</span> Adapter Pattern</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Chuyển interface của class hiện có sang interface client mong đợi — “cắm adapter” giữa incompatible APIs.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Tích hợp legacy/third-party không sửa source gốc; tuân ISP — client chỉ phụ thuộc interface mình cần.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div><p>Class adapter (extends adaptee + implements target) hoặc Object adapter (compose adaptee — linh hoạt hơn, Java khuyến nghị).</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Wrap SAP RFC SDK, PLC vendor SDK, payment gateway cũ behind <code>InventoryPort</code> interface nội bộ.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Có thể refactor adaptee trực tiếp (owned code) — adapter thêm indirection. Không nhầm với Facade (đơn giản hóa subsystem, không đổi interface).</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p><code>LegacyWcsAdapter implements WcsPort</code> — translate REST nội bộ sang TCP binary protocol PLC cũ.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">class</span> <span class="tok-class">SapInventoryAdapter</span> <span class="tok-keyword">implements</span> <span class="tok-class">InventoryPort</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">SapRfcClient</span> sap;
+  <span class="tok-keyword">public</span> <span class="tok-class">StockLevel</span> <span class="tok-function">getStock</span>(<span class="tok-class">String</span> sku) {
+    <span class="tok-keyword">return</span> <span class="tok-function">map</span>(sap.<span class="tok-function">callBapi</span>(sku));
+  }
+}</code></pre></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Adapter = bridge incompatible interface — integration classic.</li><li>Object adapter (compose) preferred trong Java.</li><li>Khác Facade: Adapter đổi interface; Facade đơn giản hóa.</li><li>WMS tích hợp ERP/PLC qua adapter layer.</li><li>Owned code nên refactor thay wrap vô hạn.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q6</span> Decorator vs Proxy</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Decorator</strong> bọc object để thêm behavior (logging, cache, compress) — cùng interface, stack nhiều lớp. <strong>Proxy</strong> kiểm soát truy cập — lazy load, security, remote, transaction wrapper.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Tránh subclass explosion (10 combo feature = 10 subclass). Decorator = Open/Closed — thêm behavior runtime. Proxy = indirection + control (Spring AOP, Hibernate lazy loading).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div><p>Cả hai: implement cùng interface, delegate tới wrapped object. Decorator nhấn <em>enhance</em> before/after call. Proxy nhấn <em>control</em> (có thể không gọi delegate).</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Decorator: <code>new CachedUserService(new LoggingUserService(delegate))</code>. Proxy: Spring tạo JDK dynamic proxy / CGLIB cho <code>@Transactional</code>, <code>@Cacheable</code>.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Cross-cutting toàn app → AOP framework thay manual decorator chain. Không decorator cho logic business core — khó trace.</p></div>
+              <div class="compare-grid">
+                <div class="compare-col"><h4>Decorator</h4><ul><li>Thêm chức năng (stackable)</li><li>Client biết (thường) có wrap</li><li>Java I/O streams classic</li></ul></div>
+                <div class="compare-col"><h4>Proxy</h4><ul><li>Kiểm soát access / lazy / remote</li><li>Client có thể không biết proxy</li><li>Spring AOP, RMI stub</li></ul></div>
+              </div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>Spring: <code>@Transactional</code> → proxy mở/commit TX trước/sau method. <code>InputStream</code> decorator chain: <code>BufferedInputStream(new FileInputStream(...))</code>.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// JDK Dynamic Proxy — Spring dùng khi interface có sẵn</span>
+<span class="tok-class">OrderService</span> proxy = (<span class="tok-class">OrderService</span>) <span class="tok-class">Proxy</span>.<span class="tok-function">newProxyInstance</span>(
+  cl, <span class="tok-keyword">new</span> <span class="tok-class">Class</span>&lt;&gt;[]{<span class="tok-class">OrderService</span>.<span class="tok-keyword">class</span>},
+  (<span class="tok-class">Object</span> target, <span class="tok-class">Method</span> m, <span class="tok-class">Object</span>[] args) -&gt; {
+    <span class="tok-class">System</span>.out.println(<span class="tok-string">"TX begin"</span>);
+    <span class="tok-keyword">try</span> { <span class="tok-keyword">return</span> m.<span class="tok-function">invoke</span>(delegate, args); }
+    <span class="tok-keyword">finally</span> { <span class="tok-class">System</span>.out.println(<span class="tok-string">"TX commit"</span>); }
+  });</code></pre></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Decorator thêm behavior; Proxy kiểm soát truy cập.</li><li>Cùng structure wrap-delegate — intent khác nhau.</li><li>Java I/O = decorator; Spring @Transactional = proxy.</li><li>JDK proxy cần interface; CGLIB subclass cho class concrete.</li><li>Self-invocation trong class bypass proxy — interview trap.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q7</span> Facade Pattern</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Interface đơn giản che subsystem phức tạp — một entry point (<code>WmsFacade.releaseOrder()</code>) gọi allocation + inventory + WCS + notification.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Giảm coupling client ↔ nhiều service; onboarding dev nhanh; boundary rõ cho module.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Application service layer trong DDD, REST controller gọi 1 facade thay 5 repository.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Facade trở thành God Object chứa mọi logic — tách use-case service. Không thay thế domain model rich behavior.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Anemic Facade — chỉ pass-through không orchestration — thêm layer vô ích.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Facade = cửa vào đơn giản cho subsystem phức tạp.</li><li>Khác Adapter: không đổi interface bên ngoài legacy.</li><li>Spring @Service orchestration thường là facade.</li><li>Tránh God Facade — split theo use case.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q8</span> Composite Pattern</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Cây part-whole: component interface chung cho leaf và composite — client xử lý uniform (<code>getWeight()</code> trên cả pallet lẫn carton).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Recursive structure: menu, org chart, BOM (bill of materials), location tree (warehouse → zone → aisle → bin).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div><p><code>Component</code> interface; <code>Leaf</code>; <code>Composite</code> chứa <code>List&lt;Component&gt;</code>, delegate operation xuống children.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Tính tổng capacity subtree location; render nested pick list; permission tree.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Hierarchy cố định 2 level — list đơn giản đủ. Composite + visitor phức tạp khi chỉ cần SQL recursive CTE.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">interface</span> <span class="tok-class">LocationNode</span> { <span class="tok-keyword">int</span> <span class="tok-function">availableSlots</span>(); }
+<span class="tok-keyword">class</span> <span class="tok-class">Zone</span> <span class="tok-keyword">implements</span> <span class="tok-class">LocationNode</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">List</span>&lt;<span class="tok-class">LocationNode</span>&gt; aisles;
+  <span class="tok-keyword">public int</span> <span class="tok-function">availableSlots</span>() {
+    <span class="tok-keyword">return</span> aisles.stream().mapToInt(<span class="tok-class">LocationNode</span>::availableSlots).sum();
+  }
+}</code></pre></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Composite = tree uniform — leaf và group cùng interface.</li><li>WMS location hierarchy, BOM kitting classic.</li><li>Operation recursive trên root → propagate children.</li><li>Đừng dùng khi cấu trúc phẳng đơn giản.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- BEHAVIORAL -->
+        <section class="section" id="behavioral">
+          <h2 class="section-title">Behavioral Patterns</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q9</span> Strategy Pattern</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Định nghĩa họ algorithm, encapsulate từng cái, interchange runtime — context delegate tới <code>Strategy</code> interface.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Tránh if/else/switch theo type dài; OCP — thêm strategy mới không sửa context. Spring DI inject strategy bean theo profile/qualifier.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div><p>Interface <code>AllocationStrategy</code>, implementations <code>FifoStrategy</code>, <code>NearestBinStrategy</code>; context gọi <code>strategy.allocate(order)</code>.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Sorting (Spring <code>Comparator</code> beans), pricing rules, payment method, shipping cost calculator.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Chỉ 2 cố định variant không đổi — enum + method đủ. Không nhầm State — Strategy client chọn algorithm; State transition nội bộ entity.</p></div>
+              <div class="compare-grid">
+                <div class="compare-col"><h4>Strategy</h4><ul><li>Algorithm interchangeable</li><li>Client/config chọn strategy</li><li>Không đổi khi entity “tự” chuyển</li></ul></div>
+                <div class="compare-col"><h4>State</h4><ul><li>Hành vi đổi theo internal state</li><li>Transition do event nội bộ</li><li>Order CREATED → ALLOCATED → PICKING</li></ul></div>
+              </div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>WMS: <code>@Qualifier("fifo") AllocationStrategy</code> vs <code>fefo</code> inject vào <code>AllocationService</code> — đổi rule theo customer SLA không sửa service.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public class</span> <span class="tok-class">AllocationService</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">AllocationStrategy</span> strategy;
+  <span class="tok-keyword">public</span> <span class="tok-class">AllocationService</span>(<span class="tok-class">AllocationStrategy</span> strategy) { <span class="tok-keyword">this</span>.strategy = strategy; }
+  <span class="tok-keyword">public void</span> <span class="tok-function">allocate</span>(<span class="tok-class">Order</span> o) { strategy.<span class="tok-function">execute</span>(o); }
+}</code></pre></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Strategy = swap algorithm runtime — DI friendly.</li><li>Thay cho switch/if monster — OCP.</li><li>Khác State: strategy do client chọn; state tự chuyển theo lifecycle.</li><li>Spring inject nhiều impl cùng interface.</li><li>WMS allocation FIFO/FEFO/nearest bin.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q10</span> State Pattern — WMS order flow</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Object đổi behavior khi internal state đổi — mỗi state là class implement interface chung (<code>OrderState.onPickComplete()</code>).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Order lifecycle WMS: CREATED → ALLOCATED → RELEASED → PICKING → PICKED → SHIPPED. Switch/if theo status field scattered → bug illegal transition (pick khi chưa allocate).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">CREATED</div></div>
+                  <div class="flow-arrow">allocate()</div>
+                  <div class="flow-row"><div class="flow-node secondary">ALLOCATED</div></div>
+                  <div class="flow-arrow">releaseToWcs()</div>
+                  <div class="flow-row"><div class="flow-node">RELEASED</div><div class="flow-node success">PICKING → SHIPPED</div></div>
+                </div>
+                <p>Context (<code>WmsOrder</code>) giữ reference <code>OrderState current</code>; method delegate <code>current.release(this)</code>; state mới set trong transition hợp lệ.</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>State machine rõ ràng, nhiều action phụ thuộc status, cần guard illegal transition — bổ sung Spring State Machine hoặc enum+transition table nếu đơn giản.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>2–3 status tĩnh — enum status + validation đủ. Không duplicate State pattern lẫn Strategy — nếu chỉ đổi algorithm không đổi lifecycle thì Strategy.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>WMS: <code>PickingState</code> chỉ cho <code>confirmPick()</code>; gọi khi ALLOCATED → throw <code>IllegalStateException</code> — bảo vệ inventory consistency trước khi gửi WCS.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Quên persist state transition atomically — DB status PICKING nhưng in-memory vẫn RELEASED sau crash. Dùng TX + optimistic lock trên status column.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">class</span> <span class="tok-class">AllocatedState</span> <span class="tok-keyword">implements</span> <span class="tok-class">OrderState</span> {
+  <span class="tok-keyword">public void</span> <span class="tok-function">release</span>(<span class="tok-class">WmsOrder</span> ctx) {
+    ctx.<span class="tok-function">sendToWcs</span>();
+    ctx.<span class="tok-function">setState</span>(<span class="tok-keyword">new</span> <span class="tok-class">ReleasedState</span>());
+  }
+  <span class="tok-keyword">public void</span> <span class="tok-function">confirmPick</span>(<span class="tok-class">WmsOrder</span> ctx) {
+    <span class="tok-keyword">throw new</span> <span class="tok-class">IllegalStateException</span>(<span class="tok-string">"Not released yet"</span>);
+  }
+}</code></pre></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>State = behavior thay đổi theo lifecycle nội bộ object.</li><li>WMS order flow là ví dụ sát phỏng vấn domain.</li><li>Mỗi state class chặn illegal transition.</li><li>Khác Strategy: transition do event, không phải user chọn algorithm.</li><li>Persist status + TX — tránh desync sau crash.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q11</span> Observer Pattern</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>One-to-many dependency: subject notify observers khi state đổi — push model (callback) hoặc pull.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Decouple publisher/subscriber — inventory thay đổi → notify dashboard, audit, Kafka without tight coupling.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div><p>Java legacy <code>Observable</code>/<code>Observer</code> deprecated; modern: Spring <code>ApplicationEventPublisher</code>, <code>@EventListener</code>, reactive streams.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Domain events: <code>OrderShippedEvent</code> → email, ERP sync, metrics.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Critical synchronous workflow cần guaranteed order — dùng orchestration/Saga thay fire-and-forget observer. Tránh observer leak (quên unsubscribe).</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p><code>publishEvent(new BinEmptyEvent(binId))</code> — listener trigger replenishment task và Andon alert.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">@Component</span>
+<span class="tok-keyword">class</span> <span class="tok-class">ReplenListener</span> {
+  <span class="tok-keyword">@EventListener</span>
+  <span class="tok-keyword">void</span> <span class="tok-function">onEmpty</span>(<span class="tok-class">BinEmptyEvent</span> e) { replenService.<span class="tok-function">schedule</span>(e.<span class="tok-function">binId</span>()); }
+}</code></pre></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Observer = publish-subscribe decoupling.</li><li>Spring ApplicationEvent = Observer trong ecosystem.</li><li>Async @EventListener — cẩn thận ordering &amp; failure.</li><li>Critical path dùng Saga không pure observer.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q12</span> Template Method Pattern</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Abstract class định nghĩa skeleton algorithm (<code>processOrder()</code>), subclass override hook steps (<code>validate()</code>, <code>allocate()</code>).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>DRY flow chung, customize điểm khác — Hollywood principle: “don’t call us, we’ll call you”.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div><p>Final template method gọi abstract/protected hooks; Spring <code>JdbcTemplate.query()</code> — callback là hook variaton.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Batch job framework, import pipeline (parse → validate → persist), servlet <code>GenericServlet.service()</code>.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Cần composition thay inheritance — Strategy + pipeline rõ hơn Template Method. Java single inheritance hạn chế.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p><code>JdbcTemplate.execute(ConnectionCallback)</code> — template lo acquire/release connection; callback chỉ SQL logic.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Template Method = skeleton in base class, hooks in subclass.</li><li>JdbcTemplate là ví dụ Spring canonical.</li><li>final template method tránh subclass phá flow.</li><li>Prefer composition nếu nhiều variation orthogonal.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q13</span> Command Pattern</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Encapsulate request thành object — <code>Command.execute()</code>, hỗ trợ undo, queue, log, retry.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>WCS instruction queue: mỗi lệnh AGV là command object persist + replay; audit trail; transactional outbox.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div><p>Interface Command, concrete <code>MoveAgvCommand</code>, invoker <code>CommandQueue</code> push/pop execute.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Undo/redo UI, job scheduler, macro operations, CQRS write side.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Simple CRUD one-shot — method call đủ. Command object overhead khi không cần queue/undo.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>WMS release wave: <code>ReleaseWaveCommand</code> serialize vào DB queue; worker retry khi WCS timeout — idempotent by commandId.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">record</span> <span class="tok-class">ReleasePickCommand</span>(<span class="tok-class">String</span> taskId) <span class="tok-keyword">implements</span> <span class="tok-class">WcsCommand</span> {
+  <span class="tok-keyword">public void</span> <span class="tok-function">execute</span>(<span class="tok-class">WcsGateway</span> gw) { gw.<span class="tok-function">releaseTask</span>(taskId); }
+}</code></pre></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Command = request as object — queue, undo, audit.</li><li>WCS/AGV instruction queue classic domain.</li><li>Invoker decouple sender/receiver.</li><li>CQRS command side cùng tinh thần.</li><li>Đừng wrap mọi service method thành command.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q14</span> Chain of Responsibility</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Chain handlers — mỗi handler xử lý hoặc pass <code>next</code>; client gửi request tới head chain.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Servlet Filter chain, Spring Security filter chain, validation pipeline, logging middleware.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Order validation: format → credit check → inventory → compliance — dừng sớm nếu fail.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Luôn cần mọi bước chạy — pipeline parallel hoặc single service rõ hơn. Chain quá dài khó debug.</p></div>
+              <div class="flow-diagram">
+                <div class="flow-row"><div class="flow-node primary">AuthFilter</div><div class="flow-node secondary">RateLimit</div><div class="flow-node success">Controller</div></div>
+              </div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Chain of Responsibility = linked handlers pass-or-process.</li><li>Servlet/Spring Security filter chain real-world.</li><li>Early exit khi handler xử lý xong.</li><li>WMS validation pipeline ví dụ tốt.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q15</span> Iterator Pattern</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Truy cập collection tuần tự không expose internal structure — <code>java.util.Iterator</code>, enhanced for-loop.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Uniform traversal; support multiple iterator types (forward/backward); fail-fast vs concurrent iterator.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Custom collection (<code>BinGrid</code>); lazy pagination iterator over DB cursor.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Stream API functional pipeline đủ — không reinvent Iterator. <code>remove()</code> during iteration → <code>ConcurrentModificationException</code>.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Modify collection while iterating without iterator.remove() — fail-fast. Dùng <code>removeIf</code> hoặc copy-on-write.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Iterator = traverse without exposing internals.</li><li>Built into Java Collections Framework.</li><li>Fail-fast vs ConcurrentModificationException.</li><li>Streams often replace manual iterator loops.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q16</span> Mediator Pattern (tóm tắt)</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Object trung gian điều phối communication giữa colleagues — colleagues không reference trực tiếp lẫn nhau.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Giảm mesh coupling N×N — chat room, air traffic control, event bus central.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Spring Mediator (CQRS bus), message broker abstraction, UI dialog coordinator.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Mediator thành God Object — split bounded context. Simple 2-component talk — direct call OK.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Mediator = central hub, colleagues decoupled.</li><li>Event bus / CQRS mediator cùng idea.</li><li>Tránh God mediator — giữ scope nhỏ.</li><li>Interview: biết khái niệm, ít code deep hơn Strategy/State.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- META -->
+        <section class="section" id="meta">
+          <h2 class="section-title">SOLID, Anti-patterns &amp; Spring</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q17</span> SOLID liên quan Design Patterns thế nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>SOLID</strong> là nguyên tắc thiết kế; Design Patterns là giải pháp cụ thể thường <em>hiện thực hóa</em> các nguyên tắc đó.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Interviewer muốn thấy bạn không học thuộc pattern mà hiểu <em>vì sao</em> pattern tồn tại — map pattern → principle.</p></div>
+              <table class="feature-table">
+                <thead><tr><th>Nguyên tắc</th><th>Pattern minh họa</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>S</strong> — Single Responsibility</td><td>Mỗi State class một trách nhiệm transition; Command tách request khỏi handler</td></tr>
+                  <tr><td><strong>O</strong> — Open/Closed</td><td>Strategy/Decorator thêm behavior không sửa context</td></tr>
+                  <tr><td><strong>L</strong> — Liskov Substitution</td><td>Decorator/Proxy phải substitute được interface gốc</td></tr>
+                  <tr><td><strong>I</strong> — Interface Segregation</td><td>Adapter expose interface nhỏ; tránh fat factory</td></tr>
+                  <tr><td><strong>D</strong> — Dependency Inversion</td><td>Factory Method, Strategy — depend abstraction Spring inject</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Ép mọi class vào pattern để “đúng SOLID” — YAGNI. SOLID là hướng dẫn, không phải checklist 5 pattern mỗi feature.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>SOLID = why; Patterns = how cụ thể.</li><li>Strategy/Decorator → OCP; DI → DIP.</li><li>State/Command → SRP tách concern.</li><li>LSP: subclass/proxy không phá contract.</li><li>Đừng pattern cho pattern — YAGNI.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q18</span> Anti-patterns thường gặp</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Anti-pattern</strong> = giải pháp tưởng hữu ích nhưng hậu quả xấu lặp lại. Liên quan: <strong>God Object</strong>, <strong>Anemic Domain Model</strong>, <strong>Golden Hammer</strong> (mọi thứ đều Singleton/Factory).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Nhận biết over-engineering trong interview — senior phải biết <em>khi không dùng</em> pattern.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div><p>God Object: class 3000 dòng làm mọi thứ — refactor SRP + facade/use-case services. Anemic: entity chỉ getter/setter, logic trong service — cân bằng rich domain khi invariant phức tạp (order state). Pattern over-use: 5 pattern cho CRUD đơn giản.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Code review, thiết kế mới — hỏi “ có cần pattern này nếu requirement đổi 1 lần/năm không?”</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Coi Anemic luôn sai — với Spring JPA entity, logic nhẹ trong @Service chấp nhận được; rich domain khi behavior gắn chặt data (state machine trong entity).</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Interview trap: “Design Patterns always improve code” — sai nếu complexity &gt; benefit. Prefer clarity over pattern name-dropping.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>God Object = SRP violation extreme.</li><li>Anemic domain = data bag, logic ở service — trade-off JPA.</li><li>Golden Hammer = lạm dụng pattern.</li><li>Senior biết When NOT quan trọng hơn liệt kê 23 pattern.</li><li>YAGNI + simplest thing that works.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q19</span> Pattern nào Spring dùng sẵn?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Spring Framework embed nhiều GoF pattern — developer dùng annotation mà không tự implement.</p></div>
+              <table class="feature-table">
+                <thead><tr><th>Pattern</th><th>Spring ví dụ</th></tr></thead>
+                <tbody>
+                  <tr><td>Singleton</td><td>Default bean scope — one instance per container</td></tr>
+                  <tr><td>Factory Method</td><td><code>BeanFactory.getBean()</code>, <code>@Configuration @Bean</code></td></tr>
+                  <tr><td>Proxy</td><td>AOP — <code>@Transactional</code>, <code>@Cacheable</code> (JDK/CGLIB)</td></tr>
+                  <tr><td>Template Method</td><td><code>JdbcTemplate</code>, <code>RestTemplate</code>, <code>JmsTemplate</code></td></tr>
+                  <tr><td>Observer</td><td><code>ApplicationEventPublisher</code>, <code>@EventListener</code></td></tr>
+                  <tr><td>Strategy</td><td>Inject interface impl; <code>ResourceComparator</code>, <code>HandlerMapping</code></td></tr>
+                  <tr><td>Decorator</td><td><code>HttpServletRequestWrapper</code>, caching decorators</td></tr>
+                  <tr><td>Adapter</td><td>Spring MVC adapters, JPA vendor adapters</td></tr>
+                  <tr><td>Facade</td><td><code>@Service</code> orchestration layer</td></tr>
+                  <tr><td>Chain of Responsibility</td><td>Filter chain, <code>HandlerInterceptor</code></td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Trả lời interview: “Em không implement Singleton thủ công — Spring quản lý lifecycle; em hiểu pattern để debug proxy/transaction và thiết kế extension point.”</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p><code>@Transactional</code> fail trên self-invocation — vì proxy chỉ wrap bean từ container, internal call không qua proxy → hiểu Proxy pattern giải thích bug.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Spring = pattern container thực tế.</li><li>Singleton beans, Factory @Bean, Proxy AOP, Template JdbcTemplate.</li><li>Observer ApplicationEvent; Strategy DI interface.</li><li>Hiểu pattern để debug TX/proxy/self-call.</li><li>Đừng implement lại những gì Spring đã có.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+<section class="section" id="deep-dive-patterns">
+          <h2 class="section-title">Deep Dive — Phân biệt &amp; chọn pattern đúng</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D1</span> Adapter vs Decorator vs Facade vs Proxy — 4 pattern hay bị nhầm</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Cả 4 đều là pattern "bọc" (wrap) một object khác, nhưng <em>intent</em> khác hẳn nhau: <strong>Adapter</strong> đổi interface để khớp với client; <strong>Decorator</strong> giữ nguyên interface, thêm behavior; <strong>Facade</strong> tạo interface mới đơn giản hơn cho cả một subsystem; <strong>Proxy</strong> giữ nguyên interface nhưng kiểm soát truy cập.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Interviewer rất hay hỏi "Decorator vs Proxy khác gì?" vì cấu trúc class gần như giống nhau (đều implement cùng interface và delegate lời gọi). Điểm khác biệt nằm ở <em>mục đích</em> và <em>ai tạo/điều khiển</em> object bị bọc — nắm được điều này là phân biệt được 4 pattern trong một câu trả lời.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <p>So sánh theo 4 tiêu chí — interface, intent, ví dụ:</p>
+                <table class="feature-table">
+                  <thead>
+                    <tr><th>Pattern</th><th>Interface</th><th>Intent</th><th>Ví dụ</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><strong>Adapter</strong></td><td>Đổi thành interface client cần</td><td>Kết nối 2 interface không tương thích</td><td>Wrap SDK thanh toán cũ → port nội bộ</td></tr>
+                    <tr><td><strong>Decorator</strong></td><td>Giữ nguyên (hoặc mở rộng)</td><td>Thêm behavior, xếp lớp lúc runtime</td><td><code>BufferedReader(FileReader)</code></td></tr>
+                    <tr><td><strong>Facade</strong></td><td>Tạo interface mới, đơn giản hơn</td><td>Che subsystem phức tạp bằng 1 entry point</td><td>Application service <code>placeOrder()</code></td></tr>
+                    <tr><td><strong>Proxy</strong></td><td>Giữ nguyên interface</td><td>Kiểm soát truy cập (lazy, bảo mật, TX)</td><td>Spring <code>@Transactional</code></td></tr>
+                  </tbody>
+                </table>
+                <div class="compare-grid">
+                  <div class="compare-col">
+                    <h4>Decorator</h4>
+                    <ul>
+                      <li>Client tự xếp lớp, thứ tự lồng do client quyết định</li>
+                      <li>Luôn delegate rồi mới enhance</li>
+                      <li>Không đổi vòng đời của object</li>
+                    </ul>
+                  </div>
+                  <div class="compare-col">
+                    <h4>Proxy</h4>
+                    <ul>
+                      <li>Proxy tự quản lý vòng đời service, thường do framework tạo</li>
+                      <li>Có thể KHÔNG gọi delegate (chặn hẳn truy cập)</li>
+                      <li>Trong suốt (transparent) với client</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Adapter: đổi interface SDK cũ sang port nội bộ</span>
+<span class="tok-keyword">interface</span> <span class="tok-class">PaymentPort</span> { <span class="tok-class">Receipt</span> <span class="tok-function">pay</span>(<span class="tok-class">Money</span> amount); }
+
+<span class="tok-keyword">class</span> <span class="tok-class">LegacyBankAdapter</span> <span class="tok-keyword">implements</span> <span class="tok-class">PaymentPort</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">LegacyBankSdk</span> sdk;        <span class="tok-comment">// interface khác hoàn toàn</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">Receipt</span> <span class="tok-function">pay</span>(<span class="tok-class">Money</span> amount) {
+    <span class="tok-keyword">return</span> <span class="tok-function">map</span>(sdk.<span class="tok-function">charge</span>(amount.<span class="tok-function">cents</span>(), amount.<span class="tok-function">currency</span>()));
+  }
+}
+
+<span class="tok-comment">// Decorator: giữ nguyên interface, thêm logging + retry</span>
+<span class="tok-keyword">class</span> <span class="tok-class">RetryingPayment</span> <span class="tok-keyword">implements</span> <span class="tok-class">PaymentPort</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">PaymentPort</span> delegate;
+  <span class="tok-class">RetryingPayment</span>(<span class="tok-class">PaymentPort</span> delegate) { <span class="tok-keyword">this</span>.delegate = delegate; }
+  <span class="tok-keyword">public</span> <span class="tok-class">Receipt</span> <span class="tok-function">pay</span>(<span class="tok-class">Money</span> amount) {
+    <span class="tok-keyword">int</span> tries = 0;
+    <span class="tok-keyword">while</span> (<span class="tok-keyword">true</span>) {
+      <span class="tok-keyword">try</span> { <span class="tok-keyword">return</span> delegate.<span class="tok-function">pay</span>(amount); }
+      <span class="tok-keyword">catch</span> (<span class="tok-class">RetryableException</span> e) { <span class="tok-keyword">if</span> (++tries &gt; 3) <span class="tok-keyword">throw</span> e; }
+    }
+  }
+}</code></pre></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Adapter khi phải tích hợp hệ thống ngoài không sửa được. Decorator khi cần bật/tắt behavior (cache, log, retry) linh hoạt theo cấu hình. Facade khi muốn một entry point cho workflow nhiều bước. Proxy cho cross-cutting concern (transaction, bảo mật, lazy loading).</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Code do mình owns nên refactor interface thay vì bọc Adapter chồng chất. Decorator chain quá dài gây khó debug — cross-cutting cho toàn app nên dùng AOP. Facade chỉ pass-through không orchestration thì chỉ thêm một tầng vô ích.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Nhầm <strong>Facade</strong> với <strong>Adapter</strong>: Facade định nghĩa interface MỚI (đơn giản hóa subsystem), Adapter làm interface CŨ dùng được mà không đơn giản hóa. Với <strong>Decorator vs Proxy</strong>: cả hai đều bọc cùng interface, nhưng Decorator để client tự do lồng nhiều lớp, còn Proxy thường do framework tạo và tự quản lý vòng đời. Nhớ: JDK dynamic proxy cần interface; CGLIB sinh subclass cho class cụ thể.</p></div>
+              <p><small>Nguồn: <a href="https://refactoring.guru/design-patterns/proxy">refactoring.guru — Proxy</a> · <a href="https://refactoring.guru/design-patterns/decorator">refactoring.guru — Decorator</a> · <a href="https://refactoring.guru/design-patterns/facade">refactoring.guru — Facade</a></small></p>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D2</span> Behavioral patterns: Strategy vs State vs Observer vs Template Method vs Chain of Responsibility</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Nhóm behavioral quản lý <em>cách object giao tiếp và chia trách nhiệm</em>: <strong>Strategy</strong> hoán đổi algorithm; <strong>State</strong> đổi behavior theo trạng thái nội bộ; <strong>Observer</strong> publish–subscribe một–nhiều; <strong>Template Method</strong> cố định khung thuật toán, subclass điền các bước; <strong>Chain of Responsibility</strong> chuyền request qua một chuỗi handler.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Hai câu hỏi kinh điển "Strategy khác State thế nào?" và "Template Method khác Strategy thế nào?" — chúng cùng giải quyết bài toán "thay đổi behavior" nhưng bằng cơ chế khác nhau (composition vs inheritance, và ai là người chọn thay đổi). Trả lời gọn được điểm cộng lớn.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <p>Phân biệt theo "ai quyết định thay đổi" và cơ chế:</p>
+                <table class="feature-table">
+                  <thead>
+                    <tr><th>Pattern</th><th>Ai quyết định thay đổi</th><th>Cơ chế</th><th>Ví dụ JDK / Spring</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><strong>Strategy</strong></td><td>Client/config chọn</td><td>Composition (inject)</td><td><code>Comparator</code>, HandlerMapping</td></tr>
+                    <tr><td><strong>State</strong></td><td>Object tự chuyển theo event</td><td>Composition + state object</td><td>Order lifecycle, Spring StateMachine</td></tr>
+                    <tr><td><strong>Observer</strong></td><td>Subject phát event</td><td>Danh sách listener</td><td><code>ApplicationEventPublisher</code></td></tr>
+                    <tr><td><strong>Template Method</strong></td><td>Base class gọi hook</td><td>Inheritance (Hollywood principle)</td><td><code>JdbcTemplate</code>, <code>HttpServlet.service()</code></td></tr>
+                    <tr><td><strong>Chain of Responsibility</strong></td><td>Handler tự quyết dừng/chuyền</td><td>Chuỗi handler liên kết</td><td>Servlet Filter, <code>HandlerInterceptor</code></td></tr>
+                  </tbody>
+                </table>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Request</div></div>
+                  <div class="flow-arrow">↓</div>
+                  <div class="flow-row"><div class="flow-node">AuthFilter</div><div class="flow-node">RateLimitFilter</div><div class="flow-node success">Controller</div></div>
+                  <div class="flow-arrow">↓ handler có thể dừng sớm (CoR) hoặc chuyền tiếp</div>
+                </div>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Template Method: khung cố định, subclass điền hook</span>
+<span class="tok-keyword">abstract class</span> <span class="tok-class">ImportJob</span> {
+  <span class="tok-keyword">final void</span> <span class="tok-function">run</span>() { <span class="tok-function">extract</span>(); <span class="tok-function">transform</span>(); <span class="tok-function">load</span>(); }  <span class="tok-comment">// final: không cho phá khung</span>
+  <span class="tok-keyword">abstract void</span> <span class="tok-function">extract</span>();
+  <span class="tok-keyword">abstract void</span> <span class="tok-function">transform</span>();
+  <span class="tok-keyword">abstract void</span> <span class="tok-function">load</span>();
+}
+
+<span class="tok-keyword">class</span> <span class="tok-class">CsvImportJob</span> <span class="tok-keyword">extends</span> <span class="tok-class">ImportJob</span> {
+  <span class="tok-keyword">void</span> <span class="tok-function">extract</span>()   { <span class="tok-comment">/* đọc CSV */</span> }
+  <span class="tok-keyword">void</span> <span class="tok-function">transform</span>() { <span class="tok-comment">/* chuẩn hóa */</span> }
+  <span class="tok-keyword">void</span> <span class="tok-function">load</span>()      { <span class="tok-comment">/* ghi DB */</span> }
+}
+
+<span class="tok-comment">// So với Strategy: cùng "thay behavior" nhưng Template dùng KẾ THỪA,</span>
+<span class="tok-comment">// Strategy dùng COMPOSITION và hoán đổi được lúc runtime.</span></code></pre></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Strategy khi có nhiều cách tính/so sánh. State khi vòng đời có transition hợp lệ rõ ràng (draft → paid → shipped). Observer khi nhiều bên cùng quan tâm một sự kiện. Template Method khi khung xử lý chung, chỉ vài bước khác. Chain of Responsibility cho pipeline filter/validation.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Chỉ 2 nhánh cố định không đổi thì if/else hoặc enum là đủ. Đừng dùng Template Method khi các bước orthogonal (dễ nổ subclass) — chuyển sang Strategy + composition. Không dùng Observer cho luồng cần thứ tự và đảm bảo chặt — dùng orchestration/Saga.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Phân biệt <strong>Strategy vs State</strong>: mấu chốt là <em>ai chọn</em> — client chọn Strategy (thường qua config/inject, không đổi giữa chừng), còn State tự chuyển khi event nội bộ xảy ra. Phân biệt <strong>Template Method vs Strategy</strong>: Template dùng kế thừa (ràng buộc compile-time), Strategy dùng composition (đổi runtime). Chain of Responsibility cho handler "không xử lý và chuyền tiếp" — khác Decorator luôn chạy và không được phá luồng.</p></div>
+              <p><small>Nguồn: <a href="https://refactoring.guru/design-patterns/chain-of-responsibility">refactoring.guru — Chain of Responsibility</a> · <a href="https://refactoring.guru/design-patterns/strategy">refactoring.guru — Strategy</a> · <a href="https://docs.spring.io/spring-framework/reference/core/aop.html">Spring Framework — AOP</a></small></p>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D3</span> Anti-patterns &amp; Singleton pitfalls: God Object, Anemic Domain, phá Singleton</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Anti-pattern</strong> là giải pháp trông có vẻ đúng nhưng gây hại lặp đi lặp lại. Ba cái phổ biến: <strong>God Object</strong> (một class ôm quá nhiều trách nhiệm), <strong>Anemic Domain Model</strong> (entity chỉ có getter/setter, toàn bộ logic dồn vào service), <strong>Singleton abuse</strong> (lạm dụng singleton cho global mutable state). Với Singleton còn có bẫy tạo được instance thứ hai qua reflection, serialization và nhiều classloader.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Senior không chỉ biết 23 pattern mà biết <em>khi nào KHÔNG dùng</em>. Nhận diện anti-pattern là kỹ năng review code: chúng làm giảm cohesion, tăng coupling, khiến code khó test và khó thay đổi.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <p>Nhận diện dấu hiệu rồi xử lý:</p>
+                <table class="feature-table">
+                  <thead>
+                    <tr><th>Anti-pattern</th><th>Dấu hiệu</th><th>Cách xử lý</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><strong>God Object</strong></td><td>Class 2000+ dòng, làm 10 việc, được inject khắp nơi</td><td>Tách theo trục thay đổi (SRP), dùng use-case service</td></tr>
+                    <tr><td><strong>Anemic Domain</strong></td><td>Entity toàn getter/setter; rule nằm hết ở service</td><td>Đẩy invariant vào aggregate khi rule gắn với data</td></tr>
+                    <tr><td><strong>Singleton abuse</strong></td><td>Global mutable state, hidden dependency, khó test</td><td>Dùng DI container; bean stateless/immutable</td></tr>
+                    <tr><td><strong>Golden Hammer</strong></td><td>Chỗ nào cũng Factory/Singleton "cho chuẩn"</td><td>YAGNI — chọn giải pháp đơn giản nhất đủ dùng</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// CÁC CÁCH PHÁ SINGLETON và cách chống</span>
+<span class="tok-comment">// 1) Reflection tạo instance thứ hai</span>
+<span class="tok-class">Constructor</span>&lt;<span class="tok-class">AppConfig</span>&gt; c = <span class="tok-class">AppConfig</span>.<span class="tok-keyword">class</span>.<span class="tok-function">getDeclaredConstructor</span>();
+c.<span class="tok-function">setAccessible</span>(<span class="tok-keyword">true</span>);            <span class="tok-comment">// phá được private constructor</span>
+<span class="tok-comment">// 2) Deserialization tạo object mới</span>
+<span class="tok-comment">// 3) Nhiều ClassLoader (app server) -> nhiều "singleton"</span>
+
+<span class="tok-comment">// CHỐNG: dùng enum — an toàn trước reflection, serialization, classloader</span>
+<span class="tok-keyword">public enum</span> <span class="tok-class">AppConfig</span> {
+  INSTANCE;
+  <span class="tok-keyword">private final</span> <span class="tok-class">Map</span>&lt;<span class="tok-class">String</span>, <span class="tok-class">String</span>&gt; values = <span class="tok-keyword">new</span> <span class="tok-class">ConcurrentHashMap</span>&lt;&gt;();
+  <span class="tok-keyword">public</span> <span class="tok-class">String</span> <span class="tok-function">get</span>(<span class="tok-class">String</span> k) { <span class="tok-keyword">return</span> values.<span class="tok-function">get</span>(k); }
+}
+
+<span class="tok-comment">// Nếu buộc dùng class: chặn trong constructor + cài readResolve()</span>
+<span class="tok-keyword">private</span> <span class="tok-class">AppConfig</span>() {
+  <span class="tok-keyword">if</span> (instance != <span class="tok-keyword">null</span>) <span class="tok-keyword">throw new</span> <span class="tok-class">IllegalStateException</span>(<span class="tok-string">"Use getInstance()"</span>);
+}</code></pre></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Dùng pattern khi có trục thay đổi/lặp thật. Tránh singleton thủ công khi đã có Spring bean. Chọn enum singleton khi cần singleton thật sự nằm ngoài DI container.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng tuyệt đối hóa "Anemic = sai": với Spring Data JPA, entity làm data holder + service xử lý là hợp lý và phổ biến — chỉ chuyển sang rich domain khi invariant phức tạp. Không tự implement Singleton thay vì để DI container quản lý.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Double-checked locking thiếu <code>volatile</code> có thể khiến thread khác thấy object "chưa khởi tạo xong" do JMM reorder — sai trước Java 5 và vẫn sai nếu bỏ <code>volatile</code>. Reflection phá được Bill Pugh/class singleton nhưng KHÔNG phá được enum (JVM chặn). Lưu ý: <code>@Service</code> của Spring mặc định singleton nhưng KHÔNG phải GoF singleton — container quản lý nên dễ test hơn.</p></div>
+              <p><small>Nguồn: <a href="https://sourcemaking.com/antipatterns">SourceMaking — AntiPatterns</a> · <a href="https://martinfowler.com/bliki/AnemicDomainModel.html">Martin Fowler — Anemic Domain Model</a> · <a href="https://refactoring.guru/design-patterns/singleton">refactoring.guru — Singleton</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <div class="nav-pager">
+          <a class="prev" href="12-software-design.html">
+            <span class="label">Trước</span>
+            <span class="title">12. Software Design &amp; UML</span>
+          </a>
+          <a class="next" href="14-study-plan.html">
+            <span class="label">Tiếp</span>
+            <span class="title">📅 Kế hoạch ôn tập</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Module 13 / 14</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

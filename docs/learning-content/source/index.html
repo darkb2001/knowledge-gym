@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Gym — Java Backend &amp; AWS DVA-C02</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Knowledge<br><span>Gym</span></h1>
+        <p>Java, AWS &amp; Frontend</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home active"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <!-- Main Content -->
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb">Knowledge Gym — Java, AWS &amp; Frontend</span>
+      </header>
+
+      <div class="content">
+        <div class="hero">
+          <div class="hero-eyebrow">Java Backend, AWS DVA-C02 &amp; Frontend (React) Interview Prep</div>
+          <h1 class="hero-title">Ngân hàng câu hỏi<br>phỏng vấn <em>Java, AWS &amp; Frontend</em></h1>
+          <p class="hero-subtitle">Tài liệu ôn tập Java backend (Java Core → System Design), AWS DVA-C02 (service cốt lõi, diagram trực quan) và Frontend React/TypeScript cho fullstack engineer.</p>
+
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <div class="num">38</div>
+              <div class="lbl">Modules</div>
+            </div>
+            <div class="hero-stat">
+              <div class="num">529</div>
+              <div class="lbl">Câu hỏi</div>
+            </div>
+            <div class="hero-stat">
+              <div class="num">481</div>
+              <div class="lbl">Code Examples</div>
+            </div>
+            <div class="hero-stat">
+              <div class="num">290</div>
+              <div class="lbl">Diagrams</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 style="font-family:var(--font-serif);font-size:24px;margin-bottom:24px">Chọn chủ đề để bắt đầu</h2>
+
+        <div class="module-grid">
+          <a class="module-card" href="01-java-core.html">
+            <span class="num">Module 01</span>
+            <h3>Java Core & Memory Internals</h3>
+            <p>JVM, Garbage Collection, Collections Framework, String Pool, Generics, Records, Lambda</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="02-multithreading.html">
+            <span class="num">Module 02</span>
+            <h3>Multithreading & Concurrency</h3>
+            <p>Thread, synchronized, CompletableFuture, Virtual Threads, Concurrent Collections</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="03-spring-boot.html">
+            <span class="num">Module 03</span>
+            <h3>Spring Boot Framework</h3>
+            <p>DI/IoC, Bean Lifecycle, AOP, @Transactional, Spring Security, Actuator, Cache</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="04-jpa-hibernate.html">
+            <span class="num">Module 04</span>
+            <h3>Hibernate / JPA</h3>
+            <p>N+1 Query, Lazy/Eager Loading, Locking Strategies, Entity Lifecycle, Pagination</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="05-database.html">
+            <span class="num">Module 05</span>
+            <h3>Database, SQL & NoSQL</h3>
+            <p>ACID, MVCC, Oracle, SQL Server, Index, Sharding, Replication, Schema Design</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="06-rest-api.html">
+            <span class="num">Module 06</span>
+            <h3>REST API, Web & Security</h3>
+            <p>JWT, OAuth 2.0, OWASP Top 10, CORS, Idempotency, Rate Limiting</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="15-auth-rbac-oauth.html">
+            <span class="num">Module 15</span>
+            <h3>Auth, RBAC &amp; OAuth2</h3>
+            <p>Authentication vs Authorization, RBAC/ABAC, JWT, Spring Security Filter Chain, OAuth2/OIDC, S2S auth</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="07-microservices.html">
+            <span class="num">Module 07</span>
+            <h3>Microservices & Distributed</h3>
+            <p>Saga Pattern, Circuit Breaker, Kafka, CQRS, Event Sourcing, Service Mesh</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="08-system-design.html">
+            <span class="num">Module 08</span>
+            <h3>System Design & Scalability</h3>
+            <p>URL Shortener, Payment System, Redis Cache, Rate Limiting, Troubleshooting</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="09-cloud-cicd.html">
+            <span class="num">Module 09</span>
+            <h3>Cloud, CI/CD & Testing</h3>
+            <p>Kubernetes, GitLab CI/CD, Blue/Green, Canary, Testcontainers, Contract Testing</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="11-dsa.html">
+            <span class="num">Module 11</span>
+            <h3>Coding & Data Structures</h3>
+            <p>LRU Cache, Sliding Window, BFS/DFS, Dynamic Programming, Union-Find</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="12-software-design.html">
+            <span class="num">Module 12</span>
+            <h3>Software Design & UML</h3>
+            <p>SRS, SDD, Class Diagram, Sequence Diagram, State Diagram, PlantUML</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="13-design-patterns.html">
+            <span class="num">Module 13</span>
+            <h3>Design Patterns</h3>
+            <p>Singleton, Factory, Builder, Strategy, State, Observer, Proxy, Spring built-in patterns</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="16-ai-assisted-engineering.html">
+            <span class="num">Module 16</span>
+            <h3>AI-assisted Engineering</h3>
+            <p>Prompt &amp; context engineering, kiểm chứng output AI, automation và review code do AI sinh</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="14-study-plan.html">
+            <span class="num">Bonus</span>
+            <h3>Kế hoạch ôn tập</h3>
+            <p>Lộ trình 3 tuần ôn tập, YouTube resources, milestone theo tuần</p>
+            <span class="arrow">Xem kế hoạch →</span>
+          </a>
+          <a class="module-card" href="20-aws-lambda.html" data-track="aws">
+            <span class="num">AWS 20</span>
+            <h3>AWS Lambda — Deep Dive</h3>
+            <p>Runtime, cold start, concurrency, event source mapping và quota DVA-C02</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="21-aws-containers-ec2.html" data-track="aws">
+            <span class="num">AWS 21</span>
+            <h3>Containers &amp; EC2 cho Developer</h3>
+            <p>ECS, Fargate, EKS, EC2 và lựa chọn compute theo tình huống</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="22-aws-s3.html" data-track="aws">
+            <span class="num">AWS 22</span>
+            <h3>Amazon S3 cho Developer</h3>
+            <p>Storage class, bảo mật, mã hoá, presigned URL, lifecycle, hiệu năng</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="23-aws-storage.html" data-track="aws">
+            <span class="num">AWS 23</span>
+            <h3>EBS, EFS &amp; Storage phụ trợ</h3>
+            <p>Block, file, backup, di chuyển dữ liệu và chọn storage đúng</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="24-aws-dynamodb.html" data-track="aws">
+            <span class="num">AWS 24</span>
+            <h3>DynamoDB — trọng tâm DVA</h3>
+            <p>Key design, capacity, index, stream, DAX và single-table design</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="25-aws-databases.html" data-track="aws">
+            <span class="num">AWS 25</span>
+            <h3>RDS, Aurora, ElastiCache</h3>
+            <p>Relational managed, replication, cache và bản đồ chọn database</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="26-aws-vpc-networking.html" data-track="aws">
+            <span class="num">AWS 26</span>
+            <h3>VPC &amp; Load Balancing</h3>
+            <p>Subnet, security group, VPC endpoint và cân bằng tải</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="27-aws-edge-apigw.html" data-track="aws">
+            <span class="num">AWS 27</span>
+            <h3>CloudFront, Route 53 &amp; API Gateway</h3>
+            <p>Edge, DNS, cửa vào API và tích hợp Lambda</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="28-aws-messaging.html" data-track="aws">
+            <span class="num">AWS 28</span>
+            <h3>SQS, SNS &amp; EventBridge</h3>
+            <p>Queue, pub/sub và event-driven bền vững</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="29-aws-orchestration-streaming.html" data-track="aws">
+            <span class="num">AWS 29</span>
+            <h3>Step Functions, Kinesis &amp; Orchestration</h3>
+            <p>State machine, stream và xử lý dữ liệu</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="30-aws-iam-identity.html" data-track="aws">
+            <span class="num">AWS 30</span>
+            <h3>IAM, STS &amp; Cognito</h3>
+            <p>Danh tính, quyền, policy evaluation và luồng xác thực</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="31-aws-security-encryption.html" data-track="aws">
+            <span class="num">AWS 31</span>
+            <h3>KMS, Secrets &amp; bảo vệ dữ liệu</h3>
+            <p>KMS, Secrets Manager, certificates và mã hoá at-rest/in-transit</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="32-aws-cicd-iac.html" data-track="aws">
+            <span class="num">AWS 32</span>
+            <h3>AWS CI/CD &amp; Infrastructure as Code</h3>
+            <p>CodePipeline, CloudFormation, SAM và CDK</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="33-aws-observability-troubleshooting.html" data-track="aws">
+            <span class="num">AWS 33</span>
+            <h3>CloudWatch, X-Ray &amp; Troubleshooting</h3>
+            <p>Giám sát, log, trace và debug lỗi thường gặp</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+
+          <a class="module-card" href="34-fe-javascript-typescript.html" data-track="frontend">
+            <span class="num">Module 34</span>
+            <h3>JavaScript &amp; TypeScript</h3>
+            <p>Event loop, closure, this, Promise/async-await, immutability, ES modules, TS generics, narrowing &amp; strict mode</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="35-react-fundamentals.html" data-track="frontend">
+            <span class="num">Module 35</span>
+            <h3>React Fundamentals</h3>
+            <p>JSX, component &amp; props, state, list &amp; key, composition, event, controlled form, reconciliation, batching, StrictMode</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="36-react-hooks-data.html" data-track="frontend">
+            <span class="num">Module 36</span>
+            <h3>React Hooks &amp; Data Fetching</h3>
+            <p>useState/useEffect, useMemo/useCallback, useRef, useReducer, custom hook, Context, Redux Toolkit/Zustand, TanStack Query, optimistic UI</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="37-react-architecture-testing.html" data-track="frontend">
+            <span class="num">Module 37</span>
+            <h3>React Architecture &amp; Testing</h3>
+            <p>Routing, lazy/Suspense, lớp API &amp; refresh token, CORS, auth storage, a11y, Vitest/RTL/MSW/Playwright, Vite build, Web Vitals</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="38-elasticsearch.html">
+            <span class="num">Module 38</span>
+            <h3>Elasticsearch cho Backend</h3>
+            <p>Inverted index, mapping &amp; analyzer, query DSL, filter context, pagination sâu, relevance/BM25, Spring Data ES, sync DB→ES, vận hành cluster</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="39-modular-architecture-osgi.html">
+            <span class="num">Module 39</span>
+            <h3>Modular Architecture &amp; OSGi</h3>
+            <p>Cohesion/coupling, package-by-feature, JPMS, OSGi bundle lifecycle &amp; classloader, DS services, versioning package, Spring Modulith/ArchUnit, SPI plugin</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="40-build-tools-gradle-maven.html">
+            <span class="num">Module 40</span>
+            <h3>Build Tools &amp; Agile Workflow</h3>
+            <p>Maven lifecycle &amp; scope, BOM/dependencyManagement, multi-module reactor, Gradle task/plugin &amp; version catalog, xung đột dependency, build tái lập, Scrum, Git workflow</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="41-sql-performance-tuning.html">
+            <span class="num">Module 41</span>
+            <h3>SQL Performance Tuning</h3>
+            <p>Execution plan, selectivity &amp; index, composite/covering index, join strategy, N+1, statistics/VACUUM, partition, keyset pagination, khác biệt PostgreSQL ↔ Oracle</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+          <a class="module-card" href="42-ecommerce-iot-domain.html">
+            <span class="num">Module 42</span>
+            <h3>E-commerce, Enterprise &amp; IoT</h3>
+            <p>Catalog/inventory/pricing, order state machine, payment idempotency, cart→fulfillment, promotion rule, search &amp; recommendation, MQTT &amp; device twin, telemetry/OTA</p>
+            <span class="arrow">Khám phá →</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Tự thu thập & tổng hợp từ YouTube — © 2026</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

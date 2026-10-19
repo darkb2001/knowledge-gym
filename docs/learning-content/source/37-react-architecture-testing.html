@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>37. Kiến trúc React, Tích hợp API &amp; Testing — Knowledge Gym</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Knowledge<br><span>Gym</span></h1>
+        <p>Java, AWS DVA-C02 &amp; Frontend</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>37. Kiến trúc React, Tích hợp API &amp; Testing</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 37</div>
+          <h1 class="module-title">Kiến trúc React, Tích hợp API &amp; Testing</h1>
+          <p class="module-subtitle">Đưa React lên mức production: routing, code splitting, lớp gọi API và refresh token, CORS, accessibility, chiến lược test và tối ưu Web Vitals.</p>
+        </div>
+
+        <section class="section" id="routing-layout-ph-n-quy-n-fe">
+          <h2 class="section-title">Routing, layout & phân quyền ở FE</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q1</span> Routing trong SPA — cấu trúc route, nested route và layout khác gì nhau?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Routing là tầng ánh xạ URL thành cây component. React Router khai báo route lồng nhau: route cha render <code>&lt;Outlet /&gt;</code> làm chỗ chèn route con. Next.js App Router suy ra route từ cấu trúc thư mục <code>app/</code>: <code>page.tsx</code> tạo route, <code>layout.tsx</code> bọc chung, <code>loading.tsx</code> và <code>error.tsx</code> xử lý trạng thái. Cả hai dùng History API nên đổi URL không reload toàn trang.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Nested route + layout cho phép chia sẻ UI (sidebar, topbar, tab) mà layout <em>không remount</em> khi điều hướng giữa các route con — state filter, vị trí scroll, kết nối socket giữ nguyên. Nếu để route phẳng hết, mỗi trang tự render lại khung, mất state và tốn re-render. URL là state có thể share, bookmark, back/forward — điều mà state cục bộ không làm được.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">URL thay đổi (pushState)</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Router khớp route tree</div><div class="flow-node">Layout cha (giữ nguyên)</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Page con render trong Outlet</div></div>
+      </div>
+      <p>Router so khớp segment với route tree, mount phần layout còn thiếu rồi render page con vào <code>Outlet</code>. Route động dùng param (<code>/orders/:orderId</code>) hoặc catch-all (<code>*</code>). Next.js làm tương tự nhưng dựa trên thư mục: layout không đổi khi điều hướng trong cùng nhánh, nên chỉ segment mới được stream/render.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>App nhiều màn hình có khung chung (dashboard, admin, tab trong chi tiết), cần deep link, breadcrumb, back/forward, hoặc cần giữ state của khung khi chuyển tab con.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>App một màn hình hoặc chỉ có modal/step — state cục bộ đủ, dựng router chỉ thêm phức tạp. Cũng đừng lạm dụng nested route quá sâu cho những thứ không phải điều hướng thật (tab nhỏ, wizard trong modal) vì URL sẽ khó đọc và dễ lệch state.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// React Router v6 — nested route + layout cha</span>
+<span class="tok-keyword">const</span> router = <span class="tok-function">createBrowserRouter</span>([
+  {
+    path: <span class="tok-string">'/'</span>,
+    element: &lt;AppLayout /&gt;,           <span class="tok-comment">// layout cha render &lt;Outlet /&gt;</span>
+    children: [
+      { index: <span class="tok-keyword">true</span>, element: &lt;Dashboard /&gt; },
+      { path: <span class="tok-string">'orders'</span>, element: &lt;Orders /&gt;,
+        children: [{ path: <span class="tok-string">':orderId'</span>, element: &lt;OrderDetail /&gt; }] },
+      { path: <span class="tok-string">'*'</span>, element: &lt;NotFound /&gt; },
+    ],
+  },
+]);
+
+<span class="tok-keyword">function</span> <span class="tok-function">AppLayout</span>() {
+  <span class="tok-keyword">return</span> (
+    &lt;div className=<span class="tok-string">"shell"</span>&gt;
+      &lt;Sidebar /&gt;
+      &lt;main&gt;&lt;Outlet /&gt;&lt;/main&gt;   <span class="tok-comment">// route con render ở đây</span>
+    &lt;/div&gt;
+  );
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Trang chi tiết đơn hàng: layout khung (sidebar + header) giữ nguyên khi chuyển giữa tab "Lines / Timeline / Documents"; tab là route con nên copy link gửi đồng nghiệp vẫn mở đúng tab.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Đặt layout <em>bên trong</em> từng page thay vì ở route cha → remount toàn bộ, mất state và giật khi điều hướng. Với danh sách dùng cùng component nhưng khác URL, thiếu <code>key</code> ổn định khiến React reuse sai state giữa hai trang. Next.js: <code>layout.tsx</code> mặc định là Server Component — không đặt logic cần <code>useState</code> ở đó mà không có <code>"use client"</code>.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Routing = map URL → cây component; React Router dùng Outlet, Next dùng thư mục app/.</li>
+      <li>Nested route + layout cha để không remount khung, giữ state và scroll.</li>
+      <li>Layout phải nằm ở route cha, không nằm trong page.</li>
+      <li>Route động qua param, không đủ thì catch-all '*'.</li>
+      <li>URL là state share được — deep link, back/forward.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q2</span> Protected route ở FE có phải là ranh giới bảo mật không?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Protected route là guard phía client: trước khi render, kiểm tra user đã đăng nhập và có role/permission cần thiết; nếu không thì chuyển hướng về trang login hoặc 403. Nó <strong>chỉ là UX gate</strong> — quyết định hiện hay ẩn UI — không phải ranh giới bảo mật. Ranh giới thật nằm ở backend: mỗi request phải được xác thực và phân quyền độc lập, không tin bất cứ gì client gửi lên.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Người dùng luôn có thể gọi API trực tiếp bằng curl/Postman, sửa JS trong DevTools, hoặc sửa state để guard trả về true. Nếu backend không kiểm tra quyền, dữ liệu vẫn bị trả về → broken access control (OWASP A01). FE guard có giá trị thật nhưng nằm ở chỗ khác: tránh cho user vào một trang trắng rồi nhận 403, giảm request vô nghĩa, và ẩn nút mà user không có quyền bấm.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Điều hướng tới /admin</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node">Guard FE: còn token? đủ role?</div></div>
+        <div class="flow-arrow">↓ không / có</div>
+        <div class="flow-row"><div class="flow-node warning">Redirect /login</div><div class="flow-node success">Render trang + gọi API</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node primary">Backend xác thực + kiểm tra quyền theo resource</div></div>
+      </div>
+      <p>Guard chỉ chặn ở tầng render. Song song, backend phải kiểm tra trên từng endpoint: token hợp lệ, role đủ, và quan trọng nhất là quyền trên <em>đúng resource</em> (order này có thuộc user/tenant này không) để chặn IDOR khi user đổi <code>orderId</code> trên URL.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng để điều hướng UX: chưa đăng nhập thì về login kèm <code>redirect</code> về trang cũ; role không đủ thì ẩn menu/nút và hiện trang "không có quyền"; permission đọc từ server trả về (claim trong access token hoặc endpoint <code>/me</code>) chỉ để trang trí UI.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng FE guard để bảo vệ dữ liệu nhạy cảm, không coi "ẩn nút" là đã phân quyền. Cũng đừng decode JWT ở FE rồi tin payload để ra quyết định business (payload đọc được và có thể bị sửa trước khi decode nếu ta tự parse) — chữ ký chỉ backend verify. Với dữ liệu cần bảo mật, luôn hỏi: "endpoint này có tự kiểm tra quyền chưa?".</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// Guard chỉ chặn render — KHÔNG phải bảo mật</span>
+<span class="tok-keyword">function</span> <span class="tok-function">RequireAuth</span>({ children, roles }: { children: ReactNode; roles?: string[] }) {
+  <span class="tok-keyword">const</span> { user, loading } = <span class="tok-function">useAuth</span>();
+  <span class="tok-keyword">const</span> location = <span class="tok-function">useLocation</span>();
+
+  <span class="tok-keyword">if</span> (loading) <span class="tok-keyword">return</span> &lt;Spinner /&gt;;
+  <span class="tok-keyword">if</span> (!user) <span class="tok-keyword">return</span> &lt;Navigate to=<span class="tok-string">"/login"</span> state={{ from: location }} replace /&gt;;
+  <span class="tok-keyword">if</span> (roles &amp;&amp; !roles.<span class="tok-function">some</span>((r) =&gt; user.roles.<span class="tok-function">includes</span>(r))) {
+    <span class="tok-keyword">return</span> &lt;Navigate to=<span class="tok-string">"/403"</span> replace /&gt;;
+  }
+  <span class="tok-keyword">return</span> &lt;&gt;{children}&lt;/&gt;;
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Route <code>/admin/reports</code> chỉ cho role <code>MANAGER</code>: guard ẩn khỏi menu và redirect nếu truy cập tay, đồng thời endpoint <code>GET /api/reports</code> trả 403 nếu token thiếu role — hai lớp độc lập, lớp sau mới là thật.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Trả lời "FE ẩn nút nên user không gọi được API" là mất điểm. Bẫy tiếp theo: chỉ kiểm tra "đã đăng nhập" mà không kiểm tra quyền trên resource → IDOR (đổi <code>orderId</code> thấy đơn của user khác). Cũng cẩn thận backend tin header <code>X-Role</code> hoặc role do client gửi.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Protected route = UX gate, không phải bảo mật.</li>
+      <li>Client luôn có thể gọi API trực tiếp — backend phải tự kiểm tra.</li>
+      <li>Guard tốt cho UX: redirect, ẩn menu, tránh trang trắng.</li>
+      <li>Phải kiểm quyền trên đúng resource để chặn IDOR.</li>
+      <li>Không tin payload/route do client gửi để ra quyết định.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q3</span> Code splitting, lazy + Suspense, dynamic import — đo bundle và khi nào nên tách chunk?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Code splitting chia bundle thành nhiều chunk tải theo nhu cầu bằng dynamic <code>import()</code>. React bọc nó qua <code>React.lazy(() =&gt; import('./Heavy'))</code> rồi đặt trong <code>&lt;Suspense fallback={...}&gt;</code>; Next.js tự tách chunk theo route và có <code>next/dynamic</code> cho component. Mục tiêu là giảm lượng JavaScript của lần tải đầu để first paint và khả năng tương tác đến sớm hơn.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Bundle lớn đồng nghĩa parse + compile + execute JS nặng trên main thread, làm LCP muộn và INP cao — đặc biệt trên máy yếu/mạng 3G. Tách route và component nặng ra khỏi chunk đầu giúp trang chính nhẹ. Nhưng tách quá nhỏ cũng hại: nhiều request sinh waterfall, mỗi lần chuyển màn hình có thêm một round-trip, dễ thấy nhấp nháy khi Suspense fallback hiện lên.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Đo bundle (build output / visualizer)</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Tìm chunk lớn &amp; ít dùng lúc đầu</div><div class="flow-node">Route nặng, editor, chart, map</div></div>
+        <div class="flow-arrow">↓ dynamic import()</div>
+        <div class="flow-row"><div class="flow-node success">Chunk riêng, tải khi cần</div></div>
+      </div>
+      <p>Cách đo: xem output của <code>vite build</code> (danh sách chunk + kích thước gzip), <code>next build</code> in cột "First Load JS" theo route, và phân tích thành phần bằng <code>rollup-plugin-visualizer</code> hoặc source map explorer. Ngưỡng thực dụng: tách theo route trước; một dependency chiếm hơn ~30–50 kB gzip và không cần ngay ở màn hình đầu thì đáng lazy.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Route/màn hình chỉ vào sau khi user đăng nhập hoặc bấm menu; component nặng nhiều phụ thuộc (rich text editor, biểu đồ, bản đồ, pdf viewer); modal/panel ít mở; thư viện chỉ dùng ở một trang. Ở Next.js, dùng <code>next/dynamic</code> với <code>ssr: false</code> cho component chỉ chạy được trên browser.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không lazy component nằm above the fold hoặc render ngay khi vào app — sẽ chậm hơn và nháy fallback. Không tách vụn từng component nhỏ: mỗi chunk là một request, waterfall làm chậm hơn là nhanh hơn. Cũng đừng lazy chỉ để "cho đẹp số liệu build" khi route đó vốn là đường vào chính.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-keyword">import</span> { lazy, Suspense } <span class="tok-keyword">from</span> <span class="tok-string">'react'</span>;
+
+<span class="tok-comment">// dynamic import: chunk riêng, chỉ tải khi route này được render</span>
+<span class="tok-keyword">const</span> ReportEditor = <span class="tok-function">lazy</span>(() =&gt; <span class="tok-keyword">import</span>(<span class="tok-string">'./ReportEditor'</span>));
+
+<span class="tok-keyword">export function</span> <span class="tok-function">ReportPage</span>() {
+  <span class="tok-keyword">return</span> (
+    &lt;Suspense fallback={&lt;Skeleton rows={<span class="tok-number">6</span>} /&gt;}&gt;
+      &lt;ReportEditor /&gt;
+    &lt;/Suspense&gt;
+  );
+}
+
+<span class="tok-comment">// Vite: tách vendor, tránh chunk quá lớn</span>
+<span class="tok-comment">// build.rollupOptions.output.manualChunks = { react: ['react', 'react-dom'] }</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Dashboard nội bộ: trang chính nhẹ, chỉ khi user mở tab "Analytics" mới tải thư viện biểu đồ. First Load JS của route chính giảm mạnh, tab analytics chấp nhận tải thêm một chunk khi bấm.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy hay gặp: prefetch sai — React Router/Next prefetch mọi route khiến user tải hết dù không vào, phản tác dụng. Nữa là dynamic import <em>bên trong</em> component dùng ngay ở lần render đầu → mỗi render tạo promise mới nếu viết sai chỗ, cần khai báo ở module scope. Và nhớ: <code>Suspense</code> chỉ bắt lazy/transition, không tự chặn lỗi runtime — lỗi thì cần error boundary.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Code splitting = dynamic import() tạo chunk tải theo nhu cầu.</li>
+      <li>React.lazy + Suspense; Next tách route tự động, next/dynamic cho component.</li>
+      <li>Đo bằng build output, First Load JS, visualizer — không đoán.</li>
+      <li>Tách theo route và component nặng; tránh tách vụn gây waterfall.</li>
+      <li>Không lazy thứ above the fold; Suspense không thay error boundary.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="t-ch-h-p-api-auth-cors">
+          <h2 class="section-title">Tích hợp API, auth & CORS</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q4</span> Lớp gọi API ở FE nên tổ chức thế nào? Xử lý 401, refresh token, retry, timeout, huỷ request ra sao?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Tách một HTTP client dùng chung (một axios instance hoặc wrapper quanh <code>fetch</code>) thay vì gọi rải rác khắp component. Client đó gắn interceptor để: thêm header <code>Authorization</code>, khi gặp 401 thì gọi refresh token <em>một lần</em> rồi retry request cũ, chuẩn hoá lỗi về một shape thống nhất, đặt timeout, và nhận <code>AbortSignal</code> để huỷ request khi không còn cần.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Gom vào một chỗ giúp đổi baseURL/header/format lỗi mà không sửa hàng trăm call site, và tránh "refresh storm" — nhiều request 401 cùng lúc đều gọi refresh làm token hỏng/đăng xuất oan. Timeout + abort ngăn request treo vô hạn và race condition khi user đổi filter liên tục (kết quả cũ về sau ghi đè kết quả mới). Retry đúng chỗ giúp chịu lỗi mạng mà không gây tác dụng phụ.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Request qua client chung</div></div>
+        <div class="flow-arrow">↓ interceptor gắn token + timeout</div>
+        <div class="flow-row"><div class="flow-node secondary">Server trả 401</div><div class="flow-node">Refresh single-flight</div></div>
+        <div class="flow-arrow">↓ refresh OK</div>
+        <div class="flow-row"><div class="flow-node success">Retry request 1 lần → trả data</div></div>
+        <div class="flow-arrow">↓ refresh fail</div>
+        <div class="flow-row"><div class="flow-node warning">Logout + về trang login</div></div>
+      </div>
+      <p>Refresh phải <em>single-flight</em>: giữ một promise refresh đang chạy, mọi request 401 khác chờ chung promise đó thay vì gọi song song. Chỉ retry một lần, và chỉ retry an toàn với request idempotent (GET/HEAD) hoặc request đã có idempotency key; retry mù với POST có thể tạo đơn trùng.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>App có auth và nhiều endpoint; cần xử lý token hết hạn êm (user không bị đá ra giữa chừng); cần phân biệt lỗi mạng, lỗi 4xx nghiệp vụ và lỗi 5xx để hiện toast/retry phù hợp; cần huỷ request khi unmount hoặc khi filter đổi.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng retry vô hạn hoặc retry cả 4xx (401 sau refresh, 403, 422 — retry vô nghĩa, chỉ tốn request). Không bọc mọi lỗi thành toast chung chung — mất khả năng xử lý theo ngữ cảnh. Không nhồi logic business vào interceptor; nó chỉ nên lo cross-cutting (auth, log, lỗi, timeout).</p></div>
+    <div class="code-block" data-lang="ts"><pre><code><span class="tok-keyword">let</span> refreshPromise: Promise&lt;<span class="tok-keyword">void</span>&gt; | <span class="tok-keyword">null</span> = <span class="tok-keyword">null</span>;
+
+<span class="tok-comment">// gọi qua client chung, không fetch rải rác trong component</span>
+<span class="tok-keyword">async function</span> <span class="tok-function">apiFetch</span>&lt;T&gt;(url: string, init: RequestInit = {}): Promise&lt;T&gt; {
+  <span class="tok-keyword">const</span> res = <span class="tok-keyword">await</span> <span class="tok-function">fetch</span>(url, {
+    ...init,
+    credentials: <span class="tok-string">'include'</span>,                    <span class="tok-comment">// gửi cookie httpOnly</span>
+    headers: { ...init.headers, <span class="tok-string">'Content-Type'</span>: <span class="tok-string">'application/json'</span> },
+    signal: init.signal ?? <span class="tok-class">AbortSignal</span>.<span class="tok-function">timeout</span>(<span class="tok-number">10_000</span>),
+  });
+
+  <span class="tok-keyword">if</span> (res.status === <span class="tok-number">401</span>) {
+    <span class="tok-comment">// single-flight: nhiều 401 cùng chờ một refresh</span>
+    refreshPromise ??= <span class="tok-function">refreshToken</span>().<span class="tok-function">finally</span>(() =&gt; { refreshPromise = <span class="tok-keyword">null</span>; });
+    <span class="tok-keyword">await</span> refreshPromise;
+    <span class="tok-keyword">return</span> <span class="tok-function">apiFetch</span>&lt;T&gt;(url, init);              <span class="tok-comment">// retry đúng 1 lần</span>
+  }
+  <span class="tok-keyword">if</span> (!res.ok) <span class="tok-keyword">throw new</span> <span class="tok-class">ApiError</span>(res.status, <span class="tok-keyword">await</span> res.<span class="tok-function">json</span>());
+  <span class="tok-keyword">return</span> res.<span class="tok-function">json</span>() <span class="tok-keyword">as</span> Promise&lt;T&gt;;
+}
+
+<span class="tok-comment">// huỷ khi filter đổi / component unmount</span>
+<span class="tok-keyword">const</span> ac = <span class="tok-keyword">new</span> <span class="tok-class">AbortController</span>();
+<span class="tok-function">apiFetch</span>(<span class="tok-string">`/api/orders?q=${q}`</span>, { signal: ac.signal });
+<span class="tok-keyword">return</span> () =&gt; ac.<span class="tok-function">abort</span>();</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Màn hình danh sách có ô search debounce: mỗi lần gõ, request cũ bị <code>abort()</code> nên kết quả cũ không ghi đè kết quả mới; khi access token hết hạn, một refresh duy nhất chạy và toàn bộ request đang chờ tự retry.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy kinh điển: refresh loop vô hạn khi chính endpoint refresh cũng trả 401 — phải loại trừ URL refresh khỏi interceptor. Thứ hai: retry POST không idempotent gây tạo bản ghi trùng. Thứ ba: quên <code>AbortController</code> → setState sau unmount và race kết quả. Cuối cùng: timeout quá ngắn cắt cả request upload chậm.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Một HTTP client chung + interceptor, không fetch rải rác.</li>
+      <li>401 → refresh single-flight → retry đúng một lần.</li>
+      <li>Loại trừ endpoint refresh khỏi interceptor, tránh loop.</li>
+      <li>Timeout mặc định + AbortSignal để huỷ và tránh race.</li>
+      <li>Chỉ retry idempotent, không retry 4xx.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q5</span> Access token nên lưu ở đâu: memory, localStorage hay cookie httpOnly?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Có ba lựa chọn chính. <strong>Memory</strong> (biến module/React state): an toàn nhất trước XSS kéo dài nhưng mất khi reload. <strong>localStorage/sessionStorage</strong>: tiện và tồn tại qua reload, nhưng JavaScript đọc được nên một XSS là token bị lấy trọn. <strong>Cookie <code>httpOnly</code></strong> (kèm <code>Secure</code>, <code>SameSite</code>): JS không đọc được, chặn đánh cắp token qua XSS, nhưng phải xử lý CSRF.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Đây là bài toán cân bằng XSS và CSRF. Cookie <code>httpOnly</code> giấu token khỏi JavaScript nên XSS không exfiltrate được, đổi lại browser tự gửi cookie nên cần chống CSRF (cùng <code>SameSite</code> + CSRF token). localStorage kháng CSRF tự nhiên vì JS phải chủ động gắn header, nhưng đúng cái JS đó là thứ XSS chiếm quyền. Không có lựa chọn "miễn nhiễm cả hai", nên phải chọn theo mô hình đe dọa.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Login thành công</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Access token ngắn hạn → memory</div><div class="flow-node">Refresh token → cookie httpOnly</div></div>
+        <div class="flow-arrow">↓ refresh khi hết hạn</div>
+        <div class="flow-row"><div class="flow-node success">/auth/refresh (cookie tự gửi) → token mới vào memory</div></div>
+      </div>
+      <p>Pattern phổ biến: access token thời gian ngắn giữ trong memory, refresh token dài hạn đặt trong cookie <code>httpOnly; Secure; SameSite=Strict</code> (hoặc <code>Lax</code> nếu cần điều hướng từ site khác). Reload trang thì gọi <code>/auth/refresh</code> để lấy access token mới, nên user không phải đăng nhập lại mà token vẫn ngắn hạn.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng cookie <code>httpOnly</code> khi có thể kiểm soát CSRF (SameSite + CSRF token, hoặc API cùng origin qua BFF). Dùng memory khi không muốn dính CSRF và chấp nhận reload sẽ refresh lại. localStorage chỉ nên là lựa chọn đánh đổi có ý thức, ví dụ công cụ nội bộ, ít rủi ro XSS và cần đơn giản.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không lưu refresh token dài hạn trong localStorage — đó là món hời lớn nhất cho kẻ tấn công XSS. Không đặt <code>SameSite=None</code> mà thiếu <code>Secure</code> và thiếu chống CSRF; browser cũng sẽ chặn <code>SameSite=None</code> không kèm <code>Secure</code>. Không giả định cookie tự chống CSRF khi đã hạ SameSite xuống None.</p></div>
+    <div class="code-block" data-lang="ts"><pre><code><span class="tok-comment">// Gửi cookie httpOnly: credentials phải bật, origin phải cụ thể</span>
+<span class="tok-keyword">await</span> <span class="tok-function">fetch</span>(<span class="tok-string">'/api/orders'</span>, {
+  method: <span class="tok-string">'GET'</span>,
+  credentials: <span class="tok-string">'include'</span>,          <span class="tok-comment">// cookie httpOnly tự đính kèm</span>
+  headers: {
+    <span class="tok-string">'X-CSRF-Token'</span>: <span class="tok-function">readCsrfCookie</span>(),  <span class="tok-comment">// chống CSRF, đọc từ cookie KHÔNG httpOnly</span>
+  },
+});
+
+<span class="tok-comment">// Set-Cookie phía server (minh hoạ thuộc tính cần có)</span>
+<span class="tok-comment">// refresh=...; HttpOnly; Secure; SameSite=Strict; Path=/auth; Max-Age=604800</span>
+<span class="tok-comment">// csrf=...;    Secure; SameSite=Strict; Path=/    (JS đọc được để gắn header)</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>SPA gọi API khác origin qua BFF cùng origin: refresh token nằm cookie <code>httpOnly; SameSite=Strict</code> ở domain BFF, SPA chỉ cầm access token trong memory — XSS không lấy được refresh token nên không duy trì được phiên.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Trả lời "dùng localStorage vì tiện" mà không nêu rủi ro XSS là thiếu chiều sâu. Bẫy nữa: CORS với <code>Access-Control-Allow-Origin: *</code> không dùng được cùng <code>credentials: 'include'</code> — browser từ chối, phải nêu origin cụ thể kèm <code>Allow-Credentials: true</code>. Và nhớ: <code>httpOnly</code> chặn đọc cookie nhưng KHÔNG chặn được CSRF — đó là lý do phải có <code>SameSite</code> và CSRF token.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Memory an toàn trước XSS nhưng mất khi reload.</li>
+      <li>localStorage tiện nhưng XSS đọc được token.</li>
+      <li>Cookie httpOnly giấu token khỏi JS, đổi lại phải chống CSRF.</li>
+      <li>Pattern tốt: access token ngắn hạn ở memory, refresh token ở cookie httpOnly SameSite=Strict.</li>
+      <li>Không SameSite=None thiếu Secure; ACAO * không đi cùng credentials.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q6</span> Lỗi CORS có phải lỗi backend không? Preflight và khi nào dùng proxy/BFF?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>CORS là cơ chế của <strong>browser</strong> thực thi Same-Origin Policy, không phải backend tự chặn request. Khi FE và API khác origin (khác scheme/host/port), browser gửi <em>preflight</em> <code>OPTIONS</code> trước với các method/header không "đơn giản", và chỉ cho JavaScript đọc response nếu server trả về header khớp: <code>Access-Control-Allow-Origin</code>, cùng <code>Allow-Methods</code>, <code>Allow-Headers</code>, và <code>Allow-Credentials</code> khi cần cookie.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Hiểu sai điều này khiến ta đi sửa logic backend trong khi request đã tới và server trả 200 — chỉ có browser chặn JS đọc kết quả và báo lỗi CORS trong console. Nắm đúng bản chất giúp chọn đúng cách sửa: cấu hình response header cho đúng origin, hoặc né hẳn cross-origin bằng proxy/BFF để mọi thứ same-origin.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">FE (origin A) gọi API (origin B)</div></div>
+        <div class="flow-arrow">↓ method/header không đơn giản</div>
+        <div class="flow-row"><div class="flow-node secondary">Preflight OPTIONS</div><div class="flow-node">Server trả ACAO + Allow-Methods/Headers</div></div>
+        <div class="flow-arrow">↓ browser xác nhận hợp lệ</div>
+        <div class="flow-row"><div class="flow-node success">Request thật gửi đi</div></div>
+        <div class="flow-arrow">↓ nếu thiếu header</div>
+        <div class="flow-row"><div class="flow-node warning">Browser chặn JS đọc response (không phải server lỗi)</div></div>
+      </div>
+      <p>Preflight chỉ xảy ra với request cần nó: method khác GET/HEAD/POST "đơn giản", hoặc có header tuỳ biến như <code>Authorization</code> hay <code>Content-Type: application/json</code>. Khi dùng cookie (<code>credentials</code>), server bắt buộc trả origin cụ thể và <code>Access-Control-Allow-Credentials: true</code> — không được dùng <code>*</code>.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng proxy/BFF khi muốn FE và API same-origin: dev thì proxy của Vite/Next rewrite <code>/api</code> sang backend; production thì BFF đứng cùng domain FE, giữ cookie <code>httpOnly</code> mà không cần <code>SameSite=None</code>, đồng thời che API key và gom endpoint. Cấu hình CORS trực tiếp khi các origin đã biết và ổn định, không cần giấu token hay che API.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không "mở CORS cho hết" bằng <code>*</code> nếu có credentials — vừa bị browser chặn vừa nới rộng bề mặt tấn công. Không dùng CORS như cơ chế xác thực: nó chỉ là chính sách đọc kết quả của browser, không bảo vệ API khỏi client khác (curl, server-to-server). Cũng đừng quên preflight bị cache — cấu hình sai có thể nằm lại trong cache trình duyệt một lúc.</p></div>
+    <div class="code-block" data-lang="http"><pre><code>OPTIONS /api/orders HTTP/1.1
+Origin: https://app.example.com
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: content-type, authorization
+
+HTTP/1.1 204 No Content
+Access-Control-Allow-Origin: https://app.example.com   &lt;-- origin cụ thể, KHÔNG dùng *
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+Access-Control-Allow-Headers: content-type, authorization
+Access-Control-Allow-Credentials: true
+Access-Control-Max-Age: 600</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Dev local FE ở <code>localhost:5173</code> gọi backend <code>localhost:8080</code>: cấu hình proxy trong Vite (<code>server.proxy['/api']</code>) để browser thấy same-origin, không phải động vào CORS của backend và cookie hoạt động như production.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: <code>Access-Control-Allow-Origin: *</code> kèm <code>Allow-Credentials: true</code> bị browser từ chối dù server "có set header" — phải echo đúng origin. Bẫy nữa: thiếu <code>Allow-Headers</code> cho <code>Authorization</code> khiến preflight fail trong khi endpoint GET trực tiếp vẫn chạy. Nhớ phân biệt: lỗi CORS hiện ở console browser, server không hề nhận được request thật; còn lỗi 500 từ API mới là lỗi backend.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>CORS là chính sách browser, không phải backend chặn.</li>
+      <li>Request vẫn tới server — browser chặn JS đọc response.</li>
+      <li>Preflight OPTIONS cho method/header không đơn giản.</li>
+      <li>Credentials thì ACAO phải là origin cụ thể, không '*'.</li>
+      <li>Tránh cross-origin bằng proxy dev hoặc BFF same-origin.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="ch-t-l-ng-a11y-testing-build-performance">
+          <h2 class="section-title">Chất lượng — a11y, testing, build & performance</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q7</span> Accessibility và responsive: semantic HTML, focus management, aria-live, keyboard, breakpoint?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Accessibility (a11y) nghĩa là UI dùng được bằng keyboard và screen reader: dùng đúng semantic HTML (<code>button</code>, <code>nav</code>, <code>label</code>, <code>table</code>) thay vì <code>div</code> gắn handler; quản lý focus khi mở/đóng modal và khi đổi route; dùng <code>aria-live</code> cho thông báo động và <code>role="alert"</code> cho lỗi. Responsive là mobile-first với breakpoint hợp lý, tap target đủ lớn, không khoá cứng chiều rộng.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Semantic HTML cho sẵn hành vi miễn phí: <code>button</code> đã focus được, kích hoạt bằng Enter/Space, có role đúng; <code>label</code> gắn với input giúp screen reader đọc tên trường. Tự dựng lại bằng <code>div</code> thường thiếu những thứ này và phải bù bằng ARIA — dễ sai hơn. Focus management quyết định người dùng keyboard có lạc trong modal hay không. Với nhiều thị trường, a11y còn là yêu cầu pháp lý, và responsive kém làm hỏng luồng mua/thao tác trên mobile.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Semantic HTML trước (button, label, nav)</div></div>
+        <div class="flow-arrow">↓ chỉ bù ARIA khi thiếu ngữ nghĩa</div>
+        <div class="flow-row"><div class="flow-node secondary">Keyboard: Tab/Enter/Space/Escape</div><div class="flow-node">Focus trap trong modal</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">aria-live thông báo, focus trả về trigger</div></div>
+      </div>
+      <p>Modal: khi mở thì chuyển focus vào phần tử đầu trong modal và giữ focus trong đó, khi đóng thì trả focus về nút đã mở. Đổi route trong SPA nên đưa focus tới heading của trang mới hoặc thông báo bằng vùng <code>aria-live</code>, vì screen reader không tự biết nội dung đã thay. Responsive: mobile-first, breakpoint theo nội dung thay vì thiết bị, dùng <code>min-width</code> và đảm bảo tap target tối thiểu khoảng 44px.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Bắt buộc cho form (label + thông báo lỗi liên kết input), modal/drawer, menu và dropdown, bảng dữ liệu có sort/pagination, và mọi SPA vì điều hướng không reload nên screen reader cần được báo. Responsive cho mọi màn hình có bảng, toolbar, hoặc danh sách dài trên mobile.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng <code>aria-*</code> để bù cho HTML sai (<code>div</code> giả button) — đó là anti-pattern; <code>aria-hidden="true"</code> lên phần tử vẫn focus được làm keyboard mắc kẹt. Không lạm dụng <code>aria-live="assertive"</code> cho mọi cập nhật vì nó cắt ngang screen reader liên tục. Không dựng breakpoint theo từng model thiết bị; cũng đừng ẩn nội dung chỉ bằng CSS mà vẫn focus được.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// Modal: semantic + focus management + thông báo động</span>
+<span class="tok-keyword">export function</span> <span class="tok-function">ConfirmDialog</span>({ open, onClose, message }: DialogProps) {
+  <span class="tok-keyword">const</span> ref = <span class="tok-function">useRef</span>&lt;HTMLDivElement&gt;(<span class="tok-keyword">null</span>);
+
+  <span class="tok-function">useEffect</span>(() =&gt; {
+    <span class="tok-keyword">if</span> (!open) <span class="tok-keyword">return</span>;
+    <span class="tok-keyword">const</span> prev = document.activeElement <span class="tok-keyword">as</span> HTMLElement;
+    ref.current?.<span class="tok-function">focus</span>();                       <span class="tok-comment">// đưa focus vào modal</span>
+    <span class="tok-keyword">return</span> () =&gt; prev?.<span class="tok-function">focus</span>();                 <span class="tok-comment">// trả focus về trigger</span>
+  }, [open]);
+
+  <span class="tok-keyword">if</span> (!open) <span class="tok-keyword">return null</span>;
+
+  <span class="tok-keyword">return</span> (
+    &lt;div
+      role=<span class="tok-string">"dialog"</span>
+      aria-modal=<span class="tok-string">"true"</span>
+      aria-labelledby=<span class="tok-string">"dlg-title"</span>
+      tabIndex={-<span class="tok-number">1</span>}
+      ref={ref}
+      onKeyDown={(e) =&gt; e.key === <span class="tok-string">'Escape'</span> &amp;&amp; <span class="tok-function">onClose</span>()}
+    &gt;
+      &lt;h2 id=<span class="tok-string">"dlg-title"</span>&gt;Xác nhận&lt;/h2&gt;
+      &lt;p&gt;{message}&lt;/p&gt;
+      &lt;button onClick={onClose}&gt;Huỷ&lt;/button&gt;
+      &lt;button onClick={<span class="tok-function">confirm</span>}&gt;Đồng ý&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+
+<span class="tok-comment">// Vùng thông báo: polite cho cập nhật, assertive cho lỗi</span>
+<span class="tok-comment">// &lt;div aria-live="polite" role="status"&gt;{toast}&lt;/div&gt;</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Bảng dữ liệu: nút sort là <code>button</code> có <code>aria-sort</code>, phân trang keyboard truy cập được; khi kết quả tải xong, một vùng <code>aria-live="polite"</code> thông báo "Tìm thấy 42 kết quả" để người dùng screen reader biết bảng đã cập nhật.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: <code>div</code> với <code>onClick</code> không nhận keyboard và screen reader không đọc là nút — dùng <code>button</code>. Bẫy nữa: focus không trả về sau khi đóng modal khiến keyboard bắt đầu lại từ đầu trang. Và <code>aria-live</code> đặt trên phần tử bị unmount/mount lại liên tục sẽ không announce — vùng live phải cố định trong DOM và chỉ đổi nội dung.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Semantic HTML trước, chỉ bù ARIA khi thiếu ngữ nghĩa.</li>
+      <li>Keyboard: Tab/Enter/Space/Escape, focus trap trong modal.</li>
+      <li>Đóng modal thì trả focus về trigger; đổi route báo bằng aria-live.</li>
+      <li>aria-live polite cho cập nhật, assertive chỉ cho lỗi.</li>
+      <li>Responsive mobile-first, tap target đủ lớn, breakpoint theo nội dung.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q8</span> Testing pyramid cho FE: unit, component, MSW, e2e — test cái gì và tránh bẫy gì?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Kim tự tháp FE: nhiều <strong>unit test</strong> (Vitest) cho hàm thuần — format tiền, validate, reducer, parse; tầng giữa là <strong>component test</strong> với React Testing Library, render component rồi assert theo hành vi người dùng (<code>getByRole</code>, <code>userEvent</code>) thay vì theo implementation; mock network bằng <strong>MSW</strong> ở tầng HTTP; và ít <strong>e2e</strong> (Playwright) chạy luồng thật xuyên màn hình.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Test theo implementation (state nội bộ, tên prop, class CSS) sẽ vỡ ngay khi refactor dù hành vi không đổi — test thành gánh nặng. RTL khuyến khích truy vấn như người dùng nên test bền và phản ánh đúng kỳ vọng. MSW giữ handler giống server thật (đúng method, path, status), nên component không bị dính chi tiết của axios/fetch và tái dùng được giữa component test và e2e. E2E chậm và giòn nên chỉ dành cho luồng sống còn.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Nhiều: unit test (Vitest) — logic thuần</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Vừa: component test (RTL) + MSW mock HTTP</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Ít: e2e (Playwright) — luồng critical</div></div>
+      </div>
+      <p>Luồng điển hình: render component, MSW trả response giả cho request nó gọi, chờ trạng thái hiển thị (<code>findBy*</code>), rồi assert bằng role/text. Ưu tiên truy vấn theo accessibility (role, label, text) vì vừa test hành vi vừa kiểm tra a11y. E2E để riêng cho login, checkout, hoặc luồng nhiều màn hình cần backend thật.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Unit: mọi logic có nhánh và dễ sai (tính tiền, phân trang, sắp xếp). Component test: form, danh sách có loading/empty/error, tương tác có state. MSW: mọi component có data fetching. E2E: luồng critical xuyên màn hình, smoke test sau deploy.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng snapshot khổng lồ cho cả cây component — giòn, ai cũng bấm update, không ai đọc. Không assert class CSS hay cấu trúc DOM nội bộ. Không chạy e2e cho từng case nhỏ (chậm, flaky) và không mock module bằng <code>vi.mock</code> cho axios khi MSW đã mô phỏng đúng HTTP — mock module khiến test không còn kiểm tra được tầng tích hợp thật.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// Component test: hành vi, không phải implementation</span>
+<span class="tok-keyword">import</span> { render, screen } <span class="tok-keyword">from</span> <span class="tok-string">'@testing-library/react'</span>;
+<span class="tok-keyword">import</span> userEvent <span class="tok-keyword">from</span> <span class="tok-string">'@testing-library/user-event'</span>;
+<span class="tok-keyword">import</span> { setupServer } <span class="tok-keyword">from</span> <span class="tok-string">'msw/node'</span>;
+<span class="tok-keyword">import</span> { http, HttpResponse } <span class="tok-keyword">from</span> <span class="tok-string">'msw'</span>;
+
+<span class="tok-keyword">const</span> server = <span class="tok-function">setupServer</span>(
+  http.<span class="tok-function">get</span>(<span class="tok-string">'/api/orders'</span>, () =&gt;
+    <span class="tok-class">HttpResponse</span>.<span class="tok-function">json</span>([{ id: <span class="tok-string">'1'</span>, code: <span class="tok-string">'SO-1'</span> }])
+  )
+);
+
+beforeAll(() =&gt; server.<span class="tok-function">listen</span>());
+afterEach(() =&gt; server.<span class="tok-function">resetHandlers</span>());
+afterAll(() =&gt; server.<span class="tok-function">close</span>());
+
+it(<span class="tok-string">'hiển thị đơn hàng sau khi tải xong'</span>, <span class="tok-keyword">async</span> () =&gt; {
+  <span class="tok-function">render</span>(&lt;OrderList /&gt;);
+  expect(<span class="tok-function">screen</span>.<span class="tok-function">getByRole</span>(<span class="tok-string">'status'</span>)).<span class="tok-function">toHaveTextContent</span>(<span class="tok-string">/đang tải/i</span>);
+  expect(<span class="tok-keyword">await</span> <span class="tok-function">screen</span>.<span class="tok-function">findByText</span>(<span class="tok-string">'SO-1'</span>)).<span class="tok-function">toBeInTheDocument</span>();
+});
+
+it(<span class="tok-string">'lọc theo từ khoá'</span>, <span class="tok-keyword">async</span> () =&gt; {
+  <span class="tok-function">render</span>(&lt;OrderList /&gt;);
+  <span class="tok-keyword">await</span> <span class="tok-function">userEvent</span>.<span class="tok-function">type</span>(<span class="tok-function">screen</span>.<span class="tok-function">getByLabelText</span>(<span class="tok-string">/tìm kiếm/i</span>), <span class="tok-string">'SO'</span>);
+  expect(<span class="tok-keyword">await</span> <span class="tok-function">screen</span>.<span class="tok-function">findAllByRole</span>(<span class="tok-string">'row'</span>)).<span class="tok-function">toHaveLength</span>(<span class="tok-number">1</span>);
+});</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Form tạo đơn: unit test validate rule, component test cho luồng submit với MSW trả 422 để kiểm tra map lỗi ra đúng trường, và một e2e Playwright cho luồng login → tạo đơn → thấy trong danh sách.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: test gọi <code>getByTestId</code> tràn lan — testId không phản ánh trải nghiệm người dùng, dùng khi thật sự không có cách truy vấn theo role/label. Bẫy nữa: <code>await waitFor</code> bao quanh mọi thứ gây test chậm và che lỗi; dùng <code>findBy*</code> cho bất đồng bộ. Cuối cùng: MSW handler sai method/path khiến test "xanh" nhưng production lỗi vì không ai gọi endpoint thật.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Vitest cho logic thuần; RTL cho component; MSW mock HTTP; Playwright cho e2e.</li>
+      <li>Test hành vi theo role/label, không test implementation.</li>
+      <li>MSW giữ handler giống server, tái dùng được nhiều tầng.</li>
+      <li>E2E ít, chỉ luồng critical vì chậm và giòn.</li>
+      <li>Tránh snapshot lớn và assert class CSS.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q9</span> Build và môi trường: Vite/Next build, biến NEXT_PUBLIC_*, build-time vs runtime config, cache/CDN, deploy SPA?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Vite build (esbuild/rollup) tạo output static; Next build tạo cả client bundle và server bundle. Biến có tiền tố <code>VITE_</code> (Vite) hoặc <code>NEXT_PUBLIC_</code> (Next) bị <strong>inline vào bundle lúc build</strong> — không phải secret runtime. Cấu hình đổi theo môi trường mà không rebuild phải lấy từ server (endpoint config, hoặc <code>window.__ENV</code> nhúng trong HTML). SPA deploy cần fallback route để mọi đường dẫn sâu trả về <code>index.html</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Nhầm build-time với runtime khiến mỗi lần đổi URL API phải build lại và deploy lại, hoặc tệ hơn là nhét secret vào biến client rồi thấy nó nằm trần trong bundle. Không có fallback route thì F5 trên <code>/orders/42</code> trả 404 vì server tìm file tĩnh không thấy. Và cache sai (index.html bị cache lâu, asset hash bị no-cache) làm user kẹt ở bản cũ hoặc tải lại mọi thứ mỗi lần.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Source + env (VITE_ / NEXT_PUBLIC_)</div></div>
+        <div class="flow-arrow">↓ build — biến public được inline vào bundle</div>
+        <div class="flow-row"><div class="flow-node secondary">Assets hash tên file</div><div class="flow-node">index.html tham chiếu chunk</div></div>
+        <div class="flow-arrow">↓ deploy</div>
+        <div class="flow-row"><div class="flow-node success">CDN: asset immutable, index.html no-cache</div></div>
+      </div>
+      <p>Quy tắc cache: file có hash trong tên (chunk, ảnh) đặt <code>Cache-Control: public, max-age=31536000, immutable</code>; <code>index.html</code> để <code>no-cache</code> hoặc max-age ngắn để lấy được bản mới. Deploy SPA cấu hình rewrite mọi path về <code>index.html</code> (trừ <code>/assets</code> và API). Config runtime: gọi <code>/config.json</code> khi app khởi động hoặc SSR đọc env và truyền xuống.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng biến build-time cho giá trị cố định theo build (tên app, sentry DSN public, bật/tắt feature ở tầng build). Dùng config runtime khi cùng một artifact phải chạy nhiều môi trường (staging/prod) hoặc khi giá trị chỉ biết sau khi deploy, ví dụ URL API đổi theo khách hàng.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không đặt API secret, private key, hay token trong <code>NEXT_PUBLIC_*</code>/<code>VITE_*</code> — chúng nằm trong bundle cho bất kỳ ai tải. Không cache <code>index.html</code> dài hạn. Không xử lý fallback trong app (catch-all route) để chữa lỗi 404 của server — phải cấu hình ở tầng host/CDN, vì request chưa tới được app.</p></div>
+    <div class="code-block" data-lang="json"><pre><code><span class="tok-comment">// vercel.json — SPA fallback: mọi path trả index.html</span>
+{
+  "rewrites": [{ "source": "/((?!assets/).*)", "destination": "/index.html" }],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/index.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+    }
+  ]
+}</code></pre></div>
+    <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Biến public được inline lúc build — không phải secret</span>
+VITE_API_URL=https://api.example.com npm run build   <span class="tok-comment"># Vite</span>
+NEXT_PUBLIC_APP_VERSION=1.4.0 next build               <span class="tok-comment"># Next.js</span>
+
+<span class="tok-comment"># Runtime config: đổi được không cần rebuild</span>
+curl -s https://app.example.com/config.json</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Cùng một Docker image FE deploy cho nhiều khách: URL API và tenant đọc từ <code>/config.json</code> khi app khởi động, nên đổi cấu hình chỉ cần sửa file config trên CDN, không build lại image.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: tin rằng <code>NEXT_PUBLIC_*</code> là biến môi trường runtime — đổi env rồi restart container mà app vẫn trỏ URL cũ vì giá trị đã inline từ lúc build. Bẫy nữa: deploy SPA lên object storage không bật static website/rewrite → deep link 404 dù app chạy tốt trên máy local. Cuối cùng: cache index.html quá lâu khiến user không nhận bản mới và lỗi "chunk not found" sau deploy.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>VITE_/NEXT_PUBLIC_ inline lúc build — không phải secret, không đổi được lúc runtime.</li>
+      <li>Config runtime qua /config.json hoặc SSR để khỏi rebuild.</li>
+      <li>Asset có hash: cache immutable; index.html: no-cache.</li>
+      <li>SPA deploy cần fallback route về index.html, cấu hình ở host/CDN.</li>
+      <li>Không nhét secret vào biến client.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q10</span> Performance FE thực chiến: memo hoá, virtual list, lazy image, đo bằng Lighthouse/Web Vitals?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Tối ưu theo số đo chứ không theo cảm giác: dùng <code>React.memo</code>, <code>useMemo</code>, <code>useCallback</code> khi profiler cho thấy re-render đắt; virtualize danh sách dài bằng thư viện như react-window hoặc TanStack Virtual để chỉ render phần đang thấy; lazy-load ảnh và đặt <code>width</code>/<code>height</code> để tránh layout shift; và đo bằng Lighthouse, Web Vitals (LCP, INP, CLS) cùng dữ liệu field thật (RUM).</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Memo hoá bừa tốn bộ nhớ và thời gian so sánh props, dễ sinh bug giá trị stale vì dependency sai — nó không miễn phí. Ngược lại, render vài nghìn dòng DOM làm scroll giật và INP tệ; virtual list cắt số node xuống mức hằng số. LCP/INP/CLS là chỉ số người dùng cảm nhận được, khớp với SEO và trải nghiệm, nên là đích của tối ưu thay vì những con số trang trí.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Đo: Lighthouse + Web Vitals + RUM</div></div>
+        <div class="flow-arrow">↓ tìm bottleneck thật</div>
+        <div class="flow-row"><div class="flow-node secondary">Profiler: component re-render</div><div class="flow-node">Network: bundle, ảnh, waterfall</div></div>
+        <div class="flow-arrow">↓ sửa đúng chỗ</div>
+        <div class="flow-row"><div class="flow-node success">Split chunk, virtual list, lazy image, memo có chọn lọc</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node primary">Đo lại &amp; so sánh trên cùng điều kiện</div></div>
+      </div>
+      <p>Trình tự thực dụng: React DevTools Profiler tìm component render lại nhiều nhất với props đổi không cần thiết; Network/coverage tìm bundle và ảnh lớn; Lighthouse trên profile mobile (CPU throttle) để biết LCP/INP/CLS. Sau mỗi thay đổi, đo lại trên cùng điều kiện — nếu không cải thiện số metric thì bỏ thay đổi đó.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Virtual list khi bảng/danh sách vượt khoảng vài trăm dòng hoặc hàng nghìn item. Lazy image (loading="lazy", srcset/sizes, định dạng hiện đại) cho ảnh ngoài viewport. Memo cho component render đắt hoặc list item nhận callback ổn định. Tối ưu LCP khi LCP trên 2.5s, INP khi trên 200ms.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không <code>useMemo</code>/<code>useCallback</code> cho tính toán rẻ hoặc cho mọi hàm — thêm chi phí và dễ sai dependency. Không <code>React.memo</code> cho component vốn không re-render hoặc props luôn đổi mới mỗi render (memo vô hiệu). Không virtualize danh sách ngắn vì nó phá Ctrl+F, in, và SEO nội dung; không lazy-load ảnh LCP ở đầu trang vì làm chậm chỉ số chính.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// Virtual list: chỉ render phần đang thấy</span>
+<span class="tok-keyword">import</span> { useVirtualizer } <span class="tok-keyword">from</span> <span class="tok-string">'@tanstack/react-virtual'</span>;
+
+<span class="tok-keyword">export function</span> <span class="tok-function">OrderTable</span>({ rows }: { rows: Order[] }) {
+  <span class="tok-keyword">const</span> parentRef = <span class="tok-function">useRef</span>&lt;HTMLDivElement&gt;(<span class="tok-keyword">null</span>);
+  <span class="tok-keyword">const</span> v = <span class="tok-function">useVirtualizer</span>({
+    count: rows.length,
+    getScrollElement: () =&gt; parentRef.current,
+    estimateSize: () =&gt; <span class="tok-number">44</span>,
+    overscan: <span class="tok-number">8</span>,
+  });
+
+  <span class="tok-keyword">return</span> (
+    &lt;div ref={parentRef} style={{ height: <span class="tok-number">600</span>, overflow: <span class="tok-string">'auto'</span> }}&gt;
+      &lt;div style={{ height: v.<span class="tok-function">getTotalSize</span>() }}&gt;
+        {v.<span class="tok-function">getVirtualItems</span>().<span class="tok-function">map</span>((item) =&gt; (
+          &lt;Row key={item.key} style={v.<span class="tok-function">measureElement</span>(item)} data={rows[item.index]} /&gt;
+        ))}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+<span class="tok-comment">// Memo có chọn lọc + callback ổn định cho list item</span>
+<span class="tok-keyword">const</span> Row = <span class="tok-function">memo</span>(<span class="tok-keyword">function</span> <span class="tok-function">Row</span>({ data, onSelect }: RowProps) { <span class="tok-comment">/* ... */</span> });
+<span class="tok-comment">// &lt;img loading="lazy" width={640} height={360} src={url} alt={name} /&gt;</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Màn hình audit log 50.000 dòng: virtual list giữ DOM ở mức vài chục node nên scroll mượt; ảnh thumbnail dùng <code>loading="lazy"</code> và có width/height nên CLS gần như không đổi khi cuộn.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy: <code>useCallback</code> nhưng vẫn truyền object/array literal mới mỗi render xuống con đã <code>memo</code> → memo vô hiệu. Bẫy nữa: đo LCP trên máy dev nhanh rồi kết luận sai — phải throttle CPU/network theo mobile. Và nhớ: thêm virtual list làm mất Ctrl+F, in toàn bộ, và ảnh hưởng SEO — cân nhắc với bảng nhỏ hoặc trang cần in.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Đo trước bằng Profiler, Lighthouse, Web Vitals, RUM — rồi mới sửa.</li>
+      <li>Memo hoá có chọn lọc, không bọc mọi thứ.</li>
+      <li>Virtual list cho danh sách vài trăm dòng trở lên.</li>
+      <li>Lazy image + width/height để tránh CLS, trừ ảnh LCP.</li>
+      <li>Sau mỗi thay đổi phải đo lại trên cùng điều kiện.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+['        <div class="nav-pager">', '          <a class="prev" href="36-react-hooks-data.html"><span class="label">Trước</span><span class="title">36. React Hooks &amp; Data</span></a>', '          <a class="next" href="38-elasticsearch.html"><span class="label">Tiếp</span><span class="title">38. Elasticsearch</span></a>', '        </div>']
+      </div>
+
+      <footer class="site-footer">
+        <p>Knowledge Gym — Module 37 / 42</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

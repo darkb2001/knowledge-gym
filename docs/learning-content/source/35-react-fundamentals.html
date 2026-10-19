@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>35. React Fundamentals — JSX, Component, State &amp; Rendering — Knowledge Gym</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Knowledge<br><span>Gym</span></h1>
+        <p>Java, AWS DVA-C02 &amp; Frontend</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>35. React Fundamentals — JSX, Component, State &amp; Rendering</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 35</div>
+          <h1 class="module-title">React Fundamentals — JSX, Component, State &amp; Rendering</h1>
+          <p class="module-subtitle">Nền tảng React 18 cho phỏng vấn: JSX, props/state, key, composition, event, controlled input, reconciliation và automatic batching.</p>
+        </div>
+
+        <section class="section" id="jsx-component-v-d-ng-d-li-u-m-t-chi-u">
+          <h2 class="section-title">JSX, component và dòng dữ liệu một chiều</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q1</span> JSX là gì, nó biên dịch thành gì và vì sao JSX phải có một phần tử cha?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>JSX là cú pháp mở rộng của JavaScript cho phép viết cấu trúc UI ngay trong code, được Babel hoặc TypeScript compiler dịch thành lời gọi hàm tạo <strong>React element</strong> — plain object mô tả UI chứ không phải DOM node thật. Từ React 17, automatic JSX runtime dùng <code>jsx()</code> và <code>jsxs()</code> từ <code>react/jsx-runtime</code> thay cho <code>React.createElement</code>, nên file không còn bắt buộc import React.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>JSX chỉ là syntactic sugar nhưng cho phép compiler kiểm tra type và báo lỗi ngay lúc build thay vì ghép chuỗi HTML thủ công, đồng thời gom cả cấu trúc cây vào một expression. Vì một function component phải return đúng một giá trị, khi có nhiều phần tử anh em bắt buộc phải bọc chúng lại — nếu không compiler báo lỗi adjacent JSX elements và bạn phải tự thêm wrapper.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Nguồn .tsx (JSX)</div></div>
+        <div class="flow-arrow">↓ Babel / tsc transform lúc build</div>
+        <div class="flow-row"><div class="flow-node secondary">jsx("h1", { children: "Hi" })</div></div>
+        <div class="flow-arrow">↓ chạy khi render, trả về object</div>
+        <div class="flow-row"><div class="flow-node">React element: cặp type + props + key</div></div>
+        <div class="flow-arrow">↓ reconciler so sánh và commit</div>
+        <div class="flow-row"><div class="flow-node success">DOM node được mount hoặc cập nhật</div></div>
+      </div>
+      <p>React element là mô tả bất biến và rẻ để tạo; DOM thật chỉ sinh ra ở bước commit. Fragment (<code>&lt;&gt;...&lt;/&gt;</code>) nhóm nhiều con mà không thêm node nào vào DOM, nên không phá layout flex/grid hay cấu trúc bảng.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng JSX cho mặc định của mọi component React. Dùng Fragment khi hai phần tử anh em cùng cấp cần nằm trong cùng một return, ví dụ một component trả về nhiều ô <code>&lt;td&gt;</code> trong khi phần tử <code>&lt;tr&gt;</code> do component cha quản lý cấu trúc.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không lạm dụng wrapper <code>&lt;div&gt;</code> khi chỉ cần Fragment vì DOM thừa làm sai CSS; ngược lại đừng dùng Fragment khi thật sự cần một node bọc, vì Fragment không nhận <code>className</code>, <code>style</code>, và dạng shorthand <code>&lt;&gt;...&lt;/&gt;</code> cũng không truyền được <code>key</code>. Không cần JSX nếu muốn gọi <code>jsx()</code> trực tiếp, nhưng cách đó khó đọc.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// 1) Nguồn TSX</span>
+<span class="tok-keyword">const</span> el = &lt;h1 className=<span class="tok-string">"title"</span>&gt;Hello&lt;/h1&gt;;
+
+<span class="tok-comment">// 2) Output của compiler (automatic runtime, không cần import React)</span>
+<span class="tok-keyword">import</span> { jsx <span class="tok-keyword">as</span> _jsx } <span class="tok-keyword">from</span> <span class="tok-string">"react/jsx-runtime"</span>;
+<span class="tok-keyword">const</span> el2 = <span class="tok-function">_jsx</span>(<span class="tok-string">"h1"</span>, { className: <span class="tok-string">"title"</span>, children: <span class="tok-string">"Hello"</span> });
+
+<span class="tok-comment">// 3) Fragment: nhiều con, không sinh node DOM thừa</span>
+<span class="tok-keyword">function</span> <span class="tok-class">Cells</span>() {
+  <span class="tok-keyword">return</span> (
+    &lt;&gt;
+      &lt;td&gt;SKU-01&lt;/td&gt;
+      &lt;td&gt;12&lt;/td&gt;
+    &lt;/&gt;
+  );
+}
+
+<span class="tok-comment">// Dạng đầy đủ &lt;React.Fragment key={id}&gt;...&lt;/React.Fragment&gt; là cách duy nhất
+// để vừa nhóm nhiều con vừa truyền key cho chính nhóm đó.</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Bảng tồn kho: component <code>SkuCells</code> trả về ba ô <code>&lt;td&gt;</code> cho một dòng, và nó được gọi bên trong <code>&lt;tr&gt;</code>. Fragment giữ cấu trúc bảng hợp lệ, còn nếu bọc <code>&lt;div&gt;</code> thì browser sẽ đẩy node ra ngoài bảng khi parse.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Nhầm JSX với HTML: JSX dùng <code>className</code> thay <code>class</code>, <code>htmlFor</code> thay <code>for</code>, mọi attribute đều camelCase, và biểu thức phải bọc trong dấu ngoặc nhọn. Nhầm tiếp là tưởng JSX tạo DOM — nó chỉ tạo object; cùng một cây element chạy được cả ở server để render ra string.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>JSX là sugar của JavaScript, compiler dịch thành lời gọi jsx() trả về React element object.</li><li>Từ React 17 dùng automatic runtime nên không cần import React.</li><li>Element chỉ là mô tả; DOM thật sinh ra ở commit phase.</li><li>Component chỉ return một giá trị nên cần Fragment để nhóm nhiều anh em.</li><li>Fragment không thêm node DOM, không nhận className/style, chỉ nhận key ở dạng đầy đủ.</li></ul></div>
+  </div>
+</article>
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q2</span> Function component khác class component thế nào và vì sao props là read-only?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Function component là một function nhận <code>props</code> và trả về JSX; state, side effect và ref đều thể hiện qua hook như <code>useState</code>, <code>useEffect</code>, <code>useRef</code>. Class component kế thừa <code>React.Component</code>, giữ state trong <code>this.state</code> và chạy lifecycle method như <code>componentDidMount</code>. Từ React 18, function component là cách viết mặc định; class chỉ còn cần cho <strong>error boundary</strong> vì chưa có hook tương đương.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Props là tham số đầu vào và bất biến theo thiết kế, tạo nên mô hình dữ liệu chảy một chiều từ cha xuống con (one-way data flow). Muốn con thay đổi dữ liệu thì cha truyền một callback xuống, con gọi callback đó — nhờ vậy luồng dữ liệu luôn suy luận được từ trên xuống, không có mutation ngầm. Class dễ sinh bug hơn vì <code>this</code> phụ thuộc ngữ cảnh gọi và lifecycle nhóm logic theo thời điểm chạy thay vì theo trách nhiệm.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Parent — nơi giữ state</div></div>
+        <div class="flow-arrow">↓ props: value và onChange, con chỉ được đọc</div>
+        <div class="flow-row"><div class="flow-node secondary">Child A</div><div class="flow-node secondary">Child B</div></div>
+        <div class="flow-arrow">↑ con gọi onChange(id) để yêu cầu cha đổi state</div>
+        <div class="flow-row"><div class="flow-node success">Parent render lại → props mới xuống cả hai con</div></div>
+      </div>
+      <p>Vòng dữ liệu khép kín: state ở cha, con là hàm thuần theo props. Cùng props và cùng state luôn cho cùng output, nên component dễ test và dễ tái sử dụng ở ngữ cảnh khác.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Mặc định dùng function component cho code mới. Dùng class khi cần error boundary (cặp <code>static getDerivedStateFromError</code> và <code>componentDidCatch</code>) hoặc khi bảo trì component class cũ. Chia component theo trách nhiệm: một component một việc (render một dòng tồn kho, chọn kho, gọi API tồn kho), không chia theo từng thẻ HTML vụn.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không mutate props hay gán lại field của object nhận từ props (ví dụ <code>props.item.qty = 5</code>) — đó là bug aliasing rất khó tìm vì cha không hề biết dữ liệu đã đổi. Không tách component chỉ để bọc một <code>&lt;div&gt;</code> không có trách nhiệm riêng; cũng không nâng mọi state lên component cha chỉ để tránh chia file.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// Function component: props read-only, type tường minh</span>
+<span class="tok-keyword">type</span> <span class="tok-class">SkuRowProps</span> = { sku: <span class="tok-class">string</span>; qty: <span class="tok-class">number</span>; onPick: (sku: <span class="tok-class">string</span>) =&gt; <span class="tok-class">void</span> };
+
+<span class="tok-keyword">function</span> <span class="tok-function">SkuRow</span>({ sku, qty, onPick }: <span class="tok-class">SkuRowProps</span>) {
+  <span class="tok-keyword">return</span> (
+    &lt;tr&gt;
+      &lt;td&gt;{sku}&lt;/td&gt;
+      &lt;td&gt;{qty}&lt;/td&gt;
+      &lt;td&gt;&lt;button onClick={() =&gt; <span class="tok-function">onPick</span>(sku)}&gt;Chọn&lt;/button&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  );
+}
+
+<span class="tok-comment">// Class tương đương — this.props cũng read-only</span>
+<span class="tok-keyword">class</span> <span class="tok-class">SkuRowClass</span> <span class="tok-keyword">extends</span> <span class="tok-class">React.Component</span>&lt;<span class="tok-class">SkuRowProps</span>&gt; {
+  <span class="tok-function">render</span>() {
+    <span class="tok-keyword">const</span> { sku, qty, onPick } = <span class="tok-keyword">this</span>.props;
+    <span class="tok-keyword">return</span> &lt;button onClick={() =&gt; <span class="tok-function">onPick</span>(sku)}&gt;{sku} - {qty}&lt;/button&gt;;
+  }
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Bảng tồn kho: <code>StockTable</code> giữ state filter, sort và trang hiện tại; <code>SkuRow</code> chỉ nhận props và gọi <code>onPick</code>. Đổi cách render một dòng không đụng tới logic lọc phía cha, và ngược lại đổi logic lọc không phải sửa dòng.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Tạo object hoặc function mới ngay trong JSX (<code>style={{ color: "red" }}</code>, <code>items={list.filter(...)}</code>, <code>onPick={() =&gt; ...}</code>) làm con re-render mỗi lần cha render; nếu con đã bọc <code>React.memo</code> thì reference mới này vô hiệu hóa memo. Câu hỏi phỏng vấn hay gặp: “vì sao con vẫn render dù props không đổi?” — câu trả lời thường nằm ở đây.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Function component dùng hook, là mặc định từ React 18; class còn cần cho error boundary.</li><li>Props là tham số read-only, dữ liệu chỉ chảy một chiều từ cha xuống con.</li><li>Con muốn đổi dữ liệu thì gọi callback do cha truyền xuống, không sửa props.</li><li>Class gom logic theo lifecycle, function gom theo trách nhiệm nên dễ đọc và tái sử dụng hơn.</li><li>Chia component theo trách nhiệm, không theo từng thẻ HTML.</li></ul></div>
+  </div>
+</article>
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q3</span> State khác props thế nào, chuyện gì xảy ra khi state đổi và vì sao không được sửa state trực tiếp?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Props</strong> là dữ liệu cha truyền vào và chỉ đọc. <strong>State</strong> là dữ liệu nội bộ component tự quản lý, khởi tạo bằng <code>useState</code> và cập nhật qua hàm setter. Khi gọi setter, React lên lịch render lại component đó cùng các component con, tạo cây element mới, so sánh với cây cũ rồi chỉ commit những thay đổi DOM thật sự cần thiết.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>React so sánh state cũ và mới bằng <code>Object.is</code>. Nếu bạn mutate object hoặc mảng rồi truyền lại đúng reference cũ, React coi như không có gì thay đổi và bỏ qua re-render — UI đứng yên dù dữ liệu đã khác. Mutation còn phá giả định “mỗi render là một snapshot”: biến trong closure của lần render trước vẫn trỏ vào object đã bị sửa, khiến memo và so sánh props sai. Trong StrictMode ở dev, hàm updater còn bị gọi hai lần nên nó buộc phải thuần.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Người dùng click</div></div>
+        <div class="flow-arrow">↓ handler gọi setState(giá trị mới)</div>
+        <div class="flow-row"><div class="flow-node secondary">React xếp các cập nhật cùng tick vào một batch</div></div>
+        <div class="flow-arrow">↓ render phase: phải pure, không side effect</div>
+        <div class="flow-row"><div class="flow-node">Element mới được tạo từ props và state mới</div></div>
+        <div class="flow-arrow">↓ diff với element cũ</div>
+        <div class="flow-row"><div class="flow-node success">Commit thay đổi DOM tối thiểu rồi browser paint</div></div>
+      </div>
+      <p>Vì các cập nhật trong cùng một tick được batch, nhiều lệnh <code>setState</code> liên tiếp chỉ tạo một lần render. Khi giá trị mới phụ thuộc giá trị cũ, dùng dạng updater <code>setQty(prev =&gt; prev + 1)</code> để không phụ thuộc biến closure của lần render cũ.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng state cho dữ liệu thay đổi theo tương tác và ảnh hưởng tới render: text trong input, filter đang chọn, danh sách vừa fetch xong, trạng thái mở/đóng panel. Nếu một giá trị tính được từ props hoặc state khác — danh sách đã lọc, tổng số dòng, cờ “đã chọn hết” — thì tính ngay lúc render thay vì lưu vào state.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không mirror props vào state rồi đồng bộ bằng <code>useEffect</code> — dùng trực tiếp props, hoặc đổi <code>key</code> khi muốn reset component. Không dùng state cho dữ liệu không ảnh hưởng giao diện (id của timer, cờ đã chạy) — <code>useRef</code> phù hợp hơn. Cũng đừng lưu state dẫn xuất, vì hai nguồn dữ liệu cho cùng một sự thật sẽ lệch nhau.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// SAI: mutate rồi set lại chính reference đó → React bail out, không re-render</span>
+<span class="tok-keyword">function</span> <span class="tok-function">BadList</span>() {
+  <span class="tok-keyword">const</span> [items, setItems] = <span class="tok-function">useState</span>&lt;<span class="tok-class">Item</span>[]&gt;([]);
+  <span class="tok-keyword">const</span> <span class="tok-function">add</span> = (it: <span class="tok-class">Item</span>) =&gt; {
+    items.<span class="tok-function">push</span>(it);      <span class="tok-comment">// sửa mảng cũ</span>
+    <span class="tok-function">setItems</span>(items);      <span class="tok-comment">// reference không đổi — UI không cập nhật</span>
+  };
+}
+
+<span class="tok-comment">// ĐÚNG: tạo mảng mới, dùng updater thuần (an toàn cả khi StrictMode gọi 2 lần)</span>
+<span class="tok-keyword">function</span> <span class="tok-function">GoodList</span>() {
+  <span class="tok-keyword">const</span> [items, setItems] = <span class="tok-function">useState</span>&lt;<span class="tok-class">Item</span>[]&gt;([]);
+  <span class="tok-keyword">const</span> <span class="tok-function">add</span> = (it: <span class="tok-class">Item</span>) =&gt; <span class="tok-function">setItems</span>(prev =&gt; [...prev, it]);
+  <span class="tok-keyword">const</span> <span class="tok-function">bump</span> = (id: <span class="tok-class">string</span>) =&gt;
+    <span class="tok-function">setItems</span>(prev =&gt; prev.<span class="tok-function">map</span>(x =&gt; (x.id === id ? { ...x, qty: x.qty + <span class="tok-number">1</span> } : x)));
+}</code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bug kinh điển: <code>qty</code> tăng sai khi bấm nhanh liên tục, hoặc state cũ bị “kẹt” trong closure của <code>setTimeout</code> — cả hai đều do dùng giá trị cũ thay vì updater. Bẫy khác là tưởng <code>setState</code> là đồng bộ: nó chỉ xếp lịch, nên không đọc được state mới ngay sau đó trong cùng một hàm.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Props do cha truyền và read-only; state là dữ liệu nội bộ, cập nhật bằng setter.</li><li>setState gây render lại component và con, rồi mới diff và commit DOM.</li><li>React so sánh bằng Object.is nên mutate giữ nguyên reference thì không re-render.</li><li>Luôn tạo object/mảng mới, ưu tiên dạng updater khi giá trị mới phụ thuộc giá trị cũ.</li><li>Giá trị tính được từ state khác thì tính lúc render, không lưu state.</li></ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="render-danh-s-ch-i-u-ki-n-event-v-form-input">
+          <h2 class="section-title">Render danh sách, điều kiện, event và form input</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q4</span> Danh sách và key: vì sao không nên dùng index làm key, hậu quả khi key sai là gì?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Key</strong> là định danh duy nhất cho mỗi phần tử trong danh sách, giúp reconciler nhận ra phần tử của lần render trước tương ứng với phần tử nào ở lần render sau. Index chỉ an toàn khi danh sách tĩnh: không chèn, không xoá, không lọc và không đổi thứ tự. Với danh sách động, key phải là id ổn định đến từ dữ liệu như <code>row.id</code> hay <code>task.code</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Dùng index thì việc chèn một phần tử vào đầu hoặc sort lại danh sách làm toàn bộ index lệch đi một vị trí. React tưởng các phần tử “vẫn thế” nên tái sử dụng component và DOM cũ, khiến state nội bộ bị gán sai dòng: chữ đang gõ trong ô của dòng A nhảy sang dòng B, checkbox đã tick chuyển sang dòng khác, focus nhảy loạn. Về hiệu năng, key đổi hàng loạt hoặc key sinh mới mỗi render khiến React unmount rồi mount lại cả danh sách, tốn kém hơn nhiều so với update tại chỗ.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Dữ liệu mới sau khi insert / sort / filter</div></div>
+        <div class="flow-arrow">↓ reconciler đối chiếu con theo key</div>
+        <div class="flow-row"><div class="flow-node secondary">Key khớp → update tại chỗ, giữ state con</div><div class="flow-node warning">Key mới → mount phần tử mới</div><div class="flow-node warning">Key mất → unmount và dọn state</div></div>
+        <div class="flow-arrow">↓ commit</div>
+        <div class="flow-row"><div class="flow-node success">DOM chỉ đổi ở đúng phần tử cần đổi</div></div>
+      </div>
+      <p>Key đúng giúp danh sách giữ được identity qua các lần render, nên state của con — giá trị đang gõ, animation đang chạy, dữ liệu đã fetch — đi theo đúng dòng dữ liệu. Đó cũng là lý do key phải nằm trên phần tử được sinh trong <code>map</code>, không nằm sâu bên trong component con.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng key ổn định cho mọi danh sách động: bảng tồn kho, danh sách pick task, kết quả search, log sự kiện. Sau khi filter hay sort vẫn giữ nguyên key gốc là id của bản ghi, tuyệt đối không lấy vị trí trong mảng đã lọc làm key. Khi phần tử có thể xuất hiện ở nhiều danh sách khác nhau thì ghép tiền tố để tránh trùng key: <code>listId + id</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Index chấp nhận được khi danh sách tĩnh, không reorder, không chèn hay xoá, và mỗi item không giữ state nội bộ — ví dụ render một bảng hằng số hoặc chia các ô theo số cố định. Không dùng <code>Math.random()</code> hay <code>Date.now()</code> làm key vì mỗi render sinh key mới, làm mất state và giảm hiệu năng; cũng không dùng key trùng nhau giữa các phần tử anh em vì React sẽ cảnh báo và hành vi diff không còn xác định.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// SAI: index làm key — reorder hoặc insert làm lệch identity</span>
+{rows.<span class="tok-function">map</span>((r, i) =&gt; &lt;<span class="tok-class">Row</span> key={i} item={r} /&gt;)}
+
+<span class="tok-comment">// ĐÚNG: key ổn định lấy từ dữ liệu</span>
+{rows.<span class="tok-function">map</span>(r =&gt; &lt;<span class="tok-class">Row</span> key={r.id} item={r} /&gt;)}
+
+<span class="tok-comment">// key là chuyện của React, KHÔNG được truyền vào component như một prop.
+// Con cần id thì truyền riêng:</span>
+&lt;<span class="tok-class">Row</span> key={r.id} id={r.id} item={r} /&gt;</code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Triệu chứng dễ nhận ra nhất của key sai: gõ vào ô search của dòng thứ hai nhưng chữ lại hiện ở dòng thứ ba sau khi danh sách đổi thứ tự, hoặc xoá dòng đầu thì dòng cuối mất tick. Cũng rất hay gặp bẫy dùng <code>key={index}</code> bên trong một component đã dùng <code>React.memo</code> — memo không cứu được vì key mới làm remount cả subtree.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Key là định danh giúp reconciler biết phần tử nào là phần tử nào giữa hai lần render.</li><li>Index chỉ đúng với danh sách tĩnh, không insert/delete/sort/filter.</li><li>Dùng index với danh sách động làm state con gán sai dòng và làm remount, giảm hiệu năng.</li><li>Key phải đến từ dữ liệu, ổn định, duy nhất giữa các anh em.</li><li>Key không phải prop — con cần id thì truyền prop riêng.</li></ul></div>
+  </div>
+</article>
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q5</span> Render có điều kiện và composition — làm sao tránh lạm dụng các điều kiện lồng nhau?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Conditional rendering là dùng <code>if</code>, ternary hoặc <code>&amp;&amp;</code> để chọn JSX nào được render, và trả về <code>null</code> khi không muốn hiển thị gì. <strong>Composition</strong> là tái sử dụng bằng cách truyền nội dung vào component qua <code>props.children</code> hoặc render prop — hàm nhận dữ liệu và trả về JSX — thay vì copy markup hoặc thêm hàng loạt prop boolean kiểu <code>isHeader</code>, <code>showFooter</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Điều kiện lồng nhau trong JSX làm logic khó đọc, khó test và dễ sai nhánh; mỗi cấp ternary là một nhánh ẩn không ai kiểm tra. Guard clause (return sớm) đưa các trạng thái loading, error, empty ra ngoài, phần thân còn lại chỉ nói về happy path. Composition giữ component cha không cần biết chi tiết nội dung con, nên giảm prop drilling và tránh component phình to theo số biến thể hiển thị.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Liệt kê các trạng thái: loading, error, empty, có dữ liệu</div></div>
+        <div class="flow-arrow">↓ mỗi trạng thái một guard clause return sớm</div>
+        <div class="flow-row"><div class="flow-node secondary">Phần thân chỉ còn happy path</div></div>
+        <div class="flow-arrow">↓ nhánh phụ dùng ternary hoặc &amp;&amp; ngay tại chỗ</div>
+        <div class="flow-row"><div class="flow-node success">Component đọc được từ trên xuống, mỗi nhánh một lý do</div></div>
+      </div>
+      <p>Với composition, component khung (Card, Modal, Section) chỉ lo layout và nhận nội dung qua <code>children</code>; nơi gọi quyết định nội dung là bảng, form hay thông báo. Component khung không phải sửa khi có thêm loại nội dung mới.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Guard clause cho trạng thái mạng và dữ liệu rỗng; ternary khi cần chọn giữa hai nhánh A và B; <code>&amp;&amp;</code> khi chỉ có hoặc không có một khối; composition khi nhiều nơi dùng chung một layout nhưng nội dung khác nhau, hoặc khi một component cần nhận cả header, body và footer từ bên ngoài.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng <code>&amp;&amp;</code> với biến có thể mang giá trị <code>0</code> hoặc chuỗi rỗng — React sẽ render số 0 ra màn hình, hãy so sánh tường minh <code>count &gt; 0 &amp;&amp; ...</code> hoặc dùng ternary. Không lồng quá hai cấp ternary, hãy tách thành biến hoặc component nhỏ. Không lạm dụng render prop khi <code>children</code> đã đủ, và không dùng composition để giấu logic nghiệp vụ bên trong JSX.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-keyword">type</span> <span class="tok-class">Props</span> = { order: <span class="tok-class">Order</span>; loaded: <span class="tok-class">boolean</span> };
+
+<span class="tok-keyword">function</span> <span class="tok-function">OrderPanel</span>({ order, loaded }: <span class="tok-class">Props</span>) {
+  <span class="tok-keyword">if</span> (!loaded) <span class="tok-keyword">return</span> &lt;<span class="tok-class">Spinner</span> /&gt;;                       <span class="tok-comment">// guard clause</span>
+  <span class="tok-keyword">if</span> (order.status === <span class="tok-string">"cancelled"</span>) <span class="tok-keyword">return</span> &lt;p&gt;Đơn đã huỷ&lt;/p&gt;;
+
+  <span class="tok-keyword">return</span> (
+    &lt;<span class="tok-class">Card</span> title={`Đơn ${order.code}`}&gt;
+      {order.lines.length &gt; <span class="tok-number">0</span> &amp;&amp; &lt;<span class="tok-class">LineTable</span> lines={order.lines} /&gt;}
+    &lt;/<span class="tok-class">Card</span>&gt;
+  );
+}
+
+<span class="tok-comment">// Card không biết nội dung con là gì — composition qua children</span>
+<span class="tok-keyword">function</span> <span class="tok-function">Card</span>({ title, children }: { title: <span class="tok-class">string</span>; children: <span class="tok-class">React.ReactNode</span> }) {
+  <span class="tok-keyword">return</span> (
+    &lt;section className=<span class="tok-string">"card"</span>&gt;
+      &lt;h4&gt;{title}&lt;/h4&gt;
+      {children}
+    &lt;/section&gt;
+  );
+}</code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p><code>{items.length &amp;&amp; &lt;List /&gt;}</code> render số <code>0</code> khi danh sách rỗng — bug hay bị hỏi trong phỏng vấn React. Bẫy thứ hai: dùng render prop rồi đặt tên prop là <code>children</code> nhưng lại truyền như prop thường, khiến JSX tự đóng thẻ và nội dung nằm trong attribute, khó đọc. Cuối cùng, đổi cả cây con giữa hai component khác type sẽ unmount subtree và xoá state — nếu muốn giữ state thì giữ cùng type và đổi prop.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Guard clause cho loading/error/empty, để thân hàm chỉ còn happy path.</li><li>Ternary cho hai nhánh, &amp;&amp; cho một nhánh, cẩn thận bẫy render số 0.</li><li>Không lồng ternary quá hai cấp, tách thành biến hoặc component.</li><li>Composition qua children hoặc render prop thay cho hàng loạt prop boolean.</li><li>Component khung không biết nội dung con, nên thêm loại nội dung mới không phải sửa nó.</li></ul></div>
+  </div>
+</article>
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q6</span> Event handling trong React: synthetic event là gì, truyền tham số cho handler thế nào, và event pooling đã bỏ từ React 17 nghĩa là gì?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>React bọc native event trong <strong>SyntheticEvent</strong> — object chuẩn hoá giao diện gồm <code>preventDefault</code>, <code>stopPropagation</code>, <code>target</code>, hoạt động giống nhau trên mọi trình duyệt. Từ React 17, listener được gắn ở root container thay vì ở <code>document</code>, và <strong>event pooling đã bị gỡ</strong>: object event không còn bị reset sau handler, nên đọc <code>e.target.value</code> trong callback bất đồng bộ vẫn an toàn.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Event delegation ở root giúp giảm số listener phải gắn cho từng node, tự dọn theo subtree khi unmount, và cho phép nhiều cây React độc lập cùng tồn tại trên một trang — điều mà việc gắn ở <code>document</code> không làm được. Trước React 17, pooling tái sử dụng object event để giảm áp lực GC nhưng khiến nhiều người gặp lỗi khi truy cập event trong <code>setTimeout</code> hay trong lời gọi API bất đồng bộ; bỏ pooling loại bỏ hẳn nhóm bug đó, đổi lại chi phí cấp phát object cao hơn một chút và đã được tối ưu ở tầng khác.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Người dùng click</div></div>
+        <div class="flow-arrow">↓ native event bubble lên root container</div>
+        <div class="flow-row"><div class="flow-node secondary">React tra bảng listener và dispatch SyntheticEvent</div></div>
+        <div class="flow-arrow">↓ gọi handler theo đúng tên prop: onClick, onChange</div>
+        <div class="flow-row"><div class="flow-node">Handler chạy: đọc e.target, cập nhật state hoặc gọi callback</div></div>
+        <div class="flow-arrow">↓ cập nhật state trong cùng tick được batch</div>
+        <div class="flow-row"><div class="flow-node success">Một lần render, UI cập nhật</div></div>
+      </div>
+      <p>Vì event đi qua root container theo cơ chế bubble, một listener đặt trên phần tử cha vẫn nhận được event từ con — đây là nền tảng để truyền dữ liệu kèm theo khi cần (dataset) thay vì tạo hàng trăm handler riêng.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Truyền tham số cho handler bằng inline arrow khi danh sách nhỏ: <code>onClick={() =&gt; remove(id)}</code>. Khi danh sách lớn hoặc component con đã bọc <code>React.memo</code>, dùng dạng curried <code>remove(id)</code> trả về handler ổn định, hoặc đặt id trên element và đọc từ <code>e.currentTarget.dataset.id</code>. Với input thì luôn đi theo cặp <code>value</code> và <code>onChange</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không gọi handler ngay trong JSX — <code>onClick={remove(id)}</code> chạy lúc render và gây vòng lặp cập nhật vô hạn nếu handler có setState. Không gọi <code>e.persist()</code> vì từ React 17 nó không còn cần thiết. Không tối ưu sớm bằng <code>useCallback</code> cho mọi handler — chỉ làm khi component con đã được memo, nếu không bạn chỉ thêm phức tạp.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// Cách 1: inline arrow — gọn, nhưng tạo hàm mới mỗi render</span>
+&lt;button onClick={() =&gt; <span class="tok-function">remove</span>(id)}&gt;Xoá&lt;/button&gt;
+
+<span class="tok-comment">// Cách 2: curried — handler ổn định, hợp khi con đã được memo</span>
+<span class="tok-keyword">const</span> <span class="tok-function">handleRemove</span> = (id: <span class="tok-class">string</span>) =&gt; (e: <span class="tok-class">React.MouseEvent</span>) =&gt; {
+  e.<span class="tok-function">stopPropagation</span>();   <span class="tok-comment">// không cho click lan lên dòng cha</span>
+  <span class="tok-function">remove</span>(id);
+};
+&lt;button onClick={<span class="tok-function">handleRemove</span>(id)}&gt;Xoá&lt;/button&gt;
+
+<span class="tok-comment">// Controlled input: value và onChange là một cặp bắt buộc</span>
+&lt;input value={sku} onChange={e =&gt; <span class="tok-function">setSku</span>(e.target.value) /&gt;
+
+<span class="tok-comment">// Sai: handler bị gọi ngay trong lúc render</span>
+<span class="tok-comment">// &lt;button onClick={remove(id)}&gt;Xoá&lt;/button&gt;</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Một listener ở phần tử cha xử lý click cho cả bảng: đặt <code>data-row-id</code> trên mỗi dòng, đọc <code>e.target.dataset.rowId</code> trong handler. Cách này hợp khi bảng có hàng nghìn dòng vì không phải tạo hàm mới cho từng dòng.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>SyntheticEvent là wrapper chuẩn hoá của native event, hành vi giống nhau trên mọi browser.</li><li>Từ React 17 listener gắn ở root container, hỗ trợ nhiều cây React trên một trang.</li><li>Event pooling đã bị gỡ từ React 17, nên đọc event trong callback async vẫn an toàn.</li><li>Truyền tham số bằng inline arrow hoặc curried handler; đừng gọi handler lúc render.</li><li>Chỉ tối ưu reference handler khi con đã memo.</li></ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q7</span> Controlled và uncontrolled input khác nhau thế nào, khi nào nên dùng defaultValue kèm ref?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Controlled input</strong> nhận <code>value</code> từ state React và cập nhật lại state qua <code>onChange</code>, nên React là nguồn dữ liệu duy nhất và giá trị đọc ra bất cứ lúc nào cũng đúng. <strong>Uncontrolled input</strong> giữ giá trị trong DOM; React chỉ đặt giá trị ban đầu bằng <code>defaultValue</code> hoặc <code>defaultChecked</code> và đọc giá trị khi cần qua <code>useRef</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Controlled cho phép validate và định dạng ngay từng keystroke, disable nút lưu theo dữ liệu, đồng bộ nhiều trường với nhau — đổi lại mỗi keystroke gây một lần re-render. Uncontrolled ít code, không re-render theo keystroke, phù hợp form lớn hoặc khi tích hợp plugin DOM tự quản giá trị. Hai điểm đặc biệt: <code>input</code> kiểu file luôn là uncontrolled vì browser chỉ cho đọc danh sách <code>files</code>; và <code>defaultValue</code> chỉ có tác dụng ở lần mount nên đổi prop này sau đó không cập nhật gì.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Người dùng gõ phím</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Controlled: onChange → setState → re-render với value mới</div><div class="flow-node warning">Uncontrolled: DOM tự cập nhật, React không can thiệp</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node">Controlled: đọc giá trị từ state bất cứ lúc nào</div><div class="flow-node warning">Uncontrolled: chỉ đọc khi submit qua ref</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Validate tức thời, UI đồng bộ</div><div class="flow-node success">Ít re-render, code ngắn</div></div>
+      </div>
+      <p>Nguyên tắc chọn: nếu giá trị của trường ảnh hưởng tới phần UI khác — nút lưu, thông báo lỗi, ô tổng tiền — thì cần controlled; nếu giá trị chỉ được dùng một lần lúc gửi thì uncontrolled là đủ.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Controlled cho search box, form cần validate theo từng trường, form cần đồng bộ nhiều field, ô nhập cần format số hoặc chữ hoa. Uncontrolled khi nhập dữ liệu một lần rồi gửi, khi upload file, hay khi form quá nhiều trường khiến việc re-render mỗi keystroke trở thành vấn đề hiệu năng.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đặt <code>value</code> mà không có <code>onChange</code> biến input thành read-only — React chỉ cảnh báo ở dev nên rất dễ lọt. Không đặt đồng thời cả <code>value</code> và <code>defaultValue</code>, và không để giá trị chuyển từ <code>undefined</code> sang chuỗi giữa hai lần render vì React sẽ chuyển input từ uncontrolled sang controlled và cảnh báo. Không đọc <code>ref.current.value</code> trong lúc render — chỉ đọc trong event handler hoặc effect.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// Controlled: state là nguồn duy nhất, validate được từng keystroke</span>
+<span class="tok-keyword">function</span> <span class="tok-function">SkuField</span>() {
+  <span class="tok-keyword">const</span> [sku, setSku] = <span class="tok-function">useState</span>(<span class="tok-string">""</span>);
+  <span class="tok-keyword">return</span> (
+    &lt;&gt;
+      &lt;input value={sku} onChange={e =&gt; <span class="tok-function">setSku</span>(e.target.value.<span class="tok-function">toUpperCase</span>())} /&gt;
+      &lt;button disabled={sku.length &lt; <span class="tok-number">3</span>}&gt;Lưu&lt;/button&gt;
+    &lt;/&gt;
+  );
+}
+
+<span class="tok-comment">// Uncontrolled: DOM giữ value, đọc khi submit qua ref</span>
+<span class="tok-keyword">function</span> <span class="tok-function">ImportBox</span>({ onSend }: { onSend: (q: <span class="tok-class">string</span>) =&gt; <span class="tok-class">void</span> }) {
+  <span class="tok-keyword">const</span> ref = <span class="tok-function">useRef</span>&lt;<span class="tok-class">HTMLInputElement</span>&gt;(<span class="tok-keyword">null</span>);
+  <span class="tok-keyword">return</span> (
+    &lt;div&gt;
+      &lt;input defaultValue=<span class="tok-string">"SKU-"</span> ref={ref} /&gt;
+      &lt;button onClick={() =&gt; <span class="tok-function">onSend</span>(ref.current?.value ?? <span class="tok-string">""</span>)}&gt;Gửi&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Chọn input kiểu file: giá trị <code>files</code> chỉ đọc được, muốn reset thì phải gán lại <code>null</code> qua ref — dùng uncontrolled là bắt buộc. Bẫy khác: lưu số vào state dạng number rồi ép <code>value={qty}</code> làm input không gõ được dấu thập phân hay chuỗi rỗng; giữ dạng chuỗi trong state và convert khi gửi là cách an toàn hơn.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Controlled: React state là nguồn duy nhất, value đi kèm onChange.</li><li>Uncontrolled: DOM giữ giá trị, defaultValue đặt lúc mount, đọc qua ref khi cần.</li><li>Controlled để validate và đồng bộ, đổi lại re-render mỗi keystroke.</li><li>defaultValue chỉ tác dụng lần mount; input file luôn uncontrolled.</li><li>value mà thiếu onChange là read-only — bẫy hay bị hỏi.</li></ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="t-state-reconciliation-react-18-v-form-handling">
+          <h2 class="section-title">Đặt state, reconciliation, React 18 và form handling</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q8</span> Lifting state up và single source of truth — đặt state ở đâu trong cây component?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Lifting state up là chuyển state từ component con lên <strong>tổ tiên chung gần nhất</strong> của mọi component cần dữ liệu đó: cha giữ state rồi truyền giá trị xuống bằng props và truyền hàm cập nhật xuống cho con gọi. <strong>Single source of truth</strong> nghĩa là mỗi mảnh dữ liệu chỉ tồn tại ở một nơi; mọi nơi khác đọc lại hoặc tính lại từ đó thay vì giữ bản sao.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Nếu mỗi con giữ bản sao riêng thì dữ liệu chắc chắn lệch nhau: hai filter hiển thị hai giá trị khác nhau, số dòng tổng không khớp danh sách đang thấy. Cách chữa thường thấy là thêm <code>useEffect</code> đồng bộ giữa các state — dễ sinh vòng lặp render, race condition và render thừa. Một nguồn dữ liệu duy nhất cộng với cập nhật một chiều làm trạng thái UI luôn suy ra được, không cần đồng bộ thủ công.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Hai component anh em cần cùng một dữ liệu</div></div>
+        <div class="flow-arrow">↓ tìm tổ tiên chung gần nhất trên cây</div>
+        <div class="flow-row"><div class="flow-node secondary">Đặt state ở đó, xoá state trùng ở các con</div></div>
+        <div class="flow-arrow">↓ props đi xuống: value và onChange</div>
+        <div class="flow-row"><div class="flow-node success">Con chỉ đọc props; muốn đổi thì gọi callback lên cha</div></div>
+      </div>
+      <p>Bốn bước áp dụng: xác định chính xác component nào cần đọc dữ liệu; tìm tổ tiên chung gần nhất; đặt state tại đó và truyền <code>value</code> cùng <code>onChange</code> xuống; biến các con thành component thuần theo props, không giữ bản sao dữ liệu.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Khi hai sibling cần cùng dữ liệu như ô search và bảng kết quả, khi cha cần dữ liệu để quyết định layout hoặc tính tổng, khi một dữ liệu phải reset đồng bộ giữa nhiều nhánh. Nguyên tắc chọn vị trí: state nên nằm gần nơi dùng nhất nhưng vẫn đủ cao để mọi component cần nó là con của nó.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng nâng state lên tận gốc ứng dụng: state ở app khiến mỗi keystroke render lại cả cây, kể cả sidebar và header không liên quan. Khi phải xuyên qua bốn, năm tầng trung gian chỉ để truyền props, cân nhắc Context; khi dữ liệu là server state thì thư viện caching giảm việc tự quản. Cũng không lưu lại dữ liệu dẫn xuất sau khi đã nâng state — nó sẽ thành nguồn dữ liệu thứ hai.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-keyword">function</span> <span class="tok-function">StockScreen</span>() {
+  <span class="tok-keyword">const</span> [query, setQuery] = <span class="tok-function">useState</span>(<span class="tok-string">""</span>);            <span class="tok-comment">// nguồn dữ liệu duy nhất</span>
+  <span class="tok-keyword">const</span> [rows] = <span class="tok-function">useState</span>&lt;<span class="tok-class">Row</span>[]&gt;([]);
+
+  <span class="tok-comment">// Dẫn xuất, KHÔNG lưu vào state</span>
+  <span class="tok-keyword">const</span> visible = rows.<span class="tok-function">filter</span>(r =&gt; r.sku.<span class="tok-function">includes</span>(query));
+
+  <span class="tok-keyword">return</span> (
+    &lt;&gt;
+      &lt;<span class="tok-class">SearchBox</span> value={query} onChange={setQuery} /&gt;
+      &lt;<span class="tok-class">ResultCount</span> value={visible.length} /&gt;
+      &lt;<span class="tok-class">ResultTable</span> rows={visible} /&gt;
+    &lt;/&gt;
+  );
+}
+
+<span class="tok-comment">// Con không giữ state: chỉ đọc props và báo thay đổi lên cha</span>
+<span class="tok-keyword">function</span> <span class="tok-function">SearchBox</span>({ value, onChange }: { value: <span class="tok-class">string</span>; onChange: (v: <span class="tok-class">string</span>) =&gt; <span class="tok-class">void</span> }) {
+  <span class="tok-keyword">return</span> &lt;input value={value} onChange={e =&gt; <span class="tok-function">onChange</span>(e.target.value)} /&gt;;
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Màn hình tồn kho: ô filter theo kho, bảng kết quả và số lượng đều đọc từ một state <code>query</code> ở component cha. Muốn reset filter thì chỉ cần <code>setQuery("")</code> một chỗ, thay vì gọi reset ở ba component khác nhau.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bug hay gặp là hai state cùng mô tả một sự thật (<code>query</code> ở cha và <code>internalQuery</code> ở con), rồi phải vá bằng <code>useEffect</code> — mỗi lần đồng bộ lại gây một lần render và tạo nguy cơ vòng lặp. Câu hỏi phỏng vấn “đặt state ở đâu?” kỳ vọng câu trả lời theo hai trục: tổ tiên chung gần nhất, và giữ state càng gần nơi dùng càng tốt.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Lift state lên tổ tiên chung gần nhất khi nhiều component cần cùng dữ liệu.</li><li>Một sự thật chỉ nằm ở một chỗ, mọi nơi khác đọc hoặc tính lại từ đó.</li><li>Cha giữ state, con nhận value qua props và yêu cầu đổi qua callback.</li><li>Đặt gần nơi dùng nhất để tránh render lại cả cây lớn.</li><li>Nhiều tầng trung gian thì cân nhắc Context, nhưng đừng biến mọi state thành global.</li></ul></div>
+  </div>
+</article>
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q9</span> Reconciliation và virtual DOM: diff hoạt động thế nào, React nhanh hơn thao tác DOM thủ công ở đâu, và chi phí thật của một lần re-render là gì?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Reconciliation</strong> là quá trình React so sánh cây element mới với cây của lần render trước để tính ra tập thay đổi DOM nhỏ nhất. Thay vì thuật toán so cây tổng quát có chi phí rất cao, React dùng heuristic O(n) dựa trên hai giả định: khác <code>type</code> thì coi như một cây hoàn toàn mới, và trong danh sách thì dùng <code>key</code> để nhận diện phần tử.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Virtual DOM không tự động nhanh hơn DOM: thao tác DOM viết tối ưu vẫn nhanh hơn. Lợi ích thật nằm ở chỗ bạn mô tả UI theo trạng thái, React dồn thay đổi vào một lần commit và tránh kiểu cập nhật thô như ghi lại toàn bộ <code>innerHTML</code> — vốn làm mất state và focus của input. Chi phí thật của một lần re-render gồm gọi lại hàm component, tạo các element object mới, diff cây, rồi mới tới commit và browser paint; chỉ bước commit mới chạm DOM.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">setState → render phase</div></div>
+        <div class="flow-arrow">↓ gọi component, tạo cây element mới, phải pure</div>
+        <div class="flow-row"><div class="flow-node secondary">Diff: cùng type → update props; khác type → thay cả subtree</div></div>
+        <div class="flow-arrow">↓ trong danh sách, key quyết định mount, update hay unmount</div>
+        <div class="flow-row"><div class="flow-node">Commit phase: mutate DOM thật, chạy layout effect</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Browser paint khung hình mới</div></div>
+      </div>
+      <p>Vì render phase có thể bị gọi lại (StrictMode ở dev) hoặc bị bỏ dở khi có cập nhật ưu tiên cao hơn, đừng đặt side effect ở đó. Muốn tối ưu thì giảm số lần render và kích thước cây phải diff: <code>React.memo</code> cho subtree nặng, <code>useMemo</code> cho tính toán tốn kém, key ổn định cho danh sách, tách component để cô lập phạm vi cập nhật.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Hiểu cơ chế này để trả lời các câu về hiệu năng: vì sao danh sách dài lại giật, vì sao truyền object mới xuống con đã memo không có tác dụng, vì sao đổi <code>type</code> làm mất state của subtree. Áp dụng khi thật sự có vấn đề đo được: bọc dòng bảng bằng <code>React.memo</code>, giữ handler ổn định bằng <code>useCallback</code>, đẩy việc lọc và sắp xếp nặng vào <code>useMemo</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không memo hoá mọi thứ: so sánh props cũng tốn thời gian và làm code khó đọc, trong khi với subtree nhỏ thì render lại rẻ hơn hẳn phần diff thêm vào. Không tối ưu theo cảm giác — đo bằng Profiler trước. Và đừng trả lời phỏng vấn rằng virtual DOM nhanh hơn DOM thủ công; câu trả lời đúng là nó giúp tránh cập nhật DOM dư thừa và giữ được mô hình khai báo dễ suy luận.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// Khác type → unmount cả subtree và mount lại: state của panel bị mất</span>
+{isEdit ? &lt;<span class="tok-class">EditPanel</span> /&gt; : &lt;<span class="tok-class">ViewPanel</span> /&gt;}
+
+<span class="tok-comment">// Muốn giữ state thì giữ cùng type và đổi prop</span>
+&lt;<span class="tok-class">Panel</span> mode={isEdit ? <span class="tok-string">"edit"</span> : <span class="tok-string">"view"</span>} /&gt;
+
+<span class="tok-comment">// Chặn re-render lan xuống cây nặng — memo chỉ hiệu quả khi props ổn định</span>
+<span class="tok-keyword">const</span> <span class="tok-class">Row</span> = <span class="tok-class">React.memo</span>(<span class="tok-keyword">function</span> <span class="tok-class">Row</span>({ item, onPick }: <span class="tok-class">RowProps</span>) {
+  <span class="tok-keyword">return</span> &lt;button onClick={() =&gt; <span class="tok-function">onPick</span>(item.id)}&gt;{item.code}&lt;/button&gt;;
+});
+<span class="tok-comment">// Ở cha: onPick phải là useCallback, item phải là reference mới CHỈ khi dữ liệu đổi</span></code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy hay bị khai thác: đổi điều kiện render từ component A sang component B cùng vị trí trong cây — hai type khác nhau nên React unmount subtree và toàn bộ state bên trong mất sạch (form đang nhập bị xoá trắng). Bẫy khác: đặt side effect hoặc log trong thân render, khiến số lần chạy hiển thị sai lệch so với số lần commit thực tế.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Reconciliation là diff cây element, dùng heuristic O(n): khác type thay subtree, cùng type update props.</li><li>Danh sách dùng key để nhận diện phần tử, key sai gây remount và mất state.</li><li>Virtual DOM không nhanh hơn DOM thủ công; nó tránh cập nhật dư và giữ mô hình khai báo.</li><li>Chi phí re-render: gọi component, tạo element, diff, commit DOM.</li><li>Tối ưu bằng memo, useMemo, key ổn định, tách component — và luôn đo bằng Profiler.</li></ul></div>
+  </div>
+</article>
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q10</span> React 18: automatic batching hoạt động thế nào và vì sao StrictMode gọi render/effect hai lần trong dev lại là điều tốt?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Từ React 18, <strong>automatic batching</strong> gộp mọi cập nhật state trong cùng một tick thành một lần render, kể cả khi xảy ra trong promise, <code>setTimeout</code> hay native event handler. <strong>StrictMode</strong> ở môi trường dev chủ động gọi lại hàm render và chạy effect theo vòng mount, unmount rồi mount lại; production không có hành vi này.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Batch giảm số lần render và commit khi một luồng xử lý cập nhật nhiều mảnh state — bắt đầu fetch, tắt loading, gán dữ liệu, set lỗi — nên ít việc diff và ít layout thrashing hơn. Double-invoke của StrictMode là một bài stress test: nếu component giả định effect chỉ chạy một lần, hoặc render có side effect, bạn sẽ thấy ngay ở dev thay vì gặp bug khó tái hiện ở production; code chịu được remount là code đúng với mô hình của React 18 và sẵn sàng cho các tính năng tương lai.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Ba lệnh setState trong cùng một tick, kể cả sau await</div></div>
+        <div class="flow-arrow">↓ đưa vào cùng một batch</div>
+        <div class="flow-row"><div class="flow-node warning">React 17 trở về trước: async context → nhiều lần render</div><div class="flow-node secondary">React 18: một lần render duy nhất</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Commit DOM một lần, UI không nhấp nháy trạng thái trung gian</div></div>
+      </div>
+      <p>Muốn thoát khỏi batch — ví dụ cần đọc kích thước DOM ngay sau khi set state — dùng <code>flushSync</code>, nhưng chỉ trong trường hợp thật sự cần vì nó phá lợi ích của batching. Về StrictMode, hãy viết effect luôn có cleanup: trả hàm huỷ, dùng <code>AbortController</code> cho request, gỡ listener trong cleanup.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Hiểu batching để giải thích vì sao số lần render thực tế ít hơn số lệnh setState và vì sao không cần tự gộp cập nhật. Hiểu StrictMode khi debug test flaky hoặc khi thấy effect chạy hai lần trong dev. Bọc toàn bộ ứng dụng trong StrictMode ở môi trường phát triển, và dùng <code>flushSync</code> khi thật sự phải đo DOM ngay sau cập nhật.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không tắt StrictMode để “hết lỗi” — lỗi đó chính là dấu hiệu code có side effect chưa được dọn. Không tách setState vào <code>setTimeout</code> để tránh batching vì từ React 18 cách đó vô ích; nếu thấy hai request thật ở production thì đó là bug thiếu cleanup, không phải lỗi của StrictMode. Cũng không đặt fetch, log hay thao tác ghi vào thân render, và nhớ hàm updater truyền cho setState phải thuần vì có thể bị gọi hai lần.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// React 18: ba cập nhật trong một tick, kể cả sau await → chỉ một lần render</span>
+<span class="tok-keyword">async function</span> <span class="tok-function">load</span>() {
+  <span class="tok-function">setLoading</span>(<span class="tok-keyword">true</span>);
+  <span class="tok-keyword">const</span> data = <span class="tok-keyword">await</span> <span class="tok-function">fetchOrders</span>();
+  <span class="tok-function">setLoading</span>(<span class="tok-keyword">false</span>);      <span class="tok-comment">// gộp cùng dòng dưới</span>
+  <span class="tok-function">setOrders</span>(data);      <span class="tok-comment">// → React 18 render MỘT lần</span>
+}
+
+<span class="tok-comment">// StrictMode ở dev: mount → unmount → mount lại, nên effect PHẢI có cleanup</span>
+<span class="tok-function">useEffect</span>(() =&gt; {
+  <span class="tok-keyword">const</span> ctrl = <span class="tok-keyword">new</span> <span class="tok-class">AbortController</span>();
+  <span class="tok-function">fetch</span>(<span class="tok-string">"/api/stock"</span>, { signal: ctrl.signal })
+    .<span class="tok-function">then</span>(r =&gt; r.<span class="tok-function">json</span>())
+    .<span class="tok-function">then</span>(setStock)
+    .<span class="tok-function">catch</span>(() =&gt; { <span class="tok-comment">/* request bị huỷ thì bỏ qua */</span> });
+  <span class="tok-keyword">return</span> () =&gt; ctrl.<span class="tok-function">abort</span>();   <span class="tok-comment">// thiếu dòng này → set state hai lần, race condition</span>
+}, []);</code></pre></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Thấy log trong effect in ra hai lần ở dev là bình thường và không phải bug — nhưng nếu thấy hai request mạng thật ở production thì đó là bug thật do thiếu cleanup. Bẫy thứ hai: tin rằng cứ gọi nhiều setState là nhiều lần render rồi tự gộp state thủ công, trong khi React 18 đã làm việc đó và việc gộp tay thường tạo ra một state object cồng kềnh khó cập nhật.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>React 18 batch mọi cập nhật trong cùng tick, kể cả trong promise và setTimeout.</li><li>Ít render hơn đồng nghĩa ít diff và ít layout thrashing; cần đọc DOM ngay thì dùng flushSync.</li><li>StrictMode dev gọi render và effect hai lần để lộ side effect không thuần.</li><li>Effect phải có cleanup — AbortController, gỡ listener, huỷ timer.</li><li>Đừng tắt StrictMode để che lỗi, và đừng đặt side effect trong thân render.</li></ul></div>
+  </div>
+</article>
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q11</span> Bonus — xử lý form trong React: submit, validate và tổ chức state của form nhiều trường thế nào cho sạch?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Xử lý form trong React gồm bốn việc: chặn submit mặc định của browser bằng <code>e.preventDefault()</code>, gom giá trị các trường vào một object state, validate rồi gửi lên server, và quản lý ba trạng thái đang gửi, thành công, thất bại. Form nhiều trường nên gom vào một object state với một <code>handleChange</code> dùng chung.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Để browser tự submit sẽ reload trang và xoá sạch state React, đồng thời bỏ qua validate ở client nên người dùng chỉ thấy lỗi sau khi server trả về. Một object state cho cả form giúp validate tập trung một chỗ, hiển thị lỗi theo từng field, disable nút gửi khi dữ liệu chưa hợp lệ hoặc đang gửi, và reset form chỉ bằng một lệnh. Cách này cũng tránh việc mỗi trường có một state riêng khiến mười trường thành mười <code>useState</code> khó đọc và khó reset đồng bộ.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Người dùng điền form và bấm Lưu</div></div>
+        <div class="flow-arrow">↓ onSubmit: preventDefault rồi validate</div>
+        <div class="flow-row"><div class="flow-node warning">Có lỗi → set errors theo field, không gọi API</div><div class="flow-node secondary">Hợp lệ → setSubmitting(true) và gọi API</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node">Thành công: reset form hoặc điều hướng</div><div class="flow-node warning">Thất bại: giữ nguyên dữ liệu để người dùng sửa</div></div>
+        <div class="flow-arrow">↓ dù kết quả nào cũng tắt cờ submitting</div>
+        <div class="flow-row"><div class="flow-node success">Nút gửi trở lại trạng thái bình thường, không double submit</div></div>
+      </div>
+      <p>Điểm quan trọng là cờ <code>submitting</code> phải được tắt trong <code>finally</code>, và dữ liệu người dùng đã nhập không được xoá khi server trả lỗi. Nếu form dùng uncontrolled thì đọc toàn bộ giá trị một lần qua <code>FormData</code> ngay trong <code>onSubmit</code>.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng object state kèm validate cho form nghiệp vụ có nhiều trường phụ thuộc nhau — phiếu nhập kho, tạo đơn, cấu hình tài khoản. Dùng <code>useReducer</code> khi form có nhiều hành động khác loại (thêm dòng, xoá dòng, đổi số lượng, tính lại tổng). Dùng uncontrolled kèm <code>FormData</code> khi form dài, chỉ gửi một lần, hoặc khi tích hợp file upload.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không tự viết lại thư viện form nếu dự án đã dùng sẵn một thư viện quản lý form và validate — chỉ cần hiểu cơ chế bên dưới. Không validate chỉ ở client: server luôn phải kiểm tra lại. Không đặt state của một form cục bộ vào Context hay store toàn cục chỉ để tránh truyền props vài tầng, và cũng không giữ giá trị số dạng number trong state nếu input cần cho phép gõ dở — hãy giữ chuỗi rồi convert khi gửi.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-keyword">type</span> <span class="tok-class">Form</span> = { sku: <span class="tok-class">string</span>; qty: <span class="tok-class">string</span> };
+<span class="tok-keyword">type</span> <span class="tok-class">Errors</span> = <span class="tok-class">Partial</span>&lt;<span class="tok-class">Record</span>&lt;<span class="tok-keyword">keyof</span> <span class="tok-class">Form</span>, <span class="tok-class">string</span>&gt;&gt;;
+
+<span class="tok-keyword">function</span> <span class="tok-function">CreateOrderForm</span>({ onSubmit }: { onSubmit: (f: <span class="tok-class">Form</span>) =&gt; <span class="tok-class">Promise</span>&lt;<span class="tok-class">void</span>&gt; }) {
+  <span class="tok-keyword">const</span> [form, setForm] = <span class="tok-function">useState</span>&lt;<span class="tok-class">Form</span>&gt;({ sku: <span class="tok-string">""</span>, qty: <span class="tok-string">""</span> });
+  <span class="tok-keyword">const</span> [errors, setErrors] = <span class="tok-function">useState</span>&lt;<span class="tok-class">Errors</span>&gt;({});
+  <span class="tok-keyword">const</span> [submitting, setSubmitting] = <span class="tok-function">useState</span>(<span class="tok-keyword">false</span>);
+
+  <span class="tok-comment">// Một handler dùng chung cho mọi trường, lấy tên qua e.target.name</span>
+  <span class="tok-keyword">const</span> <span class="tok-function">change</span> = (e: <span class="tok-class">React.ChangeEvent</span>&lt;<span class="tok-class">HTMLInputElement</span>&gt;) =&gt;
+    <span class="tok-function">setForm</span>(prev =&gt; ({ ...prev, [e.target.name]: e.target.value }));
+
+  <span class="tok-keyword">const</span> <span class="tok-function">validate</span> = (f: <span class="tok-class">Form</span>): <span class="tok-class">Errors</span> =&gt; {
+    <span class="tok-keyword">const</span> next: <span class="tok-class">Errors</span> = {};
+    <span class="tok-keyword">if</span> (!f.sku) next.sku = <span class="tok-string">"Bắt buộc nhập SKU"</span>;
+    <span class="tok-keyword">const</span> q = <span class="tok-class">Number</span>(f.qty);
+    <span class="tok-keyword">if</span> (!<span class="tok-class">Number</span>.<span class="tok-function">isInteger</span>(q) || q &lt;= <span class="tok-number">0</span>) next.qty = <span class="tok-string">"Phải là số nguyên dương"</span>;
+    <span class="tok-keyword">return</span> next;
+  };
+
+  <span class="tok-keyword">const</span> <span class="tok-function">submit</span> = <span class="tok-keyword">async</span> (e: <span class="tok-class">React.FormEvent</span>) =&gt; {
+    e.<span class="tok-function">preventDefault</span>();                 <span class="tok-comment">// chặn reload trang</span>
+    <span class="tok-keyword">const</span> next = <span class="tok-function">validate</span>(form);
+    <span class="tok-function">setErrors</span>(next);
+    <span class="tok-keyword">if</span> (<span class="tok-class">Object</span>.<span class="tok-function">keys</span>(next).length &gt; <span class="tok-number">0</span>) <span class="tok-keyword">return</span>;   <span class="tok-comment">// không gọi API khi dữ liệu sai</span>
+    <span class="tok-function">setSubmitting</span>(<span class="tok-keyword">true</span>);
+    <span class="tok-keyword">try</span> {
+      <span class="tok-keyword">await</span> <span class="tok-function">onSubmit</span>({ ...form, qty: <span class="tok-class">String</span>(<span class="tok-class">Number</span>(form.qty)) });
+      <span class="tok-function">setForm</span>({ sku: <span class="tok-string">""</span>, qty: <span class="tok-string">""</span> });          <span class="tok-comment">// reset sau khi thành công</span>
+    } <span class="tok-keyword">finally</span> {
+      <span class="tok-function">setSubmitting</span>(<span class="tok-keyword">false</span>);                    <span class="tok-comment">// luôn tắt cờ, kể cả khi lỗi</span>
+    }
+  };
+
+  <span class="tok-keyword">return</span> (
+    &lt;div&gt;
+      &lt;input name=<span class="tok-string">"sku"</span> value={form.sku} onChange={change} /&gt;
+      &lt;span&gt;{errors.sku}&lt;/span&gt;
+      &lt;input name=<span class="tok-string">"qty"</span> value={form.qty} onChange={change} /&gt;
+      &lt;span&gt;{errors.qty}&lt;/span&gt;
+      &lt;button onClick={submit} disabled={submitting}&gt;{submitting ? <span class="tok-string">"Đang lưu"</span> : <span class="tok-string">"Lưu"</span>}&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Form nhập phiếu kho: validate ở client để phản hồi nhanh, server validate lại để bảo vệ dữ liệu, cờ <code>submitting</code> chống double submit, và lỗi từ server được gán vào <code>errors</code> theo field để người dùng thấy ngay cạnh ô nhập.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Quên <code>preventDefault()</code> làm trang reload và mất toàn bộ state — triệu chứng kinh điển khi mới làm React. Bẫy thứ hai: disable nút gửi nhưng không reset form hay không tắt cờ nếu API lỗi, khiến nút kẹt vĩnh viễn. Bẫy thứ ba: giữ <code>qty</code> dạng number trong state rồi ép <code>value</code> thành số, làm người dùng không gõ được chuỗi trung gian — giữ chuỗi trong state và convert lúc gửi là an toàn.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Luôn chặn submit mặc định rồi tự validate trước khi gọi API.</li><li>Form nhiều trường nên gom vào một object state với một handler dùng chung.</li><li>Validate ở client để phản hồi nhanh, server vẫn phải kiểm tra lại.</li><li>Cờ submitting chống double submit, tắt trong finally, giữ dữ liệu khi lỗi.</li><li>Form dài hoặc upload file thì uncontrolled và FormData là lựa chọn hợp lý.</li></ul></div>
+  </div>
+</article>
+        </section>
+
+['        <div class="nav-pager">', '          <a class="prev" href="34-fe-javascript-typescript.html"><span class="label">Trước</span><span class="title">34. JavaScript &amp; TypeScript</span></a>', '          <a class="next" href="36-react-hooks-data.html"><span class="label">Tiếp</span><span class="title">36. React Hooks &amp; Data</span></a>', '        </div>']
+      </div>
+
+      <footer class="site-footer">
+        <p>Knowledge Gym — Module 35 / 42</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

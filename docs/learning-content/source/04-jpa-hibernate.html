@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4. Hibernate / JPA — Java Interview Bank</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Java Interview<br><span>Bank</span></h1>
+        <p>Interview Prep Notes</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>4. Hibernate / JPA</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 04</div>
+          <h1 class="module-title">Hibernate / JPA</h1>
+          <p class="module-subtitle">Lazy/Eager loading, N+1, cache, locking, entity lifecycle, pagination, inheritance mapping — tối ưu ORM trong production.</p>
+        </div>
+
+        <!-- SECTION: ORM & Querying -->
+        <section class="section" id="loading">
+          <h2 class="section-title">ORM &amp; Fetch Strategy</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q1</span> Phân biệt Lazy Loading vs Eager Loading?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Lazy Loading</strong> trì hoãn query association cho đến lần truy cập đầu tiên — Hibernate tạo <em>proxy</em> (collection wrapper hoặc entity proxy) thay vì SELECT ngay. <strong>Eager Loading</strong> fetch association cùng lúc với entity cha qua JOIN hoặc query phụ. JPA default: <code>@OneToMany</code>/<code>@ManyToMany</code> → LAZY; <code>@ManyToOne</code>/<code>@OneToOne</code> → EAGER (có thể override bằng <code>fetch = FetchType.LAZY</code>).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Fetch strategy quyết định số query và lượng dữ liệu mỗi request. EAGER mặc định trên <code>@ManyToOne</code> dễ gây over-fetch khi list 500 pick order nhưng không cần customer detail — mỗi row kéo thêm JOIN. LAZY đúng hướng nhưng truy cập ngoài Persistence Context → <code>LazyInitializationException</code>. Trên WMS, API list task thường chỉ cần header; detail screen mới cần lines + location — fetch plan phải khác nhau theo use case.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">SELECT * FROM pick_order WHERE id=1</div></div>
+                  <div class="flow-arrow">↓ LAZY: lines chưa query — proxy rỗng</div>
+                  <div class="flow-row"><div class="flow-node secondary">order.getLines().size()</div><div class="flow-node">→ SELECT * FROM pick_line WHERE order_id=1</div></div>
+                  <div class="flow-arrow">↓ EAGER: đã JOIN/SELECT lines ngay bước 1</div>
+                </div>
+                <p>Fix LazyInitializationException: (1) giữ access trong <code>@Transactional</code>, (2) <code>JOIN FETCH</code> / <code>@EntityGraph</code>, (3) trả DTO/projection thay vì entity graph, (4) tránh OSIV che lỗi.</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p><strong>LAZY</strong> cho mọi association mặc định — đặc biệt collection (<code>@OneToMany</code>). Chỉ <strong>EAGER</strong> khi 100% mọi code path luôn cần association và cardinality nhỏ (ví dụ entity luôn kèm 1 config row). Production: explicit fetch trong service theo từng API endpoint.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng EAGER toàn cục "cho chắc" — list API sẽ cartesian product và chậm. Đừng LAZY rồi truy cập association ở controller/view ngoài transaction. Đừng dựa OSIV (<code>spring.jpa.open-in-view=true</code>) thay fetch plan — che N+1 và giữ DB connection suốt HTTP request. Đừng EAGER 2 collection cùng lúc — MultipleBagFetchException.</p></div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>LAZY (default @OneToMany, @ManyToMany)</th><th>EAGER (@ManyToOne default, @OneToOne có thể)</th></tr></thead>
+                <tbody>
+                  <tr><td>Khi nào query</td><td>Lần truy cập association đầu tiên (proxy)</td><td>Ngay khi load entity cha (JOIN hoặc query riêng)</td></tr>
+                  <tr><td>Performance</td><td>Tốt nếu không cần association</td><td>Dễ over-fetch, cartesian product trên list</td></tr>
+                  <tr><td>Rủi ro</td><td>LazyInitializationException ngoài session; N+1 trong loop</td><td>Load dư dữ liệu, chậm pagination</td></tr>
+                  <tr><td>WMS</td><td>List pick task (header only)</td><td>Hiếm — prefer explicit fetch</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Entity</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">PickOrder</span> {
+  <span class="tok-annotation">@OneToMany</span>(mappedBy = <span class="tok-string">"order"</span>, fetch = FetchType.LAZY)
+  <span class="tok-keyword">private</span> <span class="tok-class">List</span>&lt;<span class="tok-class">PickLine</span>&gt; lines = <span class="tok-keyword">new</span> <span class="tok-class">ArrayList</span>&lt;&gt;();
+
+  <span class="tok-annotation">@ManyToOne</span>(fetch = FetchType.LAZY) <span class="tok-comment">// override EAGER default</span>
+  <span class="tok-keyword">private</span> <span class="tok-class">StorageLocation</span> location;
+}
+
+<span class="tok-comment">// ❌ LazyInitializationException — session đã đóng</span>
+<span class="tok-class">PickOrder</span> order = orderRepo.findById(<span class="tok-number">1L</span>).get();
+order.getLines().size(); <span class="tok-comment">// fail nếu ngoài @Transactional</span>
+
+<span class="tok-comment">// ✅ Explicit fetch trong service</span>
+<span class="tok-annotation">@Query</span>(<span class="tok-string">"SELECT o FROM PickOrder o JOIN FETCH o.lines WHERE o.id = :id"</span>)
+<span class="tok-class">Optional</span>&lt;<span class="tok-class">PickOrder</span>&gt; <span class="tok-function">findWithLines</span>(<span class="tok-annotation">@Param</span>(<span class="tok-string">"id"</span>) <span class="tok-class">Long</span> id);</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div>Dashboard WMS list 200 open pick order: LAZY + không touch <code>lines</code> → 1 query. Detail screen order #PO-8842: service gọi <code>findWithLines()</code> JOIN FETCH trong <code>@Transactional</code> → 1 query đủ data. Export CSV cần order + customer: DTO projection thay vì EAGER global trên entity.</div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div>Interviewer hỏi "EAGER an toàn hơn LAZY?" — SAI: EAGER gây over-fetch và cartesian product trên list. "OSIV fix LazyInitializationException?" — technically đúng nhưng anti-pattern: giữ session + connection suốt request, che N+1. Trả lời đúng: LAZY default + explicit fetch plan theo use case.</div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+                <li>LAZY = proxy, query khi access; EAGER = fetch ngay cùng cha.</li>
+                <li>Default: OneToMany LAZY, ManyToOne EAGER — nên override ManyToOne → LAZY.</li>
+                <li>LazyInitializationException = access ngoài Persistence Context.</li>
+                <li>Fix: @Transactional, JOIN FETCH, EntityGraph, DTO — không OSIV.</li>
+                <li>Production: fetch explicit theo API, không EAGER global.</li>
+              </ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q2</span> N+1 Query — nguyên nhân, phát hiện, giải pháp?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>N+1 Query</strong> là anti-pattern ORM: 1 query load N entity cha (ví dụ 100 pick order), rồi thêm N query riêng khi lazy-load association con (<code>order.lines</code>) trong vòng lặp — tổng 101 round-trip DB thay vì 1–2. Hibernate sinh proxy cho <code>@OneToMany(fetch=LAZY)</code>; mỗi lần <code>order.getLines()</code> trigger SELECT mới nếu chưa được fetch trước.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>LAZY là default đúng cho performance, nhưng service/controller truy cập collection ngoài ý đồ hoặc thiếu fetch plan → explosion. Trên WMS, list 500 outbound order rồi loop lấy line items có thể biến API 200ms thành 3–5s, làm timeout WCS callback và spike connection pool HikariCP.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node danger">❌ N+1: 1 + N queries</div></div>
+                  <div class="flow-arrow">↓</div>
+                  <div class="flow-row"><div class="flow-node primary">SELECT * FROM pick_order WHERE status='OPEN'</div><div class="flow-node">→ 100 rows</div></div>
+                  <div class="flow-arrow">↓ for each order → SELECT * FROM pick_line WHERE order_id=?</div>
+                  <div class="flow-row"><div class="flow-node danger">×100 queries</div></div>
+                </div>
+                <p><strong>Phát hiện:</strong> bật <code>spring.jpa.show-sql</code>, Hibernate statistics, p6spy/datasource-proxy, APM trace (Datadog/New Relic), log pattern "cùng SQL lặp với param khác nhau".</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Dùng <strong>JOIN FETCH</strong> khi chắc chắn cần association ngay (detail screen, export). <strong>@EntityGraph</strong> khi muốn khai báo fetch plan trên repository mà không viết JPQL dài. <strong>@BatchSize</strong> / <code>default_batch_fetch_size</code> khi list lớn, nhiều parent, không cần cartesian product — gom lazy load thành <code>WHERE id IN (...)</code> theo batch 25–50.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Không JOIN FETCH mọi association "cho chắc" — cartesian product phình row (order × lines × customer). Không dùng EAGER global. Không JOIN FETCH trực tiếp với <code>Pageable</code> — Hibernate có thể paginate sai. Không batch fetch khi chỉ load 1 entity.</p></div>
+              <table class="feature-table">
+                <thead><tr><th>Giải pháp</th><th>Cơ chế</th><th>Ưu</th><th>Nhược</th></tr></thead>
+                <tbody>
+                  <tr><td><code>JOIN FETCH</code></td><td>1 JPQL join, load eager trong query</td><td>1 query, deterministic</td><td>Cartesian product, khó paginate</td></tr>
+                  <tr><td><code>@EntityGraph</code></td><td>Hint fetch plan trên find method</td><td>Declarative, tái sử dụng</td><td>Multiple bag fetch cùng lúc bị lỗi</td></tr>
+                  <tr><td><code>@BatchSize</code></td><td>Lazy load theo IN-clause batch</td><td>Giữ LAZY, giảm N+1</td><td>Vẫn nhiều query hơn JOIN FETCH</td></tr>
+                  <tr><td>DTO / Projection</td><td>Query chỉ cột cần thiết</td><td>Nhẹ nhất, không proxy</td><td>Không full entity graph</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// ❌ N+1 — 1 query orders + N query lines</span>
+<span class="tok-class">List</span>&lt;<span class="tok-class">PickOrder</span>&gt; orders = orderRepo.findByStatus(OPEN);
+<span class="tok-keyword">for</span> (<span class="tok-class">PickOrder</span> o : orders) {
+  o.getLines().size(); <span class="tok-comment">// lazy trigger → SELECT ... WHERE order_id=?</span>
+}
+
+<span class="tok-comment">// ✅ JOIN FETCH — 1 query duy nhất</span>
+<span class="tok-annotation">@Query</span>(<span class="tok-string">"SELECT DISTINCT o FROM PickOrder o JOIN FETCH o.lines WHERE o.status = :st"</span>)
+<span class="tok-class">List</span>&lt;<span class="tok-class">PickOrder</span>&gt; <span class="tok-function">findWithLines</span>(<span class="tok-annotation">@Param</span>(<span class="tok-string">"st"</span>) <span class="tok-class">OrderStatus</span> st);
+
+<span class="tok-comment">// ✅ EntityGraph — fetch plan trên repository</span>
+<span class="tok-annotation">@EntityGraph</span>(attributePaths = {<span class="tok-string">"lines"</span>, <span class="tok-string">"location"</span>})
+<span class="tok-class">List</span>&lt;<span class="tok-class">PickOrder</span>&gt; <span class="tok-function">findByStatus</span>(<span class="tok-class">OrderStatus</span> status);
+
+<span class="tok-comment">// ✅ Batch fetch — IN (1,2,3...) thay vì từng id</span>
+<span class="tok-annotation">@BatchSize</span>(size = <span class="tok-number">25</span>)
+<span class="tok-keyword">private</span> <span class="tok-class">List</span>&lt;<span class="tok-class">PickLine</span>&gt; lines;
+<span class="tok-comment">// yml: hibernate.default_batch_fetch_size=25</span></code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div>API list pick task WMS trả order + lines: JOIN FETCH hoặc EntityGraph trong <code>@Transactional</code> service. Dashboard chỉ cần header → không fetch lines. Pagination 20/page → 2-query: (1) SELECT id ... LIMIT/OFFSET, (2) JOIN FETCH WHERE id IN (...).</div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div>Interviewer hỏi "JOIN FETCH fix N+1?" — trả lời có điều kiện: fix được nhưng có thể duplicate row (DISTINCT), không paginate trực tiếp, và fetch 2 collection cùng lúc → MultipleBagFetchException. OSIV che lỗi bằng cách giữ session mở suốt HTTP request — anti-pattern production.</div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+                <li>N+1 = 1 query cha + N query con do lazy access trong loop.</li>
+                <li>Phát hiện qua SQL log lặp, APM, p6spy.</li>
+                <li>Fix: JOIN FETCH (1 query), EntityGraph (declarative), BatchSize (lazy gom IN).</li>
+                <li>Cẩn thận cartesian product và pagination — dùng 2-query approach.</li>
+                <li>Production: fetch explicit trong service, tránh OSIV.</li>
+              </ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Cache -->
+        <section class="section" id="cache">
+          <h2 class="section-title">Cache &amp; Locking</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q3</span> First-level cache vs Second-level cache?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>First-level cache (L1)</strong> là Persistence Context — identity map trong phạm vi 1 EntityManager/Session: cùng PK = cùng object instance, dirty checking tự phát hiện thay đổi khi flush. <strong>Second-level cache (L2)</strong> là cache ở SessionFactory scope, chia sẻ giữa nhiều session — lưu entity state đã detach (dehydrated), cần provider (Caffeine, EhCache, Redis) và <code>@Cacheable</code> trên entity.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>L1 giảm duplicate SELECT trong cùng transaction (<code>findById(1)</code> 2 lần → 1 query) và đảm bảo consistency trong TX. L2 giảm round-trip DB cho read-heavy data ít đổi — product catalog, warehouse config, SKU master trên WMS có thể đọc hàng nghìn lần/ngày nhưng update vài lần. Không có L2, mỗi HTTP request tạo session mới → miss cache liên tục.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Request → Session mới</div></div>
+                  <div class="flow-arrow">↓ findById(skuId)</div>
+                  <div class="flow-row"><div class="flow-node">L1 hit?</div><div class="flow-node secondary">L2 hit?</div><div class="flow-node danger">→ DB SELECT</div></div>
+                  <div class="flow-arrow">↓ put L2 (nếu @Cacheable) + put L1</div>
+                </div>
+                <p>Lookup order: L1 → L2 → DB. Update entity: L1 dirty check → flush DB → invalidate/update L2 region. Query cache (extension của L2) cache kết quả query — dễ stale, production ít dùng.</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p><strong>L1:</strong> luôn bật tự động — hiểu để tránh duplicate query và stale trong TX. <strong>L2:</strong> entity read-heavy, write-rare, dữ liệu nhỏ-vừa (SKU, location type, system config). Cluster multi-node cần distributed L2 (Redis) + TTL/invalidate strategy.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng L2 cho inventory/bin status — stale gây double booking AGV. Đừng cache entity có @Version conflict cao. Đừng nhầm L1 tồn tại giữa requests — session đóng = L1 mất. Đừng bật query cache cho dynamic query (filter theo status/date). Đừng L2 mà không test invalidation khi deploy multi-instance.</p></div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>L1 (Persistence Context)</th><th>L2 (SessionFactory)</th></tr></thead>
+                <tbody>
+                  <tr><td>Scope</td><td>1 Session / Transaction</td><td>Shared toàn application</td></tr>
+                  <tr><td>Config</td><td>Tự động — không cần</td><td>Provider + <code>@Cacheable</code> + yml</td></tr>
+                  <tr><td>Identity map</td><td>Có — cùng ID = cùng instance</td><td>Dehydrated state, tạo instance mới mỗi session</td></tr>
+                  <tr><td>Dirty checking</td><td>Có — auto UPDATE khi flush</td><td>Không — chỉ read cache</td></tr>
+                  <tr><td>WMS</td><td>Mọi TX (pick, putaway)</td><td>SKU master, location type config</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Entity</span>
+<span class="tok-annotation">@Cacheable</span>
+<span class="tok-annotation">@org.hibernate.annotations.Cache</span>(usage = CacheConcurrencyStrategy.READ_WRITE)
+<span class="tok-keyword">public class</span> <span class="tok-class">SkuMaster</span> {
+  <span class="tok-annotation">@Id</span> <span class="tok-keyword">private</span> <span class="tok-class">Long</span> id;
+  <span class="tok-keyword">private</span> <span class="tok-class">String</span> sku;
+  <span class="tok-keyword">private</span> <span class="tok-class">String</span> description;
+  <span class="tok-keyword">private</span> <span class="tok-class">BigDecimal</span> weightKg;
+}
+
+<span class="tok-comment">// application.yml</span>
+<span class="tok-comment">// spring.jpa.properties.hibernate.cache.use_second_level_cache=true</span>
+<span class="tok-comment">// spring.jpa.properties.hibernate.cache.region.factory_class=org.hibernate.cache.jcache.JCacheRegionFactory</span>
+
+<span class="tok-comment">// L1 demo — 2 lần findById trong cùng @Transactional → 1 SELECT</span>
+<span class="tok-class">SkuMaster</span> a = skuRepo.findById(<span class="tok-number">100L</span>).get();
+<span class="tok-class">SkuMaster</span> b = skuRepo.findById(<span class="tok-number">100L</span>).get();
+<span class="tok-comment">// a == b (cùng instance trong L1)</span></code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div>WMS: cache L2 cho <code>SkuMaster</code> (10K SKU, đọc mỗi pick scan) và <code>WarehouseConfig</code> (zone mapping, AGV speed limit). Pick transaction vẫn query real-time <code>BinInventory</code> — không cache. Sau admin update SKU weight, L2 READ_WRITE invalidate region → scan tiếp theo lấy data mới.</div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div>"L2 thay L1?" — SAI: L1 luôn có trong session; L2 bổ sung cross-session. "Cache @ManyToOne association?" — collection cache phức tạp và dễ stale. Stale L2 trên inventory → AGV pick sai bin — interviewer test awareness về cache invalidation hơn config syntax.</div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+                <li>L1 = Persistence Context, per session, identity map + dirty checking.</li>
+                <li>L2 = SessionFactory scope, shared, cần @Cacheable + provider.</li>
+                <li>Lookup: L1 → L2 → DB; update invalidate L2.</li>
+                <li>L2 cho read-heavy master data; không cache inventory/status.</li>
+                <li>Cluster: distributed cache (Redis) + test invalidation.</li>
+              </ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q4</span> Optimistic Locking vs Pessimistic Locking?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Optimistic locking</strong> giả định conflict hiếm: đọc entity kèm <code>@Version</code>, khi UPDATE DB check <code>WHERE version = ?</code> — mismatch → <code>OptimisticLockException</code>. <strong>Pessimistic locking</strong> lock row ngay lúc SELECT (<code>SELECT ... FOR UPDATE</code>) — transaction khác phải chờ hoặc timeout. JPA: <code>@Version</code> vs <code>@Lock(PESSIMISTIC_WRITE)</code>.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>WMS: 2 AGV/station cùng allocate bin <code>A-01-03</code> cho SKU khác nhau. Không lock → double booking. Optimistic phù hợp khi conflict thấp (cập nhật master data). Pessimistic bắt buộc khi "giữ chỗ" bin/inventory trong transaction ngắn — đảm bảo chỉ 1 luồng reserve thành công, luồng kia block rõ ràng thay vì fail sau cùng.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Tx A: SELECT bin A-01-03 FOR UPDATE</div></div>
+                  <div class="flow-arrow">↓ row locked — Tx B chờ</div>
+                  <div class="flow-row"><div class="flow-node secondary">Tx A: UPDATE status='RESERVED', COMMIT</div></div>
+                  <div class="flow-arrow">↓ lock release → Tx B đọc, thấy RESERVED → chọn bin khác</div>
+                </div>
+                <p>Optimistic flow: cả A và B đọc <code>version=5, qty=10</code> → A commit <code>version=6</code> → B update <code>WHERE version=5</code> → 0 rows → retry hoặc báo conflict.</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p><strong>Optimistic:</strong> profile update, config WMS, inventory adjustment thỉnh thoảng, read-heavy write-rare. <strong>Pessimistic:</strong> bin reservation, pick task allocation, chuyển tồn giữa location, bất kỳ "check-then-act" trên cùng row mà lost update không chấp nhận được.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng pessimistic lock cả bảng location khi chỉ cần 1 bin — lock đúng row. Đừng optimistic cho hot row (counter sequence) — retry storm. Đừng giữ pessimistic lock qua HTTP call/user input — deadlock và timeout WCS. Đừng mix 2 chiến lược trên cùng entity không có lý do.</p></div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>Optimistic (@Version)</th><th>Pessimistic (FOR UPDATE)</th></tr></thead>
+                <tbody>
+                  <tr><td>Cơ chế</td><td>Check version lúc flush UPDATE</td><td>DB row lock lúc SELECT</td></tr>
+                  <tr><td>Conflict</td><td>Exception / 0 rows updated</td><td>Block, timeout, deadlock risk</td></tr>
+                  <tr><td>Throughput</td><td>Cao — không block reader</td><td>Thấp hơn — contention</td></tr>
+                  <tr><td>DB support</td><td>Mọi RDBMS</td><td>PostgreSQL, Oracle, InnoDB</td></tr>
+                  <tr><td>WMS</td><td>Master data, audit field</td><td>Bin hold, inventory reserve</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Optimistic — bin inventory, conflict hiếm</span>
+<span class="tok-annotation">@Entity</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">BinInventory</span> {
+  <span class="tok-annotation">@Id</span> <span class="tok-keyword">private</span> <span class="tok-class">Long</span> id;
+  <span class="tok-keyword">private</span> <span class="tok-class">String</span> binCode;   <span class="tok-comment">// A-01-03</span>
+  <span class="tok-keyword">private int</span> qty;
+  <span class="tok-annotation">@Version</span> <span class="tok-keyword">private</span> <span class="tok-class">Long</span> version;
+}
+
+<span class="tok-comment">// Pessimistic — reserve bin trước khi gửi lệnh AGV</span>
+<span class="tok-annotation">@Lock</span>(LockModeType.PESSIMISTIC_WRITE)
+<span class="tok-annotation">@Query</span>(<span class="tok-string">"SELECT b FROM StorageBin b WHERE b.binCode = :code AND b.status = 'EMPTY'"</span>)
+<span class="tok-class">Optional</span>&lt;<span class="tok-class">StorageBin</span>&gt; <span class="tok-function">findEmptyBinForUpdate</span>(<span class="tok-annotation">@Param</span>(<span class="tok-string">"code"</span>) <span class="tok-class">String</span> code);
+
+<span class="tok-annotation">@Transactional</span>
+<span class="tok-keyword">public void</span> <span class="tok-function">reserveBin</span>(<span class="tok-class">String</span> binCode, <span class="tok-class">String</span> taskId) {
+  <span class="tok-class">StorageBin</span> bin = repo.findEmptyBinForUpdate(binCode).orElseThrow();
+  bin.setStatus(<span class="tok-string">"RESERVED"</span>);
+  bin.setTaskId(taskId);
+  <span class="tok-comment">// COMMIT → release lock; AGV dispatch sau TX</span>
+}</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div>Putaway WMS: pessimistic lock row <code>storage_bin</code> khi WMS assign vị trí, update status RESERVED, commit nhanh (&lt;100ms), rồi async gọi WCS. Cycle count adjustment dùng optimistic + retry 3 lần vì operator hiếm cùng sửa 1 bin.</div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div>"Optimistic nhanh hơn nên luôn dùng" — SAI trên hot inventory row: retry loop tốn CPU và vẫn lost update nếu không handle exception. Pessimistic + transaction dài (chờ operator scan) → deadlock. Lock order: luôn lock bin theo <code>bin_code ASC</code> khi update nhiều bin trong 1 TX.</div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+                <li>Optimistic: @Version, check lúc UPDATE, exception khi conflict.</li>
+                <li>Pessimistic: FOR UPDATE lock row ngay, block transaction khác.</li>
+                <li>WMS bin reservation → pessimistic; master data → optimistic.</li>
+                <li>Giữ TX ngắn với pessimistic; retry/backoff với optimistic.</li>
+                <li>Lock đúng granularity (row), sort key tránh deadlock.</li>
+              </ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Entity Lifecycle -->
+        <section class="section" id="lifecycle">
+          <h2 class="section-title">Entity Lifecycle &amp; Pagination</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q5</span> Phân biệt persist(), merge(), save(), saveOrUpdate()?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><code>persist()</code> và <code>merge()</code> là JPA EntityManager API; <code>save()</code> là Spring Data abstraction; <code>saveOrUpdate()</code> là Hibernate Session legacy (Hibernate 5 trở xuống). Chúng map entity lifecycle state (transient, managed, detached) sang INSERT/UPDATE — nhưng semantics khác nhau, đặc biệt với detached entity và return value.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Nhầm lẫn gây bug production: gọi <code>persist(detached)</code> → exception; gọi <code>merge()</code> rồi tiếp tục dùng param detached → thay đổi không flush; <code>save()</code> với entity có ID nhưng chưa tồn tại DB → merge thay vì insert. Trên WMS, REST API nhận DTO rồi map sang entity detached rất phổ biến — phải biết <code>save()</code> internally merge và trả managed copy.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row">
+                    <div class="flow-node">Transient</div>
+                    <div class="flow-node primary">persist() / save(isNew)</div>
+                    <div class="flow-node success">Managed → INSERT</div>
+                  </div>
+                  <div class="flow-arrow">↓ session close / clear</div>
+                  <div class="flow-row">
+                    <div class="flow-node">Detached</div>
+                    <div class="flow-node secondary">merge() / save(hasId)</div>
+                    <div class="flow-node success">Managed copy → UPDATE</div>
+                  </div>
+                </div>
+                <p>Spring <code>save()</code>: <code>id == null</code> hoặc <code>isNew() == true</code> → persist; ngược lại → merge. <code>merge()</code> luôn trả managed copy — param gốc vẫn detached. <code>saveOrUpdate()</code> deprecated — dùng save/merge trong Spring Data.</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p><strong>persist:</strong> entity mới trong cùng transaction. <strong>merge:</strong> reattach detached entity (DTO → entity từ client, entity từ cache ngoài session). <strong>save:</strong> default Spring Data repo — đủ cho CRUD thông thường. Override <code>isNew()</code> (Persistable) khi ID assigned trước insert (UUID, sequence).</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng persist detached — IllegalArgumentException. Đừng merge rồi modify param detached — changes lost. Đừng save entity có ID giả (client gửi id=0) nếu không override isNew. Đừng dùng saveOrUpdate trong code mới. Tránh merge trong loop 1000 entity — dùng batch INSERT hoặc JDBC.</p></div>
+              <table class="feature-table">
+                <thead><tr><th>Method</th><th>API</th><th>Transient</th><th>Detached</th><th>Return</th></tr></thead>
+                <tbody>
+                  <tr><td><code>persist()</code></td><td>JPA EM</td><td>INSERT, managed</td><td>❌ IllegalArgumentException</td><td>void</td></tr>
+                  <tr><td><code>merge()</code></td><td>JPA EM</td><td>INSERT (copy)</td><td>UPDATE copy</td><td>Managed copy (param vẫn detached)</td></tr>
+                  <tr><td><code>save()</code></td><td>Spring Data</td><td>INSERT (isNew)</td><td>UPDATE via merge</td><td>Saved managed entity</td></tr>
+                  <tr><td><code>saveOrUpdate()</code></td><td>Hibernate legacy</td><td>INSERT</td><td>UPDATE</td><td>void — deprecated</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Spring Data save — id null → persist (INSERT)</span>
+<span class="tok-class">PickOrder</span> order = <span class="tok-keyword">new</span> <span class="tok-class">PickOrder</span>();
+orderRepo.save(order);
+
+<span class="tok-comment">// Detached từ REST DTO — save() internally merge</span>
+<span class="tok-class">PickOrder</span> detached = mapper.toEntity(dto); <span class="tok-comment">// id=42, đã tồn tại DB</span>
+detached.setStatus(<span class="tok-string">"SHIPPED"</span>);
+<span class="tok-class">PickOrder</span> saved = orderRepo.save(detached); <span class="tok-comment">// UPDATE</span>
+
+<span class="tok-comment">// merge pitfall — param không thành managed</span>
+<span class="tok-class">PickOrder</span> managed = entityManager.merge(detached);
+managed.setStatus(<span class="tok-string">"SHIPPED"</span>);  <span class="tok-comment">// ✅ dirty check trên managed</span>
+<span class="tok-comment">// detached.setStatus(...) — ❌ không flush</span>
+
+<span class="tok-comment">// Persistable — UUID assigned trước insert</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">Task</span> <span class="tok-keyword">implements</span> <span class="tok-class">Persistable</span>&lt;<span class="tok-class">UUID</span>&gt; {
+  <span class="tok-annotation">@Id</span> <span class="tok-keyword">private</span> <span class="tok-class">UUID</span> id = <span class="tok-class">UUID</span>.randomUUID();
+  <span class="tok-keyword">private transient boolean</span> isNew = <span class="tok-keyword">true</span>;
+  <span class="tok-keyword">public boolean</span> <span class="tok-function">isNew</span>() { <span class="tok-keyword">return</span> isNew; }
+}</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div>WCS callback update pick task status: controller nhận JSON → MapStruct → entity detached với id có sẵn → <code>pickTaskRepo.save(entity)</code> merge UPDATE. Tạo pick order mới từ WMS UI: entity id=null → save persist INSERT. Bulk import 5000 SKU: không loop save — dùng <code>saveAll</code> batch hoặc JDBC batch.</div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div>"save() = persist()?" — SAI: save() gọi merge khi entity có ID. "merge() modify param được?" — SAI: phải dùng return value. Interviewer cho code: findById → close session → modify → save — hỏi INSERT hay UPDATE? Trả lời UPDATE via merge nếu ID tồn tại.</div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+                <li>persist = INSERT entity mới; merge = reattach detached → UPDATE.</li>
+                <li>save() Spring Data: isNew → persist, else → merge.</li>
+                <li>merge trả managed copy — đừng modify param detached.</li>
+                <li>saveOrUpdate legacy — tránh code mới.</li>
+                <li>DTO → entity detached: save/merge; entity mới: persist/save.</li>
+              </ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q6</span> Pagination — Page vs Slice, ảnh hưởng COUNT(*)?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Page&lt;T&gt;</strong> trả data + metadata đầy đủ: totalElements, totalPages, number — Spring Data chạy 2 query (SELECT + COUNT). <strong>Slice&lt;T&gt;</strong> chỉ SELECT <code>LIMIT size+1</code>, dùng row thừa để suy ra <code>hasNext()</code> — không biết tổng số trang. Cả hai dùng <code>Pageable</code> nhưng trade-off khác nhau về UX và performance.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p><code>COUNT(*)</code> trên bảng pick_order 5M row (WMS) có thể mất 2–5s dù SELECT 20 row chỉ 10ms — full index scan hoặc seq scan. UI infinite scroll operator không cần "Trang 847/12000" — Slice bỏ COUNT tiết kiệm 50%+ latency. Admin dashboard cần total để hiển thị pager → Page chấp nhận cost COUNT hoặc cache approximate total.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Page: SELECT ... LIMIT 20 OFFSET 40</div></div>
+                  <div class="flow-arrow">+</div>
+                  <div class="flow-row"><div class="flow-node danger">SELECT COUNT(*) WHERE status='OPEN'</div></div>
+                  <div class="flow-arrow">vs</div>
+                  <div class="flow-row"><div class="flow-node secondary">Slice: SELECT ... LIMIT 21 OFFSET 40</div></div>
+                  <div class="flow-arrow">→ 21 rows? hasNext=true, trả 20</div>
+                </div>
+                <p>Tối ưu thêm: keyset pagination (<code>WHERE id &gt; :cursor</code>) thay OFFSET lớn; cache COUNT với TTL; PostgreSQL approximate count (<code>reltuples</code>); tách COUNT query đơn giản hơn (chỉ index column).</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p><strong>Page:</strong> admin UI cần pager "3/500", báo cáo cần total chính xác, bảng &lt;100K row hoặc COUNT có index phù hợp. <strong>Slice:</strong> mobile/tablet operator scroll, API "load more", feed realtime — không cần total. <strong>Keyset:</strong> bảng hàng triệu row, deep pagination (page &gt;100).</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng Page trên bảng log/audit hàng chục triệu row mỗi API call — COUNT kill DB. Đừng Slice khi UI bắt buộc hiển thị total pages. Đừng OFFSET pagination page 10000 — O(n) skip rows. Đừng JOIN FETCH + Pageable trực tiếp — Hibernate paginate sai in-memory.</p></div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>Page&lt;T&gt;</th><th>Slice&lt;T&gt;</th></tr></thead>
+                <tbody>
+                  <tr><td>Queries</td><td>SELECT + COUNT(*)</td><td>SELECT LIMIT size+1</td></tr>
+                  <tr><td>Total pages</td><td>Có — totalElements, totalPages</td><td>Không — chỉ hasNext/hasPrevious</td></tr>
+                  <tr><td>Performance</td><td>COUNT chậm trên bảng lớn</td><td>Nhanh — bỏ COUNT</td></tr>
+                  <tr><td>UI phù hợp</td><td>Pager "Trang 3/500"</td><td>Infinite scroll, Load more</td></tr>
+                  <tr><td>WMS</td><td>Admin order search (&lt;50K filter)</td><td>Operator pick task list realtime</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-class">Pageable</span> pageable = PageRequest.of(<span class="tok-number">0</span>, <span class="tok-number">20</span>, Sort.by(<span class="tok-string">"createdAt"</span>).descending());
+
+<span class="tok-comment">// Page — 2 queries</span>
+<span class="tok-class">Page</span>&lt;<span class="tok-class">PickOrder</span>&gt; page = orderRepo.findByStatus(OPEN, pageable);
+<span class="tok-keyword">long</span> total = page.getTotalElements();   <span class="tok-comment">// COUNT đã chạy</span>
+<span class="tok-keyword">int</span> pages = page.getTotalPages();
+
+<span class="tok-comment">// Slice — 1 query, không COUNT</span>
+<span class="tok-class">Slice</span>&lt;<span class="tok-class">PickOrder</span>&gt; slice = orderRepo.findSliceByStatus(OPEN, pageable);
+<span class="tok-keyword">boolean</span> hasNext = slice.hasNext();
+
+<span class="tok-comment">// Keyset — tránh OFFSET lớn</span>
+<span class="tok-annotation">@Query</span>(<span class="tok-string">"SELECT o FROM PickOrder o WHERE o.status = :st"</span>
+     + <span class="tok-string">" AND o.createdAt &lt; :cursor ORDER BY o.createdAt DESC"</span>)
+<span class="tok-class">List</span>&lt;<span class="tok-class">PickOrder</span>&gt; <span class="tok-function">findNextPage</span>(<span class="tok-annotation">@Param</span>(<span class="tok-string">"st"</span>) <span class="tok-class">OrderStatus</span> st,
+    <span class="tok-annotation">@Param</span>(<span class="tok-string">"cursor"</span>) <span class="tok-class">Instant</span> cursor, Pageable limit);</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div>Operator tablet WMS scroll danh sách pick task OPEN: <code>Slice&lt;PickOrder&gt;</code> 20 item/lần, hasNext → "Tải thêm". Admin search order theo date range (filter còn 30K row): <code>Page</code> hiển thị "1/1500" — COUNT chấp nhận được vì có index <code>(status, created_at)</code>. Audit log 10M row export: keyset <code>WHERE id &gt; :lastId LIMIT 1000</code>.</div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div>"Page luôn tốt vì có metadata?" — SAI trên bảng lớn: COUNT(*) expensive. "Slice biết được trang cuối?" — KHÔNG. OFFSET page 5000 = DB skip 100K rows — interviewer hỏi fix → keyset/cursor pagination. JOIN FETCH + Pageable → duplicate count, wrong page size.</div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+                <li>Page = SELECT + COUNT; Slice = SELECT LIMIT n+1, no COUNT.</li>
+                <li>Page cho pager UI cần total; Slice cho infinite scroll.</li>
+                <li>COUNT(*) chậm trên bảng lớn — cache hoặc approximate.</li>
+                <li>Deep page: keyset (WHERE id &gt; cursor) thay OFFSET.</li>
+                <li>WMS: Slice cho operator, Page cho admin filter nhỏ.</li>
+              </ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Inheritance -->
+        <section class="section" id="inheritance">
+          <h2 class="section-title">Inheritance Mapping</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q7</span> @Inheritance — SINGLE_TABLE, JOINED, TABLE_PER_CLASS?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><code>@Inheritance</code> map class hierarchy Java sang relational schema. Ba strategy JPA: <strong>SINGLE_TABLE</strong> — 1 bảng + discriminator (DTYPE); <strong>JOINED</strong> — bảng cha + bảng con FK; <strong>TABLE_PER_CLASS</strong> — mỗi entity class 1 bảng riêng (duplicate columns cha). Polymorphic query <code>SELECT p FROM Payment p</code> sinh SQL khác nhau tùy strategy.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Trade-off giữa normalization, query speed và schema evolution. SINGLE_TABLE nhanh (no JOIN) nhưng sparse NULL khi subclass nhiều field riêng. JOINED chuẩn hóa nhưng mỗi load = JOIN. TABLE_PER_CLASS polymorphic query = UNION all tables — Hibernate không khuyến khích. WMS: <code>Equipment</code> hierarchy (AGV, Conveyor, Shuttle) — chọn strategy ảnh hưởng report query và migration cost.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row">
+                    <div class="flow-node primary">SINGLE_TABLE</div>
+                    <div class="flow-node">equipment (all cols + DTYPE)</div>
+                  </div>
+                  <div class="flow-row">
+                    <div class="flow-node secondary">JOINED</div>
+                    <div class="flow-node">equipment</div>
+                    <div class="flow-node">+ agv_equipment + conveyor_equipment</div>
+                  </div>
+                  <div class="flow-row">
+                    <div class="flow-node">TABLE_PER_CLASS</div>
+                    <div class="flow-node">agv_equipment | conveyor_equipment (full cols each)</div>
+                  </div>
+                </div>
+                <p>SINGLE_TABLE: <code>@DiscriminatorColumn</code> hoặc <code>@DiscriminatorValue</code>. JOINED: subclass table PK = FK tới parent. Polymorphic JPQL trên JOINED → LEFT JOIN subtables; TPC → UNION (chậm, phức tạp).</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p><strong>SINGLE_TABLE:</strong> hierarchy nhỏ (2–4 subclass), ít field riêng, read-heavy polymorphic query. <strong>JOINED:</strong> subclass nhiều field riêng, cần normalized schema, write/update thường xuyên từng subtype. <strong>TABLE_PER_CLASS:</strong> gần như không — chỉ legacy codebase.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng SINGLE_TABLE khi subclass có 20+ column riêng — bảng sparse, index kém. Đừng JOINED khi polymorphic list 10K row/req — JOIN cost cao. Đừng TPC cho project mới. Đừng deep inheritance (&gt;2 level) — prefer composition (<code>@Embedded</code>, separate entity + FK) thay inheritance mapping.</p></div>
+              <table class="feature-table">
+                <thead><tr><th>Strategy</th><th>Cấu trúc DB</th><th>Ưu điểm</th><th>Nhược điểm</th></tr></thead>
+                <tbody>
+                  <tr><td><code>SINGLE_TABLE</code></td><td>1 bảng + discriminator</td><td>Query nhanh, polymorphic đơn giản</td><td>NULL column, bảng rộng, constraint khó</td></tr>
+                  <tr><td><code>JOINED</code></td><td>Parent + child table (FK)</td><td>Normalized, không NULL thừa</td><td>JOIN mỗi query, INSERT multi-table</td></tr>
+                  <tr><td><code>TABLE_PER_CLASS</code></td><td>1 bảng/ class (duplicate cols)</td><td>Load 1 subtype không JOIN</td><td>Polymorphic = UNION, DDL nhiều, deprecated feel</td></tr>
+                  <tr><td>WMS</td><td>Task type (3–4 subclass)</td><td>Equipment config hierarchy</td><td>Tránh deep OOP tree</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Entity</span>
+<span class="tok-annotation">@Inheritance</span>(strategy = InheritanceType.SINGLE_TABLE)
+<span class="tok-annotation">@DiscriminatorColumn</span>(name = <span class="tok-string">"task_type"</span>)
+<span class="tok-keyword">public abstract class</span> <span class="tok-class">WarehouseTask</span> {
+  <span class="tok-annotation">@Id</span> <span class="tok-annotation">@GeneratedValue</span> <span class="tok-keyword">private</span> <span class="tok-class">Long</span> id;
+  <span class="tok-keyword">private</span> <span class="tok-class">String</span> status;
+  <span class="tok-keyword">private</span> <span class="tok-class">String</span> zoneCode;
+}
+
+<span class="tok-annotation">@Entity</span>
+<span class="tok-annotation">@DiscriminatorValue</span>(<span class="tok-string">"PICK"</span>)
+<span class="tok-keyword">public class</span> <span class="tok-class">PickTask</span> <span class="tok-keyword">extends</span> <span class="tok-class">WarehouseTask</span> {
+  <span class="tok-keyword">private</span> <span class="tok-class">String</span> pickLocation;
+}
+
+<span class="tok-annotation">@Entity</span>
+<span class="tok-annotation">@DiscriminatorValue</span>(<span class="tok-string">"PUTAWAY"</span>)
+<span class="tok-keyword">public class</span> <span class="tok-class">PutawayTask</span> <span class="tok-keyword">extends</span> <span class="tok-class">WarehouseTask</span> {
+  <span class="tok-keyword">private</span> <span class="tok-class">String</span> targetBin;
+}
+
+<span class="tok-comment">// Polymorphic query — SINGLE_TABLE: 1 SELECT, no JOIN</span>
+<span class="tok-class">List</span>&lt;<span class="tok-class">WarehouseTask</span>&gt; tasks = em.createQuery(
+  <span class="tok-string">"SELECT t FROM WarehouseTask t WHERE t.zoneCode = :z"</span>, <span class="tok-class">WarehouseTask</span>.<span class="tok-keyword">class</span>)
+  .setParameter(<span class="tok-string">"z"</span>, <span class="tok-string">"A"</span>).getResultList();</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div>WMS task queue: 3 subtype (Pick, Putaway, Transfer) với 2–3 field riêng mỗi loại → SINGLE_TABLE đủ, polymorphic list API nhanh. Equipment master với AGV (20 field), Conveyor (15 field), Shuttle (18 field) khác biệt lớn → JOINED normalized. Refactor legacy TPC → migrate sang JOINED hoặc flatten thành entity riêng + type enum.</div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div>"JOINED luôn best practice vì normalized?" — SAI cho hierarchy nhỏ read-heavy: JOIN overhead &gt; NULL cost. SINGLE_TABLE constraint: không enforce NOT NULL trên subclass column ở DB level. Interviewer hỏi polymorphic query TPC — trả lời UNION all tables, performance kém. Prefer composition over inheritance khi không cần polymorphic JPQL.</div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+                <li>SINGLE_TABLE: 1 bảng + DTYPE — nhanh, nhiều NULL.</li>
+                <li>JOINED: parent + child table — normalized, JOIN mỗi query.</li>
+                <li>TABLE_PER_CLASS: 1 bảng/class — polymorphic = UNION, tránh.</li>
+                <li>Hierarchy nhỏ → SINGLE; nhiều field riêng → JOINED.</li>
+                <li>Cân nhắc composition thay deep inheritance.</li>
+              </ul></div>
+            </div>
+          </article>
+        </section>
+
+<section class="section" id="deep-dive-persistence-context">
+          <h2 class="section-title">Deep Dive — Persistence Context &amp; Dirty Checking</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D1</span> Persistence Context và cơ chế Dirty Checking hoạt động thế nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Persistence Context</strong> là lớp cache "transactional write-behind" của JPA/Hibernate: mọi entity <em>managed</em> nằm trong đó như một <strong>identity map</strong> — cùng primary key luôn trả về cùng một object instance. <strong>Dirty Checking</strong> là cơ chế tự phát hiện entity đã đổi: khi load, Hibernate giữ một <em>snapshot</em> toàn bộ giá trị property; tới lúc <code>flush()</code> nó so state hiện tại với snapshot (mặc định quét mọi entity × mọi property) và sinh <code>UPDATE</code> cho entity "dirty".</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Hiểu cơ chế này để: (1) tránh duplicate query — <code>findById()</code> hai lần trong cùng transaction chỉ chạy 1 SELECT; (2) tránh bối rối "tôi đổi object mà sao DB chưa đổi" (vì write-behind chỉ đẩy SQL khi flush); (3) kiểm soát hiệu năng — chi phí dirty check là tổng số property của mọi managed entity (n × p), nên giữ Persistence Context quá lớn sẽ tốn CPU và gấp đôi bộ nhớ (do phải lưu snapshot bên cạnh entity).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">em.find(Task, 1L)</div><div class="flow-node">→ lưu snapshot vào L1</div></div>
+                  <div class="flow-arrow">↓ task.setStatus("DONE") — chưa có SQL nào chạy</div>
+                  <div class="flow-row"><div class="flow-node secondary">flush() / commit</div><div class="flow-node danger">dirty check → sinh UPDATE</div></div>
+                  <div class="flow-arrow">↓ ActionQueue gom SQL theo thứ tự INSERT → UPDATE → DELETE</div>
+                  <div class="flow-row"><div class="flow-node success">SQL gửi DB trong cùng transaction</div></div>
+                </div>
+                <p>Thời điểm flush phụ thuộc <code>FlushMode</code> (xem bảng). Mặc định <code>AUTO</code>: Hibernate flush trước khi chạy JPQL/HQL và trước commit. Muốn giải phóng bộ nhớ giữa chừng (batch lớn) thì <code>flush()</code> rồi <code>clear()</code>.</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Dùng hiểu biết này ở mọi service <code>@Transactional</code>. Gọi <code>em.flush()</code> khi cần ID tự sinh ngay, khi muốn validate constraint DB sớm, hoặc khi phải <code>clear()</code> giải phóng Persistence Context trong vòng lặp xử lý khối lượng lớn. Dùng bytecode enhancement (<code>hibernate.enhancer.enableDirtyTracking=true</code>) khi entity nhiều property và Persistence Context lớn.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng giữ hàng trăm nghìn entity managed trong một Persistence Context — dirty check và snapshot làm tăng CPU/bộ nhớ. Đừng modify entity rồi kỳ vọng DB thấy ngay khi chưa flush/commit. Đừng dựa vào auto-flush cho câu native SQL khi dùng Hibernate Session thuần (chỉ JPA đảm bảo flush trước mọi query). Đừng để entity bị đổi ngoài ý muốn rồi flush — mọi thay đổi managed sẽ thành UPDATE.</p></div>
+              <table class="feature-table">
+                <thead><tr><th>FlushMode</th><th>Flush khi nào</th><th>Ghi chú</th></tr></thead>
+                <tbody>
+                  <tr><td><code>AUTO</code> (default)</td><td>Trước JPQL/HQL query + trước commit</td><td>JPA còn flush trước cả native query</td></tr>
+                  <tr><td><code>COMMIT</code></td><td>Chỉ trước khi commit</td><td>Query trong TX có thể thấy dữ liệu cũ</td></tr>
+                  <tr><td><code>ALWAYS</code></td><td>Trước mọi query, kể cả native</td><td>An toàn nhưng nhiều lần flush, chậm hơn</td></tr>
+                  <tr><td><code>MANUAL</code></td><td>Chỉ khi tự gọi <code>em.flush()</code></td><td>Kiểm soát chính xác thời điểm SQL</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Entity</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">Task</span> {
+  <span class="tok-annotation">@Id</span> <span class="tok-annotation">@GeneratedValue</span> <span class="tok-keyword">private</span> <span class="tok-class">Long</span> id;
+  <span class="tok-keyword">private</span> <span class="tok-class">String</span> status;
+}
+
+<span class="tok-annotation">@Transactional</span>
+<span class="tok-keyword">public void</span> <span class="tok-function">complete</span>(<span class="tok-class">Long</span> id) {
+  <span class="tok-class">Task</span> t = em.find(<span class="tok-class">Task</span>.<span class="tok-keyword">class</span>, id); <span class="tok-comment">// snapshot được lưu vào L1</span>
+  t.setStatus(<span class="tok-string">"DONE"</span>);              <span class="tok-comment">// chỉ đổi field — CHƯA có SQL</span>
+  em.flush();                         <span class="tok-comment">// dirty check → UPDATE task SET status=?</span>
+}
+
+<span class="tok-comment">// AUTO flush: chạy query JPQL sẽ kích hoạt flush trước</span>
+em.persist(<span class="tok-keyword">new</span> <span class="tok-class">Task</span>());
+em.createQuery(<span class="tok-string">"select t from Task t"</span>, <span class="tok-class">Task</span>.<span class="tok-keyword">class</span>)
+  .getResultList(); <span class="tok-comment">// INSERT chạy trước SELECT</span></code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div>Service hoàn tất task: load task, đổi <code>status</code>, đổi thêm vài field audit — chỉ cần gọi setter, Hibernate tự sinh một <code>UPDATE</code> gộp. Trong job import 50K dòng: <code>persist()</code> theo lô, cứ 50 bản ghi gọi <code>flush()</code> + <code>clear()</code> để Persistence Context không phình to.</div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div>Mặc định Hibernate <em>update tất cả cột</em> (dynamic-update off) chứ không chỉ cột đổi — bật <code>@DynamicUpdate</code> nếu chỉ muốn cập nhật cột thay đổi. "Đổi object là DB đổi ngay?" — SAI, phải tới flush trong transaction. "Native query cũng auto-flush?" — chỉ đúng khi bootstrap qua JPA (Hibernate 5.2+), Session thuần không flush trước native SQL.</div>
+              <p><small>Nguồn: <a href="https://vladmihalcea.com/the-anatomy-of-hibernate-dirty-checking/">The anatomy of Hibernate dirty checking — Vlad Mihalcea</a> · <a href="https://vladmihalcea.com/how-do-jpa-and-hibernate-define-the-auto-flush-mode/">JPA &amp; Hibernate AUTO flush mode</a> · <a href="https://docs.jboss.org/hibernate/orm/6.4/userguide/html_single/Hibernate_User_Guide.html">Hibernate ORM User Guide</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="section" id="deep-dive-batching">
+          <h2 class="section-title">Deep Dive — JDBC Batching &amp; Bulk Operations</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D2</span> JDBC Batching trong Hibernate — cấu hình và bẫy với IDENTITY?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>JDBC batching</strong> gom nhiều câu <code>INSERT</code>/<code>UPDATE</code>/<code>DELETE</code> cùng hình dạng thành một lượt gửi tới DB, giảm hẳn số network round-trip. Hibernate tắt batch mặc định; bật bằng <code>hibernate.jdbc.batch_size</code> (khuyến nghị 10–50). Vì mỗi JDBC batch chỉ phục vụ một bảng, cần thêm <code>hibernate.order_inserts</code> / <code>hibernate.order_updates</code> để gom statement cùng bảng lại với nhau.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Không batch, mỗi <code>INSERT</code> là một round-trip; insert 5000 bản ghi thành 5000 vòng mạng. Batching biến chúng thành vài trăm lượt — throughput tăng rõ rệt. Cái bẫy lớn: <strong>chiến lược IDENTITY vô hiệu hoá batch insert</strong>, vì Hibernate phải chạy INSERT ngay tại thời điểm <code>persist()</code> để lấy ID tự tăng do DB cấp — không còn statement nào nằm chờ để gom batch. Trên MySQL (không có SEQUENCE) bạn thường mắc đúng bẫy này.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">persist(x) ×1000</div></div>
+                  <div class="flow-arrow">↓ batch_size=50: gom theo bảng (order_inserts)</div>
+                  <div class="flow-row"><div class="flow-node secondary">JDBC addBatch() ×50</div><div class="flow-node success">executeBatch() — 1 round-trip</div></div>
+                  <div class="flow-arrow">↓ IDENTITY: không gom được → mỗi persist 1 INSERT riêng</div>
+                  <div class="flow-row"><div class="flow-node danger">1000 round-trips</div></div>
+                </div>
+                <p>Chiến lược ID hoạt động với batch: <code>SEQUENCE</code>, <code>TABLE</code>, hoặc generator gán ID trước insert (UUID, custom NoOp + <code>@SQLInsert</code>). Với MySQL có thể bật <code>rewriteBatchedStatements=true</code> để driver viết lại batch INSERT thành multi-values.</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Dùng batching cho bulk insert/update, import dữ liệu, ETL, job đồng bộ. Đặt <code>batch_size</code> ~ bằng số bản ghi giữa hai lần <code>flush()</code>+<code>clear()</code>. Dùng <code>StatelessSession</code> khi cần insert khối lượng cực lớn mà không cần persistence context.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng kỳ vọng batch khi ID generator là IDENTITY (MySQL) — phải đổi chiến lược ID hoặc dùng kỹ thuật gán ID trước. Đừng đặt batch_size quá lớn (hàng nghìn) — tốn bộ nhớ driver và transaction dài. Đừng trộn nhiều bảng trong một batch (mỗi batch một bảng). Đừng quên <code>flush()</code>+<code>clear()</code> khi batch lớn, nếu không L1 cache phình to.</p></div>
+              <table class="feature-table">
+                <thead><tr><th>Cấu hình</th><th>Ý nghĩa</th><th>Lưu ý</th></tr></thead>
+                <tbody>
+                  <tr><td><code>hibernate.jdbc.batch_size</code></td><td>Số statement gom mỗi batch</td><td>0/âm = tắt; khuyến nghị 10–50</td></tr>
+                  <tr><td><code>hibernate.order_inserts</code></td><td>Sắp INSERT theo bảng</td><td>Tăng khả năng gom batch (có chi phí sort)</td></tr>
+                  <tr><td><code>hibernate.order_updates</code></td><td>Sắp UPDATE theo entity + PK</td><td>Giảm deadlock ở hệ concurrent cao</td></tr>
+                  <tr><td><code>hibernate.batch_versioned_data</code></td><td>Batch cả entity có <code>@Version</code></td><td>Cho phép batch với optimistic locking</td></tr>
+                  <tr><td><code>rewriteBatchedStatements</code></td><td>MySQL driver viết lại thành multi-values</td><td>Chỉ MySQL, hiệu quả rõ khi insert</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// application.properties</span>
+<span class="tok-comment">// spring.jpa.properties.hibernate.jdbc.batch_size=50</span>
+<span class="tok-comment">// spring.jpa.properties.hibernate.order_inserts=true</span>
+<span class="tok-comment">// spring.jpa.properties.hibernate.order_updates=true</span>
+
+<span class="tok-annotation">@Transactional</span>
+<span class="tok-keyword">public void</span> <span class="tok-function">importItems</span>(<span class="tok-class">List</span>&lt;<span class="tok-class">Item</span>&gt; items) {
+  <span class="tok-keyword">int</span> i = <span class="tok-number">0</span>;
+  <span class="tok-keyword">for</span> (<span class="tok-class">Item</span> it : items) {
+    em.persist(it);
+    <span class="tok-keyword">if</span> ((++i % <span class="tok-number">50</span>) == <span class="tok-number">0</span>) { <span class="tok-comment">// khớp batch_size</span>
+      em.flush();
+      em.clear();          <span class="tok-comment">// giải phóng L1 cache</span>
+    }
+  }
+}</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div>Job nạp 200K dòng master data: dùng <code>SEQUENCE</code> + <code>batch_size=50</code> + <code>order_inserts=true</code>, cứ 50 dòng flush/clear; trên MySQL bật <code>rewriteBatchedStatements=true</code>. Kết quả: thời gian import giảm mạnh so với insert từng dòng.</div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div>"Đặt batch_size là Hibernate tự batch?" — SAI nếu dùng IDENTITY. <code>saveAll()</code> không đồng nghĩa batch; nó chỉ gọi <code>save()</code> lần lượt. Interviewer thường hỏi vì sao batch bật mà log vẫn ra từng INSERT → trả lời do ID generator hoặc do trộn nhiều bảng / thiếu order_inserts. Nhớ: order_updates giảm deadlock nhưng có chi phí sắp xếp, nên benchmark.</div>
+              <p><small>Nguồn: <a href="https://vladmihalcea.com/how-to-batch-insert-and-update-statements-with-hibernate/">How to batch INSERT and UPDATE with Hibernate — Vlad Mihalcea</a> · <a href="https://vladmihalcea.com/mysql-rewritebatchedstatements/">MySQL rewriteBatchedStatements</a> · <a href="https://docs.jboss.org/hibernate/orm/6.4/userguide/html_single/Hibernate_User_Guide.html">Hibernate ORM User Guide</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="section" id="deep-dive-statistics">
+          <h2 class="section-title">Deep Dive — Hibernate Statistics &amp; Đo lường N+1</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D3</span> Đo hiệu năng ORM bằng Hibernate Statistics — phát hiện N+1 khách quan?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Hibernate Statistics</strong> (<code>org.hibernate.stat.Statistics</code>) là bộ đếm metrics của một <code>SessionFactory</code>/<code>EntityManagerFactory</code>: số câu query đã thực thi, số PreparedStatement, số lần load/fetch entity, số lần open/close session, <code>flush</code>, và hiệu quả cache L2 (hit/miss/put). Không bật mặc định; bật bằng <code>hibernate.generate_statistics=true</code> rồi lấy qua <code>sessionFactory.getStatistics()</code>.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>N+1 rất khó "đo bằng cảm giác". Statistics cho con số dứt khoát: ví dụ 1 request mà <code>getQueryExecutionCount()</code> tăng 101 trong khi chỉ load 100 entity cha → có N+1. Nó cũng cho biết cache L2 có thực sự hữu ích (hit ratio) hay đang làm chậm vì invalidate liên tục. Dùng để chứng minh cải thiện trước/sau khi thêm <code>EntityGraph</code>/<code>@BatchSize</code>, và làm "hàng rào hồi quy" trong test (assert số query không vượt ngưỡng).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">generate_statistics=true</div></div>
+                  <div class="flow-arrow">↓ chạy request / load test</div>
+                  <div class="flow-row"><div class="flow-node secondary">getQueryExecutionCount()</div><div class="flow-node secondary">getEntityFetchCount()</div><div class="flow-node secondary">getSecondLevelCacheStatistics()</div></div>
+                  <div class="flow-arrow">↓ query ≫ entity cha → nghi N+1; cache miss cao → L2 vô ích</div>
+                  <div class="flow-row"><div class="flow-node danger">N+1 / cache kém hiệu quả</div></div>
+                </div>
+                <p>Bổ trợ: <code>SessionFactory.getStatistics().logSummary()</code>; datasource-proxy / p6spy để xem SQL thật; <code>hibernate.session.events.log</code> để log số query mỗi session.</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Bật ở môi trường dev/staging và trong load test, integration test khi cần khẳng định số query. Kết hợp <code>default_batch_fetch_size</code> / <code>@BatchSize</code> để giảm N+1 mà vẫn giữ LAZY. Giữ Statistics nhẹ ở production nếu chỉ cần đếm tổng (clear định kỳ) — nhưng cẩn thận chi phí thu thập.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng coi Statistics là APM thay thế — nó đo trong tiến trình, không thay trace phân tán. Đừng bật rồi để counter phình vô hạn ở production (cần <code>clear()</code>). Đừng đọc <code>getEntityLoadCount()</code> mà nhầm với <code>getEntityFetchCount()</code>. Đừng tối ưu "theo cảm giác" khi đã có số liệu — luôn đo trước/sau.</p></div>
+              <table class="feature-table">
+                <thead><tr><th>Metric</th><th>Ý nghĩa</th><th>Dấu hiệu bất thường</th></tr></thead>
+                <tbody>
+                  <tr><td><code>getQueryExecutionCount()</code></td><td>Số lần query JPQL/Criteria đã chạy</td><td>Tăng ~N+1 theo số entity cha</td></tr>
+                  <tr><td><code>getPrepareStatementCount()</code></td><td>Số PreparedStatement (gồm batch)</td><td>Cao hơn hẳn số query nghiệp vụ</td></tr>
+                  <tr><td><code>getEntityFetchCount()</code></td><td>Số lần association được fetch</td><td>Nhiều fetch lẻ → N+1</td></tr>
+                  <tr><td><code>getSecondLevelCacheStatistics()</code></td><td>Hit/miss/put của L2</td><td>Miss cao bất thường → cache vô dụng</td></tr>
+                  <tr><td><code>getSessionOpenCount()</code></td><td>Số session mở</td><td>Tăng vọt mỗi request → session leak</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-class">Statistics</span> stats = sessionFactory.getStatistics();
+stats.setStatisticsEnabled(<span class="tok-keyword">true</span>); <span class="tok-comment">// hoặc hibernate.generate_statistics=true</span>
+
+<span class="tok-comment">// chạy nghiệp vụ ...</span>
+<span class="tok-keyword">long</span> queries = stats.getQueryExecutionCount();
+<span class="tok-keyword">long</span> fetches = stats.getEntityFetchCount();
+<span class="tok-keyword">long</span> stmts   = stats.getPrepareStatementCount();
+
+<span class="tok-keyword">if</span> (queries &gt; <span class="tok-number">10</span>) {
+  log.warn(<span class="tok-string">"Nghi N+1: {} query, {} fetch, {} statement"</span>,
+           queries, fetches, stmts);
+}
+stats.logSummary(); <span class="tok-comment">// in tổng hợp ra log</span></code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div>Integration test API list đơn hàng: chạy request, đọc <code>getQueryExecutionCount()</code>, assert nhỏ hơn ngưỡng (ví dụ &lt;= 3). Khi dev vô tình touch association trong loop, test đỏ ngay thay vì để lên production. Load test staging dùng hit ratio L2 để quyết định giữ hay bỏ cache entity.</div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div>"Bật show-sql là đủ để thấy N+1?" — show-sql chỉ in SQL, không đếm; Statistics cho con số tổng hợp. Đừng nhầm <code>getEntityLoadCount()</code> (số entity nạp) với <code>getEntityFetchCount()</code> (số lần fetch association). Ở production, counter tích luỹ vô hạn gây nhiễu — cần <code>clear()</code> định kỳ hoặc tắt. Statistics hữu ích nhưng không thay thế APM cho hệ phân tán.</div>
+              <p><small>Nguồn: <a href="https://vladmihalcea.com/hibernate-statistics/">A beginner's guide to Hibernate Statistics — Vlad Mihalcea</a> · <a href="https://docs.jboss.org/hibernate/orm/6.4/userguide/html_single/Hibernate_User_Guide.html">Hibernate ORM User Guide</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="section" id="audit-deepening"><h2 class="section-title">Đào sâu và đính chính phỏng vấn</h2><article class="qa-card" id="deepening-11"><h3 class="qa-question">Stale L1/L2 sau native SQL hoặc writer ngoài Hibernate: refresh không phải thần dược</h3><div class="qa-answer"><div class="ans-block"><span class="ans-label">What</span><p>L1 giữ managed entity trong Persistence Context nên có thể stale sau bulk/native SQL hoặc writer bên ngoài. L2 cũng không tự biết mọi thay đổi ngoài Hibernate; cần invalidation rõ ràng và hiểu snapshot isolation khi refresh hoặc mở lại context.</p></div><div class="ans-block"><span class="ans-label">How / Trade-offs / Pitfalls</span><ul><li>find theo ID đã managed thường trả cùng object L1 chứ không SELECT lại. entityManager.refresh reload một entity và ghi đè state chưa flush; clear detach toàn bộ, detach chỉ một entity. Không clear mù khi còn thay đổi chưa flush; nếu định flush trước thì phải kiểm tra có ghi đè concurrent update không. @Version kiểm soát conflicting writes, không tự làm reads fresh.</li><li>Bulk JPQL/native SQL bỏ qua đồng bộ state managed entity. flush/clear đúng boundary hoặc clearAutomatically/flushAutomatically khi phù hợp; kiểm thử bằng hai transaction độc lập. Native SQL qua Hibernate có cơ chế query-space/cache synchronization theo API/version; không nói mọi native update đều tự evict đúng toàn bộ L2.</li><li>Writer bên ngoài Hibernate: evict entity/collection/query regions bị ảnh hưởng hoặc tích hợp CDC/invalidation. L2 eviction không xóa object đang nằm trong L1 của session khác. TTL giới hạn thời gian tồn tại nhưng không bảo đảm strict consistency; query cache khác entity cache. READ_WRITE cache strategy không biến external writers thành transaction participants.</li><li>Dưới PostgreSQL REPEATABLE READ, clear rồi SELECT hay refresh vẫn tuân snapshot của transaction, không bảo đảm thấy commit mới bên ngoài; cần kết thúc transaction và mở transaction mới nếu cần snapshot mới. Dữ liệu balance/inventory quan trọng phải kiểm tra và ghi atomically ở DB, không dựa stale cache.</li></ul></div><div class="flow-diagram">Evidence → bounded resource / transaction boundary → failure test → verify recovery</div><pre class="code-block"><code>// Sau bulk update tại boundary đã thiết kế:
+entityManager.clear(); // không bỏ thay đổi chưa xử lý
+// Refresh một entity khi chấp nhận overwrite local changes:
+entityManager.refresh(entity);
+// Evict L2 theo entity key (không tác động L1 session khác):
+entityManagerFactory.getCache().evict(Product.class, productId);</code></pre><div class="ans-block"><span class="ans-label">Nguồn chính thức</span><ul><li><a href="https://docs.jboss.org/hibernate/orm/6.6/userguide/html_single/Hibernate_User_Guide.html">hibernate — tài liệu chính thức</a></li><li><a href="https://www.postgresql.org/docs/current/transaction-iso.html">isolation — tài liệu chính thức</a></li><li><a href="https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/tx-propagation.html">propagation — tài liệu chính thức</a></li></ul></div></div></article></section>
+<div class="nav-pager">
+          <a class="prev" href="03-spring-boot.html">
+            <span class="label">Trước</span>
+            <span class="title">3. Spring Boot Framework</span>
+          </a>
+          <a class="next" href="05-database.html">
+            <span class="label">Tiếp</span>
+            <span class="title">5. Database &amp; SQL</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Module 04 / 14</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

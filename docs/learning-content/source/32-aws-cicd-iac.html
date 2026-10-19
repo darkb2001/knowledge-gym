@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AWS CI/CD &amp; Infrastructure as Code — DVA-C02 Deep Dive</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="module-header">
+  <span class="module-tag">AWS · Deployment</span>
+  <h1 class="module-title">AWS CI/CD &amp; Infrastructure as Code — DVA-C02 Deep Dive</h1>
+  <p class="module-subtitle">CodePipeline, CloudFormation, SAM và CDK.</p>
+</div>
+<main class="content">
+
+  <section class="section" id="deploy-lifecycle">
+    <h2 class="section-title">Vòng đời deploy &amp; CI trên AWS</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS1</span> Ứng dụng chạy dev → staging → prod: làm sao build một lần rồi promote mà không rebuild?</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div>
+          <p>Một <strong>vòng đời deploy</strong> chuẩn trên AWS tách rời ba thứ: <em>build</em> (tạo artifact), <em>release</em> (gắn artifact với cấu hình môi trường) và <em>run</em> (chạy ở từng môi trường). Artifact (image/zip) được build <strong>một lần</strong> ở CI rồi <strong>promote nguyên bản</strong> qua dev → staging → prod; cấu hình khác nhau giữa các môi trường (endpoint, secret, scale) được <strong>inject lúc deploy</strong>, không nhúng vào artifact.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">How</div>
+          <p>Mỗi môi trường là một <em>environment</em> riêng với biến env / parameter riêng. Bất biến (immutable) hoá artifact bằng cách deploy theo <strong>image digest</strong> <code>sha256</code> thay vì tag mutable như <code>:latest</code>. Cấu hình đọc từ <em>SSM Parameter Store</em> hoặc <em>Secrets Manager</em> theo tiền tố <code>/order-api/&lt;env&gt;/…</code>.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico codecommit"></span><span class="icon-label">CodeCommit</span><span class="icon-note">merge vào main</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">trigger build</span></div>
+            <div class="icon-node"><span class="aws-ico codebuild"></span><span class="icon-label">CodeBuild</span><span class="icon-note">build 1 lần → image</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">push</span></div>
+            <div class="icon-node"><span class="aws-ico ecr"></span><span class="icon-label">Amazon ECR</span><span class="icon-note">digest sha256 bất biến</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cùng digest</span></div>
+            <div class="icon-node"><span class="aws-ico codedeploy"></span><span class="icon-label">CodeDeploy</span><span class="icon-note">staging → prod</span></div>
+          </div>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div>
+          <p>Hệ thống nhiều môi trường, cần audit/rollback chính xác, nhiều team cùng release, yêu cầu "chạy đúng cái đã test ở staging".</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">When NOT</div>
+          <p>Prototype một môi trường duy nhất thì promote ít giá trị. Không nhúng secret của prod vào artifact. Không rebuild lại ở mỗi môi trường — dependency trôi version sẽ tạo lỗi "staging OK, prod chết".</p>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># CI build MOT lan, lay digest bat bien
+docker build -t $ECR_URI:$GIT_SHA .
+docker push $ECR_URI:$GIT_SHA
+DIGEST=$(aws ecr describe-images --repository-name order-api \
+  --image-ids imageTag=$GIT_SHA \
+  --query 'imageDetails[0].imageDigest' --output text)
+
+# Promote CUNG artifact sang tung moi truong, chi doi config
+aws ecs update-service --cluster staging --service order-api \
+  --force-new-deployment --task-definition order-api-staging:12
+aws ssm put-parameter --name /order-api/prod/IMAGE_DIGEST \
+  --value "$DIGEST" --type String --overwrite</code></pre></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Dùng tag mutable (<code>:latest</code>, <code>:prod</code>) là mất khả năng truy vết — rollback không biết đang chạy code nào. Promote đúng nghĩa là deploy <em>cùng digest</em>, không phải build lại rồi gắn tag mới.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/codepipeline/latest/userguide/welcome.html">AWS Docs — CodePipeline</a> · <a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html">AWS Docs — Systems Manager Parameter Store</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS2</span> CodeCommit &amp; Git-based workflow + CodeBuild: buildspec.yml, env, cache, artifact</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div>
+          <p><strong>CodeCommit</strong> là Git repo managed (private, IAM-controlled). <strong>CodeBuild</strong> là CI managed chạy lệnh trong container theo file <code>buildspec.yml</code>. Kết hợp: push vào branch → CodeBuild kéo source → build/test → sinh <em>artifact</em> và <em>report</em>.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">How</div>
+          <p>buildspec có các phase <code>install → pre_build → build → post_build</code>. Biến env lấy từ <code>env.variables</code>, <code>parameter-store</code> (SSM) hoặc <code>secrets-manager</code>. <code>cache</code> giảm thời gian build (Maven <code>.m2</code>, node_modules). <code>artifacts</code> là thứ chuyển cho bước deploy; <code>reports</code> đẩy JUnit result lên CodeBuild console.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico codecommit"></span><span class="icon-label">Source</span><span class="icon-note">CodeCommit / GitHub / S3</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">buildspec.yml</span></div>
+            <div class="icon-node"><span class="aws-ico codebuild"></span><span class="icon-label">Build</span><span class="icon-note">install→build→post_build</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cache .m2</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Artifacts</span><span class="icon-note">imageDetail.json + appspec.yml</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="yaml"><pre><code>version: 0.2
+
+env:
+  variables:
+    ECR_URI: 111122223333.dkr.ecr.ap-southeast-1.amazonaws.com/order-api
+  parameter-store:
+    DB_PASSWORD: /order-api/prod/db-password
+  exported-variables:
+    - IMAGE_TAG
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto21
+  pre_build:
+    commands:
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URI
+  build:
+    commands:
+      - mvn -B clean package -DskipTests
+      - docker build -t $ECR_URI:$IMAGE_TAG .
+  post_build:
+    commands:
+      - docker push $ECR_URI:$IMAGE_TAG
+      - printf '{"ImageURI":"%s"}' $ECR_URI:$IMAGE_TAG &gt; imageDetail.json
+
+reports:
+  surefire:
+    files: ['target/surefire-reports/*.xml']
+
+artifacts:
+  files:
+    - imageDetail.json
+    - appspec.yml
+
+cache:
+  paths:
+    - '/root/.m2/**/*'</code></pre></div>
+        <div class="ans-block"><div class="ans-label">CodeCommit vs GitHub/Bitbucket</div>
+          <table class="feature-table">
+            <thead><tr><th>Tiêu chí</th><th>CodeCommit</th><th>GitHub / Bitbucket</th></tr></thead>
+            <tbody>
+              <tr><td>Xác thực</td><td>IAM user/role, SSH key, HTTPS credential helper</td><td>Token/OAuth, GitHub App</td></tr>
+              <tr><td>Kết nối CodePipeline</td><td>Native (CodeCommit source action)</td><td>Qua CodeConnections (CodeStar Connections)</td></tr>
+              <tr><td>Webhook trigger</td><td>Có</td><td>Có (qua connection)</td></tr>
+              <tr><td>Hệ sinh thái</td><td>Gọn, IAM-centric, ít tính năng xã hội</td><td>Phong phú, PR/Actions mạnh</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div>
+          <p>Dùng CodeBuild cho mọi bước build/test/lint/scan. Chọn CodeCommit khi muốn mọi thứ trong IAM/VPC nội bộ; chọn GitHub khi team đã quen và cần ecosystem.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">When NOT</div>
+          <p>Không để secret plaintext trong buildspec — dùng <code>parameter-store</code>/<code>secrets-manager</code>. Không bỏ <code>cache</code> nếu build Java nhiều phút (mỗi lần tải lại full dependency).</p>
+        </div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Build timeout mặc định <strong>60 phút</strong>, tối đa <strong>36 giờ</strong>; timeout hàng đợi (queued) tối đa <strong>8 giờ</strong>. Giá trị SSM phải có quyền <code>ssm:GetParameters</code> trong service role nếu không build fail ngay phase <code>install</code>.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html">AWS Docs — Buildspec reference</a> · <a href="https://docs.aws.amazon.com/codecommit/latest/userguide/welcome.html">AWS Docs — CodeCommit</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS3</span> CodeDeploy: appspec.yml, deployment group, in-place vs blue/green, lifecycle hooks và rollback</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div>
+          <p><strong>CodeDeploy</strong> tự động deploy app lên <em>EC2/On-Premises</em>, <em>Lambda</em> hoặc <em>ECS</em>. Đơn vị cấu hình là <strong>application</strong> → <strong>deployment group</strong> (nhóm instance/target) → <strong>revision</strong> (bundle gồm code + <code>appspec.yml</code>). <code>appspec.yml</code> khai báo file cần copy và script chạy tại từng <em>lifecycle hook</em>.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">How</div>
+          <p>Deploy EC2 in-place chạy hook theo thứ tự cố định; hook nào exit non-zero → deploy fail và dừng. Rollback: CodeDeploy tự deploy lại revision trước đó (khi bật auto-rollback) hoặc bạn chạy lại deploy revision cũ.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico codedeploy"></span><span class="icon-label">ApplicationStop</span><span class="icon-note">dừng bản cũ</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">DownloadBundle/Install</span></div>
+            <div class="icon-node"><span class="aws-ico codedeploy"></span><span class="icon-label">Before/AfterInstall</span><span class="icon-note">script cài đặt</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">khởi động</span></div>
+            <div class="icon-node"><span class="aws-ico codedeploy"></span><span class="icon-label">ApplicationStart</span><span class="icon-note">start service</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">kiểm tra</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">ValidateService</span><span class="icon-note">health check</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="yaml"><pre><code>version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /var/www/order-api
+permissions:
+  - object: /var/www/order-api
+    owner: appuser
+    group: appuser
+    mode: 755
+hooks:
+  ApplicationStop:
+    - location: scripts/stop_server.sh
+      timeout: 60
+      runas: root
+  BeforeInstall:
+    - location: scripts/before_install.sh
+      timeout: 120
+      runas: root
+  AfterInstall:
+    - location: scripts/after_install.sh
+      timeout: 180
+      runas: root
+  ApplicationStart:
+    - location: scripts/start_server.sh
+      timeout: 60
+      runas: root
+  ValidateService:
+    - location: scripts/validate.sh
+      timeout: 120
+      runas: root</code></pre></div>
+        <div class="ans-block"><div class="ans-label">In-place vs Blue/Green</div>
+          <table class="feature-table">
+            <thead><tr><th>Tiêu chí</th><th>In-place</th><th>Blue/Green</th></tr></thead>
+            <tbody>
+              <tr><td>Compute platform</td><td>Chỉ EC2/On-Premises</td><td>EC2, Lambda, ECS</td></tr>
+              <tr><td>Hạ tầng</td><td>Cập nhật instance hiện có</td><td>Tạo môi trường thay thế mới</td></tr>
+              <tr><td>Downtime</td><td>Có (rolling theo config)</td><td>Gần như zero</td></tr>
+              <tr><td>Rollback</td><td>Deploy lại revision trước</td><td>Chuyển traffic ngược về môi trường cũ</td></tr>
+              <tr><td>Rolling config (EC2)</td><td>OneAtATime, HalfAtATime, AllAtOnce hoặc custom</td><td>AllAtOnce / Canary / Linear (Lambda, ECS)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div>
+          <p>EC2 truyền thống: in-place với <code>HalfAtATime</code> là mặc định an toàn. Lambda/ECS zero-downtime: blue/green với canary/linear, kèm <code>ValidateService</code> test.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">When NOT</div>
+          <p>Không blue/green nếu DB schema không tương thích ngược (2 version chạy song song). Không bỏ <code>ValidateService</code> — deploy "thành công" nhưng app chết vẫn rollback muộn.</p>
+        </div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div>
+          <p><code>ApplicationStop</code> lấy script từ <em>revision trước đó</em> (bị bỏ qua ở lần deploy đầu). Hook do agent quản lý (DownloadBundle, Install, BlockTraffic, AllowTraffic) không viết script được. Rollback không chạy lại <code>ApplicationStop</code> theo thứ tự thường.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/codedeploy/latest/userguide/reference-appspec-file-structure-hooks.html">AWS Docs — AppSpec hooks</a> · <a href="https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html">AWS Docs — Deployment configurations</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="pipeline-iac">
+    <h2 class="section-title">CodePipeline &amp; CloudFormation</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS4</span> CodePipeline: stage, action, luồng source→build→deploy và manual approval</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div>
+          <p><strong>CodePipeline</strong> là orchestrator: mỗi <em>pipeline</em> gồm nhiều <em>stage</em>, mỗi stage gồm nhiều <em>action</em> (song song hoặc tuần tự theo <code>runOrder</code>). Action có <em>category</em> (Source, Build, Test, Deploy, Approval, Invoke), <em>owner</em> (AWS, ThirdParty, Custom), <em>provider</em> và <em>version</em>. Artifact đi từ action này sang action khác qua S3 artifact bucket.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">How</div>
+          <p>Stage chuyển tiếp qua <strong>transition</strong>; có thể <em>disable</em> transition hoặc chèn <em>Manual Approval</em> (Approval action của AWS). Approve qua console hoặc <code>aws codepipeline put-approval-result</code>. Stage fail → pipeline dừng, có thể retry stage.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico codecommit"></span><span class="icon-label">Source</span><span class="icon-note">CodeCommit / GitHub</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">artifact</span></div>
+            <div class="icon-node"><span class="aws-ico codebuild"></span><span class="icon-label">Build</span><span class="icon-note">buildspec → image</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">Deploy staging</span></div>
+            <div class="icon-node"><span class="aws-ico codedeploy"></span><span class="icon-label">Deploy</span><span class="icon-note">CodeDeploy group</span></div>
+            <div class="icon-arrow">⇒<span class="arrow-note">manual approval</span></div>
+            <div class="icon-node"><span class="aws-ico sns"></span><span class="icon-label">Approve</span><span class="icon-note">SNS notify on-call</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code>{
+  "name": "DeployToProd",
+  "actions": [
+    {
+      "name": "ManualApproval",
+      "actionTypeId": { "category": "Approval", "owner": "AWS", "provider": "Manual", "version": "1" },
+      "configuration": { "CustomData": "Release order-api v1.4.2" }
+    },
+    {
+      "name": "DeployProd",
+      "runOrder": 2,
+      "actionTypeId": { "category": "Deploy", "owner": "AWS", "provider": "CodeDeploy", "version": "1" },
+      "configuration": { "ApplicationName": "order-api", "DeploymentGroupName": "prod" }
+    }
+  ]
+}</code></pre></div>
+        <div class="ans-block"><div class="ans-label">When</div>
+          <p>Cần một orchestrator managed gắn kết nhiều dịch vụ (source, build, test, deploy, approval) mà không phải tự viết CI runner.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">When NOT</div>
+          <p>Logic build phức tạp tùy biến cao vẫn nên để CodeBuild đảm nhiệm; CodePipeline chỉ điều phối. Không nhét secret trực tiếp vào action config.</p>
+        </div>
+        <div class="callout callout-info"><div class="callout-title">Use case</div>
+          <p>Stage <code>DeployStaging</code> tự động chạy test; stage <code>DeployToProd</code> có <em>ManualApproval</em> gửi SNS cho on-call; approve xong mới deploy prod.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts.html">AWS Docs — CodePipeline concepts</a> · <a href="https://docs.aws.amazon.com/codepipeline/latest/userguide/approvals.html">AWS Docs — Manual approvals</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS5</span> CloudFormation template anatomy + intrinsic functions (Ref / GetAtt / Sub / Join / Condition)</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div>
+          <p>Template CloudFormation khai báo hạ tầng dạng declarative. Các <strong>section</strong> theo thứ tự: <code>AWSTemplateFormatVersion</code>, <code>Description</code>, <code>Metadata</code>, <code>Parameters</code>, <code>Rules</code>, <code>Mappings</code>, <code>Conditions</code>, <code>Transform</code>, <code>Resources</code> (bắt buộc), <code>Outputs</code>. Chỉ <code>Resources</code> là bắt buộc.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">How</div>
+          <p>Giá trị động nối các phần bằng <em>intrinsic function</em>: <code>Ref</code> lấy tham số/tên logic, <code>Fn::GetAtt</code> lấy attribute của resource, <code>Fn::Sub</code> nội suy chuỗi, <code>Fn::Join</code> ghép mảng, <code>Fn::If</code>+<code>Fn::Equals</code> chọn theo điều kiện, <code>Fn::FindInMap</code> tra bảng, <code>Fn::ImportValue</code> lấy output từ stack khác.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico cloudformation"></span><span class="icon-label">Parameters</span><span class="icon-note">input lúc deploy</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">tra bảng</span></div>
+            <div class="icon-node"><span class="aws-ico cloudformation"></span><span class="icon-label">Mappings</span><span class="icon-note">EnvConfig[env]</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">điều kiện</span></div>
+            <div class="icon-node"><span class="aws-ico cloudformation"></span><span class="icon-label">Conditions</span><span class="icon-note">IsProd</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">tạo tài nguyên</span></div>
+            <div class="icon-node"><span class="aws-ico vpc"></span><span class="icon-label">Resources</span><span class="icon-note">VPC / ECS / ALB</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="yaml"><pre><code>AWSTemplateFormatVersion: "2010-09-09"
+Description: Order API - ECS service
+Parameters:
+  Env:
+    Type: String
+    AllowedValues: [dev, staging, prod]
+Mappings:
+  EnvConfig:
+    dev:     { DesiredCount: 1, Domain: dev.example.com }
+    staging: { DesiredCount: 2, Domain: stage.example.com }
+    prod:    { DesiredCount: 4, Domain: www.example.com }
+Conditions:
+  IsProd: !Equals [!Ref Env, prod]
+Resources:
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref Cluster
+      DesiredCount: !FindInMap [EnvConfig, !Ref Env, DesiredCount]
+      TaskDefinition: !Ref TaskDef
+Outputs:
+  ServiceUrl:
+    Condition: IsProd
+    Value: !Sub "https://${DomainName}/health"
+    Export:
+      Name: order-api-service-url</code></pre></div>
+        <div class="ans-block"><div class="ans-label">When</div>
+          <p>Chuẩn hoá hạ tầng thành template versioned trong Git; tái sử dụng một template cho nhiều môi trường qua Parameters + Mappings + Conditions.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">When NOT</div>
+          <p>Không dùng <code>Ref</code> để lấy attribute (như ARN) — phải dùng <code>GetAtt</code>. Không hard-code giá trị môi trường; đưa vào Parameters/Mappings để tránh sửa template mỗi lần deploy.</p>
+        </div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Trong YAML có thể dùng short form <code>!Ref</code>, <code>!GetAtt</code>, <code>!Sub</code>; trong JSON phải viết đầy đủ <code>{"Ref": ...}</code>, <code>{"Fn::GetAtt": [...]}</code>. Trộn short form vào JSON sẽ lỗi cú pháp.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-anatomy.html">AWS Docs — Template anatomy</a> · <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html">AWS Docs — Intrinsic functions</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS6</span> CloudFormation nâng cao: nested stack, change set, drift, stack policy và lỗi DELETE_FAILED</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div>
+          <p>Các tính năng vận hành: <strong>nested stack</strong> (<code>AWS::CloudFormation::Stack</code>, tái sử dụng template con), <strong>change set</strong> (xem trước thay đổi), <strong>drift detection</strong> (phát hiện tài nguyên bị sửa tay ngoài CFN), <strong>stack policy</strong> (chặn update/replace không mong muốn) và <strong>rollback</strong> (tự hoàn tác khi stack update fail).</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">How</div>
+          <p>Update luôn tạo change set trước để review. Khi update fail, CFN rollback về trạng thái trước (trừ khi bật <em>preserve successfully provisioned resources</em>). Resource bị sửa tay hiện ra ở tab Drift. Stack policy là JSON kiểm soát action <code>Update:*</code> trên resource.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico cloudformation"></span><span class="icon-label">Change Set</span><span class="icon-note">preview Add/Modify/Replace</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">Execute</span></div>
+            <div class="icon-node"><span class="aws-ico cloudformation"></span><span class="icon-label">Stack Update</span><span class="icon-note">apply thay đổi</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">fail?</span></div>
+            <div class="icon-node"><span class="aws-ico cloudformation"></span><span class="icon-label">Rollback</span><span class="icon-note">UPDATE_ROLLBACK_COMPLETE</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="yaml"><pre><code>Resources:
+  NetworkStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/order-api-templates/network.yaml
+      Parameters:
+        Env: !Ref Env
+  AppStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: NetworkStack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/order-api-templates/app.yaml
+      Parameters:
+        VpcId: !GetAtt NetworkStack.Outputs.VpcId</code></pre></div>
+        <div class="code-block" data-lang="json"><pre><code>{
+  "Statement": [
+    { "Effect": "Allow", "Action": "Update:*", "Principal": "*", "Resource": "*" },
+    { "Effect": "Deny",
+      "Action": "Update:Replace",
+      "Principal": "*",
+      "Resource": "LogicalResourceId/ProdDatabase" }
+  ]
+}</code></pre></div>
+        <div class="ans-block"><div class="ans-label">When</div>
+          <p>Hạ tầng lớn chia nhiều tầng (network / data / app) tái sử dụng được; môi trường bắt buộc review thay đổi trước khi apply; cần phát hiện cấu hình lệch chuẩn.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">When NOT</div>
+          <p>Không sửa resource tay sau khi tạo bằng CFN (drift, lần update sau sẽ ghi đè). Không xoá stack còn resource bị block — sẽ ra <code>DELETE_FAILED</code>, phải <em>retain</em> hoặc xoá thủ công resource rồi xoá lại.</p>
+        </div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div>
+          <p><code>DELETE_FAILED</code> thường do S3 bucket không rỗng hoặc ENI/SecurityGroup còn phụ thuộc. Stack policy <strong>không</strong> bảo vệ khỏi xoá stack — chỉ chặn <em>update</em>.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html">AWS Docs — Change sets</a> · <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-stack-drift.html">AWS Docs — Drift detection</a> · <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/protect-stack-resources.html">AWS Docs — Stack policies</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="sam-cdk-strategy">
+    <h2 class="section-title">SAM, CDK &amp; chiến lược deployment</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS7</span> AWS SAM: Serverless application model, event source, policy template và sam build/deploy/local</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div>
+          <p><strong>AWS SAM</strong> là lớp viết tắt (transform <code>AWS::Serverless-2016-10-31</code>) trên CloudFormation để mô tả ứng dụng serverless. Resource chính: <code>AWS::Serverless::Function</code>, <code>::Api</code>, <code>::HttpApi</code>, <code>::SimpleTable</code>, <code>::StateMachine</code>, <code>::LayerVersion</code>. Khi deploy, SAM transform thành CloudFormation "chuẩn" (bổ sung Role, Permission, Stage, Event mapping…).</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">How</div>
+          <p><em>Event source</em> khai báo trigger (Api, S3, SQS, SNS, DynamoDB, Kinesis, Schedule, EventBridge) ngay trong Function — SAM tự sinh permission/role cần thiết. Phần <code>Globals</code> đặt default chung (runtime, timeout, memory). Policy có thể là managed policy, inline, hoặc <strong>policy template</strong> viết sẵn (ví dụ <code>DynamoDBCrudPolicy</code>).</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico apigateway"></span><span class="icon-label">API Gateway</span><span class="icon-note">event source Api</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">invoke</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">AWS::Serverless::Function</span></div>
+            <div class="icon-arrow">↔<span class="arrow-note">CrudPolicy</span></div>
+            <div class="icon-node"><span class="aws-ico dynamodb"></span><span class="icon-label">DynamoDB</span><span class="icon-note">SimpleTable</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="yaml"><pre><code>AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Order API (serverless)
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 10
+    MemorySize: 256
+Resources:
+  CreateOrder:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/create.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrderTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /orders
+            Method: post
+  OrderTable:
+    Type: AWS::Serverless::SimpleTable</code></pre></div>
+        <div class="code-block" data-lang="bash"><pre><code>sam validate
+sam build
+sam local invoke CreateOrder --event events/create.json
+sam local start-api --port 3000
+sam deploy --guided --stack-name order-api-prod --capabilities CAPABILITY_IAM</code></pre></div>
+        <div class="ans-block"><div class="ans-label">When</div>
+          <p>Ứng dụng serverless (Lambda + API + DynamoDB/SQS): SAM cho template ngắn gọn, CLI build/deploy/local test nhanh, ít boilerplate hơn CFN thuần.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">When NOT</div>
+          <p>Không dùng SAM cho hạ tầng không serverless (VPC/EC2 thuần) — về CFN. <code>sam local</code> chỉ mô phỏng, không thay staging để test IAM/concurrency thật.</p>
+        </div>
+        <div class="callout callout-info"><div class="callout-title">Use case</div>
+          <p>Team viết hàm Lambda muốn vừa có template CloudFormation vừa debug offline: <code>sam local start-api</code> chạy API Gateway + Lambda ngay trên máy, rồi <code>sam deploy</code> lên AWS.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html">AWS Docs — What is AWS SAM</a> · <a href="https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html">AWS Docs — SAM policy templates</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS8</span> AWS CDK: construct / app / stack, synth ra CloudFormation, cdk diff/deploy và khi nào dùng thay SAM</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div>
+          <p><strong>AWS CDK</strong> định nghĩa hạ tầng bằng ngôn ngữ lập trình (TypeScript, Python, Java, Go, C#…). Ba khái niệm: <em>App</em> (gốc), <em>Stack</em> (đơn vị deploy, tương ứng 1 CloudFormation stack), <em>Construct</em> (khối tài nguyên tái sử dụng, phân tầng L1/L2/L3). CDK <strong>synth</strong> ra CloudFormation template rồi để CFN triển khai.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">How</div>
+          <p><code>cdk synth</code> sinh template trong <code>cdk.out/</code>; <code>cdk diff</code> so template với stack đang chạy; <code>cdk deploy</code> tạo change set và apply. L2 construct đã cấu hình sẵn default an toàn (ví dụ tạo role least-privilege, gateway endpoint) nên ít boilerplate hơn CFN/SAM.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico cdk"></span><span class="icon-label">App</span><span class="icon-note">entry point</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">new Stack</span></div>
+            <div class="icon-node"><span class="aws-ico cdk"></span><span class="icon-label">Construct</span><span class="icon-note">L1/L2/L3</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cdk synth</span></div>
+            <div class="icon-node"><span class="aws-ico cloudformation"></span><span class="icon-label">CFN Template</span><span class="icon-note">cdk.out</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cdk deploy</span></div>
+            <div class="icon-node"><span class="aws-ico cloudformation"></span><span class="icon-label">Stack</span><span class="icon-note">triển khai thật</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="typescript"><pre><code>import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+
+export class OrderApiStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+    const fn = new lambda.Function(this, 'CreateOrder', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'create.handler',
+      code: lambda.Code.fromAsset('src'),
+      timeout: cdk.Duration.seconds(10),
+    });
+
+    fn.addFunctionUrl({ authType: lambda.FunctionUrlAuthType.NONE });
+  }
+}</code></pre></div>
+        <div class="ans-block"><div class="ans-label">CloudFormation vs SAM vs CDK</div>
+          <table class="feature-table">
+            <thead><tr><th>Tiêu chí</th><th>CloudFormation</th><th>SAM</th><th>CDK</th></tr></thead>
+            <tbody>
+              <tr><td>Ngôn ngữ</td><td>YAML/JSON khai báo</td><td>YAML (transform)</td><td>TypeScript/Python/Java/…</td></tr>
+              <tr><td>Mức trừu tượng</td><td>Thấp, chi tiết</td><td>Cao cho serverless</td><td>Cao, có L2/L3 construct</td></tr>
+              <tr><td>Sinh ra</td><td>—</td><td>CFN template</td><td>CFN template (synth)</td></tr>
+              <tr><td>Kiểm thử</td><td>validate/changeset</td><td>sam validate/local</td><td>assert test bằng ngôn ngữ lập trình</td></tr>
+              <tr><td>Hợp với</td><td>Resource bất kỳ, kiểm soát tuyệt đối</td><td>Ứng dụng serverless</td><td>Hạ tầng lớn, nhiều team, tái sử dụng</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div>
+          <p>Hạ tầng lớn, lặp nhiều mẫu, muốn vòng lặp/điều kiện/thư viện nội bộ và unit test template. CDK <em>phù hợp ứng dụng serverless phức tạp hơn SAM</em> khi cần tổ hợp nhiều service.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">When NOT</div>
+          <p>Không cần CDK cho một vài resource đơn giản (CFN/SAM gọn hơn). CDK vẫn chạy trên CFN nên chịu mọi giới hạn của CFN (quota stack, thời gian).</p>
+        </div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>CDK <strong>không</strong> thay thế CloudFormation — nó chạy trên CFN. Đừng nhầm "CDK deploy" là có engine riêng: bên dưới vẫn là change set của CloudFormation.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/cdk/v2/guide/core-concepts.html">AWS Docs — CDK core concepts</a> · <a href="https://docs.aws.amazon.com/cdk/v2/guide/home.html">AWS Docs — AWS CDK</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS9</span> Ứng dụng không được downtime khi release: chọn chiến lược deploy nào và vì sao?</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div>
+          <p>Các chiến lược triển khai phổ biến: <strong>All-at-once</strong> (deploy hết cùng lúc), <strong>Rolling</strong> (thay dần từng đợt), <strong>Immutable / Blue-Green</strong> (môi trường mới hoàn toàn, chuyển traffic), <strong>Canary</strong> (phần nhỏ traffic ăn bản mới, rồi tăng dần) và <strong>Linear</strong> (tăng đều theo bậc thang). CodeDeploy/ECS dùng canary/linear/all-at-once để dịch traffic.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">How</div>
+          <p>Blue/Green: dựng môi trường mới → test → chuyển 100% traffic → rollback bằng cách chuyển ngược. Canary/Linear: dịch theo bước (ví dụ 10% trong 5 phút) kèm <em>alarm</em> để tự rollback nếu metric xấu.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">All-at-once</span><span class="icon-note">nhanh nhất, rủi ro cao</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">Rolling</span><span class="icon-note">thay dần, giảm rủi ro</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Canary</span><span class="icon-note">10% rồi tăng</span></div>
+            <div class="icon-node"><span class="aws-ico codedeploy"></span><span class="icon-label">Blue/Green</span><span class="icon-note">sẵn sàng rollback tức thì</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="yaml"><pre><code>Resources:
+  LiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: live
+      FunctionName: !Ref OrderFunction
+      FunctionVersion: !GetAtt OrderFunctionVersion.Version
+      UpdatePolicy:
+        CodeDeployLambdaAliasUpdate:
+          DeploymentConfigName: Canary10Percent5Minutes
+          BeforeAllowTrafficHook: !Ref PreTrafficCheck</code></pre></div>
+        <div class="ans-block"><div class="ans-label">When</div>
+          <p>Prod cần uptime: ưu tiên <em>blue/green</em> cho rollback tức thì, hoặc <em>canary/linear</em> khi muốn giới hạn blast radius và rollback tự động theo alarm. Dev/test: all-at-once cho nhanh.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">When NOT</div>
+          <p>Không canary khi chưa có observability (không có metric để phát hiện bản lỗi). Không blue/green nếu schema DB không tương thích ngược (cả hai version chạy song song).</p>
+        </div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Canary/Blue-Green dịch traffic <strong>theo tỉ lệ</strong>, không phải "một nửa instance". Session sticky và migration phá vỡ (rename/drop cột) là nguyên nhân downtime kinh điển dù chiến lược đúng.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html">AWS Docs — Deployment configurations</a> · <a href="https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-steps.html">AWS Docs — Deployment steps</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS10</span> Tự động hoá pipeline có manual approval và tự rollback khi alarm kêu</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div>
+          <p>Pipeline prod chuẩn: staging auto deploy → <strong>ManualApproval</strong> → CodeDeploy blue/green → theo dõi CloudWatch alarm → nếu alarm <code>ALARM</code> trong cửa sổ bake time thì <strong>tự rollback</strong>. Đây là tổ hợp CodePipeline + CodeDeploy + CloudWatch.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">How</div>
+          <p>CodeDeploy deployment group cấu hình <em>alarm</em> và <em>auto rollback on failure/alarm</em>. Approve qua CLI/console (hoặc Lambda auto-approve khi đủ điều kiện). Rollback tái sử dụng revision cũ, không build lại.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico codepipeline"></span><span class="icon-label">Pipeline</span><span class="icon-note">stage DeployProd</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">Manual Approval</span></div>
+            <div class="icon-node"><span class="aws-ico sns"></span><span class="icon-label">Notify on-call</span><span class="icon-note">SNS topic</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">approve</span></div>
+            <div class="icon-node"><span class="aws-ico codedeploy"></span><span class="icon-label">Blue/Green</span><span class="icon-note">shift 10% → 100%</span></div>
+            <div class="icon-arrow">↔<span class="arrow-note">alarm ALARM</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">CloudWatch</span><span class="icon-note">error rate / 5xx</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># On-call approve release sau khi xem staging
+aws codepipeline put-approval-result \
+  --pipeline-name order-api \
+  --stage-name DeployProd \
+  --action-name ManualApproval \
+  --result summary="Approved by on-call",status=Approved
+
+# Kiem tra trang thai deploy / rollback
+aws deploy get-deployment --deployment-id d-ABCDE1234 \
+  --query 'deploymentInfo.status'   # SUCCEEDED | FAILED | ROLLED_BACK</code></pre></div>
+        <div class="callout callout-info"><div class="callout-title">Use case</div>
+          <p>Release giờ cao điểm: on-call nhận SNS, kiểm tra staging xanh, approve; canary 10% trong 5 phút — nếu <code>5XXErrorRate</code> vượt ngưỡng, CodeDeploy tự rollback về bản trước.</p>
+        </div>
+        <div class="ans-block"><div class="ans-label">When NOT</div>
+          <p>Không auto-approve mọi release ở prod (mất ý nghĩa gate). Không bỏ alarm — auto rollback vô nghĩa nếu không có tín hiệu lỗi để kích hoạt.</p>
+        </div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Manual approval action hết hạn sau 7 ngày mặc định. Auto-rollback chỉ hoạt động khi alarm ở trạng thái <code>ALARM</code> trong thời gian deployment đang chạy — alarm tạo sai ngưỡng sẽ rollback nhầm.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/codepipeline/latest/userguide/approvals.html">AWS Docs — CodePipeline approvals</a> · <a href="https://docs.aws.amazon.com/codedeploy/latest/userguide/deployments-rollback-and-redeploy.html">AWS Docs — CodeDeploy rollback</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <div class="nav-pager"><a class="prev" href="index.html">← Trang chủ</a><a class="next" href="33-aws-observability-troubleshooting.html">Tiếp →</a></div>
+</main>
+</body>
+</html>

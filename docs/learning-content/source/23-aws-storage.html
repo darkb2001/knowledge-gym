@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AWS Storage ngoài S3 — DVA-C02 Deep Dive</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="module-header">
+  <span class="module-tag">AWS · Storage</span>
+  <h1 class="module-title">AWS Storage ngoài S3 — DVA-C02 Deep Dive</h1>
+  <p class="module-subtitle">EBS, Instance Store, EFS, FSx, Storage Gateway, Snow family, DataSync và AWS Backup.</p>
+</div>
+<main class="content">
+
+  <section class="section" id="block-storage">
+    <h2 class="section-title">Block storage &amp; Instance Store</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS1</span> Amazon EBS là gì? Volume, Availability Zone và cách attach vào EC2</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Amazon Elastic Block Store (EBS)</strong> là <em>block storage</em> dạng network-attached dành cho EC2. Mỗi <strong>volume</strong> là một thiết bị block (ví dụ <code>/dev/xvdf</code>, thường hiện ra trong OS dưới dạng NVMe) có dung lượng và hiệu năng chọn trước. Volume được nhân bản trong <strong>một Availability Zone</strong> duy nhất và gắn cố định vào AZ đó — không thể attach trực tiếp sang AZ khác.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Luồng cơ bản: <strong>create volume</strong> (chọn type, size, IOPS, AZ) → <strong>attach</strong> vào một instance cùng AZ với device name → <strong>format &amp; mount</strong> trong hệ điều hành. Vòng đời volume <em>độc lập</em> với instance: có thể detach rồi attach lại, hoặc giữ lại khi terminate instance (tùy chọn <code>DeleteOnTermination</code>). Muốn chuyển dữ liệu sang AZ/Region khác phải làm qua <em>snapshot</em>.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">EC2 instance</span><span class="icon-note">AZ a</span></div>
+            <div class="icon-arrow">↔<span class="arrow-note">attach / detach</span></div>
+            <div class="icon-node"><span class="aws-ico ebs"></span><span class="icon-label">EBS volume</span><span class="icon-note">gp3 100 GiB</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">snapshot</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Snapshot store</span><span class="icon-note">managed, replicated</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tao volume gp3 100 GiB trong AZ ap-southeast-1a</span>
+aws ec2 create-volume \
+  --availability-zone ap-southeast-1a \
+  --size 100 --volume-type gp3 --iops 3000 --throughput 125
+
+<span class="tok-comment"># Attach vao instance (cung AZ), device /dev/xvdf</span>
+aws ec2 attach-volume \
+  --volume-id vol-0abc123 --instance-id i-0def456 --device /dev/xvdf</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Đặc tính</th><th>Giá trị</th></tr></thead>
+          <tbody>
+            <tr><td>Phạm vi</td><td>Một Availability Zone duy nhất</td></tr>
+            <tr><td>Attach đồng thời</td><td>1 instance (trừ io1/io2 Multi-Attach, tối đa 16 instance cùng AZ)</td></tr>
+            <tr><td>Dung lượng volume</td><td>1 GiB – 64 TiB (tùy volume type)</td></tr>
+            <tr><td>Dữ liệu khi terminate</td><td>Giữ hay xóa theo DeleteOnTermination; root mặc định xóa</td></tr>
+            <tr><td>Sao lưu</td><td>EBS snapshot (incremental) lưu trong Amazon S3 (bạn không truy cập trực tiếp)</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng EBS cho boot volume, database tự quản trên EC2, filesystem cần độ trễ thấp và IOPS cao, hoặc bất cứ workload cần một đĩa block bền vững gắn vào một máy.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không dùng EBS khi nhiều máy cần <em>đọc/ghi chung</em> một filesystem (đó là việc của EFS/FSx), khi cần object storage giá rẻ truy cập qua HTTP (S3), hoặc khi muốn truy cập từ nhiều Region cùng lúc.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>EBS gắn một <strong>AZ</strong>, không phải một Region. Không thể attach volume ở AZ a vào instance ở AZ b — phải tạo snapshot rồi restore volume mới sang AZ đó. Mặc định root volume bị xóa khi terminate; volume dữ liệu thì <em>không</em> — luôn kiểm tra <code>DeleteOnTermination</code>.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/ebs/latest/userguide/what-is-ebs.html">AWS Docs — What is Amazon EBS?</a> · <a href="https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes.html">AWS Docs — EBS volumes</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS2</span> Chọn EBS volume type: gp3, io2 Block Express, st1 hay sc1?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Một ứng dụng database trên EC2 cần IOPS ổn định ở mức chục nghìn và không muốn phụ thuộc dung lượng để tính IOPS. EBS chia làm hai nhóm: <strong>SSD</strong> (General Purpose <em>gp3/gp2</em> và Provisioned IOPS <em>io1/io2</em>) cho workload giao dịch, độ trễ thấp; <strong>HDD</strong> (<em>st1</em> Throughput Optimized, <em>sc1</em> Cold) cho dữ liệu tuần tự, log lớn, không làm boot volume.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p><strong>gp3</strong> là lựa chọn mặc định hiện đại: dung lượng, IOPS và throughput cấu hình <em>độc lập</em> — baseline 3.000 IOPS / 125 MiB/s, scale tới 16.000 IOPS và 1.000 MiB/s mà không cần mua thêm dung lượng. <strong>io2 Block Express</strong> dành cho I/O thâm dụng, tới 256.000 IOPS, 64 TiB, độ bền 99,999% và hỗ trợ Multi-Attach. <strong>st1</strong> cho throughput lớn giá rẻ (tối đa 500 MiB/s), <strong>sc1</strong> rẻ nhất cho dữ liệu ít truy cập.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico ebs"></span><span class="icon-label">gp3</span><span class="icon-note">đa dụng, IOPS/throughput rời</span></div>
+            <div class="icon-node"><span class="aws-ico ebs"></span><span class="icon-label">io2 Block Express</span><span class="icon-note">256K IOPS, sub-ms</span></div>
+            <div class="icon-node"><span class="aws-ico ebs"></span><span class="icon-label">st1</span><span class="icon-note">throughput HDD, log/big data</span></div>
+            <div class="icon-node"><span class="aws-ico ebs"></span><span class="icon-label">sc1</span><span class="icon-note">cold HDD, rẻ nhất</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># gp3: mua rieng 6000 IOPS va 500 MiB/s tren cung 1 volume</span>
+aws ec2 create-volume --availability-zone ap-southeast-1a \
+  --size 500 --volume-type gp3 --iops 6000 --throughput 500
+
+<span class="tok-comment"># Doi type volume dang chay (khong can detach): gp2 -&gt; gp3</span>
+aws ec2 modify-volume --volume-id vol-0abc123 \
+  --volume-type gp3 --iops 6000 --throughput 500</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Type</th><th>Nhóm</th><th>Max IOPS</th><th>Max throughput</th><th>Boot được</th></tr></thead>
+          <tbody>
+            <tr><td>gp3</td><td>SSD đa dụng</td><td>16.000</td><td>1.000 MiB/s</td><td>Có</td></tr>
+            <tr><td>gp2</td><td>SSD đa dụng (cũ)</td><td>16.000</td><td>250 MiB/s</td><td>Có</td></tr>
+            <tr><td>io2 Block Express</td><td>SSD IOPS cao</td><td>256.000</td><td>4.000 MiB/s</td><td>Có</td></tr>
+            <tr><td>st1</td><td>HDD throughput</td><td>500</td><td>500 MiB/s</td><td>Không</td></tr>
+            <tr><td>sc1</td><td>HDD cold</td><td>250</td><td>250 MiB/s</td><td>Không</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>gp3 cho gần như mọi workload mặc định (boot, web, dev/test). io2 khi database cần IOPS rất cao và ổn định. st1/sc1 khi xử lý dữ liệu tuần tự lớn (log, ETL, media) mà không cần làm đĩa khởi động.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không dùng gp2 cho hệ thống mới — gp3 rẻ hơn và linh hoạt hơn. Không dùng st1/sc1 làm boot volume (không hỗ trợ). Không mua io2 nếu workload không thực sự cần IOPS cao — bạn trả tiền cho IOPS provisioned.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>gp2 tính IOPS theo dung lượng (baseline 3 IOPS/GiB, burst tới 3.000), còn gp3 cho bạn đặt IOPS độc lập với size — đây là điểm so sánh hay ra thi. io2 Block Express yêu cầu instance hỗ trợ (Nitro) mới đạt mức IOPS tối đa. st1/sc1 là HDD: <em>không</em> dùng làm đĩa boot.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html">AWS Docs — Amazon EBS volume types</a> · <a href="https://docs.aws.amazon.com/ebs/latest/userguide/ebs-modify-volume.html">AWS Docs — Modify an EBS volume</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS3</span> EBS snapshot: incremental, restore và tự động hoá với Data Lifecycle Manager</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>EBS snapshot</strong> là bản sao point-in-time của một volume, dùng để backup và để "di chuyển" volume (đổi AZ, nhân bản, tăng dung lượng bằng cách snapshot rồi tạo volume lớn hơn). Theo AWS, <em>AWS không tự sao lưu</em> volume — trách nhiệm tạo snapshot định kỳ là của bạn.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Snapshot là <strong>incremental</strong>: chỉ những block thay đổi kể từ snapshot gần nhất được lưu, nên tạo nhanh và tiết kiệm dung lượng; bản đầu tiên luôn là full copy. Snapshot được lưu trong S3 do AWS quản lý (bạn không truy cập bucket đó trực tiếp) và <em>tự nhân bản trong Region</em>, cho phép restore ra volume ở bất kỳ AZ nào cùng Region. Có thể <strong>copy</strong> snapshot sang Region khác (mã hoá lại nếu cần) và bật <strong>Fast Snapshot Restore</strong> để volume tạo ra đạt hiệu năng tối đa ngay lập tức.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico ebs"></span><span class="icon-label">EBS volume</span><span class="icon-note">đang chạy</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">create-snapshot</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Snapshot</span><span class="icon-note">incremental, replicated</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">copy-snapshot</span></div>
+            <div class="icon-node"><span class="aws-ico region"></span><span class="icon-label">Region khác</span><span class="icon-note">DR cross-region</span></div>
+            <div class="icon-arrow">→</div>
+            <div class="icon-node"><span class="aws-ico ebs"></span><span class="icon-label">Restore volume</span><span class="icon-note">mọi AZ trong Region</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Snapshot mot volume roi xem trang thai</span>
+aws ec2 create-snapshot --volume-id vol-0abc123 \
+  --description "nightly backup" --tag-specifications \
+  'ResourceType=snapshot,Tags=[{Key=Name,Value=app-db-nightly}]'
+
+<span class="tok-comment"># Copy snapshot sang Region khac (DR) – giu nguyen ma hoa</span>
+aws ec2 copy-snapshot --source-region ap-southeast-1 \
+  --source-snapshot-id snap-0aaaa --region us-east-1
+
+<span class="tok-comment"># Restore ra volume moi (co the khac AZ)</span>
+aws ec2 create-volume --snapshot-id snap-0aaaa \
+  --availability-zone ap-southeast-1b --volume-type gp3</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Khái niệm</th><th>Ý nghĩa</th></tr></thead>
+          <tbody>
+            <tr><td>Incremental</td><td>Chỉ lưu block thay đổi từ snapshot gần nhất</td></tr>
+            <tr><td>Phạm vi lưu</td><td>Trong S3 managed, tự nhân bản trong Region</td></tr>
+            <tr><td>Restore</td><td>Tạo volume mới ở bất kỳ AZ nào cùng Region</td></tr>
+            <tr><td>Fast Snapshot Restore</td><td>Volume restore đạt hiệu năng đầy đủ ngay, tốn phí thêm</td></tr>
+            <tr><td>Data Lifecycle Manager</td><td>Tự động tạo/giữ/xóa snapshot theo lịch và tag</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng snapshot cho backup định kỳ, nhân bản volume, tăng dung lượng volume (snapshot → tạo volume lớn hơn), và làm nguồn dữ liệu cho AMI hoặc môi trường test. Dùng DLM hoặc AWS Backup để tự động hoá thay vì làm thủ công.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không dựa vào snapshot như một filesystem chia sẻ (snapshot là bản sao, không phải volume đang mount). Không bật Fast Snapshot Restore tràn lan — tính phí theo giờ trên mỗi snapshot/AZ. Không copy snapshot sang Region mà không xét chi phí lưu trữ và mã hoá.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Vì incremental, <strong>xoá một snapshot giữa chuỗi có thể không giảm chi phí</strong> — dữ liệu mà snapshot khác còn tham chiếu vẫn được giữ. Snapshot đầu tiên là full. Snapshot mặc định mã hoá theo volume (EBS encryption dùng KMS) — không thể tạo volume không mã hoá từ snapshot đã mã hoá.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/ebs/latest/userguide/ebs-snapshots.html">AWS Docs — Amazon EBS snapshots</a> · <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/snapshot-lifecycle.html">AWS Docs — Automate backups with Data Lifecycle Manager</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS4</span> EC2 Instance Store vs EBS: khi nào dùng ephemeral storage?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Một ứng dụng cache cần độ trễ cực thấp và chấp nhận mất dữ liệu khi máy dừng. <strong>Instance Store</strong> là block storage gắn <em>vật lý</em> vào host máy chủ (NVMe SSD), cho IOPS và băng thông cao nhất, độ trễ thấp nhất — nhưng là <strong>ephemeral</strong>: dữ liệu mất khi instance stop, terminate, hoặc khi AWS thay host. <strong>EBS</strong> ngược lại: bền, tách rời vòng đời instance, snapshot được.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Bạn chọn instance type có sẵn instance store (ví dụ họ <code>i3</code>, <code>im4gn</code>, <code>m5d</code>) — không "mua" instance store như một volume EBS. Dữ liệu không đi qua network, nên throughput/IOPS rất cao và ổn định. Đổi lại: không snapshot, không nhân bản, không attach/detach, dữ liệu biến mất khi reboot host (khác với reboot OS).</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">EC2 instance</span><span class="icon-note">i3.large</span></div>
+            <div class="icon-arrow">↔<span class="arrow-note">NVMe gắn trực tiếp</span></div>
+            <div class="icon-node"><span class="aws-ico ebs"></span><span class="icon-label">Instance Store</span><span class="icon-note">ephemeral, IOPS cực cao</span></div>
+            <div class="icon-arrow">+</div>
+            <div class="icon-node"><span class="aws-ico ebs"></span><span class="icon-label">EBS volume</span><span class="icon-note">bền, snapshot được</span></div>
+          </div>
+        </div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Instance Store</th><th>EBS</th></tr></thead>
+          <tbody>
+            <tr><td>Độ bền dữ liệu</td><td>Ephemeral — mất khi stop/terminate</td><td>Bền, tách rời instance</td></tr>
+            <tr><td>Hiệu năng</td><td>Cao nhất, gắn vật lý</td><td>Cao, phụ thuộc volume type</td></tr>
+            <tr><td>Snapshot / backup</td><td>Không (phải tự copy ra EBS/S3)</td><td>Có, snapshot incremental</td></tr>
+            <tr><td>Attach/detach</td><td>Không</td><td>Có</td></tr>
+            <tr><td>Chi phí</td><td>Gộp trong giá instance type</td><td>Tính riêng theo GB-tháng</td></tr>
+          </tbody>
+        </table>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Xem cac block device (NVMe instance store + EBS) tren may</span>
+lsblk
+<span class="tok-comment"># Instance store thuong hien ten nvme giong EBS – phan biet bang Model:</span>
+<span class="tok-comment"># Amazon EC2 NVMe Instance Storage  =&gt; instance store (mat khi stop)</span>
+<span class="tok-comment"># Amazon Elastic Block Store       =&gt; EBS (ben)</span></code></pre></div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng Instance Store cho buffer, cache tạm, scratch space, dữ liệu sinh lại được (spill-to-disk, tmp, game session state) khi cần độ trễ và IOPS tối đa mà không muốn trả phí EBS riêng.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không đặt database, file cần giữ lâu hay bất cứ dữ liệu quan trọng trên instance store. Không coi instance store là bền vững qua stop/start. Nếu cần vừa hiệu năng cao vừa bền, dùng EBS io2 hoặc kết hợp cả hai.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Cả instance store lẫn EBS (Nitro) đều hiện dưới tên NVMe trong OS — phân biệt bằng model của <code>lsblk</code>. Instance store mất dữ liệu khi <em>stop</em> instance, không chỉ khi terminate. Reboot OS <em>không</em> xóa instance store, nhưng stop/start thì có.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html">AWS Docs — Amazon EC2 instance store</a> · <a href="https://docs.aws.amazon.com/ebs/latest/userguide/what-is-ebs.html">AWS Docs — Amazon EBS</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="file-storage">
+    <h2 class="section-title">File storage: EFS &amp; FSx</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS5</span> Amazon EFS: filesystem NFS dùng chung cho EC2, Lambda và ECS</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Nhiều Lambda/EC2 cần đọc cùng một thư mục tài nguyên. <strong>Amazon EFS</strong> là <em>file storage</em> managed, serverless, giao thức <strong>NFSv4.1</strong>, tự co giãn tới petabyte. EFS là <strong>Regional</strong> (dữ liệu trải nhiều AZ, độ bền cao) hoặc <strong>One Zone</strong> (một AZ, rẻ hơn nhưng mất AZ là mất dữ liệu). EFS hỗ trợ Linux/UNIX — <em>không</em> hỗ trợ Windows (SMB).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Bạn tạo filesystem rồi tạo <strong>mount target</strong> ở mỗi AZ (một ENI + security group); client mount qua NFS. EFS chọn <strong>throughput mode</strong> (Elastic mặc định, Provisioned, Bursting) và <strong>storage class</strong> (Standard, Infrequent Access, Archive) — bật <strong>Lifecycle Management</strong> để tự chuyển file ít dùng sang tầng rẻ hơn. EFS hỗ trợ đồng thời hàng nghìn client, locking và strong consistency. Lambda/ECS mount EFS phải nằm trong VPC và dùng <strong>access point</strong>.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">EC2</span><span class="icon-note">AZ a</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">mount -t nfs4</span></div>
+            <div class="icon-node"><span class="aws-ico efs"></span><span class="icon-label">EFS filesystem</span><span class="icon-note">Regional, NFSv4.1</span></div>
+            <div class="icon-arrow">←<span class="arrow-note">access point</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">trong VPC</span></div>
+            <div class="icon-arrow">←</div>
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">ECS task</span><span class="icon-note">cùng dữ liệu</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tao EFS filesystem + mount target trong subnet cua VPC</span>
+aws efs create-file-system --encrypted \
+  --performance-mode generalPurpose --throughput-mode elastic
+aws efs create-mount-target --file-system-id fs-0abc123 \
+  --subnet-id subnet-0aaa --security-groups sg-0123abc
+
+<span class="tok-comment"># Mount tren EC2 (cung VPC/SG)</span>
+sudo mount -t nfs4 -o nfsvers=4.1 \
+  fs-0abc123.efs.ap-southeast-1.amazonaws.com:/ /mnt/efs</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Thuộc tính</th><th>Giá trị</th></tr></thead>
+          <tbody>
+            <tr><td>Giao thức</td><td>NFSv4.0 / NFSv4.1 (Linux, không SMB)</td></tr>
+            <tr><td>Loại filesystem</td><td>Regional (multi-AZ) hoặc One Zone</td></tr>
+            <tr><td>Throughput mode</td><td>Elastic (mặc định), Provisioned, Bursting</td></tr>
+            <tr><td>Storage class</td><td>Standard, Infrequent Access, Archive + lifecycle</td></tr>
+            <tr><td>Mã hoá</td><td>At rest (KMS) và in transit (TLS) bật được</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Khi nhiều compute cùng truy cập một filesystem: shared media/content, home directory, container dùng chung dữ liệu, Lambda cần file tài nguyên lớn (mount EFS). Chọn One Zone để tiết kiệm khi dữ liệu tạo lại được.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không dùng EFS cho Windows (dùng FSx for Windows File Server). Không dùng EFS làm boot volume. Không mount EFS từ ngoài VPC qua internet — phải có kết nối mạng phù hợp. Không lạm dụng cho object lớn một lần (dùng S3).</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>EFS là NFS — <strong>Linux/UNIX only</strong>, đây là câu hỏi kinh điển. EFS Regional trải nhiều AZ; One Zone chỉ một AZ. Lambda mount EFS cần cùng VPC, security group mở NFS (2049), và access point. Không cần provision dung lượng — nhưng dung lượng lưu vẫn bị tính phí (nhiều hơn One Zone).</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/efs/latest/ug/whatisefs.html">AWS Docs — What is Amazon Elastic File System?</a> · <a href="https://docs.aws.amazon.com/efs/latest/ug/performance.html">AWS Docs — Amazon EFS performance</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS6</span> Amazon FSx: chọn Windows, Lustre, NetApp hay OpenZFS?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Amazon FSx</strong> là họ file system managed cho các workload đặc thù mà EFS không phục vụ tốt. Có bốn "flavor": <strong>Windows File Server</strong> (SMB + NTFS + Active Directory), <strong>Lustre</strong> (HPC/ML, băng thông cực lớn), <strong>NetApp ONTAP</strong> (đa giao thức, enterprise) và <strong>OpenZFS</strong> (NFS, linh hoạt, tiết kiệm).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Chọn theo giao thức và workload: Windows File Server khi cần <em>SMB/NTFS</em> và join domain AD — thay thế file server on-prem, hỗ trợ DFS, shadow copies. Lustre khi cần <em>hàng trăm GB/s</em> cho HPC, genomics, ML training, có thể gắn trực tiếp vào S3. ONTAP khi cần đồng thời NFS + SMB + iSCSI và snapshot/clone. OpenZFS khi cần NFS scale tốt, snapshot, nén và dedup với chi phí thấp. Tất cả đều managed: AWS lo hạ tầng, backup, patch.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico fsx"></span><span class="icon-label">Windows File Server</span><span class="icon-note">SMB, NTFS, Active Directory</span></div>
+            <div class="icon-node"><span class="aws-ico fsx"></span><span class="icon-label">Lustre</span><span class="icon-note">HPC/ML, gắn S3</span></div>
+            <div class="icon-node"><span class="aws-ico fsx"></span><span class="icon-label">NetApp ONTAP</span><span class="icon-note">NFS + SMB + iSCSI</span></div>
+            <div class="icon-node"><span class="aws-ico fsx"></span><span class="icon-label">OpenZFS</span><span class="icon-note">NFS, dedup, nén</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tao FSx for Windows File Server (SMB) trong subnet AD</span>
+aws fsx create-file-system --file-system-type WINDOWS \
+  --storage-capacity 300 --storage-type SSD \
+  --subnet-ids subnet-0aaa \
+  --windows-configuration \
+  'ActiveDirectoryId=d-9067example,ThroughputCapacity=32'
+
+<span class="tok-comment"># Tao FSx for Lustre gan vao mot bucket S3 lam data repository</span>
+aws fsx create-file-system --file-system-type LUSTRE \
+  --storage-capacity 1200 --subnet-ids subnet-0aaa \
+  --lustre-configuration \
+  'ImportPath=s3://my-app-data,DeploymentType=SCRATCH_2'</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Flavor</th><th>Giao thức</th><th>Workload điển hình</th></tr></thead>
+          <tbody>
+            <tr><td>FSx for Windows</td><td>SMB, NTFS, AD</td><td>File server Windows, .NET, SharePoint</td></tr>
+            <tr><td>FSx for Lustre</td><td>Lustre (POSIX)</td><td>HPC, ML training, video render, gắn S3</td></tr>
+            <tr><td>FSx for NetApp ONTAP</td><td>NFS, SMB, iSCSI</td><td>Enterprise, di trú từ on-prem NetApp</td></tr>
+            <tr><td>FSx for OpenZFS</td><td>NFS</td><td>Linux app cần snapshot/dedup, chi phí thấp</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng FSx khi cần đúng giao thức/workload: Windows SMB → Windows File Server; HPC/ML băng thông cao → Lustre; đa giao thức enterprise → ONTAP; NFS linh hoạt → OpenZFS.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không dùng FSx khi EFS đã đủ (Linux NFS đơn giản, serverless). Không dùng Lustre cho workload nhỏ lẻ — setup và chi phí không xứng. Không chọn flavor sai giao thức (ví dụ cần SMB mà lại chọn OpenZFS chỉ hỗ trợ NFS).</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Cần <strong>SMB/Windows</strong> → FSx for Windows File Server (EFS không hỗ trợ). Cần <strong>HPC băng thông siêu cao, đọc thẳng từ S3</strong> → FSx for Lustre. Đừng nhầm FSx (managed, workload-specific) với EFS (managed NFS serverless) hay với việc tự dựng file server trên EC2.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/fsx/latest/WindowsGuide/what-is.html">AWS Docs — What is Amazon FSx for Windows File Server?</a> · <a href="https://docs.aws.amazon.com/fsx/latest/LustreGuide/what-is.html">AWS Docs — What is Amazon FSx for Lustre?</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS7</span> EBS vs EFS vs FSx vs S3 — chọn loại lưu trữ nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Bốn dịch vụ lưu trữ dễ nhầm nhất trong đề DVA-C02: <strong>EBS</strong> (block, gắn một máy, một AZ), <strong>EFS</strong> (file NFS dùng chung, Linux), <strong>FSx</strong> (file chuyên biệt cho Windows/HPC/enterprise) và <strong>S3</strong> (object, truy cập qua HTTP API). Nhầm lẫn thường nằm ở chữ "dùng chung" và "gắn vào máy".</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Cách nhớ nhanh: máy đơn cần <em>block</em> → EBS; nhiều máy Linux cần <em>file NFS</em> chung → EFS; cần <em>SMB/Windows hoặc HPC</em> → FSx; lưu trữ khối lượng lớn qua <em>HTTP, versioning, lifecycle, truy cập từ mọi nơi</em> → S3. EBS/EFS/FSx là filesystem/block có độ trễ thấp; S3 là object store được thiết kế cho durability 11 số 9 và scale vô hạn.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico ebs"></span><span class="icon-label">EBS</span><span class="icon-note">block · 1 AZ · 1 instance</span></div>
+            <div class="icon-node"><span class="aws-ico efs"></span><span class="icon-label">EFS</span><span class="icon-note">file NFS · multi-AZ · nhiều máy</span></div>
+            <div class="icon-node"><span class="aws-ico fsx"></span><span class="icon-label">FSx</span><span class="icon-note">file chuyên biệt · SMB/HPC</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">S3</span><span class="icon-note">object · HTTP · vô hạn</span></div>
+          </div>
+        </div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>EBS</th><th>EFS</th><th>FSx</th><th>S3</th></tr></thead>
+          <tbody>
+            <tr><td>Kiểu lưu trữ</td><td>Block</td><td>File (NFS)</td><td>File (SMB/NFS/Lustre)</td><td>Object</td></tr>
+            <tr><td>Truy cập đồng thời</td><td>1 instance (io2: 16)</td><td>Hàng nghìn client</td><td>Nhiều client theo giao thức</td><td>Vô hạn qua HTTP</td></tr>
+            <tr><td>Phạm vi</td><td>1 AZ</td><td>Multi-AZ (Regional) / 1 AZ</td><td>Theo flavor</td><td>Regional toàn cầu</td></tr>
+            <tr><td>Hỗ trợ Windows</td><td>Có</td><td>Không</td><td>Có (Windows File Server)</td><td>N/A (object)</td></tr>
+            <tr><td>Dùng khi</td><td>Boot, DB trên EC2</td><td>Shared Linux content</td><td>Windows, HPC, enterprise</td><td>Backup, static, data lake</td></tr>
+          </tbody>
+        </table>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># EBS: mot dia block gan vao mot EC2</span>
+aws ec2 attach-volume --volume-id vol-0abc123 \
+  --instance-id i-0def456 --device /dev/xvdf
+
+<span class="tok-comment"># EFS: nhieu may mount cung mot filesystem NFS</span>
+sudo mount -t nfs4 fs-0abc123.efs.ap-southeast-1.amazonaws.com:/ /mnt/shared
+
+<span class="tok-comment"># S3: object truy cap qua API/SDK, khong mount (co the dung Mountpoint)</span>
+aws s3 cp ./data.parquet s3://my-app-data/raw/</code></pre></div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Chọn EBS cho đĩa gắn máy; EFS cho filesystem Linux chia sẻ serverless; FSx khi cần SMB/Windows hoặc hiệu năng HPC; S3 cho lưu trữ khối lượng lớn, backup, static asset và data lake.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không dùng EBS để nhiều máy chia sẻ (trừ io2 Multi-Attach — nhưng cần cluster filesystem). Không dùng S3 như block device. Không dùng EFS cho Windows. Không chọn FSx khi EFS/S3 đã phù hợp và rẻ hơn.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Từ khóa quyết định: "shared file system, Linux, serverless, không cần provision" → <strong>EFS</strong>; "Windows file share/SMB" → <strong>FSx for Windows</strong>; "high performance computing, đọc S3" → <strong>FSx for Lustre</strong>; "large object, truy cập qua HTTP, versioning" → <strong>S3</strong>. Đừng chọn EBS cho "nhiều instance cùng đọc ghi".</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/whitepapers/latest/aws-overview/storage-services.html">AWS Docs — AWS storage services overview</a> · <a href="https://docs.aws.amazon.com/efs/latest/ug/whatisefs.html">AWS Docs — Amazon EFS</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="hybrid-backup">
+    <h2 class="section-title">Hybrid, di chuyển dữ liệu &amp; backup</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS8</span> AWS Storage Gateway: File Gateway, Volume Gateway và Tape Gateway</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Ứng dụng on-prem cần dùng storage của AWS mà vẫn truy cập qua giao thức quen thuộc. <strong>AWS Storage Gateway</strong> là appliance (VM chạy on-prem hoặc EC2) cung cấp giao diện <em>NFS/SMB/iSCSI/VTL</em> tại chỗ, với AWS đóng vai backend bền vững. Gateway giữ một <strong>local cache</strong> để giảm độ trễ, còn dữ liệu được đẩy lên AWS.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Ba loại gateway: <strong>File Gateway</strong> expose SMB/NFS và lưu object trực tiếp vào <strong>S3</strong> (thay file server on-prem); <strong>Volume Gateway</strong> expose iSCSI block volume dưới dạng EBS — chế độ <em>Cached</em> (dữ liệu chính ở S3, cache local) hoặc <em>Stored</em> (dữ liệu chính ở local, sao lưu lên S3 dưới dạng EBS snapshot); <strong>Tape Gateway</strong> giả lập thư viện băng từ (VTL) đẩy virtual tape vào S3/Glacier, giữ nguyên quy trình backup cũ.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico onprem"></span><span class="icon-label">Ứng dụng on-prem</span><span class="icon-note">NFS/SMB/iSCSI/VTL</span></div>
+            <div class="icon-arrow">→</div>
+            <div class="icon-node"><span class="aws-ico storage-gateway"></span><span class="icon-label">Storage Gateway</span><span class="icon-note">cache cục bộ, độ trễ thấp</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">đồng bộ bất đồng bộ</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Amazon S3</span><span class="icon-note">object backend</span></div>
+            <div class="icon-arrow">→</div>
+            <div class="icon-node"><span class="aws-ico glacier"></span><span class="icon-label">S3 Glacier</span><span class="icon-note">lưu trữ dài hạn</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Kich hoat gateway (VM/EC2) roi tao NFS file share tro vao S3</span>
+aws storagegateway activate-gateway --gateway-name branch-fgw \
+  --gateway-timezone GMT --gateway-region ap-southeast-1 \
+  --gateway-type FILE_S3
+
+aws storagegateway create-nfs-file-share \
+  --client-token token-123 --gateway-arn arn:aws:storagegateway:... \
+  --location-arn arn:aws:s3:::my-onprem-share \
+  --role arn:aws:iam::111122223333:role/SGWRole \
+  --client-list 10.0.0.0/24</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Gateway</th><th>Giao thức</th><th>Backend AWS</th><th>Dùng khi</th></tr></thead>
+          <tbody>
+            <tr><td>File Gateway</td><td>NFS, SMB</td><td>S3</td><td>Thay file server on-prem bằng S3</td></tr>
+            <tr><td>Volume Gateway – Cached</td><td>iSCSI</td><td>S3 + EBS snapshot</td><td>Volume lớn, cache phần hay dùng</td></tr>
+            <tr><td>Volume Gateway – Stored</td><td>iSCSI</td><td>S3 (EBS snapshot)</td><td>Dữ liệu chính ở local, backup lên AWS</td></tr>
+            <tr><td>Tape Gateway</td><td>iSCSI VTL</td><td>S3 / S3 Glacier</td><td>Giữ quy trình backup băng từ</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng khi cần kết nối hybrid: giữ ứng dụng on-prem truy cập NFS/SMB/iSCSI nhưng muốn dữ liệu bền trên AWS, giảm chi phí lưu trữ on-prem, hoặc archive băng từ lên Glacier không cần đổi quy trình backup.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không dùng Storage Gateway khi toàn bộ workload đã ở AWS (dùng trực tiếp S3/EFS/FSx). Không coi nó là đường truyền khối lượng cực lớn một lần — đó là việc của Snow family/DataSync.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Phân biệt <strong>Cached</strong> (chính ở S3, cache local) vs <strong>Stored</strong> (chính ở local, snapshot lên S3) — đề hay hỏi ngược nhau. File Gateway lưu vào S3 dưới dạng object (không phải EBS). Tape Gateway giữ giao diện băng từ để không phải đổi phần mềm backup.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/filegateway/latest/files3/what-is-file-s3.html">AWS Docs — What is Amazon S3 File Gateway?</a> · <a href="https://docs.aws.amazon.com/storagegateway/latest/vgw/WhatIsStorageGateway.html">AWS Docs — What is AWS Storage Gateway?</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS9</span> Di chuyển dữ liệu lên AWS: DataSync, Snow family hay Transfer Family?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Một công ty có 50 TB dữ liệu on-prem và đường truyền chỉ 100 Mbps cần đưa lên S3. Ba lựa chọn hay bị nhầm: <strong>DataSync</strong> (chuyển online tự động qua mạng), <strong>Snow family</strong> (thiết bị vật lý, chuyển offline khi mạng yếu/khối lượng lớn) và <strong>Transfer Family</strong> (endpoint SFTP/FTPS/FTP/AS2 managed, ghi thẳng vào S3/EFS).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Chọn theo ràng buộc mạng và nhu cầu giao thức. <strong>DataSync</strong> dùng agent (VM) đọc NFS/SMB/HDFS/object và ghi vào S3/EFS/FSx; tự động hoá, lập lịch, kiểm tra toàn vẹn, giới hạn băng thông. <strong>Snow</strong> (Snowcone, Snowball Edge Storage/Compute Optimized, Snowmobile) là thiết bị gửi qua bưu điện khi mạng không đủ nhanh — quy tắc kinh nghiệm: nếu chuyển qua mạng mất hơn ~1 tuần thì cân nhắc Snow. <strong>Transfer Family</strong> giữ đúng giao thức file mà đối tác/khách hàng đang dùng (thường SFTP) nhưng backend là S3/EFS.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico datasync"></span><span class="icon-label">DataSync</span><span class="icon-note">online, agent, lập lịch</span></div>
+            <div class="icon-node"><span class="aws-ico snowball"></span><span class="icon-label">Snow family</span><span class="icon-note">offline, thiết bị vật lý</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Transfer Family</span><span class="icon-note">SFTP/FTPS/FTP/AS2</span></div>
+            <div class="icon-node"><span class="aws-ico onprem"></span><span class="icon-label">Nguồn on-prem</span><span class="icon-note">NAS, file server, băng từ</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># DataSync: chuyen tu NAS (NFS) len S3, chay theo lich</span>
+aws datasync create-location-nfs \
+  --server-hostname 10.0.0.10 --subdirectory /exports \
+  --on-prem-config AgentArns=arn:aws:datasync:...:agent/agent-0abc \
+  --mount-options Version=NFS_4_1
+
+aws datasync create-task \
+  --source-location-arn arn:aws:datasync:...:location/loc-src \
+  --destination-location-arn arn:aws:datasync:...:location/loc-s3 \
+  --options VerifyMode=ONLY_FILES_TRANSFERRED
+
+<span class="tok-comment"># Transfer Family: endpoint SFTP managed ghi vao S3</span>
+aws transfer create-server --protocols SFTP \
+  --identity-provider-type SERVICE_MANAGED --endpoint-type PUBLIC</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Giải pháp</th><th>Kiểu</th><th>Nguồn/đích</th><th>Chọn khi</th></tr></thead>
+          <tbody>
+            <tr><td>DataSync</td><td>Online, tự động</td><td>NFS/SMB/HDFS/object → S3/EFS/FSx</td><td>Có mạng đủ tốt, cần lập lịch &amp; kiểm tra</td></tr>
+            <tr><td>Snowcone</td><td>Offline, nhỏ gọn</td><td>Lên tới vài TB, có compute edge</td><td>Không gian chật, mạng yếu</td></tr>
+            <tr><td>Snowball Edge</td><td>Offline, dung lượng lớn</td><td>Hàng chục–trăm TB, có compute</td><td>Khối lượng lớn, mạng không đủ nhanh</td></tr>
+            <tr><td>Transfer Family</td><td>Endpoint managed</td><td>SFTP/FTPS/FTP/AS2 → S3/EFS</td><td>Cần giao thức file cho đối tác</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>DataSync cho migration/đồng bộ định kỳ qua mạng; Snow khi mạng chậm hoặc khối lượng quá lớn (offline nhanh hơn); Transfer Family khi cần cổng SFTP/FTPS/FTP/AS2 managed ghi trực tiếp vào S3/EFS.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không dùng Snow cho khối lượng nhỏ hoặc khi mạng đã đủ nhanh (chờ vận chuyển lâu hơn). Không dùng DataSync làm giao thức cho đối tác bên ngoài (đó là Transfer Family). Không dùng Transfer Family để đồng bộ lượng lớn — DataSync phù hợp hơn.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>"Mạng 100 Mbps, muốn chuyển 50 TB" — câu trả lời là <strong>Snowball</strong> (chuyển vật lý) chứ không phải DataSync (sẽ mất hàng tuần). "Cần endpoint SFTP cho đối tác tải file" → <strong>Transfer Family</strong>. DataSync cần <em>agent on-prem</em> khi nguồn không ở AWS.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html">AWS Docs — What is AWS DataSync?</a> · <a href="https://docs.aws.amazon.com/snowball/latest/developer-guide/whatisedge.html">AWS Docs — What is AWS Snowball Edge?</a> · <a href="https://docs.aws.amazon.com/transfer/latest/userguide/what-is-aws-transfer-family.html">AWS Docs — What is AWS Transfer Family?</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS10</span> AWS Backup: sao lưu tập trung, backup plan và vault lock</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Nhiều dịch vụ (EBS, EFS, FSx, RDS, DynamoDB, S3, Storage Gateway, Snow) mỗi cái có cơ chế backup riêng. <strong>AWS Backup</strong> là dịch vụ quản lý sao lưu <em>tập trung, policy-driven</em>: bạn định nghĩa <strong>backup plan</strong> một lần, áp cho nhiều tài nguyên, thay vì cấu hình từng dịch vụ.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Backup plan gồm lịch (schedule), <strong>retention</strong> và <strong>lifecycle</strong> (chuyển sang cold storage để rẻ hơn). Mỗi lần chạy tạo một <em>recovery point</em> lưu trong <strong>backup vault</strong>. <strong>Vault Lock</strong> ở chế độ compliance bật WORM (write-once, read-many): không ai — kể cả root — xóa được recovery point trong thời hạn, chống ransomware/xóa nhầm. Hỗ trợ <strong>cross-Region</strong> và <strong>cross-account</strong> copy để DR, cùng <strong>resource assignment</strong> theo tag để tự động gán tài nguyên vào plan.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico backup"></span><span class="icon-label">Backup plan</span><span class="icon-note">schedule + retention</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">tự động chạy</span></div>
+            <div class="icon-node"><span class="aws-ico ebs"></span><span class="icon-label">EBS / EFS / FSx</span><span class="icon-note">recovery point</span></div>
+            <div class="icon-arrow">→</div>
+            <div class="icon-node"><span class="aws-ico backup"></span><span class="icon-label">Backup vault</span><span class="icon-note">vault lock (WORM)</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cross-Region copy</span></div>
+            <div class="icon-node"><span class="aws-ico region"></span><span class="icon-label">Region DR</span><span class="icon-note">khôi phục khi sự cố</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tao backup vault (có thể bat vault lock compliance)</span>
+aws backup create-backup-vault --backup-vault-name prod-vault
+
+<span class="tok-comment"># Chay backup on-demand cho mot EBS volume</span>
+aws backup start-backup-job \
+  --backup-vault-name prod-vault \
+  --resource-arn arn:aws:ec2:ap-southeast-1:111122223333:volume/vol-0abc123 \
+  --iam-role-arn arn:aws:iam::111122223333:role/AWSBackupDefaultServiceRole
+
+<span class="tok-comment"># Khoi phuc tu recovery point</span>
+aws backup start-restore-job \
+  --recovery-point-arn arn:aws:backup:...:recovery-point:rp-0abc \
+  --metadata file://restore-metadata.json \
+  --iam-role-arn arn:aws:iam::111122223333:role/AWSBackupDefaultServiceRole</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Thành phần</th><th>Ý nghĩa</th></tr></thead>
+          <tbody>
+            <tr><td>Backup plan</td><td>Lịch, retention, lifecycle (cold storage) — áp nhiều tài nguyên</td></tr>
+            <tr><td>Recovery point</td><td>Bản sao lưu cụ thể tạo ra mỗi lần chạy</td></tr>
+            <tr><td>Backup vault</td><td>Nơi chứa recovery point; kiểm soát quyền truy cập</td></tr>
+            <tr><td>Vault Lock</td><td>WORM: chặn xóa trong thời hạn, chống ransomware</td></tr>
+            <tr><td>Cross-Region / account</td><td>Copy backup sang vùng/tài khoản khác để DR</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng cho backup tập trung nhiều dịch vụ, cần tuân thủ (compliance) với retention cố định, chống xóa (ransomware), và DR bằng copy cross-Region/cross-account. Dùng để thay cho việc cấu hình snapshot rải rác từng service.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không cần AWS Backup khi chỉ có một volume và Data Lifecycle Manager (DLM) đã đủ. Không bật Vault Lock compliance nếu còn đang thử nghiệm — chế độ này <em>không thể</em> gỡ và chặn xóa trong suốt thời hạn.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Phân biệt <strong>DLM</strong> (chỉ EBS snapshot, gắn theo tag) vs <strong>AWS Backup</strong> (đa dịch vụ, plan/vault/centralized). Vault Lock ở chế độ <em>compliance</em> là WORM không thể xóa — đề hay hỏi giải pháp chống xóa backup bất khả kháng; <em>governance</em> thì có thể gỡ với quyền đặc biệt.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html">AWS Docs — What is AWS Backup?</a> · <a href="https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html">AWS Docs — AWS Backup Vault Lock</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <div class="nav-pager"><a class="prev" href="22-aws-s3.html">← Trước</a><a class="next" href="24-aws-dynamodb.html">Tiếp →</a></div>
+</main>
+</body>
+</html>

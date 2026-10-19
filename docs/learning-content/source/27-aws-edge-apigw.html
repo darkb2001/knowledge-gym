@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CloudFront, Route 53 &amp; API Gateway — DVA-C02 Deep Dive</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="module-header">
+  <span class="module-tag">AWS · Networking</span>
+  <h1 class="module-title">CloudFront, Route 53 &amp; API Gateway</h1>
+  <p class="module-subtitle">Edge, DNS và cửa vào API.</p>
+</div>
+<main class="content">
+
+  <section class="section" id="cloudfront">
+    <h2 class="section-title">CloudFront &amp; tối ưu edge</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS1</span> CloudFront cơ bản: distribution, origin, cache behavior, TTL và invalidation</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Amazon CloudFront</strong> là CDN toàn cầu: request của người dùng đi tới <strong>edge location</strong> gần nhất, phục vụ bản cache tại chỗ; nếu trượt cache (miss) mới gọi về <strong>origin</strong> (S3 bucket, ALB/EC2, HTTP server, API Gateway). Một <strong>distribution</strong> gồm nhiều <strong>cache behavior</strong> — mỗi behavior khớp một <em>path pattern</em> (<code>/api/*</code>, <code>/images/*</code>, <code>Default (*)</code>) và gắn origin + chính sách cache riêng.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Tài liệu được cache theo <strong>TTL</strong> (mặc định <strong>86400 giây = 24 giờ</strong>, min 0, max 31536000). TTL có thể do origin gửi bằng header <code>Cache-Control</code>/<code>Expires</code>, hoặc bị ép bởi <em>cache policy</em>. Khi cập nhật nội dung mà không muốn chờ hết TTL, bạn tạo <strong>invalidation</strong> để xoá cache theo path.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Người dùng</span><span class="icon-note">HN / SG / Tokyo</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">DNS của distribution</span></div>
+            <div class="icon-node"><span class="aws-ico cloudfront"></span><span class="icon-label">Edge location</span><span class="icon-note">cache hit tại chỗ</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cache miss</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Origin S3</span><span class="icon-note">static assets</span></div>
+            <div class="icon-arrow">↔<span class="arrow-note">behavior /api/*</span></div>
+            <div class="icon-node"><span class="aws-ico alb"></span><span class="icon-label">Origin ALB</span><span class="icon-note">dynamic API</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># Invalidation: tối đa 3.000 path/lần, 1.000 path đầu mỗi tháng miễn phí
+aws cloudfront create-invalidation --distribution-id E1A2B3C4D5E6F7 \
+  --paths "/index.html" "/api/*"
+
+# Xem cache policy đang gắn (default TTL 86400s nếu origin không gửi header)
+aws cloudfront get-cache-policy --id 658327ea-f89d-4fab-a63d-7e88639e58f6</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Khái niệm</th><th>Ý nghĩa</th><th>Số liệu / lưu ý</th></tr></thead>
+          <tbody>
+            <tr><td>Distribution</td><td>Đơn vị CDN, có DNS name riêng</td><td>Web (HTTP/S) hoặc RTMP (cũ)</td></tr>
+            <tr><td>Cache behavior</td><td>Khớp path pattern → origin + policy</td><td>Behavior cụ thể thắng Default</td></tr>
+            <tr><td>TTL</td><td>Thời gian giữ bản cache</td><td>Default 86400s; min 0; max 31536000s</td></tr>
+            <tr><td>Invalidation</td><td>Xoá cache theo path</td><td>Tối đa 3.000 path/lần, 1.000/tháng free</td></tr>
+            <tr><td>Cache key</td><td>URL + header/cookie/query theo policy</td><td>Thêm vào key = giảm hit ratio</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Muốn nội dung cập nhật nhanh mà không invalidate: đặt TTL ngắn hoặc dùng <strong>versioned filename</strong> (<code>app.v2.js</code>). Đừng nhồi tất cả header/cookie vào cache key — hit ratio tụt. CloudFront hỗ trợ cả <strong>POST/PUT</strong> (không cache) để đẩy request động về origin.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html">AWS Docs — What is CloudFront</a> · <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html">AWS Docs — Expiration &amp; TTL</a> · <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PayingForInvalidation.html">AWS Docs — Invalidation pricing</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS2</span> Giữ S3 private với OAC và phân phối nội dung có kiểm soát: signed URL vs signed cookie</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Hai nhu cầu khác nhau: (1) CloudFront đọc S3 mà <strong>bucket vẫn private</strong> → dùng <strong>Origin Access Control (OAC)</strong> (thay thế OAI cũ). (2) Chỉ phát nội dung cho <em>người có quyền</em> → dùng <strong>signed URL</strong> (một file) hoặc <strong>signed cookie</strong> (nhiều file / cả site).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Với OAC, CloudFront ký request (SigV4) tới S3 và bucket policy chỉ cho phép đúng distribution đó — không cần bật public, hỗ trợ cả SSE-KMS. Với signed URL/cookie, bạn dùng <em>key pair</em> (trusted signer) hoặc <em>key group</em> ký thời hạn (Expires) và (tuỳ chọn) giới hạn IP.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico cloudfront"></span><span class="icon-label">OAC</span><span class="icon-note">S3 private, SigV4, hỗ trợ KMS</span></div>
+            <div class="icon-node"><span class="aws-ico generic"></span><span class="icon-label">Signed URL</span><span class="icon-note">1 file · download/video đơn lẻ</span></div>
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Signed cookie</span><span class="icon-note">nhiều file · HLS, cả site</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code>{
+  "Name": "oac-s3-origin",
+  "OriginAccessControlOriginType": "s3",
+  "SigningBehavior": "always",
+  "SigningProtocol": "sigv4"
+}</code></pre></div>
+        <div class="code-block" data-lang="bash"><pre><code># Ký URL có thời hạn (dùng CloudFront key pair đã upload public key)
+aws cloudfront sign --url "https://d111111abcdef8.cloudfront.net/report.pdf" \
+  --key-pair-id K2EXAMPLEABC --private-key file://pk-ABC.pem \
+  --date-less-than "2026-12-31T00:00:00Z"</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Signed URL</th><th>Signed cookie</th></tr></thead>
+          <tbody>
+            <tr><td>Phạm vi</td><td>Một URL cụ thể</td><td>Nhiều URL khớp pattern</td></tr>
+            <tr><td>Use case</td><td>Link tải/stream riêng lẻ</td><td>HLS/MPEG-DASH, cả website</td></tr>
+            <tr><td>Client</td><td>Bất kỳ (curl, app)</td><td>Cần trình duyệt hỗ trợ cookie</td></tr>
+            <tr><td>Giới hạn IP</td><td>Có (tuỳ chọn)</td><td>Có (tuỳ chọn)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Signed URL/cookie <strong>không phải</strong> cơ chế xác thực người dùng — chỉ là chữ ký có thời hạn. OAI đang bị khuyến nghị thay bằng <strong>OAC</strong>. Với bucket dùng SSE-KMS, OAI cũ không hoạt động ổn — dùng OAC + cấp quyền <code>kms:Decrypt</code> cho CloudFront.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html">AWS Docs — Restrict access to S3 (OAC)</a> · <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-choosing-signed-urls-cookies.html">AWS Docs — Signed URLs vs cookies</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS3</span> So sánh: CloudFront Functions vs Lambda@Edge — chạy code ở edge khi nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>CloudFront Functions</strong> là hàm JavaScript siêu nhẹ chạy ở <em>viewer request/response</em> (trước/sau khi vào cache), khởi động dưới mili-giây, không truy cập mạng. <strong>Lambda@Edge</strong> là Lambda đầy đủ chạy ở <em>cả 4 điểm</em>: viewer request/response và origin request/response, có thể gọi service ngoài, thời gian chạy dài hơn.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Chọn theo nhu cầu: thao tác URL/header đơn giản, redirect, thêm header bảo mật, chuẩn hoá query → CloudFront Functions (rẻ, scale tốt). Cần gọi API ngoài, đọc secret, A/B test nặng, resize ảnh tại edge, chọn origin động theo dữ liệu → Lambda@Edge.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico cloudfront"></span><span class="icon-label">CloudFront Functions</span><span class="icon-note">viewer only · JS · sub-ms · không network</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda@Edge</span><span class="icon-note">4 hook · Node/Python · tới 30s · có network</span></div>
+            <div class="icon-node"><span class="aws-ico generic"></span><span class="icon-label">Origin</span><span class="icon-note">xử lý nghiệp vụ nặng</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="js"><pre><code>// CloudFront Function — viewer request, chạy sub-millisecond
+function handler(event) {
+    var req = event.request;
+    if (req.uri.endsWith('/')) { req.uri = req.uri + 'index.html'; }
+    req.headers['x-country'] = { value: 'VN' };
+    return req;
+}</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>CloudFront Functions</th><th>Lambda@Edge</th></tr></thead>
+          <tbody>
+            <tr><td>Trigger</td><td>Viewer request / response</td><td>Viewer + Origin request / response</td></tr>
+            <tr><td>Ngôn ngữ</td><td>JavaScript (ES)</td><td>Node.js, Python</td></tr>
+            <tr><td>Thời gian chạy</td><td>Sub-millisecond</td><td>Tới 5s (viewer) / 30s (origin)</td></tr>
+            <tr><td>Truy cập mạng</td><td>Không</td><td>Có (gọi service, đọc secret)</td></tr>
+            <tr><td>Chi phí</td><td>Rẻ hơn, scale rất cao</td><td>Đắt hơn (theo request + thời gian)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Đề hay hỏi \"cần đọc dữ liệu từ DynamoDB ở edge\" → <strong>Lambda@Edge</strong> (Functions không có network). \"Cần modify header/redirect với chi phí thấp nhất\" → <strong>CloudFront Functions</strong>. Lambda@Edge gắn vào distribution ở region us-east-1 và phải nằm cùng region khi publish.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/edge-functions-choosing.html">AWS Docs — Choosing between edge functions</a> · <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html">AWS Docs — CloudFront quotas</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="route53">
+    <h2 class="section-title">Route 53 &amp; DNS</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS4</span> Route 53: record types, alias vs CNAME và cách đặt TTL</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Route 53 là DNS managed: mỗi <strong>hosted zone</strong> chứa các <strong>record</strong>. Loại hay gặp: <strong>A</strong> (IPv4), <strong>AAAA</strong> (IPv6), <strong>CNAME</strong> (bí danh tên miền), <strong>MX</strong> (mail), <strong>TXT</strong> (xác thực/SPF), <strong>NS</strong>/<strong>SOA</strong> (quản trị zone), <strong>CAA</strong>, <strong>SRV</strong>. <strong>Alias record</strong> là kiểu riêng của AWS: trỏ tới resource AWS (CloudFront, ALB/NLB, S3 website, API Gateway) mà không cần IP.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Điểm mấu chốt: <strong>CNAME không dùng được ở zone apex</strong> (<code>example.com</code>) và tính phí query; <strong>alias</strong> dùng được ở apex, miễn phí query, và hỗ trợ <em>Evaluate Target Health</em> để failover theo health check. TTL trên record quyết định thời gian resolver cache câu trả lời — TTL ngắn giúp đổi cấu hình nhanh hơn nhưng tăng số query.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Client</span><span class="icon-note">truy vấn DNS</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">A alias (apex)</span></div>
+            <div class="icon-node"><span class="aws-ico route53"></span><span class="icon-label">Route 53</span><span class="icon-note">hosted zone example.com</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">alias target</span></div>
+            <div class="icon-node"><span class="aws-ico cloudfront"></span><span class="icon-label">CloudFront</span><span class="icon-note">dist d111.cloudfront.net</span></div>
+            <div class="icon-arrow">hoặc</div>
+            <div class="icon-node"><span class="aws-ico alb"></span><span class="icon-label">ALB</span><span class="icon-note">dualstack...</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code>aws route53 change-resource-record-sets --hosted-zone-id Z123EXAMPLE \
+  --change-batch '{
+    "Changes": [{
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "app.example.com",
+        "Type": "A",
+        "AliasTarget": {
+          "HostedZoneId": "Z1LMS91P8CMLE5",
+          "DNSName": "dualstack.alb-app.ap-southeast-1.elb.amazonaws.com",
+          "EvaluateTargetHealth": true
+        }
+      }
+    }]
+  }'</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Alias record</th><th>CNAME record</th></tr></thead>
+          <tbody>
+            <tr><td>Zone apex</td><td>Dùng được (example.com)</td><td>Không dùng được</td></tr>
+            <tr><td>Trỏ tới</td><td>Resource AWS (CloudFront, ELB…)</td><td>Bất kỳ tên miền nào</td></tr>
+            <tr><td>Chi phí query</td><td>Miễn phí</td><td>Tính phí</td></tr>
+            <tr><td>Health check</td><td>Có (Evaluate Target Health)</td><td>Không</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>\"Trỏ <code>example.com</code> (apex) vào ALB/CloudFront\" → bắt buộc <strong>alias</strong>, CNAME sẽ bị từ chối ở apex. TTL thấp (60s) để chuyển đổi nhanh; TTL cao (86400s) cho record ổn định ít đổi. Alias tới CloudFront HostedZoneId là <code>Z2FDTNDATAQYW2</code>.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html">AWS Docs — Supported DNS record types</a> · <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html">AWS Docs — Alias vs non-alias</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS5</span> Tình huống: chọn routing policy nào và dựng failover bằng health check</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Route 53 có nhiều <strong>routing policy</strong>: <strong>simple</strong> (một record), <strong>weighted</strong> (chia % cho canary/A-B), <strong>latency</strong> (đưa người dùng tới region có độ trễ thấp nhất), <strong>failover</strong> (primary/secondary + health check), <strong>geolocation</strong> (theo quốc gia/châu lục), <strong>geoproximity</strong>, <strong>multivalue answer</strong>.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Ý tưởng chọn nhanh: cần phát hành dần → weighted; tối ưu tốc độ theo vùng → latency; dự phòng khi site chết → failover; phục vụ nội dung theo luật bản địa → geolocation. <strong>Health check</strong> theo dõi endpoint (HTTP/HTTPS/TCP + chuỗi khớp); khi unhealthy, failover chuyển sang secondary.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico route53"></span><span class="icon-label">Routing policy</span><span class="icon-note">weighted / latency / failover</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">health check OK</span></div>
+            <div class="icon-node"><span class="aws-ico alb"></span><span class="icon-label">Primary</span><span class="icon-note">ap-southeast-1</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Health check</span><span class="icon-note">ngưỡng healthy/unhealthy</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">unhealthy</span></div>
+            <div class="icon-node"><span class="aws-ico alb"></span><span class="icon-label">Secondary</span><span class="icon-note">us-west-2 · S3 static</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code>{
+  "Name": "api.example.com",
+  "Type": "A",
+  "SetIdentifier": "green-canary",
+  "Weight": 10,
+  "Failover": "PRIMARY",
+  "HealthCheckId": "abcd1234-...-ef",
+  "AliasTarget": {
+    "HostedZoneId": "Z1LMS91P8CMLE5",
+    "DNSName": "green-alb.ap-southeast-1.elb.amazonaws.com",
+    "EvaluateTargetHealth": true
+  }
+}</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Policy</th><th>Dùng khi</th><th>Ghi chú</th></tr></thead>
+          <tbody>
+            <tr><td>Simple</td><td>Một endpoint duy nhất</td><td>Không gắn health check</td></tr>
+            <tr><td>Weighted</td><td>Canary, A/B, chia tải</td><td>Weight 0–255, tổng không cần 100</td></tr>
+            <tr><td>Latency</td><td>Tối ưu độ trễ theo region</td><td>Dựa trên đo từ resolver</td></tr>
+            <tr><td>Failover</td><td>Active-passive dự phòng</td><td>Cần health check cho primary</td></tr>
+            <tr><td>Geolocation</td><td>Nội dung theo quốc gia</td><td>Default record khi không khớp</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Failover cần <em>health check</em> (hoặc Evaluate Target Health với alias) — thiếu nó thì secondary không bao giờ được dùng. Muốn kết hợp nhiều policy trên cùng tên record thì dùng <strong>record set identifier</strong> cho mỗi bản ghi. DNS cache theo TTL, nên failover không tức thời.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy.html">AWS Docs — Choosing a routing policy</a> · <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover.html">AWS Docs — Active-passive failover</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="api-gateway">
+    <h2 class="section-title">API Gateway — cửa vào API</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS6</span> So sánh: API Gateway REST API vs HTTP API vs WebSocket API</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Ba loại API khác nhau về mục tiêu. <strong>REST API</strong> (v1) giàu tính năng: API key + usage plan, caching, request validation, mapping template (VTL), integrate non-proxy, WAF, private endpoint. <strong>HTTP API</strong> (v2) tối ưu chi phí/độ trễ, hỗ trợ JWT authorizer gốc + CORS built-in nhưng ít tính năng hơn. <strong>WebSocket API</strong> cho giao tiếp hai chiều (chat, realtime).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Chọn theo yêu cầu: chỉ cần proxy tới Lambda/HTTP backend, cần rẻ và nhanh → <strong>HTTP API</strong> (rẻ hơn REST khoảng <strong>70%</strong>). Cần API key, usage plan, caching, VTL, WAF, integration tinh chỉnh → <strong>REST API</strong>. Cần push hai chiều server→client → <strong>WebSocket</strong>.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico apigateway"></span><span class="icon-label">REST API</span><span class="icon-note">usage plan · cache · VTL · WAF</span></div>
+            <div class="icon-node"><span class="aws-ico apigateway"></span><span class="icon-label">HTTP API</span><span class="icon-note">rẻ ~70% · JWT · CORS sẵn · nhanh ~60%</span></div>
+            <div class="icon-node"><span class="aws-ico generic"></span><span class="icon-label">WebSocket</span><span class="icon-note">2 chiều · $connect/$disconnect</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># Ba loại API
+aws apigateway create-rest-api --name rest-orders \
+  --endpoint-configuration types=REGIONAL
+aws apigatewayv2 create-api --name http-orders --protocol-type HTTP
+aws apigatewayv2 create-api --name ws-chat --protocol-type WEBSOCKET \
+  --route-selection-expression '$request.body.action'</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>REST API</th><th>HTTP API</th><th>WebSocket</th></tr></thead>
+          <tbody>
+            <tr><td>Giao thức</td><td>HTTP/REST</td><td>HTTP</td><td>WS (2 chiều)</td></tr>
+            <tr><td>API key / usage plan</td><td>Có</td><td>Không</td><td>Không</td></tr>
+            <tr><td>Caching</td><td>Có</td><td>Không (dùng CloudFront)</td><td>Không</td></tr>
+            <tr><td>Mapping template (VTL)</td><td>Có</td><td>Không</td><td>Không</td></tr>
+            <tr><td>Authorizer</td><td>IAM, Lambda, Cognito</td><td>JWT, Lambda (đơn giản)</td><td>IAM, Lambda</td></tr>
+            <tr><td>Kết nối</td><td>Stateless</td><td>Stateless</td><td>Tới 2 giờ, idle 10 phút</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Nếu đề yêu cầu \"API key + usage plan\" hoặc \"cache response\" → phải là <strong>REST API</strong> (HTTP API không có). Nếu đề nhấn \"giảm chi phí, latency thấp, JWT\" → <strong>HTTP API</strong>. Cả ba loại đều có <strong>integration timeout tối đa 29 giây</strong> và payload 10 MB.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html">AWS Docs — HTTP API vs REST API</a> · <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api.html">AWS Docs — WebSocket APIs</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS7</span> Lambda proxy integration, mapping template và stage variable</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Lambda proxy integration</strong> (AWS_PROXY) đưa <em>toàn bộ</em> request vào <code>event</code> của Lambda (method, path, query, headers, body, isBase64Encoded) và bắt Lambda trả về đúng cấu trúc <code>statusCode</code> + <code>headers</code> + <code>body</code>. <strong>Non-proxy</strong> (custom) cho phép bạn dùng <strong>mapping template (VTL)</strong> để biến đổi request/response.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Proxy là cách mặc định, ít cấu hình nhất — Lambda tự kiểm soát response. Khi backend cần <em>định dạng cố định</em> (vd dịch vụ legacy nhận XML), dùng non-proxy + mapping template. <strong>Stage variable</strong> cho phép cùng một API trỏ tới resource khác nhau theo stage (dev/prod), thường dùng để trỏ tới Lambda alias.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Client</span><span class="icon-note">GET /orders/42</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">proxy event</span></div>
+            <div class="icon-node"><span class="aws-ico apigateway"></span><span class="icon-label">API Gateway</span><span class="icon-note">stage prod</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">arn:...:prod</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">alias prod</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">PutItem</span></div>
+            <div class="icon-node"><span class="aws-ico dynamodb"></span><span class="icon-label">DynamoDB</span><span class="icon-note">table orders</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code>{
+  "httpMethod": "GET",
+  "path": "/orders/42",
+  "queryStringParameters": { "page": "2" },
+  "pathParameters": { "id": "42" },
+  "headers": { "Authorization": "Bearer ..." },
+  "body": null,
+  "isBase64Encoded": false
+}</code></pre></div>
+        <div class="code-block" data-lang="bash"><pre><code># Mapping template (VTL) cho non-proxy: đổi request thành JSON backend cần
+# {
+#   "id": "$input.path('$.orderId')",
+#   "total": $input.path('$.total')
+# }
+# Stage variable trỏ tới Lambda alias khác nhau giữa dev/prod
+# arn:aws:lambda:ap-southeast-1:123456789012:function:orders:${stageVariables.lambdaAlias}</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Lambda proxy</th><th>Non-proxy (custom)</th></tr></thead>
+          <tbody>
+            <tr><td>Chuyển request</td><td>Nguyên request vào event</td><td>Qua mapping template VTL</td></tr>
+            <tr><td>Response</td><td>Lambda phải trả statusCode/body</td><td>API GW map theo mẫu</td></tr>
+            <tr><td>Độ linh hoạt</td><td>Đơn giản, mặc định nên dùng</td><td>Uốn nắn backend legacy</td></tr>
+            <tr><td>Stage variable</td><td colspan="2">Dùng để trỏ Lambda alias/resource theo stage</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Proxy integration mà Lambda không trả <code>statusCode</code> dạng số sẽ lỗi 502. Base64 phải bật đúng khi trả file nhị phân. Stage variable thường được hỏi trong bối cảnh \"cùng API, khác backend theo môi trường\".</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html">AWS Docs — Lambda proxy integration (HTTP API)</a> · <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html">AWS Docs — Mapping template reference</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS8</span> So sánh: xác thực API — IAM, Lambda authorizer, Cognito authorizer, API key + usage plan</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Bốn cơ chế hay bị nhầm:<br><strong>IAM auth</strong> — client ký request bằng SigV4, phù hợp gọi nội bộ giữa AWS service. <strong>Lambda authorizer</strong> — hàm tự quyết định allow/deny, trả về IAM policy. <strong>Cognito user pool authorizer</strong> — xác thực JWT do Cognito phát hành cho người dùng app. <strong>API key + usage plan</strong> — chỉ để <em>đo lường và throttle</em>, KHÔNG phải cơ chế xác thực bảo mật.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Người dùng cuối đăng nhập bằng Cognito → API Gateway kiểm JWT, không cần code. Hệ thống khác đăng nhập riêng (vd token OAuth ngoài) → Lambda authorizer. Service nội bộ AWS gọi nhau → IAM. Muốn giới hạn theo khách hàng (mobile client) → API key + usage plan (kèm throttling/quota).</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico iam"></span><span class="icon-label">IAM auth</span><span class="icon-note">SigV4 · service-to-service</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda authorizer</span><span class="icon-note">custom logic → IAM policy</span></div>
+            <div class="icon-node"><span class="aws-ico cognito"></span><span class="icon-label">Cognito authorizer</span><span class="icon-note">JWT từ user pool</span></div>
+            <div class="icon-node"><span class="aws-ico generic"></span><span class="icon-label">API key + usage plan</span><span class="icon-note">metering / throttle, không bảo mật</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># Cognito user pool authorizer (REST API)
+aws apigateway create-authorizer --rest-api-id abc123 --name cognito-auth \
+  --type COGNITO_USER_POOLS \
+  --provider-arns arn:aws:cognito-idp:ap-southeast-1:123456789012:userpool/ap-southeast-1_ABC \
+  --identity-source method.request.header.Authorization
+
+# Usage plan + API key để throttle/đo lường khách hàng
+aws apigateway create-usage-plan --name basic \
+  --throttle burstLimit=100,rateLimit=50 --quota limit=10000,period=MONTH
+aws apigateway create-api-key --name mobile-client --enabled</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Cơ chế</th><th>Ai dùng</th><th>Dùng để</th></tr></thead>
+          <tbody>
+            <tr><td>IAM auth</td><td>Service/user AWS nội bộ</td><td>Kiểm quyền + SigV4 ký request</td></tr>
+            <tr><td>Lambda authorizer</td><td>Token hệ thống riêng / OIDC</td><td>Logic xác thực tuỳ biến</td></tr>
+            <tr><td>Cognito authorizer</td><td>App có người dùng</td><td>Kiểm JWT user pool</td></tr>
+            <tr><td>API key + usage plan</td><td>Client bên ngoài</td><td>Throttle/quota + metering (không bảo mật)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Đề câu \"bảo vệ API bằng API key\" là câu bẫy — API key <strong>không</strong> phải auth, chỉ để nhận diện client và áp usage plan. Với HTTP API chỉ có <strong>JWT authorizer</strong> (Cognito/OIDC) và Lambda authorizer đơn giản, không có Cognito authorizer kiểu REST.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-control-access-to-api.html">AWS Docs — Control access to API</a> · <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-api-usage-plans.html">AWS Docs — Usage plans &amp; API keys</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS9</span> Throttling, quota, timeout 29 giây và caching của API Gateway</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>API Gateway bảo vệ backend bằng <strong>throttling</strong> (tốc độ) và <strong>quota</strong> (tổng số request theo tuần/tháng). Giới hạn mặc định toàn tài khoản/mỗi region là <strong>10.000 request/giây</strong> và <strong>burst 5.000</strong>. Thêm vào đó là <strong>integration timeout 29 giây</strong> — nếu backend chậm hơn, API Gateway trả lỗi 504.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Chặn quá tải theo từng client bằng usage plan (rate + burst + quota) và có thể dùng per-method throttle. Với REST API, bật <strong>caching</strong> theo stage để giảm gọi backend (TTL 0–3600s, mặc định 300s). Request vượt hạn mức bị trả <strong>429 Too Many Requests</strong>.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico mobile"></span><span class="icon-label">Mobile client</span><span class="icon-note">gửi nhiều request</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">vượt rate limit</span></div>
+            <div class="icon-node"><span class="aws-ico apigateway"></span><span class="icon-label">Throttle</span><span class="icon-note">10k rps · burst 5k</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">trong hạn mức</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Backend</span><span class="icon-note">phải trả trong 29s</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cache TTL 300s</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Metrics</span><span class="icon-note">429 · 504 · CacheHit</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># Per-method throttle + cache TTL cho REST API stage
+aws apigateway update-stage --rest-api-id abc123 --stage-name prod \
+  --patch-operations op=replace,path=/*/*/throttling/rateLimit,value=500 \
+                    op=replace,path=/*/*/throttling/burstLimit,value=1000 \
+                    op=replace,path=/*/*/caching/ttlInSeconds,value=300</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tham số</th><th>Giá trị</th><th>Ghi chú</th></tr></thead>
+          <tbody>
+            <tr><td>Integration timeout</td><td>29 giây (tối đa)</td><td>Vượt → 504 Gateway Timeout</td></tr>
+            <tr><td>Throttle mặc định</td><td>10.000 rps + burst 5.000</td><td>Theo account/region, có thể tăng</td></tr>
+            <tr><td>Vượt throttle</td><td>429 Too Many Requests</td><td>Client nên retry có backoff</td></tr>
+            <tr><td>Payload</td><td>10 MB</td><td>Cả request và response</td></tr>
+            <tr><td>Cache TTL</td><td>0–3600s (mặc định 300s)</td><td>Chỉ REST API</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>29 giây là <strong>trần cứng</strong> — tác vụ dài phải chuyển sang mô hình bất đồng bộ (SQS + worker, Step Functions) và trả 202 Accepted. HTTP API không có caching — cần cache thì đặt CloudFront trước. Quota khác throttling: quota là <em>tổng</em> theo kỳ, throttling là <em>tốc độ</em>.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html">AWS Docs — Throttling, quotas &amp; limits</a> · <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-cache.html">AWS Docs — API Gateway caching</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS10</span> Tình huống: thiết kế API cho app mobile — auth, cache, throttle và CORS</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Một app mobile cần API vừa <em>bảo mật</em> vừa <em>tiết kiệm</em>: người dùng đăng nhập (auth), dữ liệu ít đổi được cache, các client phải bị giới hạn tốc độ, và web front-end gọi cross-domain nên phải có CORS. Đây là bài tổng hợp rất hay gặp trong DVA-C02.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Ghép: <strong>Cognito user pool</strong> phát JWT → gắn <strong>Cognito authorizer</strong> (REST) hoặc <strong>JWT authorizer</strong> (HTTP API). Bật <strong>cache</strong> theo stage cho các GET ít đổi (TTL ví dụ 300s) để giảm tải backend. Gắn <strong>usage plan + API key</strong> cho từng khách hàng để throttle/quota. Thêm <strong>CORS</strong> (OPTIONS) cho phép origin của web app. Nếu cần nội dung tĩnh toàn cầu, đặt <strong>CloudFront</strong> trước API/S3.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico mobile"></span><span class="icon-label">Mobile app</span><span class="icon-note">đăng nhập Cognito</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">Bearer JWT + API key</span></div>
+            <div class="icon-node"><span class="aws-ico apigateway"></span><span class="icon-label">API Gateway</span><span class="icon-note">authorizer + usage plan + cache</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">proxy</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">business logic</span></div>
+            <div class="icon-arrow">↔<span class="arrow-note">data</span></div>
+            <div class="icon-node"><span class="aws-ico dynamodb"></span><span class="icon-label">DynamoDB</span><span class="icon-note">bảng orders</span></div>
+            <div class="icon-arrow">←<span class="arrow-note">cache static</span></div>
+            <div class="icon-node"><span class="aws-ico cloudfront"></span><span class="icon-label">CloudFront</span><span class="icon-note">assets + API cache</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code>"options": {
+  "summary": "CORS preflight",
+  "responses": {
+    "200": {
+      "headers": {
+        "Access-Control-Allow-Origin": { "schema": { "type": "string" } },
+        "Access-Control-Allow-Methods": { "schema": { "type": "string" } },
+        "Access-Control-Allow-Headers": { "schema": { "type": "string" } }
+      }
+    }
+  }
+}</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Yêu cầu</th><th>Giải pháp</th></tr></thead>
+          <tbody>
+            <tr><td>Đăng nhập người dùng</td><td>Cognito user pool + authorizer/JWT</td></tr>
+            <tr><td>Giảm tải backend</td><td>Cache theo stage (REST) hoặc CloudFront</td></tr>
+            <tr><td>Giới hạn client</td><td>Usage plan + API key (throttle/quota)</td></tr>
+            <tr><td>Web gọi cross-domain</td><td>Bật CORS, xử lý OPTIONS preflight</td></tr>
+            <tr><td>Suy giảm khi quá tải</td><td>429 + retry backoff; hoặc hàng đợi SQS</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-info"><div class="callout-title">Use case</div><p>Câu hỏi hay gặp: \"App mobile cần auth, cache và giới hạn tốc độ, chi phí thấp\" → Cognito + REST API (để có cache/usage plan) hoặc HTTP API + CloudFront nếu chỉ cần JWT. CORS bật sẵn ở HTTP API; với REST API phải tự tạo method OPTIONS và header.</p></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Bật CORS nhưng quên method <strong>OPTIONS</strong> → trình duyệt chặn preflight. Giới hạn IP/CIDR cho API key chỉ thêm lớp phụ, không thay thế auth. Nếu nội dung thay đổi liên tục mà vẫn cache dài, người dùng thấy dữ liệu cũ.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-cors.html">AWS Docs — Enable CORS</a> · <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-integrate-with-cognito.html">AWS Docs — Integrate with Cognito</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <div class="nav-pager"><a class="prev" href="26-aws-vpc-networking.html">← Trước</a><a class="next" href="index.html">Trang chủ</a></div>
+</main>
+</body>
+</html>

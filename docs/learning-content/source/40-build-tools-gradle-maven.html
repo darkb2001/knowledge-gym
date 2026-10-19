@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>40. Maven, Gradle &amp; Quy trình Build/Agile — Knowledge Gym</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Knowledge<br><span>Gym</span></h1>
+        <p>Java, AWS DVA-C02 &amp; Frontend</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>40. Maven, Gradle &amp; Quy trình Build/Agile</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 40</div>
+          <h1 class="module-title">Maven, Gradle &amp; Quy trình Build/Agile</h1>
+          <p class="module-subtitle">Công cụ build và quy trình làm việc của team: vòng đời Maven, quản lý version, multi-module, Gradle, xung đột dependency, CI tái lập và Agile/Git workflow.</p>
+        </div>
+
+        <section class="section" id="maven-lifecycle-scope-qu-n-l-version">
+          <h2 class="section-title">Maven — lifecycle, scope &amp; quản lý version</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q1</span> Maven build lifecycle gồm những phase nào và plugin gắn vào phase nào?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Maven có 3 lifecycle độc lập: <strong>clean</strong>, <strong>default</strong> (build) và <strong>site</strong>. Lifecycle default chạy các phase theo thứ tự validate → compile → test → package → verify → install → deploy. Gọi một phase nghĩa là chạy lần lượt mọi phase trước nó trong cùng lifecycle, kèm mọi plugin goal đã bind vào các phase đó.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Phase là hợp đồng chuẩn hoá giữa các plugin: plugin chỉ cần khai báo goal thuộc phase nào, không cần biết ai gọi nó. Hiểu sai thứ tự tạo ra build "xanh giả": chạy tới <code>integration-test</code> mà dừng trước <code>verify</code> thì failsafe đã chạy test tích hợp nhưng build vẫn có thể báo thành công; còn <code>mvn package</code> không ghi artifact vào local repo nên module khác không resolve được.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row">
+          <div class="flow-node primary">validate</div>
+          <div class="flow-node">compile (compiler-plugin)</div>
+          <div class="flow-node">test (surefire)</div>
+        </div>
+        <div class="flow-arrow">↓ đóng gói artifact</div>
+        <div class="flow-row">
+          <div class="flow-node">package → target/*.jar</div>
+          <div class="flow-node">verify (failsafe + jacoco)</div>
+        </div>
+        <div class="flow-arrow">↓ đưa artifact ra ngoài máy build</div>
+        <div class="flow-row">
+          <div class="flow-node secondary">install → ~/.m2/repository</div>
+          <div class="flow-node success">deploy → remote repository</div>
+        </div>
+      </div>
+      <p>Không cấu hình gì thì Maven áp <strong>default lifecycle mapping</strong> theo <code>packaging</code>. Với <code>packaging=jar</code>: resources → <code>process-resources</code>, compiler → <code>compile</code>, surefire → <code>test</code>, jar → <code>package</code>, install → <code>install</code>, deploy → <code>deploy</code>. Plugin như jacoco không có binding mặc định nên phải tự khai báo <code>&lt;executions&gt;&lt;execution&gt;&lt;phase&gt;</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Developer dùng <code>mvn clean verify</code> làm lệnh build chuẩn (đầy đủ unit + integration test, không ghi repo). CI dùng <code>install</code> khi multi-module cần module khác resolve, và <code>deploy</code> chỉ ở bước release artifact có version chính thức.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không <code>mvn deploy</code> cho version <code>-SNAPSHOT</code> ở môi trường production, và không bỏ phase <code>verify</code> chỉ để build nhanh — làm vậy là tắt luôn integration test. Cũng tránh chạy <code>mvn test</code> đơn lẻ trong pipeline vì nó không sinh artifact.</p></div>
+    <div class="code-block" data-lang="xml"><pre><code><span class="tok-comment">&lt;!-- pom.xml — chọn phase nào cho goal nào --&gt;</span>
+&lt;plugin&gt;
+  &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+  <span class="tok-comment">&lt;!-- packaging=jar: goal test da bind san vao phase test --&gt;</span>
+  &lt;configuration&gt;
+    &lt;excludes&gt;&lt;exclude&gt;**/*IT.java&lt;/exclude&gt;&lt;/excludes&gt;
+  &lt;/configuration&gt;
+&lt;/plugin&gt;
+
+&lt;plugin&gt;
+  &lt;artifactId&gt;maven-failsafe-plugin&lt;/artifactId&gt;
+  <span class="tok-comment">&lt;!-- default: integration-test -&gt; phase integration-test, verify -&gt; phase verify --&gt;</span>
+&lt;/plugin&gt;
+
+&lt;plugin&gt;
+  &lt;groupId&gt;org.jacoco&lt;/groupId&gt;
+  &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt;
+  <span class="tok-comment">&lt;!-- khong co binding mac dinh -&gt; tu chon phase --&gt;</span>
+  &lt;executions&gt;
+    &lt;execution&gt;
+      &lt;id&gt;report&lt;/id&gt;
+      &lt;phase&gt;verify&lt;/phase&gt;
+      &lt;goals&gt;&lt;goal&gt;report&lt;/goal&gt;&lt;/goals&gt;
+    &lt;/execution&gt;
+  &lt;/executions&gt;
+&lt;/plugin&gt;</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Pipeline chạy <code>./mvnw clean verify</code> để có unit test, integration test và coverage trong một lệnh, rồi bước sau mới <code>deploy</code> lên Nexus khi là release tag.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Nhầm <code>mvn package</code> với <code>mvn install</code>: chỉ <code>install</code> mới ghi vào <code>~/.m2/repository</code>, nên build module con trước mà quên install thì module khác báo "could not resolve dependencies". Ngoài ra <code>clean</code> thuộc lifecycle khác nên <code>mvn clean package</code> là <em>hai</em> lifecycle chạy nối tiếp.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>3 lifecycle: clean, default, site; default: validate → compile → test → package → verify → install → deploy.</li>
+      <li>Gọi một phase sẽ chạy mọi phase trước nó trong cùng lifecycle.</li>
+      <li>Plugin bind goal vào phase qua &lt;executions&gt;; có default mapping theo packaging.</li>
+      <li>package chỉ tạo jar, install đưa vào local repo, deploy đưa lên remote repo.</li>
+      <li>Failsafe chỉ fail build ở phase verify — đừng dừng ở integration-test.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q2</span> Dependency scope khác nhau thế nào và khai sai scope gây hậu quả gì trong Spring Boot?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Maven có các scope: <strong>compile</strong> (mặc định), <strong>provided</strong>, <strong>runtime</strong>, <strong>test</strong>, <strong>system</strong> (deprecated) và <strong>import</strong> (chỉ dùng trong dependencyManagement). Scope quyết định artifact có mặt trên classpath lúc compile, lúc runtime hay chỉ khi test, có bị đóng gói vào artifact cuối và có lan truyền (transitive) sang project phụ thuộc hay không.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Scope sai thường <em>không</em> làm compile fail mà làm runtime fail. <code>spring-boot-maven-plugin:repackage</code> chỉ đưa dependency scope <code>compile</code> và <code>runtime</code> vào fat jar; <code>provided</code> và <code>test</code> bị loại. Vì Maven gộp cả classpath <code>test</code> khi chạy test, test có thể xanh 100% trong khi jar production ném <code>NoClassDefFoundError</code>/<code>ClassNotFoundException</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row">
+          <div class="flow-node primary">Dependency khai trong pom</div>
+        </div>
+        <div class="flow-arrow">↓ scope quyết định classpath nào nhìn thấy nó</div>
+        <div class="flow-row">
+          <div class="flow-node">compile: compile + runtime</div>
+          <div class="flow-node">runtime: chỉ runtime</div>
+          <div class="flow-node secondary">provided: chỉ compile</div>
+        </div>
+        <div class="flow-arrow">↓ repackage chỉ lấy compile + runtime</div>
+        <div class="flow-row">
+          <div class="flow-node success">Fat jar chạy được</div>
+          <div class="flow-node warning">provided/test: KHÔNG vào jar → lỗi runtime</div>
+        </div>
+      </div>
+      <table class="feature-table">
+        <thead><tr><th>Scope</th><th>Compile classpath</th><th>Runtime classpath</th><th>Vào fat jar</th><th>Transitive</th></tr></thead>
+        <tbody>
+          <tr><td><strong>compile</strong></td><td>Có</td><td>Có</td><td>Có</td><td>Có</td></tr>
+          <tr><td><strong>provided</strong></td><td>Có</td><td>Không</td><td>Không</td><td>Không</td></tr>
+          <tr><td><strong>runtime</strong></td><td>Không</td><td>Có</td><td>Có</td><td>Có (thành runtime ở consumer)</td></tr>
+          <tr><td><strong>test</strong></td><td>Không</td><td>Không</td><td>Không</td><td>Không</td></tr>
+        </tbody>
+      </table>
+      <p>Cách chọn nhanh: cần cả khi chạy → <code>compile</code>; API do container cung cấp lúc chạy (servlet-api, tomcat khi deploy WAR) → <code>provided</code>; chỉ nạp qua JDBC/reflection → <code>runtime</code>; chỉ dùng trong test (JUnit, Mockito, Testcontainers) → <code>test</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng <code>provided</code> cho <code>spring-boot-starter-tomcat</code> khi đóng gói WAR để deploy lên Tomcat/WildFly bên ngoài, và cho servlet/JPA API khi container đã cung cấp. Dùng <code>runtime</code> cho driver PostgreSQL và thư viện nạp qua <code>ServiceLoader</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không để <code>spring-boot-starter-web</code> hay <code>spring-boot-starter-data-jpa</code> ở scope <code>provided</code> trong ứng dụng chạy fat jar — build thành công nhưng app chết khi start. Không để Testcontainers/AssertJ ở scope <code>compile</code> vì chúng bị kéo vào image production. Không dùng scope <code>system</code> — hãy đưa artifact lên repository nội bộ.</p></div>
+    <div class="code-block" data-lang="xml"><pre><code><span class="tok-comment">&lt;!-- pom.xml — scope đúng cho từng loại dependency --&gt;</span>
+&lt;dependency&gt;
+  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+  <span class="tok-comment">&lt;!-- compile (mac dinh) -&gt; nam trong fat jar --&gt;</span>
+&lt;/dependency&gt;
+
+&lt;dependency&gt;
+  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-boot-starter-tomcat&lt;/artifactId&gt;
+  &lt;scope&gt;provided&lt;/scope&gt;   <span class="tok-comment">&lt;!-- deploy WAR len container ngoai --&gt;</span>
+&lt;/dependency&gt;
+
+&lt;dependency&gt;
+  &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
+  &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+  &lt;scope&gt;runtime&lt;/scope&gt;    <span class="tok-comment">&lt;!-- nap qua JDBC --&gt;</span>
+&lt;/dependency&gt;
+
+&lt;dependency&gt;
+  &lt;groupId&gt;org.testcontainers&lt;/groupId&gt;
+  &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+  &lt;scope&gt;test&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Service deploy dạng executable jar lỗi <code>ClassNotFoundException</code> ngay khi start vì starter web bị set <code>provided</code> "cho nhẹ image" — sửa về <code>compile</code> là chạy được, jar nặng thêm vài MB nhưng đúng ngữ nghĩa.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Khi tách library dùng chung: đánh <code>provided</code> cho dependency mà consumer thực sự cần lúc chạy thì service phải tự khai lại — quên là production <code>NoClassDefFoundError</code>. Ngược lại, scope <code>test</code> không bao giờ transitive nên khai trong library không giúp consumer có được nó.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>compile/provided/runtime/test/system/import; scope đổi classpath và transitive.</li>
+      <li>provided: có lúc compile, không lúc runtime, không vào fat jar.</li>
+      <li>runtime: không compile, có runtime, có vào jar — ví dụ JDBC driver.</li>
+      <li>test: chỉ classpath test, không transitive; đừng để lọt vào production.</li>
+      <li>Boot repackage chỉ đóng gói compile + runtime ⇒ sai scope lộ lỗi ở prod.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q3</span> dependencyManagement và BOM (spring-boot-dependencies) giải quyết vấn đề gì?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><code>dependencyManagement</code> khai báo version, scope và exclusion cho một dependency mà <strong>không</strong> thêm nó vào classpath: module con chỉ cần ghi <code>groupId:artifactId</code> là đã lấy đúng version đó. <strong>BOM</strong> (Bill of Materials) là POM chỉ gồm dependencyManagement, được import bằng <code>type=pom</code> + <code>scope=import</code> để chốt version cho cả một hệ sinh thái thư viện.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Khai version lẻ tẻ ở từng module khiến cùng một thư viện có nhiều version trong cùng build → hai bản class trên classpath, lỗi <code>NoSuchMethodError</code> chỉ lộ lúc runtime. BOM tập trung quyết định version vào một chỗ, và với Spring Boot thì BOM đã chọn sẵn bộ version tương thích (Spring Framework, Hibernate, Jackson, JUnit) nên nâng framework là nâng một con số.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row">
+          <div class="flow-node primary">spring-boot-dependencies (BOM)</div>
+          <div class="flow-node">parent công ty / aggregator</div>
+        </div>
+        <div class="flow-arrow">↓ import vào dependencyManagement, không thêm classpath</div>
+        <div class="flow-row">
+          <div class="flow-node">module common</div>
+          <div class="flow-node">module order-service</div>
+          <div class="flow-node">module payment-service</div>
+        </div>
+        <div class="flow-arrow">↓ khai &lt;dependency&gt; KHÔNG version</div>
+        <div class="flow-row">
+          <div class="flow-node success">Một version duy nhất cho toàn build</div>
+        </div>
+      </div>
+      <p>Có hai cách dùng: kế thừa <code>spring-boot-starter-parent</code>, hoặc đã có parent riêng của công ty thì import <code>spring-boot-dependencies</code>. Muốn lệch khỏi BOM, hãy khai entry <strong>tường minh trong dependencyManagement của project</strong> — entry của project thắng entry import. Override bằng cách đặt lại property chỉ chắc chắn khi property đó được <em>kế thừa từ parent</em>; với BOM import thì đừng trông vào cách đó.</p></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Luôn dùng BOM cho Spring Boot (starter-parent hoặc import). Dùng thêm BOM của bên khác khi có nhiều artifact cùng họ: <code>jackson-bom</code>, <code>testcontainers-bom</code>, <code>spring-cloud-dependencies</code>. Dùng BOM nội bộ để chốt version cho library dùng chung giữa nhiều service.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không đặt <code>&lt;scope&gt;import&lt;/scope&gt;</code> trong thẻ <code>&lt;dependencies&gt;</code> — chỉ dependencyManagement hiểu scope này, khai sai chỗ thì dependency không được thêm vào classpath. Không vừa import BOM vừa ghi version ở module: nó vô hiệu hoá BOM. Cũng không tự chọn version lệch BOM chỉ vì IDE gợi ý — lệch một artifact trong cùng bộ Spring có thể gây <code>NoSuchMethodError</code>.</p></div>
+    <div class="code-block" data-lang="xml"><pre><code><span class="tok-comment">&lt;!-- Cach 1: ke thua parent chuan --&gt;</span>
+&lt;parent&gt;
+  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+  &lt;version&gt;3.3.4&lt;/version&gt;
+&lt;/parent&gt;
+
+<span class="tok-comment">&lt;!-- Cach 2: da co parent rieng -&gt; import BOM --&gt;</span>
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+      &lt;version&gt;${spring-boot.version}&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt;
+    <span class="tok-comment">&lt;!-- entry cua project thang entry import --&gt;</span>
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
+      &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
+      &lt;version&gt;2.17.2&lt;/version&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+
+&lt;dependencies&gt;
+  <span class="tok-comment">&lt;!-- KHONG ghi version -&gt; lay tu BOM --&gt;</span>
+  &lt;dependency&gt;&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;&lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Nâng cả hệ sinh thái bằng một dòng: đổi <code>spring-boot.version</code> 3.2.x → 3.3.x, mọi service trong parent lấy đúng bộ Spring/Hibernate/Jackson tương thích.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>dependencyManagement <em>không</em> kéo dependency vào build — chỉ khai ở đó thì classpath trống, nhiều bạn tưởng đã "cài" thư viện. Exclusion khai trong dependencyManagement cũng chỉ áp dụng khi entry đó thực sự được dùng để resolve.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>dependencyManagement = version/scope dùng chung, không thêm vào classpath.</li>
+      <li>BOM = POM chỉ chứa dependencyManagement, import bằng type=pom scope=import.</li>
+      <li>spring-boot-dependencies chốt bộ version tương thích cho cả hệ sinh thái.</li>
+      <li>Module con khai dependency không version; override bằng entry tường minh của project.</li>
+      <li>Lợi ích: nâng version tập trung, hết version drift trong multi-module.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q4</span> Multi-module Maven: parent vs aggregator, reactor build order và khi nào tách module?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Parent</strong> làm việc <em>kế thừa</em>: module con dùng thẻ <code>&lt;parent&gt;</code> để nhận properties, dependencyManagement, pluginManagement và cấu hình chung. <strong>Aggregator</strong> làm việc <em>tổng hợp</em>: thẻ <code>&lt;modules&gt;</code> liệt kê các module để một lệnh build chạy tất cả. Một POM <code>packaging=pom</code> hoàn toàn có thể vừa là parent vừa là aggregator.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Khi build nhiều module, Maven dựng <strong>reactor</strong> và sắp thứ tự theo quan hệ phụ thuộc giữa các module trước khi chạy — <code>common</code> luôn build trước <code>order-service</code> dù thứ tự trong <code>&lt;modules&gt;</code> ghi khác. Nhờ đó một lệnh build vẫn đúng thứ tự, và Maven phát hiện phụ thuộc vòng giữa module để báo lỗi sớm.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row">
+          <div class="flow-node primary">order-platform (parent + aggregator)</div>
+        </div>
+        <div class="flow-arrow">↓ reactor sắp theo phụ thuộc, không theo thứ tự khai báo</div>
+        <div class="flow-row">
+          <div class="flow-node">1. common</div>
+          <div class="flow-node">2. order-api</div>
+        </div>
+        <div class="flow-arrow">↓ module sau chỉ build được khi module trước đã có</div>
+        <div class="flow-row">
+          <div class="flow-node success">3. order-service → jar chạy được</div>
+        </div>
+      </div>
+      <p>Cờ hay dùng: <code>-pl</code> chọn module (theo path hoặc <code>:artifactId</code>), <code>-am</code> build kèm module nó phụ thuộc, <code>-amd</code> build kèm module phụ thuộc vào nó, <code>-T 1C</code> build song song theo số core. Khi module phụ thuộc <em>không</em> nằm trong reactor và chưa có trong local repo, build sẽ lỗi resolve.</p></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Tách module khi: (1) có library dùng chung cho nhiều service (<code>common</code>, <code>dto</code>, <code>client</code>) và muốn publish artifact có version riêng; (2) cần <strong>enforce boundary</strong> — module A không import được class của B nếu B không là dependency của A, điều package structure không cưỡng chế được; (3) tách API contract (<code>order-api</code> chứa DTO/interface) khỏi implementation; (4) build và test nhanh hơn nhờ chia nhỏ.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không tách khi chỉ có một deployable: over-splitting đổi lấy build chậm hơn, versioning overhead và refactor tốn công hơn. Không tạo module chỉ chứa vài class tiện ích. Không để cyclic dependency giữa module — dấu hiệu ranh giới sai, hãy rút phần dùng chung xuống module thấp hơn. Cũng không dùng parent khác nhau cho các module dùng chung BOM.</p></div>
+    <div class="code-block" data-lang="xml"><pre><code><span class="tok-comment">&lt;!-- order-platform/pom.xml — vua parent vua aggregator --&gt;</span>
+&lt;groupId&gt;com.example&lt;/groupId&gt;
+&lt;artifactId&gt;order-platform&lt;/artifactId&gt;
+&lt;version&gt;1.4.0&lt;/version&gt;
+&lt;packaging&gt;pom&lt;/packaging&gt;
+&lt;modules&gt;
+  &lt;module&gt;common&lt;/module&gt;
+  &lt;module&gt;order-api&lt;/module&gt;
+  &lt;module&gt;order-service&lt;/module&gt;
+&lt;/modules&gt;
+&lt;dependencyManagement&gt;&lt;dependencies&gt;
+  &lt;dependency&gt;&lt;groupId&gt;com.example&lt;/groupId&gt;
+    &lt;artifactId&gt;common&lt;/artifactId&gt;&lt;version&gt;${project.version}&lt;/version&gt;&lt;/dependency&gt;
+&lt;/dependencies&gt;&lt;/dependencyManagement&gt;
+
+<span class="tok-comment">&lt;!-- order-service/pom.xml — con ke thua parent --&gt;</span>
+&lt;parent&gt;
+  &lt;groupId&gt;com.example&lt;/groupId&gt;
+  &lt;artifactId&gt;order-platform&lt;/artifactId&gt;
+  &lt;version&gt;1.4.0&lt;/version&gt;
+&lt;/parent&gt;
+&lt;artifactId&gt;order-service&lt;/artifactId&gt;
+&lt;dependencies&gt;
+  &lt;dependency&gt;&lt;groupId&gt;com.example&lt;/groupId&gt;&lt;artifactId&gt;common&lt;/artifactId&gt;&lt;/dependency&gt;
+  &lt;dependency&gt;&lt;groupId&gt;com.example&lt;/groupId&gt;&lt;artifactId&gt;order-api&lt;/artifactId&gt;&lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre></div>
+    <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># build toan bo reactor</span>
+./mvnw clean verify -T 1C
+
+<span class="tok-comment"># chi build order-service + cac module no phu thuoc</span>
+./mvnw -pl order-service -am clean verify
+
+<span class="tok-comment"># xem thu tu reactor truoc khi build that</span>
+./mvnw validate | grep -i reactor</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Ba service dùng chung DTO và client: đưa chúng vào module <code>order-api</code>; service chỉ phụ thuộc artifact contract, và compiler cưỡng chế consumer không với được vào class nội bộ.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Parent <em>không</em> tự động build module con — thiếu <code>&lt;modules&gt;</code> thì <code>mvn install</code> ở POM cha không làm gì cho con. Ngược lại aggregator không truyền cấu hình — thiếu <code>&lt;parent&gt;</code> thì cấu hình chung không áp dụng.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>parent = inheritance; aggregator = &lt;modules&gt;; thường cùng một POM packaging=pom.</li>
+      <li>Reactor tự sắp build order theo phụ thuộc giữa module.</li>
+      <li>-pl / -am / -amd / -T 1C để build một phần và song song.</li>
+      <li>Tách module khi có library dùng chung hoặc cần enforce boundary.</li>
+      <li>Tránh over-splitting và cyclic dependency giữa module.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="gradle-task-plugin-version-t-p-trung">
+          <h2 class="section-title">Gradle — task, plugin &amp; version tập trung</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q5</span> Gradle: task, plugin, build phase là gì và vì sao Gradle build nhanh hơn Maven?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Gradle chạy build theo 3 pha: <strong>initialization</strong> (đọc <code>settings.gradle.kts</code>, xác định project), <strong>configuration</strong> (chạy build script để dựng task graph) và <strong>execution</strong> (thực thi các task thực sự cần). <em>Task</em> là đơn vị công việc có inputs/outputs; <em>plugin</em> (<code>java</code>, <code>application</code>, <code>org.springframework.boot</code>) áp sẵn task và nối chúng thành DAG.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Gradle nhanh hơn không phải vì "viết bằng Kotlin" mà vì 4 cơ chế cộng dồn: (1) <strong>incremental build</strong> — task chỉ chạy lại khi input đổi, ngược lại báo <code>UP-TO-DATE</code>; (2) <strong>daemon</strong> giữ JVM nóng nên không tốn thời gian khởi động JVM mỗi lần build; (3) <strong>build cache</strong> lưu output task và tái dùng giữa các máy/CI run; (4) <strong>configuration cache</strong> và build song song giữa các project. Maven chạy tuần tự các phase đã bind và không có khái niệm up-to-date cho plugin tùy biến.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row">
+          <div class="flow-node primary">1. Initialization</div>
+          <div class="flow-node">2. Configuration → dựng task graph</div>
+        </div>
+        <div class="flow-arrow">↓ chỉ task trong graph được gọi là chạy</div>
+        <div class="flow-row">
+          <div class="flow-node">3. Execution: compileJava</div>
+          <div class="flow-node">test</div>
+          <div class="flow-node">jar</div>
+        </div>
+        <div class="flow-arrow">↓ input không đổi</div>
+        <div class="flow-row">
+          <div class="flow-node success">UP-TO-DATE / FROM-CACHE — không chạy lại</div>
+        </div>
+      </div>
+      <p>Task như <code>build</code> là <em>lifecycle task</em> chỉ tổng hợp task khác: nó phụ thuộc <code>assemble</code> và <code>check</code>. Xem chính xác điều gì sẽ chạy bằng <code>./gradlew tasks</code>, <code>./gradlew build --dry-run</code> và <code>./gradlew taskTree</code>.</p>
+      <table class="feature-table">
+        <thead><tr><th>Tiêu chí</th><th>build.gradle.kts (Kotlin)</th><th>build.gradle (Groovy)</th></tr></thead>
+        <tbody>
+          <tr><td>Kiểm tra kiểu</td><td>Có, lỗi phát hiện lúc compile script</td><td>Dynamic, typo chỉ lộ lúc chạy</td></tr>
+          <tr><td>IDE</td><td>Autocomplete + refactor chính xác</td><td>Gợi ý yếu hơn</td></tr>
+          <tr><td>Cấu hình lần đầu</td><td>Chậm hơn chút</td><td>Nhanh hơn chút</td></tr>
+          <tr><td>Khuyến nghị</td><td>Mặc định cho project mới</td><td>Legacy, nhiều ví dụ cũ</td></tr>
+        </tbody>
+      </table></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng Gradle cho dự án mới, build nhiều module, cần logic tùy biến (custom task, transform artifact, Android). Dùng Kotlin DSL làm mặc định để script được type-check trong CI; Groovy DSL khi phải bảo trì script cũ.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không chuyển Maven → Gradle chỉ để "hiện đại": chi phí migrate hệ build lớn thường lớn hơn lợi ích nếu pipeline đang ổn. Không viết logic nặng trong pha configuration (đọc file, gọi mạng) — nó chạy ở <em>mọi</em> lần build kể cả khi task không được gọi, làm hỏng configuration cache. Không dựa vào thứ tự task khai báo — phải khai dependency qua <code>dependsOn</code>.</p></div>
+    <div class="code-block" data-lang="kotlin"><pre><code><span class="tok-comment">// build.gradle.kts</span>
+<span class="tok-keyword">plugins</span> {
+    java
+    id(<span class="tok-string">"org.springframework.boot"</span>) version <span class="tok-string">"3.3.4"</span>
+}
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(<span class="tok-number">21</span>) }
+}
+
+<span class="tok-comment">// task co inputs/outputs -&gt; duoc up-to-date check tu dong</span>
+tasks.register&lt;Copy&gt;(<span class="tok-string">"copyDockerfile"</span>) {
+    from(<span class="tok-string">"src/main/docker"</span>)
+    into(layout.buildDirectory.dir(<span class="tok-string">"docker"</span>))
+}
+
+tasks.named&lt;Test&gt;(<span class="tok-string">"test"</span>) { useJUnitPlatform() }</code></pre></div>
+    <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># xem task nao se chay ma khong chay that</span>
+./gradlew build --dry-run
+
+<span class="tok-comment"># xem vi sao mot task chay lai (input nao doi)</span>
+./gradlew compileJava --info | grep -i <span class="tok-string">"not up-to-date"</span>
+
+<span class="tok-comment"># chay lai tu dau khi nghi cache sai</span>
+./gradlew build --rerun-tasks</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Vòng lặp dev: sửa một class rồi <code>./gradlew test</code> chỉ chạy lại compileJava + test với class đã đổi, các task khác báo <code>UP-TO-DATE</code>; trên CI bật build cache remote nên job test tái dùng output của module không thay đổi.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>"Gradle nhanh hơn" chỉ đúng khi task khai báo inputs/outputs đúng: custom task không khai input sẽ luôn chạy hoặc luôn bị coi là up-to-date — cả hai đều sai. Trên CI container lạnh, lợi ích daemon biến mất, phần lớn tốc độ đến từ cache và incremental.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>3 pha: initialization, configuration, execution.</li>
+      <li>Task = đơn vị công việc có inputs/outputs, nối thành DAG; plugin áp task sẵn.</li>
+      <li>build là lifecycle task phụ thuộc assemble + check.</li>
+      <li>Nhanh hơn nhờ incremental, daemon, build cache, configuration cache.</li>
+      <li>Kotlin DSL type-safe; Groovy DSL dynamic — chọn Kotlin cho project mới.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q6</span> Version catalog (libs.versions.toml) và dependency locking để làm gì?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Version catalog</strong> là file <code>gradle/libs.versions.toml</code> khai báo tập trung <code>[versions]</code>, <code>[libraries]</code>, <code>[bundles]</code>, <code>[plugins]</code>; build script tham chiếu qua accessor type-safe và có autocomplete như <code>libs.jacksonDatabind</code>. <strong>Dependency locking</strong> ghi lại version <em>thực tế đã resolve</em> (kể cả transitive) vào <code>gradle.lockfile</code>, các lần build sau chỉ dùng đúng những version đó.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Catalog giải quyết trùng lặp và trôi version: một chỗ khai version, mọi module dùng chung. Locking giải quyết tính <strong>tái lập</strong>: khi có dynamic version (<code>1.+</code>, <code>latest.release</code>) hoặc range từ transitive dependency, hai lần build cách nhau vài ngày có thể resolve ra version khác nhau — build "chạy được hôm qua, hỏng hôm nay" dù code không đổi. Lock cũng là điểm kiểm soát bảo mật: version đã pin thì biết chính xác CVE nào đang có.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row">
+          <div class="flow-node primary">libs.versions.toml</div>
+          <div class="flow-node">version khai một lần</div>
+        </div>
+        <div class="flow-arrow">↓ accessor type-safe</div>
+        <div class="flow-row">
+          <div class="flow-node">build.gradle.kts dùng libs.*</div>
+        </div>
+        <div class="flow-arrow">↓ resolve lần đầu</div>
+        <div class="flow-row">
+          <div class="flow-node success">gradle.lockfile — commit vào git</div>
+        </div>
+        <div class="flow-arrow">↓ CI/dev build lại</div>
+        <div class="flow-row">
+          <div class="flow-node success">Đúng version như cũ (reproducible)</div>
+        </div>
+      </div>
+      <p>Lock chỉ áp dụng cho configuration đã bật trong khối <code>dependencyLocking</code>; dùng <code>lockAllConfigurations()</code> cho gọn. Khi chủ động nâng version, ghi lại lock bằng <code>--write-locks</code> hoặc cập nhật chọn lọc bằng <code>--update-locks group:name</code>. Lock file phải được commit, nếu không nó chỉ là file local và không có giá trị tái lập trên CI.</p></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng catalog cho mọi dự án Gradle, kể cả dự án nhỏ vì lợi ích autocomplete. Dùng locking khi có dynamic version/range, khi cần build tái lập nghiêm ngặt, khi CI/CD yêu cầu audit SCA, hoặc khi library nội bộ còn <code>-SNAPSHOT</code>. Maven không có lock file chuẩn nên cách tương đương là cấm version range, ghim version tường minh và thêm <code>maven-enforcer-plugin</code> với rule <code>dependencyConvergence</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không commit lock file rồi nâng dependency bằng tay mà quên <code>--write-locks</code> — build sẽ lỗi vì lock cũ. Không bật lock cho configuration không quan trọng vì mỗi lần thêm plugin phải ghi lại lock. Không dùng dynamic version như cách "luôn mới nhất": đó là nguồn gốc của build không tái lập, version mới nên nâng qua Renovate/Dependabot có PR review.</p></div>
+    <div class="code-block" data-lang="toml"><pre><code><span class="tok-comment"># gradle/libs.versions.toml</span>
+[versions]
+springBoot = <span class="tok-string">"3.3.4"</span>
+jackson = <span class="tok-string">"2.17.2"</span>
+
+[libraries]
+springBootStarterWeb = { module = <span class="tok-string">"org.springframework.boot:spring-boot-starter-web"</span>, version.ref = <span class="tok-string">"springBoot"</span> }
+jacksonDatabind = { module = <span class="tok-string">"com.fasterxml.jackson.core:jackson-databind"</span>, version.ref = <span class="tok-string">"jackson"</span> }
+
+[bundles]
+json = [<span class="tok-string">"jacksonDatabind"</span>]
+
+[plugins]
+springBoot = { id = <span class="tok-string">"org.springframework.boot"</span>, version.ref = <span class="tok-string">"springBoot"</span> }</code></pre></div>
+    <div class="code-block" data-lang="kotlin"><pre><code><span class="tok-comment">// build.gradle.kts</span>
+plugins { alias(libs.plugins.springBoot) }
+
+dependencies {
+    implementation(libs.springBootStarterWeb)
+    implementation(libs.bundles.json)
+}
+
+<span class="tok-comment">// bat lock cho toan bo configuration</span>
+dependencyLocking { lockAllConfigurations() }</code></pre></div>
+    <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># sinh va commit lock file</span>
+./gradlew dependencies --write-locks
+git add gradle.lockfile
+
+<span class="tok-comment"># nang co chu dich mot thu vien</span>
+./gradlew build --update-locks com.fasterxml.jackson.core:jackson-databind</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Đội nâng Spring Boot 3.2 → 3.3: sửa một dòng <code>springBoot</code> trong <code>libs.versions.toml</code>, chạy <code>./gradlew build --write-locks</code>, review diff lock file để thấy chính xác transitive nào đổi version trước khi merge.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Catalog và lock giải quyết hai việc khác nhau nên đừng trả lời gộp: catalog quản lý <em>khai báo</em>, lock quản lý <em>kết quả resolve</em>. Lock file bị sửa tay là dấu hiệu xấu; hãy để Gradle ghi lại.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Catalog: một chỗ khai version, accessor type-safe libs.*.</li>
+      <li>Lock: ghi version resolve thực tế, kể cả transitive, vào gradle.lockfile.</li>
+      <li>Lock cần khi có dynamic version/range hoặc yêu cầu audit.</li>
+      <li>--write-locks sinh lock, --update-locks nâng chọn lọc, commit lock file.</li>
+      <li>Maven không có lock: ghim version + enforcer dependencyConvergence.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q7</span> Xung đột dependency transitive: Maven và Gradle chọn version thế nào, khi nào dùng exclude?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Transitive dependency là dependency của dependency. Khi hai đường khác nhau kéo về hai version của cùng một artifact, Maven áp <strong>nearest-wins</strong> (chọn bản ở đường ngắn nhất tính từ project gốc; bằng độ dài thì entry khai báo trước thắng), còn Gradle mặc định áp <strong>highest version wins</strong> trong các candidate của cùng configuration. Hai công cụ cho kết quả khác nhau trên cùng một graph.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Hiểu sai cơ chế này khiến bạn debug sai chỗ: version chạy thực tế không phải version ghim ở dependency trực tiếp. Triệu chứng kinh điển là <code>NoSuchMethodError</code>, <code>AbstractMethodError</code>, <code>ClassNotFoundException</code> chỉ xuất hiện lúc runtime; hoặc trùng binding <code>slf4j</code>; hoặc lẫn <code>javax.*</code> với <code>jakarta.*</code> khi nâng Spring Boot 2 → 3.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row">
+          <div class="flow-node primary">order-service</div>
+        </div>
+        <div class="flow-arrow">↓ hai đường cùng kéo jackson-databind</div>
+        <div class="flow-row">
+          <div class="flow-node">A → jackson 2.15 (1 bậc)</div>
+          <div class="flow-node">B → C → jackson 2.17 (2 bậc)</div>
+        </div>
+        <div class="flow-arrow">↓ Maven: nearest-wins · Gradle: highest-wins</div>
+        <div class="flow-row">
+          <div class="flow-node warning">Maven chọn 2.15 — gần hơn</div>
+          <div class="flow-node warning">Gradle chọn 2.17 — cao hơn</div>
+        </div>
+        <div class="flow-arrow">↓ bơm version chủ đích</div>
+        <div class="flow-row">
+          <div class="flow-node success">BOM / dependencyManagement / constraint: chốt một version</div>
+        </div>
+      </div>
+      <p>Bước chẩn đoán luôn là vẽ graph ra: Maven dùng <code>mvn dependency:tree -Dverbose</code> để thấy cả nhánh bị <em>omitted for conflict</em>, <code>-Dincludes=groupId:artifactId</code> để lọc đúng một artifact; Gradle dùng <code>dependencyInsight --dependency X --configuration runtimeClasspath</code> để biết ai kéo version nào và vì sao thắng. Sau khi biết nguyên nhân mới chọn cách sửa: BOM/constraint (tốt nhất), nâng dependency trực tiếp, rồi mới tới exclude.</p></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng <code>exclude</code> khi thư viện kéo vào một artifact bạn chắc chắn không dùng và gây hại thật: loại <code>commons-logging</code> vì đã dùng SLF4J, loại binding log thứ hai, hoặc loại client HTTP cũ đã bị thay. Dùng <code>constraints</code>/<code>dependencyManagement</code> khi chỉ cần ghim version mà vẫn muốn giữ dependency.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng dùng exclude như cách sửa đầu tiên: exclusion trong Maven phải khai ở <em>từng</em> dependency trực tiếp, nên một đường transitive mới xuất hiện là artifact quay lại classpath. Exclude quá tay cũng có thể cắt class mà thư viện cần lúc chạy, sinh <code>NoClassDefFoundError</code> — chỉ lộ ở production.</p></div>
+    <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Maven: ve graph, verbose de thay nhanh bi conflict</span>
+mvn dependency:tree -Dverbose -Dincludes=com.fasterxml.jackson.core:jackson-databind
+mvn dependency:tree -Dscope=runtime &gt; tree.txt
+
+<span class="tok-comment"># Gradle: ai keo version nao va vi sao version do thang</span>
+./gradlew dependencyInsight --dependency jackson-databind --configuration runtimeClasspath
+./gradlew dependencies --scan</code></pre></div>
+    <div class="code-block" data-lang="kotlin"><pre><code><span class="tok-comment">// Gradle: constraint ghim version cho ca graph, khong phu thuoc duong di</span>
+dependencies {
+    implementation(<span class="tok-string">"com.example:legacy-client:2.1.0"</span>) {
+        <span class="tok-comment">// chi loai khi chac chan khong dung</span>
+        exclude(group = <span class="tok-string">"commons-logging"</span>, module = <span class="tok-string">"commons-logging"</span>)
+    }
+    constraints {
+        implementation(<span class="tok-string">"com.fasterxml.jackson.core:jackson-databind:2.17.2"</span>)
+    }
+}</code></pre></div>
+    <div class="code-block" data-lang="xml"><pre><code><span class="tok-comment">&lt;!-- Maven: exclude dat o tung dependency truc tiep --&gt;</span>
+&lt;dependency&gt;
+  &lt;groupId&gt;com.example&lt;/groupId&gt;
+  &lt;artifactId&gt;legacy-client&lt;/artifactId&gt;
+  &lt;exclusions&gt;
+    &lt;exclusion&gt;
+      &lt;groupId&gt;commons-logging&lt;/groupId&gt;
+      &lt;artifactId&gt;commons-logging&lt;/artifactId&gt;
+    &lt;/exclusion&gt;
+  &lt;/exclusions&gt;
+&lt;/dependency&gt;</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Service ném <code>NoSuchMethodError</code> ở method mới của Jackson sau khi thêm một SDK. <code>dependency:tree -Dverbose</code> cho thấy SDK kéo nhánh Jackson cũ ở gần hơn; ghim version đúng bằng entry dependencyManagement (Maven) hoặc constraint (Gradle) là hết lỗi.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Nearest-wins và highest-wins là câu hỏi phân biệt rất hay gặp — trả lời "cả hai chọn version cao nhất" là sai. Và nếu dùng <code>resolutionStrategy</code> mà không ghi lại lý do, vài tháng sau đồng đội sẽ không hiểu vì sao version bị ghim.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Transitive dependency gây xung đột version trong cùng classpath.</li>
+      <li>Maven nearest-wins (ngắn nhất, tie → khai trước); Gradle highest-wins.</li>
+      <li>Chẩn đoán: dependency:tree -Dverbose, dependencyInsight, --scan.</li>
+      <li>Ưu tiên BOM/dependencyManagement/constraint hơn exclude.</li>
+      <li>Exclude dễ vỡ khi graph đổi, có thể gây NoClassDefFoundError runtime.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="build-t-i-l-p-ci-quy-tr-nh-agile-git">
+          <h2 class="section-title">Build tái lập, CI &amp; quy trình Agile/Git</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q8</span> Build tái lập trên CI: wrapper, lock file, cache và publish artifact nào?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Build tái lập nghĩa là cùng source, cùng toolchain, cùng tập version dependency sẽ cho ra artifact giống nhau. Thực hành gồm: <strong>wrapper</strong> (<code>mvnw</code>/<code>gradlew</code>) để mọi máy và CI dùng đúng version build tool, <strong>chốt version</strong> bằng BOM + lock file, <strong>cache có khoá</strong> theo file khai báo dependency, và <strong>build một lần rồi promote</strong> nguyên bản artifact sang các môi trường.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Môi trường là biến số lớn nhất của build: máy dev có Maven 3.8, CI cài Maven 3.9, máy khác có JDK khác → kết quả khác nhau và không ai tái hiện được lỗi của ai. Rebuild cho từng môi trường còn tệ hơn: base image mới hơn, dependency trôi version, dẫn tới "chạy được ở staging, chết ở prod". Promote cùng một artifact (cùng digest bất biến) loại bỏ nhóm lỗi đó.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row">
+          <div class="flow-node primary">Commit: ./mvnw hoặc ./gradlew</div>
+          <div class="flow-node">BOM + lock file</div>
+        </div>
+        <div class="flow-arrow">↓ CI: cache repository, build một lần</div>
+        <div class="flow-row">
+          <div class="flow-node">verify + test</div>
+          <div class="flow-node">build jar + image, tag bất biến</div>
+        </div>
+        <div class="flow-arrow">↓ promote cùng artifact, KHÔNG rebuild</div>
+        <div class="flow-row">
+          <div class="flow-node">dev</div>
+          <div class="flow-node">staging</div>
+          <div class="flow-node success">prod</div>
+        </div>
+        <div class="flow-arrow">↓ rollback = deploy lại artifact cũ, tức thì</div>
+      </div>
+      <p>Cache trên CI phải khoá theo file khai báo dependency: Maven cache <code>~/.m2/repository</code> với key là hash của <code>pom.xml</code>; Gradle cache <code>~/.gradle/caches</code> với key là hash của <code>gradle.lockfile</code> + <code>libs.versions.toml</code>. Cache cũ là nguồn lỗi khó tìm nên cần đường thoát: <code>--refresh-dependencies</code> hoặc bump cache key khi nghi ngờ.</p>
+      <table class="feature-table">
+        <thead><tr><th>Artifact</th><th>Ai dùng</th><th>Publish?</th><th>Ghi chú</th></tr></thead>
+        <tbody>
+          <tr><td>Jar library dùng chung (common, dto, client)</td><td>Service khác lúc compile</td><td>Có — Nexus/Artifactory kèm <code>.pom</code>, sources</td><td>SemVer, không publish <code>-SNAPSHOT</code> cho prod</td></tr>
+          <tr><td>Executable/fat jar</td><td>Deploy trực tiếp lên VM</td><td>Thường không (CI artifact store)</td><td>Chứa cả dependency, không dùng làm library</td></tr>
+          <tr><td>Container image</td><td>K8s / Cloud Run / ECS</td><td>Có — tag bất biến, ghim theo digest</td><td>Artifact chính của luồng deploy</td></tr>
+        </tbody>
+      </table></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Áp dụng từ đầu cho mọi dự án có CI: commit wrapper, cấm version range, bật lock (Gradle) hoặc ghim version tường minh (Maven), cache theo hash file khai báo, và chỉ build một lần cho mỗi commit rồi promote. Nếu cần artifact byte-for-byte giống nhau thì cố định <code>project.build.outputTimestamp</code> (Maven).</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không cache thư mục repository khi khai báo dependency đổi mà không khoá lại cache — CI sẽ dùng bản cũ và sinh lỗi "local đúng, CI sai". Không deploy bằng tag mutable như <code>latest</code> trong production, không publish <code>-SNAPSHOT</code> lên repo dùng cho release.</p></div>
+    <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># CI: wrapper + cache khoá theo file khai báo dependency</span>
+name: ci
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: <span class="tok-string">'21'</span>
+          cache: maven          <span class="tok-comment"># key theo pom.xml</span>
+      - run: ./mvnw -B -ntp clean verify
+      - run: docker build -t registry.example.com/order-service:$GITHUB_SHA .</code></pre></div>
+    <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># version build tool lay tu wrapper, khong phu thuoc may cai san</span>
+./mvnw -v
+./gradlew --version
+
+<span class="tok-comment"># kiem tra build co tai lap voi cache/local repo hien co</span>
+./gradlew build --offline
+
+<span class="tok-comment"># promote: deploy dung digest da build, khong build lai</span>
+docker inspect --format=<span class="tok-string">'{{index .RepoDigests 0}}'</span> registry.example.com/order-service:1.4.0</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Hotfix được test ở staging rồi promote nguyên image (cùng digest) sang production; rollback chỉ là deploy lại digest cũ, không phải chạy lại build với rủi ro kéo base image mới hơn.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Cache CI "thành công" nhưng vẫn sai vì key không đổi khi dependency đổi — luôn hash file khai báo vào cache key. Và <code>--offline</code> chỉ chứng minh repo hiện có đủ artifact, không chứng minh artifact hôm nay giống hệt tuần trước nếu còn dùng version động.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Commit wrapper (mvnw/gradlew) — cố định version build tool.</li>
+      <li>Chốt version bằng BOM + lock file, cấm version range.</li>
+      <li>Cache CI khoá theo pom.xml / gradle.lockfile / libs.versions.toml.</li>
+      <li>Build một lần, promote cùng artifact qua dev → staging → prod.</li>
+      <li>Publish: jar library và container image; không publish fat jar/SNAPSHOT.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q9</span> Agile/Scrum thực chiến và Git workflow: sprint, estimation, trunk-based vs GitFlow?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Scrum vận hành theo <strong>sprint</strong> 1–4 tuần (phổ biến là 2 tuần): <em>product backlog</em> do PO ưu tiên, <em>sprint planning</em> chọn sprint goal và độ lớn công việc, <em>daily standup</em> 15 phút đồng bộ tiến độ và blocker, <em>sprint review</em> demo với stakeholder, <em>retrospective</em> cải tiến cách làm việc. Ước lượng bằng <strong>story point</strong> (độ lớn tương đối theo dãy Fibonacci) và dùng velocity để dự báo, không dùng làm chỉ số năng suất.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Story point không phải đơn vị thời gian nên không quy đổi "1 point = 1 giờ" — quy đổi là mất tính tương đối và biến estimate thành cam kết. Velocity là <em>kết quả đo</em> để biết sprint sau nhận bao nhiêu việc; dùng nó làm KPI sẽ dẫn tới thổi điểm và cắt góc kiểm thử. Về Git, nhánh càng sống lâu càng tích luỹ merge conflict và tích hợp muộn; nhánh ngắn giữ main luôn gần trạng thái deploy được.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row">
+          <div class="flow-node primary">Product backlog</div>
+          <div class="flow-node">Sprint planning</div>
+          <div class="flow-node">Sprint backlog</div>
+        </div>
+        <div class="flow-arrow">↓ sprint 1–4 tuần, standup mỗi ngày</div>
+        <div class="flow-row">
+          <div class="flow-node">Dev + test theo Definition of Done</div>
+        </div>
+        <div class="flow-arrow">↓ DoD: PR reviewed, CI xanh, không bug blocker</div>
+        <div class="flow-row">
+          <div class="flow-node">Sprint review (demo)</div>
+          <div class="flow-node">Retrospective</div>
+        </div>
+        <div class="flow-arrow">↻ increment + backlog được cập nhật lại</div>
+      </div>
+      <table class="feature-table">
+        <thead><tr><th>Tiêu chí</th><th>Trunk-based</th><th>GitFlow</th></tr></thead>
+        <tbody>
+          <tr><td>Nhánh chính</td><td><code>main</code> luôn deployable, nhánh feature sống 1–2 ngày</td><td><code>main</code> + <code>develop</code> + <code>release/*</code> + <code>hotfix/*</code></td></tr>
+          <tr><td>Tần suất tích hợp</td><td>Nhiều lần/ngày, mỗi lần merge đều chạy CI</td><td>Theo nhịp release, tích hợp muộn</td></tr>
+          <tr><td>Điều kiện đi kèm</td><td>CI mạnh, test tự động nhanh, feature flag</td><td>Release theo package theo lịch</td></tr>
+          <tr><td>Rủi ro chính</td><td>Cần kỷ luật test; test yếu thì main dễ vỡ</td><td>Merge conflict lớn, integration sát ngày release</td></tr>
+        </tbody>
+      </table>
+      <p>Với team nhiều người, chốt trước: branch naming <code>feat/&lt;ticket&gt;-mô-tả</code>, <code>fix/…</code>, <code>hotfix/…</code>; commit theo Conventional Commits (<code>feat|fix|refactor|perf|test|docs|build|ci|chore</code> kèm <code>scope</code>) để sinh changelog và bump version tự động; PR nhỏ (dưới ~400 dòng diff), 1–2 reviewer, CI phải xanh trước khi merge, và <code>main</code> được bảo vệ.</p></div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Trunk-based khi team có CI/CD tự động, deploy thường xuyên, sản phẩm là service (web/SaaS) và dùng được feature flag để che phần chưa xong. GitFlow khi phải phát hành phiên bản đóng gói theo lịch, hỗ trợ nhiều bản song song, hoặc vá khẩn cấp trên bản đã phát hành. Kanban phù hợp khi luồng công việc liên tục, không muốn chia sprint.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng "trunk-based hình thức" rồi vẫn giữ nhánh feature sống 2 tuần — đó là gánh nặng của cả hai quy trình. Đừng để standup thành báo cáo cho quản lý, đừng estimation theo giờ trong planning poker, và đừng đóng sprint khi chưa đạt Definition of Done. Retro phải có action item có người chịu trách nhiệm.</p></div>
+    <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># trunk-based: nhanh ngan, rebase de giu lich su tuyen tinh</span>
+git switch -c feat/JIRA-412-order-export
+git commit -m <span class="tok-string">"feat(order): add CSV export endpoint"</span> \
+           -m <span class="tok-string">"Stream theo page de gioi han memory khi export don lon."</span>
+git fetch origin
+git rebase origin/main
+git push -u origin HEAD
+<span class="tok-comment"># PR nho -&gt; review -&gt; CI xanh -&gt; squash merge vao main</span>
+
+<span class="tok-comment"># hotfix tren ban da phat hanh (GitFlow)</span>
+git switch -c hotfix/1.4.1-payment-timeout main
+git commit -m <span class="tok-string">"fix(payment): retry on gateway timeout"</span>
+git tag -a v1.4.1 -m <span class="tok-string">"hotfix 1.4.1"</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Sprint 2 tuần, velocity trung bình 34 point: planning nhận khoảng 30 point để còn buffer cho bug production và review; PR nào quá lớn bị yêu cầu tách nhỏ trước khi review.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Hai bẫy hay bị hỏi: (1) dùng velocity làm KPI năng suất → team phình estimate; (2) nhầm story point là thời gian. Về Git: <code>rebase</code> lên nhánh người khác đang dùng sẽ viết lại lịch sử chung — chỉ rebase nhánh riêng của mình.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Scrum: backlog → planning → sprint → review → retro; DoD rõ ràng.</li>
+      <li>Story point là độ lớn tương đối; velocity để dự báo, không phải KPI.</li>
+      <li>Trunk-based: nhánh ngắn 1–2 ngày, merge liên tục, cần CI mạnh + feature flag.</li>
+      <li>GitFlow: develop/release/hotfix cho bản phát hành theo lịch.</li>
+      <li>PR nhỏ, CI gate, branch naming + Conventional Commits.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+['        <div class="nav-pager">', '          <a class="prev" href="39-modular-architecture-osgi.html"><span class="label">Trước</span><span class="title">39. Modular Architecture &amp; OSGi</span></a>', '          <a class="next" href="41-sql-performance-tuning.html"><span class="label">Tiếp</span><span class="title">41. SQL Performance Tuning</span></a>', '        </div>']
+      </div>
+
+      <footer class="site-footer">
+        <p>Knowledge Gym — Module 40 / 42</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

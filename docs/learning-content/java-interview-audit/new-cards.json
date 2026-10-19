@@ -1,0 +1,162 @@
+[
+  {
+    "module": "02-multithreading",
+    "sort_order": 21,
+    "title": "CompletableFuture: timeout, cancellation và quan sát lỗi không đồng nghĩa dừng I/O",
+    "question_id": "15e700c9-c408-4c31-89cc-f5fe0e034829",
+    "options": [
+      {
+        "id": "853bc783-0c6b-4f95-b02f-ff89c6fcc39b",
+        "content": "Timeout của CompletableFuture cần đi cùng deadline I/O vì không bảo đảm dừng công việc bên dưới.",
+        "isCorrect": true,
+        "displayOrder": 0
+      },
+      {
+        "id": "13949b49-2b2b-4a4a-abdc-cd2cc10d1fd2",
+        "content": "CompletableFuture.cancel(true) luôn interrupt HTTP và JDBC đang chạy.",
+        "isCorrect": false,
+        "displayOrder": 1
+      },
+      {
+        "id": "2fe6fb5d-7644-4446-a730-d8df73d3eea9",
+        "content": "allOf tự gom kết quả và tự hủy mọi sibling ngay khi một task lỗi.",
+        "isCorrect": false,
+        "displayOrder": 2
+      },
+      {
+        "id": "5e5ba543-6285-4626-916e-e27e8716ac0d",
+        "content": "Non-async callback luôn chạy trên đúng executor truyền cho supplyAsync.",
+        "isCorrect": false,
+        "displayOrder": 3
+      }
+    ]
+  },
+  {
+    "module": "01-java-core",
+    "sort_order": 24,
+    "title": "Mốc Java 8–21: finalized, preview và sửa các nhầm lẫn migration",
+    "question_id": "43733f4c-79ab-4c1a-a21c-cffd4cc8b75d",
+    "options": [
+      {
+        "id": "2ef97557-f213-44f1-b520-82c89b0bbe40",
+        "content": "var là kiểu động được thêm dưới dạng preview lần đầu trong Java 11.",
+        "isCorrect": false,
+        "displayOrder": 0
+      },
+      {
+        "id": "1f76a87f-a9cd-4e5c-9892-8e5426299a97",
+        "content": "Pattern switch là feature final trong Java 17 và không cần preview flags.",
+        "isCorrect": false,
+        "displayOrder": 1
+      },
+      {
+        "id": "78e1cebb-235a-4b04-9272-b0d5bff8e020",
+        "content": "Metaspace lần đầu thay PermGen khi nâng từ Java 8 lên Java 11.",
+        "isCorrect": false,
+        "displayOrder": 2
+      },
+      {
+        "id": "254896be-f1a5-4e8e-9a4b-e83fb7dd0b13",
+        "content": "var final ở Java 10; records final ở 16; pattern switch final ở 21.",
+        "isCorrect": true,
+        "displayOrder": 3
+      }
+    ]
+  },
+  {
+    "module": "04-jpa-hibernate",
+    "sort_order": 11,
+    "title": "Stale L1/L2 sau native SQL hoặc writer ngoài Hibernate: refresh không phải thần dược",
+    "question_id": "2139ede7-1fd4-4f3b-a8ca-963daf51d376",
+    "options": [
+      {
+        "id": "b9d0e4d7-9376-4057-b8e9-c036c852ce28",
+        "content": "Version annotation tự reload mọi field khi writer bên ngoài cập nhật DB.",
+        "isCorrect": false,
+        "displayOrder": 0
+      },
+      {
+        "id": "ea5e7647-1a22-478f-bfcb-405f00bf737b",
+        "content": "Clear Persistence Context trong REPEATABLE READ luôn nhìn thấy commit mới nhất bên ngoài.",
+        "isCorrect": false,
+        "displayOrder": 1
+      },
+      {
+        "id": "c44f4f11-3226-42ec-ac24-b3d25061772f",
+        "content": "Evict L2 không xóa managed entity L1 ở session khác, và refresh vẫn tuân snapshot DB.",
+        "isCorrect": true,
+        "displayOrder": 2
+      },
+      {
+        "id": "2ff968fe-f0a2-45cb-96e9-7d366fb29187",
+        "content": "Evict L2 luôn refresh ngay mọi entity đang managed trong tất cả session.",
+        "isCorrect": false,
+        "displayOrder": 3
+      }
+    ]
+  },
+  {
+    "module": "08-system-design",
+    "sort_order": 22,
+    "title": "Redis token bucket dùng Hash: đơn vị thời gian, lease owner và giới hạn atomicity",
+    "question_id": "be5c0eb7-f340-4061-b9ec-d57969795c24",
+    "options": [
+      {
+        "id": "a6bf0b10-c818-4f24-bb3e-90ed2f647d2c",
+        "content": "Tách ZCARD và ZADD thành hai lệnh client vẫn bảo đảm quota khi concurrent.",
+        "isCorrect": false,
+        "displayOrder": 0
+      },
+      {
+        "id": "3db9e27e-a41a-4119-8a50-19b5ac0f32b9",
+        "content": "Hash lưu state token bucket hữu hạn; ZSET lưu request theo timestamp cho sliding-window log.",
+        "isCorrect": true,
+        "displayOrder": 1
+      },
+      {
+        "id": "5fbff772-e3f1-4b26-a1c2-b65ae710f8cd",
+        "content": "ZSET sliding-window log luôn dùng bộ nhớ hằng số bất kể số request.",
+        "isCorrect": false,
+        "displayOrder": 2
+      },
+      {
+        "id": "b8881b51-4e26-4ade-bcf0-94fe75a011e8",
+        "content": "Rate theo giây có thể nhân trực tiếp elapsed millisecond mà không đổi đơn vị.",
+        "isCorrect": false,
+        "displayOrder": 3
+      }
+    ]
+  },
+  {
+    "module": "39-modular-architecture-osgi",
+    "sort_order": 10,
+    "title": "OSGi dependency động: static/dynamic reference và classloader không phải sandbox",
+    "question_id": "9c73b881-4f0d-4a49-901e-a9bc35aee944",
+    "options": [
+      {
+        "id": "72ba8245-57ad-4e11-97d0-8043fc1353ef",
+        "content": "Optional dynamic reference có thể mất service mà component vẫn active; OSGi classloader không phải sandbox.",
+        "isCorrect": true,
+        "displayOrder": 0
+      },
+      {
+        "id": "1112827f-8940-4085-a0b9-ebbb3474dc28",
+        "content": "Mọi service biến mất luôn bắt buộc deactivate tất cả component dù reference optional dynamic.",
+        "isCorrect": false,
+        "displayOrder": 1
+      },
+      {
+        "id": "ad6c0620-0d78-4270-853b-2abcff0d6049",
+        "content": "Mỗi bundle import chung một API class vẫn tạo một Class riêng và static state riêng.",
+        "isCorrect": false,
+        "displayOrder": 2
+      },
+      {
+        "id": "27a520cc-0255-4bf7-833b-a2e5eacbbd18",
+        "content": "Plugin OSGi không tin cậy được ngăn truy cập filesystem chỉ nhờ classloader riêng.",
+        "isCorrect": false,
+        "displayOrder": 3
+      }
+    ]
+  }
+]

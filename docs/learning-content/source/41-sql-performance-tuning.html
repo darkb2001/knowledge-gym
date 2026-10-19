@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>41. SQL Performance Tuning &amp; Oracle/PostgreSQL — Knowledge Gym</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Knowledge<br><span>Gym</span></h1>
+        <p>Java, AWS DVA-C02 &amp; Frontend</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>41. SQL Performance Tuning &amp; Oracle/PostgreSQL</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 41</div>
+          <h1 class="module-title">SQL Performance Tuning &amp; Oracle/PostgreSQL</h1>
+          <p class="module-subtitle">Tối ưu truy vấn thực chiến: đọc execution plan, chọn index, chiến lược join, N+1, thống kê &amp; bảo trì, phân trang keyset và khác biệt khi viết SQL cho Oracle vs PostgreSQL.</p>
+        </div>
+
+        <section class="section" id="c-execution-plan-index">
+          <h2 class="section-title">Đọc Execution Plan &amp; Index</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q1</span> Đọc execution plan: PostgreSQL <code>EXPLAIN (ANALYZE, BUFFERS)</code> vs Oracle <code>EXPLAIN PLAN</code>?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Đọc <strong>execution plan</strong> là bước bắt buộc trước khi tối ưu. PostgreSQL dùng <code>EXPLAIN (ANALYZE, BUFFERS)</code> để chạy thật và trả về thời gian + bộ đệm; Oracle dùng <code>EXPLAIN PLAN FOR</code> rồi <code>DBMS_XPLAN.DISPLAY</code>. Bốn con số phải nhìn trước: <strong>rows</strong> (ước lượng), <strong>cost</strong>, <strong>actual time</strong> và <strong>loops</strong>.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Không đọc plan thì mọi "tối ưu" chỉ là đoán. Plan cho biết optimizer chọn Seq Scan hay Index Scan, Join nào, và — quan trọng nhất — chỗ nào <strong>estimate lệch xa actual</strong>. Một bảng ước lượng <code>rows=6</code> nhưng actual <code>rows=650000</code> nghĩa là statistics sai, planner chọn nested loop cho 650k dòng và query sập.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">SQL + EXPLAIN (ANALYZE)</div></div>
+        <div class="flow-arrow">↓ parser → rewrite → planner</div>
+        <div class="flow-row"><div class="flow-node secondary">Planner ước lượng rows/cost từ statistics</div></div>
+        <div class="flow-arrow">↓ executor chạy thật</div>
+        <div class="flow-row"><div class="flow-node success">Đọc từ trong ra ngoài (inner node trước)</div><div class="flow-node">So actual vs estimate</div></div>
+      </div>
+      <p>Đọc plan <strong>từ node lá (inner) ra node gốc</strong>: mỗi node có <code>cost=start..total</code> (đơn vị tương đối), <code>rows</code> ước lượng, <code>width</code> byte một row. Với <code>ANALYZE</code> thêm <code>actual time=startup..total</code>, <code>rows</code> thật và <code>loops</code> — tổng rows thật = <code>rows × loops</code>. <code>BUFFERS</code> cho biết <code>shared hit</code> (đọc từ RAM) vs <code>read</code> (đọc từ disk); nhiều <code>read</code> = thiếu cache.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng ngay khi có query chậm, trước và sau khi tạo index để so sánh. Trên production dùng <code>EXPLAIN (ANALYZE, BUFFERS)</code> cẩn thận vì nó <strong>chạy thật</strong> — query ghi (INSERT/UPDATE/DELETE) sẽ thay đổi dữ liệu, luôn bọc trong <code>BEGIN; ... ROLLBACK;</code>. Oracle <code>EXPLAIN PLAN FOR</code> không chạy query, muốn số thật dùng <code>DBMS_XPLAN.DISPLAY_CURSOR</code> sau khi chạy.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng tin <code>cost</code> giữa hai database khác nhau — nó là đơn vị nội bộ, không so được giữa PostgreSQL và Oracle. Đừng đọc plan mà bỏ qua <code>loops</code> — nested loop có actual time nhỏ nhưng nhân với 10.000 loops mới là chỗ chậm. Đừng tối ưu trên bảng dev 1.000 dòng rồi áp lên production 50 triệu dòng: planner chọn plan khác hẳn.</p></div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- PostgreSQL: plan thật + thời gian + buffer</span>
+<span class="tok-keyword">EXPLAIN</span> (<span class="tok-keyword">ANALYZE</span>, <span class="tok-keyword">BUFFERS</span>)
+<span class="tok-keyword">SELECT</span> o.id, o.total
+<span class="tok-keyword">FROM</span> orders o
+<span class="tok-keyword">WHERE</span> o.customer_id = <span class="tok-number">42</span> <span class="tok-keyword">AND</span> o.status = <span class="tok-string">'PAID'</span>;
+
+<span class="tok-comment">-- Kết quả rút gọn:</span>
+<span class="tok-comment">-- Index Scan using idx_orders_customer on orders</span>
+<span class="tok-comment">--   (cost=0.43..12.55 rows=8 width=24)</span>
+<span class="tok-comment">--   (actual time=0.031..0.052 rows=6 loops=1)   ← estimate 8 vs actual 6: tốt</span>
+<span class="tok-comment">--   Buffers: shared hit=11</span>
+<span class="tok-comment">-- Planning Time: 0.180 ms   Execution Time: 0.091 ms</span>
+
+<span class="tok-comment">-- Oracle: plan (không chạy query)</span>
+<span class="tok-keyword">EXPLAIN PLAN FOR</span>
+<span class="tok-keyword">SELECT</span> o.id, o.total <span class="tok-keyword">FROM</span> orders o
+<span class="tok-keyword">WHERE</span> o.customer_id = <span class="tok-number">42</span> <span class="tok-keyword">AND</span> o.status = <span class="tok-string">'PAID'</span>;
+<span class="tok-keyword">SELECT</span> * <span class="tok-keyword">FROM TABLE</span>(DBMS_XPLAN.DISPLAY);
+
+<span class="tok-comment">-- | Id | Operation                    | Name                | Rows | Cost |</span>
+<span class="tok-comment">-- |  0 | SELECT STATEMENT             |                     |    6 |    3 |</span>
+<span class="tok-comment">-- |  1 |  TABLE ACCESS BY INDEX ROWID | ORDERS              |    6 |    3 |</span>
+<span class="tok-comment">-- |* 2 |   INDEX RANGE SCAN           | IDX_ORDERS_CUSTOMER |    6 |    1 |</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>API danh sách order chậm 2.1 s: chạy <code>EXPLAIN (ANALYZE, BUFFERS)</code> thấy <code>Seq Scan on orders (rows=650000)</code> dù WHERE có <code>customer_id</code> — index bị thiếu, tạo index xong query còn 1.2 ms.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p><strong>estimate lệch actual</strong> là tín hiệu số 1 cần soi, không phải chuyện nhỏ. <code>rows × loops</code> mới là số dòng thật của node con. Và <code>EXPLAIN ANALYZE</code> trên query ghi sẽ ghi thật nếu không rollback.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>PG: <code>EXPLAIN (ANALYZE, BUFFERS)</code>; Oracle: <code>EXPLAIN PLAN</code> + <code>DBMS_XPLAN</code>.</li>
+      <li>Bốn số: rows, cost, actual time, loops.</li>
+      <li>Đọc plan từ inner node ra ngoài.</li>
+      <li>Estimate lệch actual = statistics sai / index thiếu.</li>
+      <li>Cost không so được giữa hai engine.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q2</span> Index B-tree hoạt động thế nào, selectivity/cardinality là gì, khi nào planner bỏ index?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>B-tree index</strong> là cây cân bằng N-ary: node gốc và node nhánh chứa key dẫn hướng, node lá chứa key đã sort cùng con trỏ tới row (<code>ctid</code> trong PostgreSQL, <code>ROWID</code> trong Oracle). Tìm kiếm O(log n). <strong>Cardinality</strong> = số giá trị phân biệt của cột; <strong>selectivity</strong> = tỉ lệ row mà điều kiện lọc ra — index chỉ hữu ích khi selectivity đủ cao.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Index không miễn phí: mỗi INSERT/UPDATE phải cập nhật cây, và index scan còn phải đọc heap để lấy row thật. Khi một điều kiện khớp gần nửa bảng, planner tính ra đọc cả index rồi nhảy heap <strong>đắt hơn đọc tuần tự</strong> toàn bảng — nên nó bỏ index. Hiểu điều này giải thích tại sao "tạo index rồi mà vẫn Seq Scan".</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Root</div></div>
+        <div class="flow-arrow">↓ so sánh key</div>
+        <div class="flow-row"><div class="flow-node secondary">Branch [1..500]</div><div class="flow-node secondary">Branch [501..1000]</div></div>
+        <div class="flow-arrow">↓ 1 lần nữa</div>
+        <div class="flow-row"><div class="flow-node success">Leaf: (key, row pointer) đã sort</div></div>
+      </div>
+      <p>Một truy vấn 1 tỉ dòng chỉ đi qua ~3–4 node. Ba trường hợp planner <strong>bỏ index</strong> phổ biến: (1) bảng quá nhỏ — Seq Scan rẻ hơn; (2) điều kiện khớp tỉ lệ lớn (selectivity thấp, ví dụ <code>status</code> chỉ 3 giá trị); (3) <strong>biểu thức bọc quanh cột</strong> khiến index không dùng được, và <strong>kiểu dữ liệu không khớp</strong> gây ép kiểu ngầm. Sửa bằng cách viết lại điều kiện cho "sạch" (để cột trần bên trái phép so sánh) hoặc tạo <strong>expression index</strong>.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Tạo B-tree cho cột xuất hiện trong <code>WHERE</code> đẳng thức, <code>ORDER BY</code>, <code>JOIN</code> key, và có cardinality cao (email, order_id, created_at). Với cột low-cardinality kết hợp, dùng <strong>composite index</strong> hoặc <strong>partial index</strong> thay vì index đơn. Khi điều kiện là biểu thức cố định, dùng expression index.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng index mọi cột — mỗi index làm chậm ghi và phình dung lượng. Đừng kỳ vọng index cho <code>LIKE '%abc%'</code> (leading wildcard) — cần trigram/full-text. Đừng quên <strong>kiểu dữ liệu không khớp</strong>: so sánh <code>varchar</code> với <code>integer</code> buộc ép kiểu, index trên cột bị vô hiệu.</p></div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- status chỉ 3 giá trị trên 2.000.000 rows → selectivity rất thấp</span>
+<span class="tok-keyword">CREATE INDEX</span> idx_orders_status <span class="tok-keyword">ON</span> orders (status);
+
+<span class="tok-keyword">EXPLAIN ANALYZE SELECT</span> * <span class="tok-keyword">FROM</span> orders <span class="tok-keyword">WHERE</span> status = <span class="tok-string">'NEW'</span>;
+<span class="tok-comment">-- Seq Scan on orders (rows=650000)  ← planner bỏ index: khớp ~1/3 bảng</span>
+
+<span class="tok-comment">-- Hàm bọc quanh cột → index vô dụng</span>
+<span class="tok-keyword">SELECT</span> * <span class="tok-keyword">FROM</span> orders <span class="tok-keyword">WHERE EXTRACT</span>(<span class="tok-keyword">YEAR FROM</span> created_at) = <span class="tok-number">2026</span>;  <span class="tok-comment">-- Seq Scan</span>
+<span class="tok-keyword">SELECT</span> * <span class="tok-keyword">FROM</span> orders
+<span class="tok-keyword">WHERE</span> created_at &gt;= <span class="tok-string">'2026-01-01'</span> <span class="tok-keyword">AND</span> created_at &lt; <span class="tok-string">'2027-01-01'</span>;  <span class="tok-comment">-- Index Scan</span>
+
+<span class="tok-comment">-- Kiểu không khớp → ép kiểu ngầm, mất index</span>
+<span class="tok-comment">-- WHERE account_no = 12345   (account_no là varchar)  → account_no = '12345'</span>
+
+<span class="tok-comment">-- Expression index nếu buộc phải dùng biểu thức</span>
+<span class="tok-keyword">CREATE INDEX</span> idx_orders_yy <span class="tok-keyword">ON</span> orders ((<span class="tok-keyword">EXTRACT</span>(<span class="tok-keyword">YEAR FROM</span> created_at)));</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Truy vấn tìm đơn theo email khách hàng: <code>idx_customers_email</code> cardinality ~1 (gần như unique) → Index Scan đọc đúng 1 row. Ngược lại index trên <code>is_deleted</code> boolean gần như luôn bị planner bỏ.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>"Cứ tạo index là nhanh" — SAI: index low-cardinality và bảng nhỏ thường bị bỏ. "Hàm trên cột vẫn dùng index được" — SAI, trừ khi có expression index. Câu hỏi "khi nào planner bỏ index?" gần như luôn được hỏi — trả lời đủ 3 nhóm lý do.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>B-tree: cây cân bằng, leaf chứa (key, row pointer), O(log n).</li>
+      <li>Cardinality = số giá trị phân biệt; selectivity = tỉ lệ row khớp.</li>
+      <li>Planner bỏ index khi: bảng nhỏ, selectivity thấp, hàm/ép kiểu trên cột.</li>
+      <li>Index có chi phí: ghi chậm, tốn dung lượng.</li>
+      <li>Sửa: viết điều kiện sạch, composite/partial/expression index.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="composite-covering-join">
+          <h2 class="section-title">Composite, Covering &amp; Join</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q3</span> Composite index: thứ tự cột, left-most prefix, và index cho ORDER BY/GROUP BY?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Composite index</strong> là index trên nhiều cột theo một thứ tự xác định, ví dụ <code>(tenant_id, status, created_at)</code>. Nó giống như danh bạ in theo họ → tên → năm sinh: chỉ tra được nếu bạn biết phần <strong>ngoài cùng bên trái</strong>. Đó là <strong>nguyên tắc left-most prefix</strong> — query phải dùng được tiền tố liên tục từ cột đầu tiên.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Cùng một tập cột, chỉ đổi thứ tự đã tạo ra index dùng được hoặc vô dụng. Đặt sai thứ tự là lỗi cực phổ biến: index <code>(status, created_at)</code> không phục vụ <code>WHERE created_at &gt; ...</code>, và <code>(created_at, status)</code> lại không phục vụ <code>WHERE status = ...</code>. Ngoài ra composite index còn có thể cung cấp sẵn thứ tự sort, giúp bỏ hẳn bước Sort trong plan.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Index (tenant_id, status, created_at)</div></div>
+        <div class="flow-arrow">↓ WHERE tenant_id = ? ✓ dùng được</div>
+        <div class="flow-row"><div class="flow-node success">tenant_id + status ✓</div><div class="flow-node success">tenant_id + status + range created_at ✓</div></div>
+        <div class="flow-arrow">↓ nhảy cột</div>
+        <div class="flow-row"><div class="flow-node warning">status = ? (thiếu cột trái nhất) ✗</div><div class="flow-node warning">created_at range (nhảy cột) ✗</div></div>
+      </div>
+      <p>Quy tắc đặt cột: <strong>cột cho đẳng thức (<code>=</code>) đặt trước</strong>, cột cho <strong>range (<code>&gt;</code>, <code>&lt;</code>, <code>BETWEEN</code>) đặt sau</strong> — vì sau một range, các cột tiếp theo không còn dùng để seek được nữa. Với <code>ORDER BY</code>/<code>GROUP BY</code>, thứ tự cột trong index nên khớp thứ tự sort (đổi chiều bằng <code>DESC</code>/<code>NULLS LAST</code> nếu cần) để planner đọc leaf theo thứ tự sẵn có thay vì thêm node Sort.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng khi query có bộ lọc cố định nhiều cột (multi-tenant: luôn <code>tenant_id</code> + <code>status</code>), khi cần vừa filter vừa sort, hoặc khi join theo cặp khóa. Ví dụ index <code>(tenant_id, status, created_at DESC)</code> phục vụ "20 đơn PENDING mới nhất của tenant" bằng một lần index scan, không cần sort.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng tạo nhiều composite index na ná nhau — chi phí ghi nhân lên. Đừng đặt cột range lên trước cột đẳng thức. Đừng quên index <code>(a, b)</code> đã phục vụ được truy vấn chỉ cần <code>a</code> — không cần tạo thêm index đơn trên <code>a</code>.</p></div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-keyword">CREATE INDEX</span> idx_orders_cust <span class="tok-keyword">ON</span> orders (customer_id, status, created_at);
+
+<span class="tok-comment">-- DÙNG ĐƯỢC (prefix liên tục)</span>
+<span class="tok-comment">-- WHERE customer_id = 42</span>
+<span class="tok-comment">-- WHERE customer_id = 42 AND status = 'PAID'</span>
+<span class="tok-comment">-- WHERE customer_id = 42 AND status = 'PAID' AND created_at &gt; '2026-01-01'</span>
+<span class="tok-keyword">SELECT</span> * <span class="tok-keyword">FROM</span> orders
+<span class="tok-keyword">WHERE</span> customer_id = <span class="tok-number">42</span> <span class="tok-keyword">ORDER BY</span> created_at <span class="tok-keyword">DESC</span> <span class="tok-keyword">LIMIT</span> <span class="tok-number">20</span>;
+<span class="tok-comment">-- Index Scan, KHÔNG có node Sort — index đã cho sẵn thứ tự</span>
+
+<span class="tok-comment">-- KHÔNG dùng được</span>
+<span class="tok-comment">-- WHERE status = 'PAID'                 ← thiếu cột trái nhất customer_id</span>
+<span class="tok-comment">-- WHERE created_at &gt; ...                ← nhảy cột giữa</span>
+
+<span class="tok-comment">-- Equality trước, range sau — pattern tối ưu cho event log</span>
+<span class="tok-keyword">CREATE INDEX</span> idx_events <span class="tok-keyword">ON</span> events (tenant_id, type, occurred_at);
+<span class="tok-comment">-- WHERE tenant_id=? AND type=? AND occurred_at BETWEEN ? AND ?  ← seek hoàn hảo</span>
+
+<span class="tok-comment">-- Phục vụ GROUP BY khi thứ tự cột khớp</span>
+<span class="tok-keyword">EXPLAIN</span> (<span class="tok-keyword">ANALYZE</span>) <span class="tok-keyword">SELECT</span> customer_id, status, <span class="tok-function">COUNT</span>(*)
+<span class="tok-keyword">FROM</span> orders <span class="tok-keyword">GROUP BY</span> customer_id, status;
+<span class="tok-comment">-- GroupAggregate trên index (không Sort) thay vì HashAggregate + Sort</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Trang "đơn của tôi" sắp theo mới nhất: index <code>(customer_id, created_at DESC)</code> biến truy vấn thành một index scan lấy thẳng 20 row đầu, không đọc bảng rồi sort.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Nhớ kỹ: <strong>left-most prefix</strong>, và <strong>range sau equality</strong>. Bẫy kinh điển: tạo index <code>(a, b)</code> rồi hỏi tại sao query trên <code>b</code> vẫn chậm. Cũng đừng quên index <code>(a, b)</code> thay thế được index <code>(a)</code>.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Composite index dùng được theo left-most prefix liên tục.</li>
+      <li>Equality trước, range sau.</li>
+      <li>Thứ tự cột khớp ORDER BY/GROUP BY thì bỏ được Sort.</li>
+      <li>Index (a,b) phục vụ cả truy vấn chỉ cần a.</li>
+      <li>Đặt sai thứ tự = index vô dụng, lỗi hay gặp.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q4</span> Covering index / index-only scan, <code>INCLUDE</code> trong PostgreSQL — khi nào nên thêm cột?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Covering index</strong> là index chứa đủ mọi cột mà query cần, nên engine trả lời được <strong>chỉ từ index</strong> mà không phải đọc bảng — gọi là <strong>index-only scan</strong>. PostgreSQL dùng mệnh đề <code>INCLUDE (...)</code> để nhét thêm cột "chở theo" vào leaf mà không tham gia vào việc sắp xếp/seek của index.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Index scan thường tốn kém ở bước <strong>nhảy vào heap</strong> lấy row thật: mỗi row một lần đọc random, hàng trăm nghìn lần là thảm hoạ. Nếu mọi cột SELECT đã nằm sẵn trong index, PostgreSQL trả luôn từ leaf — bỏ được bước heap đó. Nhưng <strong>index-only scan phải chờ VACUUM</strong>: chỉ những page đã được đánh dấu all-visible mới đọc thẳng, còn lại vẫn phải <code>Heap Fetches</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Query: WHERE customer_id=? AND status=? → total, created_at</div></div>
+        <div class="flow-arrow">↓ index chứa cột filter</div>
+        <div class="flow-row"><div class="flow-node secondary">Index Scan → từng row nhảy heap lấy total</div><div class="flow-node warning">Chậm nếu nhiều row</div></div>
+        <div class="flow-arrow">↓ thêm INCLUDE (total, created_at)</div>
+        <div class="flow-row"><div class="flow-node success">Index Only Scan, Heap Fetches: 0</div></div>
+      </div>
+      <p>Đặt <strong>cột dùng để seek/sort/filter</strong> ở phần key của index (trước <code>INCLUDE</code>), còn <strong>cột chỉ để SELECT</strong> đặt trong <code>INCLUDE</code>. Cách này giữ được tiền tố index gọn và vẫn tránh đọc heap. Chạy <code>VACUUM ANALYZE</code> trước để đảm bảo <code>Heap Fetches</code> về 0 — nếu còn heap fetch, covering index chưa phát huy tác dụng.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng cho truy vấn <strong>hot path, chạy liên tục, chọn rất ít cột</strong> (danh sách id + vài trường hiển thị), khi thấy plan có Index Scan với nhiều heap fetch chậm. Ví dụ list "20 order id + total mới nhất" — covering index biến thành index-only scan.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng nhét nhiều cột rộng (text, jsonb) vào <code>INCLUDE</code> — index phình ra, ghi chậm, có khi lớn bằng bảng. Đừng làm covering index cho truy vấn <code>SELECT *</code> (không bao giờ cover được hết) hay cho query ít gọi. Và đừng quên VACUUM — nếu bảng vừa update nhiều, index-only scan vẫn phải đọc heap.</p></div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- Index thường: seek được nhưng vẫn phải đọc heap lấy total</span>
+<span class="tok-keyword">CREATE INDEX</span> idx_orders_plain <span class="tok-keyword">ON</span> orders (customer_id, status);
+
+<span class="tok-comment">-- Covering: thêm cột chỉ-để-SELECT vào INCLUDE</span>
+<span class="tok-keyword">CREATE INDEX</span> idx_orders_cover <span class="tok-keyword">ON</span> orders (customer_id, status)
+  <span class="tok-keyword">INCLUDE</span> (total, created_at);
+
+<span class="tok-keyword">VACUUM ANALYZE</span> orders;   <span class="tok-comment">-- để page được đánh dấu all-visible</span>
+
+<span class="tok-keyword">EXPLAIN</span> (<span class="tok-keyword">ANALYZE</span>, <span class="tok-keyword">BUFFERS</span>)
+<span class="tok-keyword">SELECT</span> customer_id, status, total
+<span class="tok-keyword">FROM</span> orders
+<span class="tok-keyword">WHERE</span> customer_id = <span class="tok-number">42</span> <span class="tok-keyword">AND</span> status = <span class="tok-string">'PAID'</span>;
+
+<span class="tok-comment">-- Kết quả mong đợi:</span>
+<span class="tok-comment">-- Index Only Scan using idx_orders_cover on orders</span>
+<span class="tok-comment">--   Heap Fetches: 0      ← 0 nghĩa là covering index đã hoạt động</span>
+
+<span class="tok-comment">-- Oracle tương đương: index có cột include (index-organized covering)</span>
+<span class="tok-comment">-- CREATE INDEX idx_orders_cover ON orders (customer_id, status, total)</span>
+<span class="tok-comment">-- hoặc Oracle 12c+: CREATE INDEX ... ON orders (customer_id, status) INCLUDE (total)</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Màn hình dashboard poll mỗi 2 giây: <code>SELECT id, total FROM orders WHERE customer_id=? AND status='PAID'</code>. Covering index khiến truy vấn không đụng heap, giảm tải I/O rõ rệt.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Tạo covering index rồi <strong>quên VACUUM</strong> → plan vẫn Index Scan với Heap Fetches cao, tưởng không hiệu quả. Và <code>SELECT *</code> không bao giờ được cover — chỉ cover khi danh sách cột cố định và hẹp.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Covering index = index chứa đủ cột query cần → index-only scan.</li>
+      <li><code>INCLUDE</code> chở cột phụ, không tham gia seek/sort.</li>
+      <li>Lợi: bỏ heap fetch random, giảm I/O.</li>
+      <li>Cần VACUUM để Heap Fetches về 0.</li>
+      <li>Không dùng cho SELECT * hay cột rộng.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q5</span> Join strategies: nested loop vs hash join vs merge join — planner chọn thế nào?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Có ba chiến lược join chính. <strong>Nested Loop</strong> — với mỗi row bảng ngoài, tra một lần vào bảng trong (rất tốt nếu bảng trong có index, bảng ngoài nhỏ). <strong>Hash Join</strong> — build bảng hash từ bảng nhỏ hơn rồi dò bảng lớn (tốt cho hai bảng lớn, join bằng đẳng thức, không cần sort). <strong>Merge Join</strong> — duyệt hai input đã sort sẵn và gộp (tốt khi hai bên có index theo join key hoặc đều đã sort).</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Biết planner chọn gì và tại sao, để khi plan tệ thì chẩn đoán được nguyên nhân — thường vì <strong>estimate sai số row</strong> dẫn tới chọn nested loop cho tập dữ liệu lớn. Đây cũng là câu phân biệt middle với senior: không chỉ nêu tên mà giải thích điều kiện chọn và cách đọc từng node trong plan.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Bảng ngoài nhỏ + index trên bảng trong</div><div class="flow-node success">→ Nested Loop</div></div>
+        <div class="flow-arrow">↓ hai bảng lớn, join bằng '=', không index</div>
+        <div class="flow-row"><div class="flow-node secondary">→ Hash Join</div><div class="flow-node">Build hash bảng nhỏ → probe bảng lớn</div></div>
+        <div class="flow-arrow">↓ cả hai đã sort sẵn theo join key</div>
+        <div class="flow-row"><div class="flow-node secondary">→ Merge Join</div><div class="flow-node">Duyệt song song hai luồng đã sort</div></div>
+      </div>
+      <p>Trong plan PostgreSQL: Nested Loop có một node con ngoài và node trong chạy lặp <code>loops = số row ngoài</code>; Hash Join có node <code>Hash</code> (build) và một nhánh probe, kèm <code>Batches</code>/<code>Memory Usage</code>; Merge Join có <code>Merge Cond</code> và hai input đã sort. Dấu hiệu planner chọn sai: Nested Loop với <code>loops</code> hàng chục nghìn, hoặc Hash Join <code>Batches &gt; 1</code> (work_mem không đủ, spill ra đĩa).</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Nested Loop: lookup theo khóa chính/index sau khi đã lọc mạnh (join 1 triệu order với customer theo customer_id có index). Hash Join: join khối lớn không index, đẳng thức, ví dụ join fact với dimension. Merge Join: hai bảng đã sort theo cùng key (tận dụng index) hoặc khi join kèm dải (<code>BETWEEN</code>) không phải đẳng thức.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng ép Nested Loop cho hai bảng lớn không index — O(n×m). Đừng dùng hint/ép join kiểu <code>enable_hashjoin=off</code> trên production như giải pháp lâu dài — sửa gốc là statistics/index. Đừng quên work_mem cho hash join lớn.</p></div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- Probe: buộc planner thử Hash Join để so sánh (chỉ để học/đo)</span>
+<span class="tok-keyword">SET</span> local enable_nestloop = off;
+
+<span class="tok-keyword">EXPLAIN</span> (<span class="tok-keyword">ANALYZE</span>, <span class="tok-keyword">BUFFERS</span>)
+<span class="tok-keyword">SELECT</span> c.name, o.total
+<span class="tok-keyword">FROM</span> customers c
+<span class="tok-keyword">JOIN</span> orders o <span class="tok-keyword">ON</span> o.customer_id = c.id
+<span class="tok-keyword">WHERE</span> c.country = <span class="tok-string">'VN'</span>;
+
+<span class="tok-comment">-- Nested Loop: bảng ngoài nhỏ (10 row) × index lookup trên orders</span>
+<span class="tok-comment">--   ->  Nested Loop  (actual time=0.044..0.910 rows=1250 loops=1)</span>
+<span class="tok-comment">--         ->  Seq Scan on customers  (rows=10 loops=1)</span>
+<span class="tok-comment">--         ->  Index Scan using idx_orders_customer on orders  (loops=10)</span>
+
+<span class="tok-comment">-- Hash Join: hai bảng lớn, không index join key</span>
+<span class="tok-comment">--   ->  Hash Join  (Hash Cond: (o.customer_id = c.id))</span>
+<span class="tok-comment">--         ->  Seq Scan on orders o  (rows=2000000 loops=1)</span>
+<span class="tok-comment">--         ->  Hash  (rows=50000 loops=1)  Buckets: 65536  Batches: 1</span>
+<span class="tok-comment">--               ->  Seq Scan on customers c  (rows=50000 loops=1)</span>
+
+<span class="tok-comment">-- Merge Join: cả hai đã sorted theo join key</span>
+<span class="tok-comment">--   ->  Merge Join  (Merge Cond: (o.customer_id = c.id))</span>
+<span class="tok-comment">--         ->  Index Scan using idx_orders_customer on orders o</span>
+<span class="tok-comment">--         ->  Index Scan using customers_pkey on customers c</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Join order với customer: ví dụ điển hình planner chọn Nested Loop khi filter <code>country='VN'</code> chỉ ra 10 customer, tra bảng orders theo index <code>customer_id</code> với 10 loops — nhanh. Nếu statistics sai khiến nó tưởng chỉ 1 customer mà thực tế 50.000, plan sập.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy hay gặp: Nested Loop với <code>loops</code> khổng lồ (nhân <code>rows × loops</code> mới ra chi phí thật). Hash Join <code>Batches &gt; 1</code> nghĩa là spill đĩa — tăng <code>work_mem</code>. <code>enable_*</code> chỉ là công cụ chẩn đoán, không phải fix.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Nested Loop: bảng ngoài nhỏ + index bảng trong.</li>
+      <li>Hash Join: hai bảng lớn, đẳng thức, không index.</li>
+      <li>Merge Join: hai input đã sort sẵn.</li>
+      <li>Đọc plan: loops, Hash/Batches, Merge Cond.</li>
+      <li>Planner chọn sai thường do statistics lệch.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="query-pattern-b-o-tr-kh-c-bi-t-engine">
+          <h2 class="section-title">Query Pattern, Bảo trì &amp; Khác biệt Engine</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q6</span> N+1 query: nhận diện và sửa (JOIN FETCH, batch fetching, <code>@EntityGraph</code>)?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>N+1 query</strong> là anti-pattern ORM: một truy vấn lấy N entity cha, rồi ORM phát thêm N truy vấn để nạp từng liên kết khi truy cập (thường do lazy loading kích hoạt trong vòng lặp). Tổng cộng 1+N round-trip tới DB thay vì 1 — chi phí bùng nổ theo số bản ghi.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Mỗi truy vấn tốn round-trip mạng + parse + plan, nên 101 truy vấn chậm hơn một truy vấn join rất nhiều dù tổng dữ liệu như nhau. Đây là lỗi hiệu năng ORM phổ biến nhất và hay được hỏi trong phỏng vấn backend Java vì nó gắn trực tiếp với JPA/Hibernate.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node warning">1 query: SELECT * FROM orders (100 rows)</div></div>
+        <div class="flow-arrow">↓ vòng lặp truy cập order.getCustomer()</div>
+        <div class="flow-row"><div class="flow-node warning">N=100 query: SELECT * FROM customers WHERE id = ?</div><div class="flow-node primary">×100 round-trip</div></div>
+        <div class="flow-arrow">↓ sửa bằng fetch join / batch</div>
+        <div class="flow-row"><div class="flow-node success">1 query: JOIN FETCH → 1 round-trip</div></div>
+      </div>
+      <p><strong>Nhận diện:</strong> bật <code>hibernate.generate_statistics=true</code> và log SQL, hoặc xem số statement trong log. Nếu thấy cùng một câu SELECT lặp lại với chỉ tham số id khác nhau, đó là N+1. <strong>Sửa:</strong> (1) <code>JOIN FETCH</code> trong JPQL để nạp liên kết trong cùng truy vấn; (2) <code>@EntityGraph</code> để khai báo nhánh cần fetch theo tên thuộc tính — gọn hơn, không phải viết join; (3) <strong>batch fetching</strong> (<code>@BatchSize</code> hoặc <code>hibernate.default_batch_fetch_size</code>) gom nhiều id vào một <code>IN (...)</code> — phù hợp khi quan hệ <code>@Many</code> khiến fetch join nhân dòng.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng <code>JOIN FETCH</code>/<code>@EntityGraph</code> khi quan hệ là <code>@ManyToOne</code>/<code>@OneToOne</code> (fetch join không nhân dòng). Dùng batch fetching khi quan hệ <code>@OneToMany</code>/<code>@ManyToMany</code> — fetch join trên nhiều collection sẽ gây tích Descartes và <code>MultipleBagFetchException</code>. Với collection lớn, batch size 20–50 là hợp lý.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng bật <code>EAGER</code> toàn cục để "chữa" N+1 — nó gây N+1 ở nơi khác và tải dữ liệu thừa. Đừng fetch join nhiều collection cùng lúc (Cartesian + nổ dòng). Đừng nạp dữ liệu rồi để lazy load kích hoạt trong vòng lặp — đó chính là nguyên nhân.</p></div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- Đúng những gì ORM phát ra: 1 + N truy vấn round-trip</span>
+<span class="tok-keyword">SELECT</span> id, customer_id, total <span class="tok-keyword">FROM</span> orders <span class="tok-keyword">WHERE</span> status = <span class="tok-string">'NEW'</span> <span class="tok-keyword">LIMIT</span> <span class="tok-number">100</span>;  <span class="tok-comment">-- 1 lần</span>
+<span class="tok-keyword">SELECT</span> id, name <span class="tok-keyword">FROM</span> customers <span class="tok-keyword">WHERE</span> id = <span class="tok-number">101</span>;   <span class="tok-comment">-- lặp 100 lần, chỉ khác id</span>
+<span class="tok-comment">-- ... tổng 101 statement ~2500 ms cho cùng lượng dữ liệu</span>
+
+<span class="tok-comment">-- Sửa: một truy vấn join thay cho 1+N</span>
+<span class="tok-keyword">SELECT</span> o.id, o.total, c.name
+<span class="tok-keyword">FROM</span> orders o
+<span class="tok-keyword">JOIN</span> customers c <span class="tok-keyword">ON</span> c.id = o.customer_id
+<span class="tok-keyword">WHERE</span> o.status = <span class="tok-string">'NEW'</span> <span class="tok-keyword">LIMIT</span> <span class="tok-number">100</span>;   <span class="tok-comment">-- 1 statement ~80 ms</span>
+
+<span class="tok-comment">-- Batch fetching gom id lại thành IN (...) một round-trip</span>
+<span class="tok-keyword">SELECT</span> id, name <span class="tok-keyword">FROM</span> customers
+<span class="tok-keyword">WHERE</span> id <span class="tok-keyword">IN</span> (<span class="tok-number">101</span>, <span class="tok-number">102</span>, <span class="tok-number">103</span>, <span class="tok-comment">/* ... tối đa batch size ... */</span> <span class="tok-number">150</span>);</code></pre></div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Trước khi sửa: 101 statement cho danh sách order</span>
+<span class="tok-class">List</span>&lt;<span class="tok-class">Order</span>&gt; orders = orderRepo.findByStatus(<span class="tok-string">"NEW"</span>);
+<span class="tok-keyword">for</span> (<span class="tok-class">Order</span> o : orders) {
+  o.getCustomer().getName();   <span class="tok-comment">// lazy → N query phát sinh</span>
+}
+
+<span class="tok-comment">// Fix 1: JOIN FETCH trong JPQL</span>
+<span class="tok-annotation">@Query</span>(<span class="tok-string">"SELECT o FROM Order o JOIN FETCH o.customer WHERE o.status = :status"</span>)
+<span class="tok-class">List</span>&lt;<span class="tok-class">Order</span>&gt; findWithCustomer(<span class="tok-class">String</span> status);
+
+<span class="tok-comment">// Fix 2: @EntityGraph — gọn, không viết join</span>
+<span class="tok-annotation">@EntityGraph</span>(attributePaths = <span class="tok-string">"customer"</span>)
+<span class="tok-class">List</span>&lt;<span class="tok-class">Order</span>&gt; findByStatus(<span class="tok-class">String</span> status);
+
+<span class="tok-comment">// Fix 3: batch fetching — hợp cho @OneToMany collection</span>
+<span class="tok-comment">// @BatchSize(size = 50) trên collection, hoặc toàn cục:</span>
+<span class="tok-comment">// spring.jpa.properties.hibernate.default_batch_fetch_size=50</span>
+<span class="tok-comment">// → gom id thành: SELECT ... WHERE customer_id IN (?, ?, ... 50 giá trị)</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>API trả 100 order kèm tên customer: trước là 101 statement ~2500 ms, sau khi thêm <code>@EntityGraph(attributePaths="customer")</code> còn 1 statement ~80 ms.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Nhiều người "sửa" N+1 bằng cách chuyển <code>FetchType</code> sang EAGER — chỉ dời vấn đề, không giải. Và fetch join hai collection <code>@OneToMany</code> cùng lúc sẽ nổ số dòng (tích Descartes) hoặc ném <code>MultipleBagFetchException</code>.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>N+1: 1 query cha + N query lazy cho con.</li>
+      <li>Nhận diện qua hibernate statistics / log SQL lặp.</li>
+      <li>Sửa: JOIN FETCH, @EntityGraph, batch fetching.</li>
+      <li>ManyToOne → fetch join; OneToMany → batch size.</li>
+      <li>EAGER không phải giải pháp.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q7</span> Thống kê &amp; bảo trì: <code>ANALYZE</code>/<code>VACUUM</code> (PostgreSQL) vs <code>DBMS_STATS</code> (Oracle)?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Planner không đọc dữ liệu thật mà dựa vào <strong>statistics</strong> để ước lượng số row mỗi bước. PostgreSQL cập nhật qua <code>ANALYZE</code> (thu histogram/ndistinct) và dọn dữ liệu chết bằng <code>VACUUM</code>; Oracle thu qua <code>DBMS_STATS.GATHER_*_STATS</code>. Statistics sai là nguyên nhân số 1 khiến plan "tự nhiên" đổi và chậm.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>PostgreSQL dùng MVCC: UPDATE/DELETE để lại <strong>dead tuple</strong>, không xoá ngay. Dead tuple chiếm chỗ (bloat), làm bảng phình và index scan phải đọc page vô ích. <code>VACUUM</code> thu hồi không gian và đánh dấu page all-visible (điều kiện cho index-only scan); <code>ANALYZE</code> cập nhật thống kê. Thiếu cả hai (autovacuum bị tắt/không theo kịp) → vừa bloat vừa plan sai.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">UPDATE / DELETE nhiều row</div></div>
+        <div class="flow-arrow">↓ MVCC: row cũ thành dead tuple</div>
+        <div class="flow-row"><div class="flow-node secondary">Dead tuple tích tụ → bloat + statistics cũ</div></div>
+        <div class="flow-arrow">↓ tự động (autovacuum) hoặc chạy tay</div>
+        <div class="flow-row"><div class="flow-node success">VACUUM thu hồi chỗ + all-visible</div><div class="flow-node success">ANALYZE cập nhật histogram</div></div>
+      </div>
+      <p>Sau bulk load/migrate, luôn chạy <code>VACUUM (ANALYZE)</code> để planner có số liệu mới; nếu không, planner vẫn tưởng bảng nhỏ và chọn nested loop. Với cột <strong>lệch phân bố</strong> (selectivity không đồng đều), cần histogram chi tiết — PostgreSQL tăng <code>default_statistics_target</code> hoặc <code>ALTER ... SET STATISTICS</code> cho riêng cột; Oracle dùng <code>METHOD_OPT =&gt; 'FOR COLUMNS SIZE AUTO'</code>. Kiểm tra sức khoẻ bảng bằng view monitoring.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Chạy tay sau bulk insert/update/delete lớn, sau khi migrate dữ liệu, hoặc định kỳ với bảng ghi nhiều. Theo dõi <code>pg_stat_user_tables</code> để biết bloat và dead tuple; đặt autovacuum nhạy hơn cho bảng nóng. Oracle thu stats theo table/schema, cân nhắc <code>cascade =&gt; TRUE</code> để thu cả index.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng chạy <code>VACUUM FULL</code> giữa giờ cao điểm — nó <strong>khoá bảng exclusive</strong>; dùng <code>pg_repack</code>/<code>VACUUM (FULL)</code> trong cửa sổ bảo trì. Đừng tắt autovacuum để "đỡ tải" — đổi lại là bloat và plan sai. Đừng thu stats quá dày đặc trên hệ lớn — tốn IO; hãy để autovacuum lo và chỉ chạy tay sau sự kiện lớn.</p></div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- PostgreSQL: cập nhật thống kê + dọn dữ liệu chết</span>
+<span class="tok-keyword">ANALYZE</span> orders;                      <span class="tok-comment">-- chỉ statistics (nhanh)</span>
+<span class="tok-keyword">VACUUM</span> (<span class="tok-keyword">ANALYZE</span>, <span class="tok-keyword">VERBOSE</span>) orders;    <span class="tok-comment">-- dọn + thu stats</span>
+
+<span class="tok-comment">-- Cột lệch phân bố: tăng độ chi tiết histogram</span>
+<span class="tok-keyword">ALTER TABLE</span> orders <span class="tok-keyword">ALTER COLUMN</span> status <span class="tok-keyword">SET STATISTICS</span> <span class="tok-number">500</span>;
+
+<span class="tok-comment">-- Xem sức khoẻ bảng: dead tuple, lần autovacuum cuối</span>
+<span class="tok-keyword">SELECT</span> relname, n_live_tup, n_dead_tup, last_autovacuum, last_autoanalyze
+<span class="tok-keyword">FROM</span> pg_stat_user_tables
+<span class="tok-keyword">WHERE</span> relname = <span class="tok-string">'orders'</span>;
+
+<span class="tok-comment">-- Oracle: thu thống kê theo bảng, kèm index (cascade)</span>
+<span class="tok-keyword">EXEC</span> DBMS_STATS.GATHER_TABLE_STATS(<span class="tok-string">'WMS'</span>, <span class="tok-string">'ORDERS'</span>, cascade =&gt; <span class="tok-keyword">TRUE</span>);
+
+<span class="tok-comment">-- Histogram cho cột skewed</span>
+<span class="tok-keyword">EXEC</span> DBMS_STATS.GATHER_TABLE_STATS(
+  <span class="tok-string">'WMS'</span>, <span class="tok-string">'ORDERS'</span>,
+  method_opt =&gt; <span class="tok-string">'FOR COLUMNS SIZE AUTO'</span>);</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Bảng orders sau khi migrate 5 triệu row: <code>n_dead_tup</code> tăng vọt và plan chuyển sang Seq Scan sai. Chạy <code>VACUUM (ANALYZE)</code> xong, planner lại chọn đúng Index Scan và query về mức cũ.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p><code>VACUUM</code> ≠ <code>VACUUM FULL</code>: cái sau khoá exclusive, không dùng giờ cao điểm. Và <code>VACUUM</code> không cập nhật statistics — phải có <code>ANALYZE</code>. Đây là điểm rất hay bị hỏi.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Planner dựa vào statistics, không đọc dữ liệu thật.</li>
+      <li>PG: ANALYZE (stats) + VACUUM (dead tuple/bloat).</li>
+      <li>Oracle: DBMS_STATS.GATHER_TABLE_STATS.</li>
+      <li>VACUUM FULL khoá bảng — chỉ maintenance window.</li>
+      <li>Stats sai = plan sai, nguyên nhân số 1.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q8</span> Partitioning và partial index — khi nào hiệu quả, các loại partition?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Partitioning</strong> chia một bảng logic thành nhiều bảng vật lý con theo khóa. Ba loại chính: <strong>range</strong> (theo khoảng — thời gian, id), <strong>list</strong> (theo tập giá trị rời — region, tenant), <strong>hash</strong> (chia đều theo hàm băm — phân tán tải). <strong>Partial index</strong> là index chỉ phủ một tập con row theo điều kiện <code>WHERE</code>, ví dụ chỉ index các đơn <code>status='PENDING'</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Partitioning giúp query chỉ chạm phần dữ liệu liên quan (<strong>partition pruning</strong>), và giúp bảo trì theo khối (drop cả partition cũ thay vì DELETE hàng loạt gây bloat). Partial index thì index nhỏ hơn nhiều khi phần lớn row không bao giờ bị truy vấn theo điều kiện đó — vừa nhanh vừa nhẹ cho ghi.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Bảng orders (logical)</div></div>
+        <div class="flow-arrow">↓ partition by range (created_at)</div>
+        <div class="flow-row"><div class="flow-node secondary">orders_2026_01</div><div class="flow-node secondary">orders_2026_02</div><div class="flow-node secondary">orders_2026_03</div></div>
+        <div class="flow-arrow">↓ WHERE created_at trong tháng 02/2026</div>
+        <div class="flow-row"><div class="flow-node success">Partition pruning → chỉ scan orders_2026_02</div></div>
+      </div>
+      <p>Điều kiện để partitioning có lợi: <strong>query luôn lọc theo khóa partition</strong> (nếu không, planner scan mọi partition — còn chậm hơn bảng phẳng), và dữ liệu có tính chu kỳ rõ (theo tháng, theo vùng). Partial index hiệu quả khi truy vấn nhắm một tập nhỏ đặc trưng — ví dụ worker chỉ quét <code>status='PENDING'</code> trong khi 99% row là <code>DONE</code>.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Range partition: dữ liệu log/time-series, dọn theo tháng bằng drop partition. List partition: multi-tenant/region cần quản lý theo đơn vị. Hash partition: chia đều tải khi không có khóa range/lưu tự nhiên. Partial index: bảng lớn nhưng hot query chỉ đụng phần nhỏ row.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng partition bảng nhỏ (dưới vài triệu row) — overhead quản lý không đáng. Đừng partition theo khóa mà query không lọc theo — pruning không xảy ra. Đừng dùng partial index cho điều kiện "đa số row đều khớp" — index sẽ to gần bằng index đầy đủ, mất ý nghĩa.</p></div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- PostgreSQL: range partition theo tháng</span>
+<span class="tok-keyword">CREATE TABLE</span> orders (
+  id          <span class="tok-keyword">bigint</span> <span class="tok-keyword">GENERATED ALWAYS AS IDENTITY</span>,
+  created_at  <span class="tok-keyword">timestamp</span> <span class="tok-keyword">NOT NULL</span>,
+  total       <span class="tok-keyword">numeric</span>
+) <span class="tok-keyword">PARTITION BY RANGE</span> (created_at);
+
+<span class="tok-keyword">CREATE TABLE</span> orders_2026_01 <span class="tok-keyword">PARTITION OF</span> orders
+  <span class="tok-keyword">FOR VALUES FROM</span> (<span class="tok-string">'2026-01-01'</span>) <span class="tok-keyword">TO</span> (<span class="tok-string">'2026-02-01'</span>);
+
+<span class="tok-comment">-- Partition pruning: chỉ 1 partition được scan</span>
+<span class="tok-keyword">EXPLAIN ANALYZE SELECT</span> * <span class="tok-keyword">FROM</span> orders
+<span class="tok-keyword">WHERE</span> created_at &gt;= <span class="tok-string">'2026-01-05'</span> <span class="tok-keyword">AND</span> created_at &lt; <span class="tok-string">'2026-01-10'</span>;
+<span class="tok-comment">-- Append  ->  Seq Scan on orders_2026_01   ← các partition khác bị loại</span>
+
+<span class="tok-comment">-- Partial index: chỉ index row "nóng"</span>
+<span class="tok-keyword">CREATE INDEX</span> idx_orders_pending <span class="tok-keyword">ON</span> orders (created_at)
+<span class="tok-keyword">WHERE</span> status = <span class="tok-string">'PENDING'</span>;
+
+<span class="tok-comment">-- Oracle: interval partitioning tự sinh partition</span>
+<span class="tok-comment">-- PARTITION BY RANGE (created_at)</span>
+<span class="tok-comment">--   INTERVAL (NUMTOYMINTERVAL(1, 'MONTH')) (PARTITION p_init VALUES LESS THAN (...));</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Bảng log truy cập theo tháng: range partition giúp query báo cáo tháng 2 chỉ scan 1 partition, và cuối mỗi quý <code>DROP</code> partition cũ tức thời thay vì DELETE hàng chục triệu dòng.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Partitioning <strong>không thay thế index</strong> — partition nhỏ vẫn cần index đúng. Bẫy lớn: query không lọc theo khóa partition → planner scan toàn bộ partition, chậm hơn bảng phẳng. Và partial index chỉ được dùng khi điều kiện <code>WHERE</code> của query <strong>bao hàm</strong> điều kiện của index.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Partition: range / list / hash theo khóa.</li>
+      <li>Lợi: partition pruning + bảo trì theo khối (drop).</li>
+      <li>Phải lọc theo khóa partition mới có pruning.</li>
+      <li>Partial index: index tập con nhỏ, hot query.</li>
+      <li>Partition không thay thế index đúng.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q9</span> Phân trang hiệu quả: <code>LIMIT/OFFSET</code> vs keyset; Oracle <code>FETCH FIRST</code> / <code>ROWNUM</code>?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Offset pagination</strong> (<code>LIMIT n OFFSET m</code>) đọc và bỏ qua m row trước khi trả về. <strong>Keyset pagination</strong> (seek method) dùng điều kiện <code>WHERE key &gt; last_seen ORDER BY key LIMIT n</code> — bắt đầu ngay từ vị trí đã biết nhờ index. Oracle từ 12c dùng <code>OFFSET ... ROWS FETCH NEXT n ROWS ONLY</code>; trước 12c phải bọc <code>ROWNUM</code> trong subquery.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>OFFSET lớn chậm vì engine vẫn phải <strong>đọc và vứt bỏ</strong> m row (m thường rất lớn ở cuối danh sách), tốn I/O và CPU dù chỉ trả 20 row. Ngoài ra offset pagination <strong>không ổn định</strong> khi dữ liệu thay đổi giữa hai lần lật trang — có thể trùng hoặc nhảy mục. Keyset giải quyết cả hai: chi phí gần như hằng số nhờ index và vị trí dựa trên giá trị khóa.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node warning">LIMIT 20 OFFSET 1000000</div><div class="flow-node warning">đọc + bỏ 1.000.000 row</div></div>
+        <div class="flow-arrow">↓ chi phí tăng theo độ sâu trang</div>
+        <div class="flow-row"><div class="flow-node primary">WHERE id &gt; last_seen ORDER BY id LIMIT 20</div></div>
+        <div class="flow-arrow">↓ index seek đúng vị trí</div>
+        <div class="flow-row"><div class="flow-node success">Chỉ đọc 20 row — chi phí hằng số</div></div>
+      </div>
+      <p>Keyset cần một khóa sắp xếp <strong>duy nhất và ổn định</strong> (id tăng dần là lý tưởng). Khi sắp theo nhiều cột, dùng so sánh tuple: <code>WHERE (sort_col, id) &gt; (?, ?)</code> để tránh trùng. Với Oracle <code>ROWNUM</code>: nó được gán <strong>trước</strong> <code>ORDER BY</code>, nên phải bọc lồng subquery mới đúng — bỏ query ra ngoài rồi mới lọc <code>ROWNUM</code>.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Keyset cho danh sách cuộn vô hạn, feed, log, API danh sách dài cần hiệu năng. Offset chỉ dùng khi cần <strong>nhảy tới trang bất kỳ</strong> và dữ liệu nhỏ / trang nông, hoặc khi UI cần "trang 7/99". Oracle 12c+ dùng cú pháp chuẩn <code>FETCH FIRST/NEXT</code>; code cũ có thể dùng <code>ROWNUM</code> lồng.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng dùng OFFSET lớn cho danh sách dài. Đừng quên cột <code>ORDER BY</code> phải có <strong>index</strong> — nếu không, keyset vẫn phải sort toàn bộ rồi mới lấy 20 row. Đừng dựa vào OFFSET khi dữ liệu ghi liên tục nếu cần kết quả nhất quán (bỏ/trùng mục). Và <code>ROWNUM</code> phải bọc subquery, nếu không thứ tự sai.</p></div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- OFFSET lớn: PostgreSQL vẫn đọc + vứt 1.000.000 row</span>
+<span class="tok-keyword">SELECT</span> * <span class="tok-keyword">FROM</span> orders <span class="tok-keyword">ORDER BY</span> id <span class="tok-keyword">LIMIT</span> <span class="tok-number">20</span> <span class="tok-keyword">OFFSET</span> <span class="tok-number">1000000</span>;  <span class="tok-comment">-- ~2100 ms</span>
+
+<span class="tok-comment">-- Keyset: index seek, gần như hằng số</span>
+<span class="tok-keyword">SELECT</span> * <span class="tok-keyword">FROM</span> orders <span class="tok-keyword">WHERE</span> id &gt; <span class="tok-number">1000000</span> <span class="tok-keyword">ORDER BY</span> id <span class="tok-keyword">LIMIT</span> <span class="tok-number">20</span>;       <span class="tok-comment">-- ~0.8 ms</span>
+
+<span class="tok-comment">-- Keyset với sort nhiều cột: so sánh tuple</span>
+<span class="tok-keyword">SELECT</span> * <span class="tok-keyword">FROM</span> orders
+<span class="tok-keyword">WHERE</span> (created_at, id) &lt; (<span class="tok-string">'2026-01-15 09:00:00'</span>, <span class="tok-number">987654</span>)
+<span class="tok-keyword">ORDER BY</span> created_at <span class="tok-keyword">DESC</span>, id <span class="tok-keyword">DESC</span> <span class="tok-keyword">LIMIT</span> <span class="tok-number">20</span>;
+
+<span class="tok-comment">-- Oracle 12c+ cú pháp chuẩn</span>
+<span class="tok-keyword">SELECT</span> * <span class="tok-keyword">FROM</span> orders <span class="tok-keyword">ORDER BY</span> id
+<span class="tok-keyword">OFFSET</span> <span class="tok-number">1000000</span> <span class="tok-keyword">ROWS FETCH NEXT</span> <span class="tok-number">20</span> <span class="tok-keyword">ROWS ONLY</span>;
+
+<span class="tok-comment">-- Oracle cũ: ROWNUM gán trước ORDER BY → phải bọc subquery</span>
+<span class="tok-keyword">SELECT</span> * <span class="tok-keyword">FROM</span> (
+  <span class="tok-keyword">SELECT</span> id, total <span class="tok-keyword">FROM</span> orders <span class="tok-keyword">ORDER BY</span> id
+) <span class="tok-keyword">WHERE</span> ROWNUM &lt;= <span class="tok-number">20</span>;</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>API feed đơn hàng cuộn vô hạn dùng keyset: mỗi trang trả kèm <code>next_cursor = id cuối</code>, client gửi lại làm tham số cho trang sau — truy vấn luôn nhanh bất kể cuộn sâu bao nhiêu.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>OFFSET lớn chậm vì phải <strong>đọc rồi vứt bỏ</strong>, không phải vì trả nhiều row. Keyset vẫn cần index trên cột sort. Bẫy Oracle: <code>ROWNUM</code> gán trước <code>ORDER BY</code> — luôn bọc subquery.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>OFFSET lớn: đọc + bỏ m row → chậm dần theo trang.</li>
+      <li>Keyset: WHERE key &gt; last_seen → chi phí hằng số.</li>
+      <li>Keyset ổn định hơn khi dữ liệu ghi liên tục.</li>
+      <li>Cần index trên cột sort.</li>
+      <li>Oracle: FETCH FIRST (12c+) / ROWNUM bọc subquery.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q10</span> Khác biệt PostgreSQL ↔ Oracle khi viết SQL và tối ưu?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Hai hệ khác nhau ở kiểu dữ liệu, cách sinh khóa (sequence/identity), ngữ nghĩa <strong>NULL vs chuỗi rỗng</strong>, bộ hàm (<code>NVL</code>/<code>DECODE</code> vs <code>COALESCE</code>/<code>CASE</code>), ngôn ngữ thủ tục (PL/SQL vs PL/pgSQL), transaction/isolation và cách planner chọn plan. Port code giữa hai bên phải rà từng nhóm này, không chỉ đổi cú pháp.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Lỗi port phổ biến nhất không phải cú pháp mà là <strong>ngữ nghĩa ngầm</strong>: Oracle coi <code>''</code> là NULL nên <code>col = ''</code> không bao giờ khớp, còn PostgreSQL coi <code>''</code> là chuỗi rỗng khác NULL — cùng câu SQL cho kết quả khác nhau. Tương tự, phân trang, hàm xử lý NULL, và mặc định isolation cũng khác, khiến hành vi thay đổi khi chuyển hệ.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">SQL viết cho Oracle</div></div>
+        <div class="flow-arrow">↓ rà NULL semantics, kiểu, hàm, sequence</div>
+        <div class="flow-row"><div class="flow-node secondary">NVL → COALESCE</div><div class="flow-node secondary">DECODE → CASE</div><div class="flow-node secondary">SYSDATE → now()</div></div>
+        <div class="flow-arrow">↓ kiểm tra phân trang, isolation, transaction</div>
+        <div class="flow-row"><div class="flow-node success">Chạy test lại toàn bộ trên PostgreSQL</div></div>
+      </div>
+      <p>Các điểm cần nhớ: <strong>NULL/empty string</strong> khác hẳn; <strong>identity</strong> là chuẩn chung nhưng Oracle cũ dùng <code>SEQUENCE</code> + trigger; <strong>hàm</strong> <code>NVL</code>/<code>DECODE</code> (Oracle-only) thay bằng <code>COALESCE</code>/<code>CASE</code> (chuẩn SQL); <strong>phân trang</strong> khác cú pháp; <strong>transaction</strong> — Oracle không có <code>READ UNCOMMITTED</code> và mặc định <code>READ COMMITTED</code>, PostgreSQL cũng <code>READ COMMITTED</code> nhưng dùng MVCC snapshot per-statement; <strong>DDL</strong> có auto-commit hay không khác nhau. Về tối ưu: Oracle hay dùng hint và <code>DBMS_XPLAN</code>, PostgreSQL tránh hint và ưu tiên sửa statistics/index; Oracle có bitmap index, PostgreSQL có partial/expression/GIN index.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Gặp <code>''</code> trong dữ liệu Oracle cũ khi migrate — phải quyết định chuẩn hoá về NULL hay giữ chuỗi rỗng, vì logic so sánh thay đổi. Khi port query dùng <code>NVL</code>, <code>DECODE</code>, <code>ROWNUM</code>, <code>SYSDATE</code>. Khi chuyển stored procedure — PL/SQL sang PL/pgSQL phải viết lại, không tự động.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng giả định <code>'' = NULL</code> trên PostgreSQL — sai ngữ nghĩa. Đừng copy hint Oracle sang PostgreSQL — hint tối thiểu và khác hẳn. Đừng bê nguyên <code>ROWNUM</code> sang — dùng <code>LIMIT</code>. Và đừng bỏ qua chuyện isolation/transaction khi port — hành vi đồng thời có thể đổi.</p></div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- NULL vs chuỗi rỗng</span>
+<span class="tok-comment">-- Oracle: '' IS NULL là TRUE (không phân biệt empty string với NULL)</span>
+<span class="tok-keyword">SELECT</span> <span class="tok-number">1</span> <span class="tok-keyword">FROM</span> dual <span class="tok-keyword">WHERE</span> <span class="tok-string">''</span> <span class="tok-keyword">IS NULL</span>;      <span class="tok-comment">-- Oracle: trả 1 row</span>
+<span class="tok-keyword">SELECT</span> <span class="tok-string">''</span> <span class="tok-keyword">IS NULL</span>;                        <span class="tok-comment">-- PostgreSQL: false</span>
+
+<span class="tok-comment">-- Hàm xử lý NULL: Oracle-only → chuẩn SQL</span>
+<span class="tok-comment">-- Oracle:</span>  <span class="tok-function">NVL</span>(col, <span class="tok-string">'N/A'</span>)                <span class="tok-comment">-- đúng 2 tham số</span>
+<span class="tok-comment">-- Chuẩn:</span> <span class="tok-function">COALESCE</span>(col, col2, <span class="tok-string">'N/A'</span>)   <span class="tok-comment">-- n tham số, portable</span>
+
+<span class="tok-comment">-- DECODE (Oracle) → CASE (chuẩn)</span>
+<span class="tok-comment">-- Oracle:  DECODE(status, 'A', 1, 'B', 2, 0)</span>
+<span class="tok-keyword">SELECT CASE</span> status
+         <span class="tok-keyword">WHEN</span> <span class="tok-string">'A'</span> <span class="tok-keyword">THEN</span> <span class="tok-number">1</span>
+         <span class="tok-keyword">WHEN</span> <span class="tok-string">'B'</span> <span class="tok-keyword">THEN</span> <span class="tok-number">2</span>
+         <span class="tok-keyword">ELSE</span> <span class="tok-number">0</span>
+       <span class="tok-keyword">END</span> <span class="tok-keyword">AS</span> code
+<span class="tok-keyword">FROM</span> orders;
+
+<span class="tok-comment">-- Identity (cả hai hỗ trợ chuẩn này)</span>
+<span class="tok-comment">-- Oracle:</span>     id NUMBER GENERATED ALWAYS AS IDENTITY
+<span class="tok-comment">-- PostgreSQL:</span> id BIGINT GENERATED ALWAYS AS IDENTITY
+
+<span class="tok-comment">-- Ngày giờ &amp; ngôn ngữ thủ tục</span>
+<span class="tok-comment">-- Oracle:     SYSDATE, TO_DATE('2026-01-01','YYYY-MM-DD'), PL/SQL</span>
+<span class="tok-comment">-- PostgreSQL: now() / CURRENT_DATE, '2026-01-01'::date, PL/pgSQL</span>
+
+<span class="tok-comment">-- Phân trang</span>
+<span class="tok-comment">-- Oracle:     ... ORDER BY id OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY</span>
+<span class="tok-comment">-- PostgreSQL: ... ORDER BY id LIMIT 10 OFFSET 20</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Migrate báo cáo từ Oracle sang PostgreSQL: thay <code>NVL</code>→<code>COALESCE</code>, <code>DECODE</code>→<code>CASE</code>, <code>ROWNUM</code>→<code>LIMIT/OFFSET</code>, và rà lại mọi chỗ so sánh <code>''</code> vì ngữ nghĩa NULL khác — đây là bước hay bị bỏ sót và gây sai số liệu.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Ba bẫy hay hỏi: <code>'' IS NULL</code> khác nhau giữa hai hệ; <code>NVL</code> không portable (dùng <code>COALESCE</code>); <code>ROWNUM</code> gán trước <code>ORDER BY</code>. Thêm nữa: Oracle không có <code>READ UNCOMMITTED</code>, và hint Oracle không mang sang PostgreSQL.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>NULL vs '' khác hệ — bẫy ngữ nghĩa lớn nhất.</li>
+      <li>NVL/DECODE → COALESCE/CASE.</li>
+      <li>Sequence/identity, phân trang, hàm ngày khác cú pháp.</li>
+      <li>PL/SQL ≠ PL/pgSQL — phải viết lại.</li>
+      <li>Transaction/isolation &amp; tối ưu (hint vs stats/index) cũng khác.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+['        
+<section class="section" id="interview-sql-engine-details"><h2 class="section-title">Bổ sung chiều sâu phỏng vấn</h2><article class="qa-card" id="deep-sql-engine-details"><h3 class="qa-question">SQL DEM/DET: actual plan Oracle, bitmap và kiểm chứng tối ưu</h3><div class="qa-answer"><div class="ans-block"><span class="ans-label">What</span><p>Tối ưu query phải dựa trên dữ liệu và execution plan thật: PostgreSQL bitmap scan là cách truy cập tạm từ index, không phải persistent bitmap index của Oracle. DEM/DET nếu là tên bảng nghiệp vụ phải được làm rõ schema, cardinality và query trước khi đề xuất index.</p></div><div class="ans-block"><span class="ans-label">Không bịa schema DEM/DET</span><p>DEM/DET không phải cặp keyword SQL chuẩn phổ quát. Nếu interviewer dùng làm tên bảng master/detail, yêu cầu PK/FK, số dòng, phân bố và query thực tế; ví dụ minh họa bên dưới giả định DEM(id,created_at) và DET(dem_id,status,amount), không tuyên bố đây là schema hệ thống người dùng.</p></div><div class="ans-block"><span class="ans-label">Actual và estimated</span><p>Oracle EXPLAIN PLAN chỉ estimate. Sau execution thu runtime statistics bằng gather_plan_statistics hoặc statistics_level phù hợp, đọc DBMS_XPLAN.DISPLAY_CURSOR(sql_id, child_number, ALLSTATS LAST); so E-Rows/A-Rows và Starts trên đúng child cursor. Không bật collect toàn app tùy tiện; cần quyền và cân nhắc overhead. PG actual rows là trung bình mỗi loop, đọc cả loops, buffers và spills; shared read không chứng minh physical disk vì OS cache có thể phục vụ.</p></div><div class="ans-block"><span class="ans-label">Bitmap khác nhau</span><p>Oracle bitmap index lưu bitmap persistent, hữu ích data warehouse/ít concurrent DML; update có thể khóa phạm vi nhiều row nên không chọn chỉ vì status ít giá trị trong OLTP. PostgreSQL Bitmap Index Scan dựng bitmap TID từ B-tree/khác, BitmapAnd/Or kết hợp và Bitmap Heap Scan đọc heap theo block; lossy bitmap phải recheck. Nó không có nghĩa CREATE BITMAP INDEX tương đương Oracle.</p></div><div class="ans-block"><span class="ans-label">Quy trình với DEM/DET giả định</span><p>Lọc khoảng ngày bằng &gt;= và &lt; thay vì bọc function lên cột khi chưa có expression index phù hợp. Xem selectivity trước khi chọn DEM(created_at,id), DET(dem_id,status) hay DET(status,dem_id). Không tạo cả ba mù quáng: thứ tự join, độ chọn lọc, write overhead và partition pruning quyết định. EXPLAIN ANALYZE chạy thật, rollback không hoàn tác mọi side effect như sequence hay external function; dùng read-only replica/staging khi thích hợp.</p></div><div class="ans-block"><span class="ans-label">Nghiệm thu</span><p>So latency p95 và rows/buffers/temp I/O cùng dataset và bind params đại diện, warm/cold cache rõ ràng. Estimate lệch có thể do skew/correlation/parameter-sensitive plan, không chỉ thiếu index; cập nhật stats và kiểm dữ liệu trước. Partition chỉ có lợi khi pruning hoặc maintenance khớp use case, không phải luôn nhanh hơn.</p></div><div class="flow-diagram">Query + schema thật → bind/data distribution → actual plan → hypothesis → một thay đổi → đo trước/sau</div><pre class="code-block"><code>-- Schema DEM/DET chỉ là giả định minh họa
+SELECT d.id, sum(t.amount)
+FROM dem d JOIN det t ON t.dem_id = d.id
+WHERE d.created_at &gt;= :from_time AND d.created_at &lt; :to_time
+  AND t.status = :status
+GROUP BY d.id;
+-- Oracle sau khi chạy statement có thu statistics:
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(:sql_id, :child_no, &#x27;ALLSTATS LAST&#x27;));</code></pre><div class="ans-block"><span class="ans-label">Nguồn chính thức / tài liệu dự án</span><ul><li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-concurrency-and-consistency.html">oracle — tài liệu tham khảo</a></li><li><a href="https://www.postgresql.org/docs/current/indexes-bitmap-scans.html">bitmap — tài liệu tham khảo</a></li><li><a href="https://www.postgresql.org/docs/current/transaction-iso.html">pg — tài liệu tham khảo</a></li></ul></div></div></article></section>
+<div class="nav-pager">', '          <a class="prev" href="40-build-tools-gradle-maven.html"><span class="label">Trước</span><span class="title">40. Build Tools &amp; Agile</span></a>', '          <a class="next" href="42-ecommerce-iot-domain.html"><span class="label">Tiếp</span><span class="title">42. E-commerce &amp; IoT Domain</span></a>', '        </div>']
+      </div>
+
+      <footer class="site-footer">
+        <p>Knowledge Gym — Module 41 / 42</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

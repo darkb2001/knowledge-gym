@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Containers &amp; EC2 cho Developer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="module-header">
+  <span class="module-tag">AWS · Compute</span>
+  <h1 class="module-title">Containers &amp; EC2 cho Developer</h1>
+  <p class="module-subtitle">ECS, Fargate, EKS, EC2 và lựa chọn compute.</p>
+</div>
+<main class="content">
+
+  <section class="section" id="compute-choice">
+    <h2 class="section-title">Chọn compute nào?</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS1</span> Lambda vs Fargate vs ECS-EC2 vs EKS: chọn compute nào cho workload?</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>AWS có bốn cách chạy code chính trên compute: <strong>Lambda</strong> (serverless function, scale tới 0), <strong>Fargate</strong> (container serverless — không quản EC2), <strong>ECS trên EC2</strong> (tự quản cluster instance) và <strong>EKS</strong> (Kubernetes managed control plane). Chọn sai nền tảng là nguyên nhân phổ biến nhất khiến chi phí hoặc độ phức tạp vận hành tăng vọt. Câu hỏi DVA hay cho một đoạn mô tả workload rồi hỏi nên dùng gì.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Bốn lựa chọn, xếp theo mức bạn phải quản hạ tầng từ ít tới nhiều:</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">event, ≤15 phút, scale 0</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cần container</span></div>
+            <div class="icon-node"><span class="aws-ico fargate"></span><span class="icon-label">Fargate</span><span class="icon-note">container, không EC2</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cần GPU / giá tốt</span></div>
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">ECS on EC2</span><span class="icon-note">tự quản node</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cần K8s</span></div>
+            <div class="icon-node"><span class="aws-ico eks"></span><span class="icon-label">EKS</span><span class="icon-note">Kubernetes API</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># Serverless: scale tới 0, trả tiền theo request
+aws lambda create-function --function-name img-thumb \
+  --runtime python3.12 --handler app.handler \
+  --role arn:aws:iam::111122223333:role/lambda-exec \
+  --zip-file fileb://function.zip --timeout 60 --memory-size 1024
+
+# Container dài hạn: Fargate, desired-count cố định
+aws ecs create-service --cluster prod --service-name orders-api \
+  --task-definition orders-api:12 --desired-count 3 --launch-type FARGATE</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Lambda</th><th>Fargate</th><th>ECS on EC2</th><th>EKS</th></tr></thead>
+          <tbody>
+            <tr><td>Quản server</td><td>Không</td><td>Không</td><td>Có (node)</td><td>Có / node group</td></tr>
+            <tr><td>Scale tới 0</td><td>Có</td><td>Không (min ≥1)</td><td>Không</td><td>Không</td></tr>
+            <tr><td>Giới hạn thời gian</td><td>15 phút</td><td>Không</td><td>Không</td><td>Không</td></tr>
+            <tr><td>Hợp với</td><td>event, API, glue code</td><td>microservice container</td><td>GPU, spot, giá tốt</td><td>chuẩn K8s, portability</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block"><div class="ans-label">When</div><p>Chọn <strong>Lambda</strong> khi workload hướng sự kiện, chạy ngắn, chịu được cold start. Chọn <strong>Fargate</strong> khi cần container nhưng không muốn vá OS. Chọn <strong>ECS on EC2</strong> khi cần GPU, instance spot giá rẻ hoặc kiểm soát kernel. Chọn <strong>EKS</strong> khi đội đã dùng Kubernetes và cần portability đa cloud.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng ép Lambda cho job chạy hơn 15 phút hoặc cần giữ kết nối dài (WebSocket stateful) — phải dùng ECS/EKS. Đừng dựng EKS chỉ để chạy một container đơn giản: gánh nặng vận hành Kubernetes không đáng. Đừng chọn Fargate nếu cần GPU (Fargate không có GPU).</p></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Đề hay gài "container image, không muốn quản EC2, chạy 24/7" — đáp án là <strong>ECS Fargate</strong>, không phải Lambda (vì Lambda không chạy thường trú) và không phải ECS-EC2 (vì phải quản node).</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html">AWS Docs — Amazon ECS</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS2</span> Giải phẫu ECS: cluster, task definition, service và task placement</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>ECS gồm bốn khái niệm dễ lẫn: <strong>cluster</strong> (nhóm logic các tài nguyên chạy task), <strong>task definition</strong> (bản thiết kế JSON — giống docker-compose, mô tả image, CPU/RAM, port, log, role), <strong>task</strong> (một lần chạy cụ thể của task definition) và <strong>service</strong> (bộ điều khiển giữ đúng <em>desired count</em> task, tự thay task chết, gắn load balancer).</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Luồng từ định nghĩa tới chạy thật:</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">Cluster</span><span class="icon-note">prod / staging</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">register</span></div>
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">Task definition</span><span class="icon-note">image, cpu, port, role</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">desired-count</span></div>
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">Service</span><span class="icon-note">giữ N task khoẻ</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">run</span></div>
+            <div class="icon-node"><span class="aws-ico fargate"></span><span class="icon-label">Task</span><span class="icon-note">container thật</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code>{
+  "family": "orders-api",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512", "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::111122223333:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::111122223333:role/ordersTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "api",
+      "image": "111122223333.dkr.ecr.ap-southeast-1.amazonaws.com/orders:1.4.0",
+      "portMappings": [{"containerPort": 8080, "protocol": "tcp"}],
+      "logConfiguration": {"logDriver": "awslogs",
+        "options": {"awslogs-group": "/ecs/orders", "awslogs-region": "ap-southeast-1"}}
+    }
+  ]
+}</code></pre></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Task placement strategy (chỉ với EC2 launch type): <strong>binpack</strong> (dồn task vào ít instance nhất — tiết kiệm), <strong>spread</strong> (rải đều theo AZ/instance — chịu lỗi tốt), <strong>random</strong>. Với Fargate, AWS tự lo placement nên không cần strategy.</p></div>
+        <table class="feature-table">
+          <thead><tr><th>Khái niệm</th><th>Là gì</th><th>Vòng đời</th></tr></thead>
+          <tbody>
+            <tr><td>Task definition</td><td>Blue-print bất biến, có revision</td><td>Đăng ký lại mỗi lần sửa</td></tr>
+            <tr><td>Task</td><td>Instance đang chạy của definition</td><td>Ngắn, chết là thay</td></tr>
+            <tr><td>Service</td><td>Giữ desired count, gắn ALB</td><td>Dài, cập nhật rolling</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block"><div class="ans-label">When</div><p>Dùng <strong>task definition + service</strong> cho ứng dụng web chạy thường trú. Chỉ dùng <strong>run-task độc lập</strong> (không service) cho job một lần như migration, batch ngắn.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng nhồi nhiều container không liên quan vào một task definition kiểu "một máy chủ ảo" — mỗi task nên là một đơn vị deploy; tách để scale độc lập. Đừng dùng taskRoleArn cho permission kéo image: đó là việc của executionRoleArn.</p></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p><strong>execution role</strong> = cho ECS agent kéo image ECR + ghi log CloudWatch. <strong>task role</strong> = cho code trong container gọi S3/DynamoDB/SQS. Đề rất hay đổi chỗ hai role này.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html">AWS Docs — ECS task definitions</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="launch-types">
+    <h2 class="section-title">ECS, Fargate và ECR</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS3</span> Fargate vs EC2 launch type và capacity provider: khác nhau ra sao?</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p><strong>Launch type</strong> quyết định ai chạy container của bạn. <strong>EC2 launch type</strong>: bạn tự tạo và quản một ASG gồm EC2, mỗi instance cài ECS container agent. <strong>Fargate launch type</strong>: AWS cấp một máy ảo vi mô cho mỗi task, bạn không thấy và không vá được OS. <strong>Capacity provider</strong> là lớp trừu tượng gộp cả hai, cho phép service chọn FARGATE, FARGATE_SPOT hoặc ASG và đặt weight/base.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Cùng một task definition, chỉ khác launch type và cách cấp năng lực:</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico fargate"></span><span class="icon-label">FARGATE</span><span class="icon-note">per-task, không quản node</span></div>
+            <div class="icon-node"><span class="aws-ico fargate"></span><span class="icon-label">FARGATE_SPOT</span><span class="icon-note">rẻ, có thể bị thu hồi</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">ASG provider</span><span class="icon-note">tự điều chỉnh node EC2</span></div>
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">Managed scaling</span><span class="icon-note">scaling theo số task</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># Trộn Fargate + Fargate Spot: 2 task nền tối thiểu, phần còn lại 4 phần spot
+aws ecs put-cluster-capacity-providers --cluster prod \
+  --capacity-providers FARGATE FARGATE_SPOT \
+  --default-capacity-provider-strategy \
+    capacityProvider=FARGATE,weight=1,base=2 \
+    capacityProvider=FARGATE_SPOT,weight=4</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Fargate</th><th>EC2 launch type</th></tr></thead>
+          <tbody>
+            <tr><td>Quản OS / vá lỗi</td><td>AWS lo</td><td>Bạn lo (AMI, agent)</td></tr>
+            <tr><td>Đơn vị tính tiền</td><td>vCPU + GB theo giây</td><td>EC2 instance chạy 24/7</td></tr>
+            <tr><td>GPU</td><td>Không</td><td>Có</td></tr>
+            <tr><td>Tối ưu chi phí ở tải lớn</td><td>Kém hơn</td><td>Tốt hơn (spot/reserved)</td></tr>
+            <tr><td>Kiểm soát host</td><td>Không</td><td>Toàn quyền</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block"><div class="ans-label">When</div><p>Chọn Fargate cho phần lớn microservice mới: đơn giản, đúng mức sử dụng. Chọn EC2 launch type khi tải lớn ổn định (đặt reserved/spot cho rẻ), cần GPU/instance đặc thù, hoặc cần custom AMI đã hardened.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng chạy Fargate cho batch tải cao liên tục rồi kêu tốn tiền — EC2 reserved thường rẻ hơn nhiều ở mức tải ổn định. Đừng bật FARGATE_SPOT cho workload không chịu được gián đoạn: task spot có thể bị dừng với tín hiệu trước 2 phút.</p></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Task Fargate bắt buộc <code>networkMode: awsvpc</code> và mỗi task nhận ENI riêng với IP trong subnet — đừng tìm cách gán nhiều task chung một IP. Ngoài ra Fargate không hỗ trợ host port mapping cố định.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html">AWS Docs — AWS Fargate</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS4</span> ECR và vòng đời image: scan, lifecycle policy, tag bất biến</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p><strong>Amazon ECR</strong> là registry container private, gắn chặt IAM và ECS/EKS. Ứng dụng developer quan tâm bốn thứ: đẩy/kéo image qua <code>docker</code>, <strong>image scanning</strong> (phát hiện CVE), <strong>lifecycle policy</strong> (tự xoá image cũ để giảm phí lưu trữ) và <strong>tag immutability</strong> (chặn ghi đè một tag, bảo đảm deploy tái lập được).</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Luồng build → push → deploy:</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico codebuild"></span><span class="icon-label">CI Build</span><span class="icon-note">docker build</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">push tag + digest</span></div>
+            <div class="icon-node"><span class="aws-ico ecr"></span><span class="icon-label">ECR</span><span class="icon-note">scan + lifecycle</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">pull bằng execution role</span></div>
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">ECS / EKS</span><span class="icon-note">deploy theo digest</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code>aws ecr get-login-password --region ap-southeast-1 \
+  | docker login --username AWS --password-stdin \
+    111122223333.dkr.ecr.ap-southeast-1.amazonaws.com
+
+docker build -t orders:1.4.0 .
+docker tag orders:1.4.0 \
+  111122223333.dkr.ecr.ap-southeast-1.amazonaws.com/orders:1.4.0
+docker push 111122223333.dkr.ecr.ap-southeast-1.amazonaws.com/orders:1.4.0</code></pre></div>
+        <div class="code-block" data-lang="json"><pre><code>{
+  "rules": [{
+    "rulePriority": 1,
+    "description": "chi giu 10 image moi nhat",
+    "selection": {"tagStatus": "any",
+                  "countType": "imageCountMoreThan", "countNumber": 10},
+    "action": {"type": "expire"}
+  }]
+}</code></pre></div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Bật <strong>scan on push</strong> cho mọi repo (basic scan miễn phí, enhanced scan dùng Inspector sâu hơn). Đặt <strong>lifecycle policy</strong> khi repo nhận hàng trăm build mỗi ngày. Bật <strong>tag immutability</strong> cho repo prod để một tag luôn trỏ về đúng một image.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng dùng tag <code>latest</code> làm tham chiếu deploy prod — image thay đổi âm thầm, rollback không tái lập được. Đừng xoá bằng tay hàng loạt: hãy để lifecycle policy tự động.</p></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Deploy nên ghim theo <strong>image digest</strong> (<code>repo@sha256:…</code>) thay vì tag. Digest là bất biến; tag có thể bị trỏ lại. Repository policy khác account phải cấp cả quyền <code>ecr:GetAuthorizationToken</code>.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html">AWS Docs — ECR lifecycle policies</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS5</span> Tình huống: task chạy nhưng ALB báo unhealthy, deploy xong cứ rollback — sửa thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>Một ứng dụng deploy bản mới lên ECS service sau ALB; task ở trạng thái RUNNING nhưng target bị đánh <em>unhealthy</em>, rồi deployment tự rollback. Ở đây cần nắm ba thứ: <strong>target group health check</strong>, <strong>health check grace period</strong> và <strong>deployment circuit breaker</strong>.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>ALB kiểm tra sức khoẻ qua target group; service ECS chỉ đưa task nhận traffic khi pass:</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico alb"></span><span class="icon-label">ALB</span><span class="icon-note">listener :443</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">route theo path</span></div>
+            <div class="icon-node"><span class="aws-ico alb"></span><span class="icon-label">Target group</span><span class="icon-note">health GET /healthz</span></div>
+            <div class="icon-arrow">↔<span class="arrow-note">đăng ký/rút target</span></div>
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">ECS service</span><span class="icon-note">grace period + breaker</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">task IP</span></div>
+            <div class="icon-node"><span class="aws-ico fargate"></span><span class="icon-label">Task</span><span class="icon-note">/healthz phải 200</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code>aws ecs create-service --cluster prod --service-name orders-api \
+  --task-definition orders-api:12 --desired-count 3 --launch-type FARGATE \
+  --load-balancers targetGroupArn=arn:aws:elasticloadbalancing:ap-southeast-1:111122223333:targetgroup/orders-tg/abc123,containerName=api,containerPort=8080 \
+  --health-check-grace-period-seconds 60 \
+  --deployment-configuration \
+    maximumPercent=200,minimumHealthyPercent=100,deploymentCircuitBreaker={enable=true,rollback=true}</code></pre></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Ba nguyên nhân thường gặp: (1) đường dẫn health check sai hoặc trả mã khác 200, (2) task khởi động chậm hơn <em>grace period</em> nên bị đánh unhealthy trước khi kịp sẵn sàng, (3) <code>containerPort</code> trong phần <code>load-balancers</code> không khớp cổng app thật. Bật <strong>deployment circuit breaker</strong> để ECS tự rollback thay vì treo deployment.</p></div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Luôn cấu hình health check trỏ tới một endpoint nhẹ, đã kiểm tra cả dependency. Đặt <code>minimumHealthyPercent=100</code> cho prod để không mất năng lực khi deploy (đổi lại cần chỗ cho 200% task).</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng để health check đụng vào dependency nặng (DB query) — một DB chậm có thể khiến toàn bộ task bị rút khỏi ALB. Đừng tắt circuit breaker ở prod: deploy lỗi sẽ treo vô hạn và bạn phải can thiệp tay.</p></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p><code>deregistration_delay</code> (mặc định 300 giây) làm lâu khi rút task; <code>health check grace period</code> phải lớn hơn thời gian app khởi động. Đừng lẫn hai thông số này.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-load-balancing.html">AWS Docs — ECS service load balancing</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="eks-ec2">
+    <h2 class="section-title">EKS và EC2 cho developer</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS6</span> EKS cho developer: kubectl, node group và IRSA</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p><strong>Amazon EKS</strong> là Kubernetes managed: AWS chạy control plane (API server, etcd) và bạn chỉ lo worker node. Developer cần biết: trỏ <code>kubectl</code> vào cluster, chọn cách chạy pod (<strong>managed node group</strong>, <strong>self-managed node</strong> hay <strong>Fargate profile</strong>) và cấp quyền IAM cho pod qua <strong>IRSA</strong> (IAM Roles for Service Accounts).</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Luồng làm việc và ánh xạ quyền:</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico eks"></span><span class="icon-label">EKS control plane</span><span class="icon-note">API + etcd, AWS lo</span></div>
+            <div class="icon-arrow">↔<span class="arrow-note">aws eks update-kubeconfig</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">kubectl</span><span class="icon-note">apply / get pods</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">schedule</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">Node group</span><span class="icon-note">EC2 worker</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">annotate SA</span></div>
+            <div class="icon-node"><span class="aws-ico iam"></span><span class="icon-label">IRSA</span><span class="icon-note">role cho ServiceAccount</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># Trỏ kubectl vào cluster (cần quyền describe cluster)
+aws eks update-kubeconfig --name prod --region ap-southeast-1
+kubectl get nodes
+kubectl apply -f orders-deployment.yaml
+
+# Liên kết OIDC provider (một lần) để dùng IRSA
+eksctl utils associate-iam-oidc-provider --cluster prod --approve</code></pre></div>
+        <div class="code-block" data-lang="yaml"><pre><code>apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: orders-sa
+  namespace: default
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/orders-irsa</code></pre></div>
+        <div class="ans-block"><div class="ans-label">How</div><p><strong>IRSA</strong> hoạt động nhờ OIDC provider của cluster: pod gắn ServiceAccount có annotation sẽ được STS cấp credential tạm thời — không cần nhúng access key vào image. Đây là cách cấp quyền chuẩn, thay cho việc gán role cho cả node (khiến mọi pod trên node dùng chung quyền).</p></div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Dùng <strong>managed node group</strong> cho hầu hết workload (AWS lo AMI/vá). Dùng <strong>Fargate profile</strong> khi muốn chạy pod không cần quản node. Dùng <strong>IRSA</strong> cho mọi pod cần gọi dịch vụ AWS.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng cấp quyền S3 rộng cho node role rồi cho mọi pod dùng chung — vi phạm least privilege và khó audit. Đừng chạy EKS nếu đội chưa có kinh nghiệm Kubernetes: chi phí vận hành và bề mặt lỗi lớn hơn ECS.</p></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>IRSA gắn ở mức <strong>ServiceAccount</strong>, không phải Deployment. Kiểm tra lại: nếu pod gọi S3 bị AccessDenied, thường do thiếu OIDC provider hoặc quên annotation trên đúng ServiceAccount.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html">AWS Docs — IAM roles for service accounts</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS7</span> EC2 cho developer: instance family, spot vs on-demand vs reserved, user data và SSM</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>Dù hướng serverless, developer vẫn gặp EC2. Cần nắm: <strong>instance family</strong> (nhóm chữ cái), cách <strong>mua</strong> (on-demand / reserved / spot), <strong>user data</strong> để bootstrap lúc khởi động và <strong>SSM Session Manager</strong> để vào máy không cần SSH.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Các family phổ biến, chạm chữ cái để đoán:</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">t / m</span><span class="icon-note">general purpose (t3, m7i)</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">c</span><span class="icon-note">compute-optimized (CI, game)</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">r / x</span><span class="icon-note">memory (cache, DB)</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">i / d</span><span class="icon-note">storage NVMe</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">p / g</span><span class="icon-note">GPU (ML, render)</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># Boot máy có user data chạy 1 lần lúc launch (cloud-init)
+aws ec2 run-instances --image-id ami-0abcd1234 \
+  --instance-type t3.micro --key-name dev \
+  --user-data file://bootstrap.sh
+
+# Vào máy KHÔNG cần SSH, không mở port 22, không bastion
+aws ssm start-session --target i-0abcd1234efgh5678</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Kiểu mua</th><th>Giảm giá</th><th>Rủi ro / cam kết</th></tr></thead>
+          <tbody>
+            <tr><td>On-Demand</td><td>0%</td><td>Không, linh hoạt nhất</td></tr>
+            <tr><td>Reserved / Savings Plans</td><td>tới ~72%</td><td>Cam kết 1–3 năm</td></tr>
+            <tr><td>Spot</td><td>tới ~90%</td><td>Có thể bị thu hồi, báo trước 2 phút</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block"><div class="ans-label">When</div><p>Dùng <strong>Spot</strong> cho batch, CI runner, worker chịu gián đoạn. Dùng <strong>Reserved/Savings Plans</strong> cho nền tải ổn định chạy 24/7. Dùng <strong>SSM Session Manager</strong> thay SSH: cần IAM + agent, không cần mở cổng, có log phiên lên CloudWatch/CloudTrail.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng mở port 22 ra Internet hay dựng bastion host khi chỉ cần vào máy để debug — SSM an toàn và rẻ hơn. Đừng đặt state quan trọng trên instance spot; hãy coi nó luôn có thể biến mất. Đừng nhét bí mật vào user data (nó lộ trong metadata/console).</p></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>User data chạy <strong>một lần</strong> ở lần boot đầu (mặc định); không phải script cấu hình chạy lại. Log của nó nằm ở <code>/var/log/cloud-init-output.log</code>. Đặt secret ở user data là lỗi bảo mật kinh điển.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html">AWS Docs — Spot Instances</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="beanstalk-lab">
+    <h2 class="section-title">Beanstalk và lab chọn compute</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS8</span> Elastic Beanstalk deployment policies: all-at-once tới traffic splitting</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p><strong>Elastic Beanstalk</strong> là PaaS: bạn đẩy code, nó lo EC2/ALB/ASG. Khi triển khai phiên bản mới, phải chọn <strong>deployment policy</strong> đánh đổi giữa tốc độ, chi phí và rủi ro downtime. Có năm chính sách: all-at-once, rolling, rolling with additional batch, immutable và traffic splitting.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Mức an toàn tăng dần, chi phí cũng tăng dần:</p>
+          <div class="stack">
+            <div class="stack-title">Rủi ro giảm dần → an toàn tăng</div>
+            <div class="sub-grid">
+              <div class="icon-node"><span class="aws-ico beanstalk"></span><span class="icon-label">All-at-once</span><span class="icon-note">nhanh nhất, có downtime</span></div>
+              <div class="icon-node"><span class="aws-ico beanstalk"></span><span class="icon-label">Rolling</span><span class="icon-note">từng batch, giảm năng lực</span></div>
+              <div class="icon-node"><span class="aws-ico beanstalk"></span><span class="icon-label">Rolling + batch</span><span class="icon-note">giữ đủ năng lực</span></div>
+              <div class="icon-node"><span class="aws-ico beanstalk"></span><span class="icon-label">Immutable</span><span class="icon-note">ASG mới, rollback nhanh</span></div>
+              <div class="icon-node"><span class="aws-ico beanstalk"></span><span class="icon-label">Traffic splitting</span><span class="icon-note">canary % lên bản mới</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="yaml"><pre><code># .ebextensions/deploy.config
+option_settings:
+  aws:elasticbeanstalk:command:
+    DeploymentPolicy: RollingWithAdditionalBatch
+    BatchSizeType: Percentage
+    BatchSize: 25
+    Timeout: 600</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Policy</th><th>Downtime</th><th>Năng lực trong deploy</th><th>Rollback</th></tr></thead>
+          <tbody>
+            <tr><td>All-at-once</td><td>Có</td><td>0</td><td>Phải deploy lại</td></tr>
+            <tr><td>Rolling</td><td>Không</td><td>Giảm theo batch</td><td>Deploy lại</td></tr>
+            <tr><td>Rolling + additional batch</td><td>Không</td><td>Đủ (thêm batch)</td><td>Deploy lại</td></tr>
+            <tr><td>Immutable</td><td>Không</td><td>Đủ</td><td>Nhanh, bỏ ASG mới</td></tr>
+            <tr><td>Traffic splitting</td><td>Không</td><td>Đủ</td><td>Nhanh theo %</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block"><div class="ans-label">When</div><p>Dùng <strong>all-at-once</strong> cho dev/test cần nhanh. Dùng <strong>rolling with additional batch</strong> hoặc <strong>immutable</strong> cho prod cần zero-downtime. Dùng <strong>traffic splitting</strong> (canary) khi muốn đưa một phần nhỏ traffic lên bản mới để quan sát rồi mới all-in.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng dùng all-at-once cho prod (downtime toàn bộ). Đừng lẫn <em>rolling</em> với <em>blue/green</em>: rolling thay dần trên cùng môi trường, còn blue/green là đổi hai môi trường và swap CNAME — không phải một deployment policy của Beanstalk.</p></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Deployment policy áp ở cấp môi trường (<code>aws:elasticbeanstalk:command</code>). Đừng tìm nó trong Dockerfile hay buildspec — đó không phải chỗ cấu hình.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.rolling-version-deploy.html">AWS Docs — Beanstalk deployment policies</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS9</span> Lab tình huống: chọn compute cho ba workload cụ thể</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>Bài tổng hợp: ba mô tả workload, chọn nền tảng compute phù hợp và giải thích. Đây là dạng câu hỏi tình huống đặc trưng của DVA-C02 — mấu chốt là khớp ràng buộc (thời gian chạy, hướng sự kiện, nhu cầu vận hành) với dịch vụ.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Bảng ánh xạ nhanh ràng buộc → lựa chọn:</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Workload A</span><span class="icon-note">resize ảnh khi upload S3</span></div>
+            <div class="icon-node"><span class="aws-ico fargate"></span><span class="icon-label">Workload B</span><span class="icon-note">API container 24/7</span></div>
+            <div class="icon-node"><span class="aws-ico eks"></span><span class="icon-label">Workload C</span><span class="icon-note">nhiều microservice K8s</span></div>
+            <div class="icon-node"><span class="aws-ico batch"></span><span class="icon-label">Workload D</span><span class="icon-note">batch số lớn cuối ngày</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code># A) S3 upload sinh event -&gt; Lambda (không giữ server)
+aws s3api put-bucket-notification-configuration \
+  --bucket uploads --notification-configuration file://notif.json
+
+# B) API container chạy thường trú -&gt; ECS Fargate sau ALB
+sam build
+sam deploy --guided
+
+# D) Batch lớn chạy cuối ngày trên spot -&gt; AWS Batch / ECS run-task</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Workload</th><th>Chọn</th><th>Vì sao</th></tr></thead>
+          <tbody>
+            <tr><td>A. resize ảnh khi có file mới</td><td>Lambda</td><td>Hướng sự kiện, ngắn, scale tới 0</td></tr>
+            <tr><td>B. API container chạy 24/7</td><td>ECS Fargate</td><td>Container lâu dài, không quản node</td></tr>
+            <tr><td>C. Bộ microservice chuẩn K8s</td><td>EKS</td><td>Cần hệ sinh thái và portability K8s</td></tr>
+            <tr><td>D. Batch lớn, chịu gián đoạn</td><td>Spot / AWS Batch</td><td>Tối ưu chi phí, job dài quá 15 phút</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block"><div class="ans-label">When</div><p>Dùng khung này khi đề cho một đoạn văn mô tả hệ thống. Luôn tự hỏi bốn câu: chạy bao lâu, hướng sự kiện hay liên tục, ai quản hạ tầng, có cần K8s/GPU không.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng chọn Lambda nếu workload vượt 15 phút hoặc cần streaming dài; khi đó chuyển sang Fargate/ECS. Đừng chọn EKS chỉ vì "nghe hiện đại" nếu đội không vận hành được Kubernetes — ECS đơn giản hơn cho phần lớn bài toán.</p></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Đọc kỹ từ khoá: "spiky, unpredictable traffic" thiên về Lambda/Serverless; "long-running server process" thiên về container; "many services, portable across clouds" thiên về EKS; "cost-sensitive, interruptible" thiên về spot.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/whitepapers/latest/aws-overview/compute-services.html">AWS Docs — Compute services</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <div class="nav-pager"><a class="prev" href="20-aws-lambda.html">← Trước</a><a class="next" href="index.html">Trang chủ →</a></div>
+</main>
+</body>
+</html>

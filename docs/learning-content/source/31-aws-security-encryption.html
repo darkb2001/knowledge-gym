@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mã hoá &amp; Secrets — DVA-C02 Deep Dive</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="module-header">
+  <span class="module-tag">AWS · Security</span>
+  <h1 class="module-title">Mã hoá &amp; Secrets — DVA-C02 Deep Dive</h1>
+  <p class="module-subtitle">KMS, Secrets Manager và bảo vệ dữ liệu.</p>
+</div>
+<main class="content">
+
+  <section class="section" id="encryption-basics">
+    <h2 class="section-title">Mã hoá dữ liệu — nền tảng</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS1</span> Mã hoá <em>at-rest</em> và <em>in-transit</em> khác nhau thế nào? TLS và ACM đóng vai trò gì?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>Đây là <strong>hai lớp bảo vệ độc lập</strong>, cần có cả hai. <strong>At-rest</strong> là mã hoá dữ liệu khi nó <em>đã nằm</em> trên nơi lưu trữ: S3 object, EBS volume, RDS snapshot, DynamoDB table — thường do dịch vụ tự mã hoá bằng key của KMS. <strong>In-transit</strong> là mã hoá dữ liệu <em>trên đường truyền</em> giữa client và service, thực hiện bằng TLS (HTTPS) hoặc TLS tunnel mà developer phải bật/ép.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Ở tầng transport, mọi endpoint AWS đều có HTTPS; bạn ép buộc bằng bucket policy <code>aws:SecureTransport</code> cho S3 hoặc <code>rds.force_ssl</code> cho RDS. Chứng chỉ TLS do <strong>ACM</strong> (AWS Certificate Manager) cấp — public certificate <em>miễn phí</em> và <em>tự động gia hạn</em>, gắn vào ALB/NLB, CloudFront, API Gateway. Dữ liệu at-rest thì bật <code>SSE-KMS</code> hoặc để mặc định của dịch vụ.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Client</span><span class="icon-note">HTTPS request</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">TLS 1.2/1.3</span></div>
+            <div class="icon-node"><span class="aws-ico acm"></span><span class="icon-label">ALB / CloudFront</span><span class="icon-note">ACM certificate</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">encrypted at rest</span></div>
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">S3 / RDS</span><span class="icon-note">SSE-KMS, key trong KMS</span></div>
+          </div>
+        </div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>At-rest</th><th>In-transit</th></tr></thead>
+          <tbody>
+            <tr><td>Bảo vệ gì</td><td>Dữ liệu đã ghi lên disk/object store</td><td>Dữ liệu đang truyền trên mạng</td></tr>
+            <tr><td>Công cụ</td><td>KMS key, SSE-*, encryption at rest của dịch vụ</td><td>TLS/HTTPS, AWS PrivateLink, VPN</td></tr>
+            <tr><td>Cấp chứng chỉ</td><td>—</td><td>ACM (public cert free, auto-renew)</td></tr>
+            <tr><td>Ai bật</td><td>Cấu hình bucket/DB/volume</td><td>Developer ép HTTPS trong policy/app</td></tr>
+          </tbody>
+        </table>
+        <div class="code-block" data-lang="json"><pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "DenyInsecureTransport",
+    "Effect": "Deny",
+    "Principal": "*",
+    "Action": "s3:*",
+    "Resource": ["arn:aws:s3:::app-secure-bucket", "arn:aws:s3:::app-secure-bucket/*"],
+    "Condition": {"Bool": {"aws:SecureTransport": "false"}}
+  }]
+}</code></pre></div>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Mọi hệ thống production. Bucket policy <code>DenyInsecureTransport</code> là cách phổ biến nhất để chứng minh "chỉ HTTPS" khi audit.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không dùng HTTP thuần cho bất kỳ endpoint nào có credential hay dữ liệu người dùng. Không tự quản lý file cert trên EC2 khi đã có ACM gắn vào load balancer.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>ACM public certificate <strong>không thể export</strong> — chỉ dùng được với dịch vụ AWS tích hợp (ALB, CloudFront, API Gateway). Muốn tải cert về dùng ở nơi khác phải dùng <em>ACM Private CA</em> (tính phí). Cert cho <strong>CloudFront phải tạo ở region us-east-1</strong>.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html">AWS Docs — ACM overview</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html">AWS Docs — S3 security best practices</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS2</span> KMS có những loại key nào? Vì sao <em>key policy</em> là bắt buộc?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>KMS quản lý 4 nhóm key chính. <strong>AWS owned key</strong>: bạn không thấy, không kiểm soát, không tính phí riêng. <strong>AWS managed key</strong> (tiền tố <code>aws/</code>, ví dụ <code>aws/s3</code>): AWS tạo và xoay vòng hằng năm, bạn không sửa được key policy, không dùng cross-account. <strong>Customer managed key (CMK)</strong>: bạn tự tạo, kiểm soát key policy/grant/rotation, dùng được cross-account, tính phí theo key/tháng. <strong>Custom key store</strong>: key material sinh và giữ trong AWS CloudHSM do bạn quản lý.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Điểm quan trọng nhất: <strong>không principal nào có quyền trên KMS key trừ khi key policy cho phép</strong>. IAM policy một mình là <em>chưa đủ</em> — key policy phải mở đường (thường là statement cấp cho root account hoặc principal cụ thể), khi đó IAM policy mới phát huy tác dụng. Key policy mặc định cho root account toàn quyền trên key.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">AWS owned key</span><span class="icon-note">không thấy, không phí</span></div>
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">AWS managed</span><span class="icon-note">aws/s3, aws/ebs</span></div>
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">Customer managed</span><span class="icon-note">tự kiểm soát + cross-account</span></div>
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">Custom key store</span><span class="icon-note">CloudHSM</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EnableRoot",
+      "Effect": "Allow",
+      "Principal": {"AWS": "arn:aws:iam::111122223333:root"},
+      "Action": "kms:*",
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowAppRoleUse",
+      "Effect": "Allow",
+      "Principal": {"AWS": "arn:aws:iam::111122223333:role/AppRole"},
+      "Action": ["kms:Decrypt", "kms:GenerateDataKey"],
+      "Resource": "*"
+    }
+  ]
+}</code></pre></div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tao CMK va alias cho ung dung</span>
+aws kms create-key --description "app-data CMK" --policy file://key-policy.json
+aws kms create-alias --alias-name alias/app-data \
+  --target-key-id 1234abcd-12ab-34cd-56ef-1234567890ab</code></pre></div>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Dùng <strong>CMK</strong> khi cần audit/kiểm soát key, cần share cross-account, cần rotation theo lịch riêng, hoặc compliance. Dùng AWS managed key cho dữ liệu thông thường không cần kiểm soát riêng.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không dùng AWS managed key cho tình huống <strong>cross-account</strong> (không share được) hay khi cần rút quyền theo principal. Cân nhắc kỹ CMK đắt hơn và bạn phải tự quản lý vòng đời.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Xoá CMK là <strong>không thể hoàn tác</strong> — key vào trạng thái <em>pending deletion</em> 7–30 ngày rồi mất vĩnh viễn, kéo theo mọi dữ liệu đã mã hoá bằng nó. Không thể "đổi key" của một RDS instance hay EBS snapshot sau khi tạo; muốn đổi phải snapshot rồi restore sang key mới.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html">AWS Docs — Key policies in AWS KMS</a> · <a href="https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html">AWS Docs — KMS concepts</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="kms-and-s3">
+    <h2 class="section-title">KMS &amp; mã hoá S3</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS3</span> Vì sao không mã hoá trực tiếp bằng KMS? Envelope encryption và data key hoạt động ra sao?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>API <code>kms:Encrypt</code> chỉ nhận plaintext <strong>tối đa 4 KB (4.096 byte)</strong>, mỗi lần gọi là một network round-trip và tính vào hạn mức request của KMS. Vì vậy dữ liệu lớn (file, object, bảng) không mã hoá trực tiếp bằng KMS. <strong>Envelope encryption</strong> giải quyết việc này: KMS sinh một <strong>data key (DEK)</strong> và trả về hai phần — plaintext DEK và bản DEK đã được KMS mã hoá (<em>encrypted DEK</em>). Bạn dùng plaintext DEK mã hoá dữ liệu lớn ngay tại chỗ, rồi lưu <em>encrypted DEK</em> kèm ciphertext và xoá plaintext DEK khỏi bộ nhớ.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Khi ghi: gọi <code>GenerateDataKey</code> → nhận <code>Plaintext</code> + <code>CiphertextBlob</code> → mã hoá dữ liệu bằng DEK (ví dụ AES-256-GCM). Khi đọc: gọi <code>Decrypt</code> với <code>CiphertextBlob</code> để lấy lại plaintext DEK, hoặc giữ DEK đã giải mã trong RAM nếu còn dùng. <strong>Grants</strong> cho phép cấp quyền dùng key <em>tạm thời</em> cho một service mà không cần sửa key policy.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">App / Lambda</span><span class="icon-note">gọi GenerateDataKey</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">KMS sinh DEK</span></div>
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">Plaintext DEK</span><span class="icon-note">chỉ ở trong RAM app</span></div>
+            <div class="icon-arrow">+<span class="arrow-note">lưu kèm</span></div>
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">Encrypted DEK</span><span class="icon-note">lưu cùng ciphertext</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">AES-256-GCM</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Ciphertext</span><span class="icon-note">lưu ở S3/EBS/DB</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="python"><pre><code>import os, boto3
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+kms = boto3.client("kms")
+
+<span class="tok-comment"># 1. Sinh data key: tra ve plaintext DEK + encrypted DEK</span>
+resp = kms.generate_data_key(KeyId="alias/app-data", KeySpec="AES_256")
+plaintext_dek = resp["Plaintext"]
+encrypted_dek = resp["CiphertextBlob"]
+
+<span class="tok-comment"># 2. Ma hoa du lieu lon bang DEK ngay tai cho</span>
+nonce = os.urandom(12)
+ciphertext = AESGCM(plaintext_dek).encrypt(nonce, open("big-file.bin","rb").read(), None)
+
+<span class="tok-comment"># 3. Chi luu ciphertext + nonce + encrypted DEK (KHONG luu plaintext DEK)</span>
+save(blob=nonce + ciphertext, wrapped=encrypted_dek)</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>API</th><th>Trả về</th><th>Dùng khi</th></tr></thead>
+          <tbody>
+            <tr><td>Encrypt</td><td>CiphertextBlob</td><td>Dữ liệu nhỏ ≤ 4 KB</td></tr>
+            <tr><td>GenerateDataKey</td><td>Plaintext + CiphertextBlob (DEK)</td><td>Mã hoá dữ liệu lớn (envelope)</td></tr>
+            <tr><td>Decrypt</td><td>Plaintext gốc</td><td>Lấy lại dữ liệu/DEK khi đọc</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Gần như mọi trường hợp mã hoá dữ liệu ứng dụng (file upload, object S3, field trong DB). Đây cũng chính là cơ chế bên dưới của SSE-KMS.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không giữ plaintext DEK lâu hơn cần thiết và <strong>tuyệt đối không log</strong> DEK/ciphertext blob. Không gọi KMS mỗi lần đọc một phần nhỏ dữ liệu — sẽ tốn request và độ trễ.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>KMS key material <strong>không bao giờ rời khỏi KMS</strong>; plaintext DEK thì chỉ tồn tại trong RAM app. Câu hỏi DVA hay gặp: "tại sao không Encrypt file 5 MB bằng KMS?" → vì giới hạn 4 KB, phải dùng envelope encryption.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/kms/latest/developerguide/envelope-encryption.html">AWS Docs — Envelope encryption</a> · <a href="https://docs.aws.amazon.com/kms/latest/developerguide/grants.html">AWS Docs — Grants in AWS KMS</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS4</span> SSE-S3, SSE-KMS, DSSE-KMS, SSE-C — chọn cái nào? S3 Bucket Key tiết kiệm gì?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>Bốn chế độ mã hoá phía server của S3 khác nhau ở <strong>ai giữ key</strong> và <strong>mức audit</strong>. <strong>SSE-S3</strong>: S3 quản lý key, dùng AES-256, không cần cấu hình gì (giờ là mặc định cho mọi bucket mới). <strong>SSE-KMS</strong>: dùng KMS key — có audit qua CloudTrail, kiểm soát bằng key policy, hỗ trợ cross-account (với customer managed key). <strong>DSSE-KMS</strong>: mã hoá <em>hai lớp</em> AES-256 với KMS key, cho yêu cầu compliance khắt khe. <strong>SSE-C</strong>: bạn tự gửi key theo từng request qua TLS, S3 không lưu key.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p><strong>S3 Bucket Key</strong> là tính năng quan trọng về chi phí: thay vì gọi KMS mỗi lần đọc/ghi object, S3 dùng một bucket-level key để sinh data key cục bộ, <em>giảm tới 99% request tới KMS</em> (và chi phí tương ứng). Bucket Key áp dụng cho SSE-KMS và DSSE-KMS, bật theo bucket.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">SSE-S3</span><span class="icon-note">S3 giữ key, mặc định</span></div>
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">SSE-KMS</span><span class="icon-note">audit + key policy + cross-account</span></div>
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">DSSE-KMS</span><span class="icon-note">hai lớp AES-256</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">SSE-C</span><span class="icon-note">bạn giữ key</span></div>
+          </div>
+        </div>
+        <table class="feature-table">
+          <thead><tr><th>Chế độ</th><th>Ai quản lý key</th><th>Audit / CloudTrail</th><th>Cross-account</th></tr></thead>
+          <tbody>
+            <tr><td>SSE-S3</td><td>S3 (AWS)</td><td>Không có event KMS theo object</td><td>Không cần cấu hình thêm</td></tr>
+            <tr><td>SSE-KMS (CMK)</td><td>Bạn (KMS)</td><td>Có (Decrypt/GenerateDataKey)</td><td>Được, qua key policy</td></tr>
+            <tr><td>SSE-KMS (aws/s3)</td><td>AWS</td><td>Có</td><td>Không share được</td></tr>
+            <tr><td>DSSE-KMS</td><td>Bạn + AWS</td><td>Có</td><td>Được (một số ràng buộc)</td></tr>
+            <tr><td>SSE-C</td><td>Client</td><td>Không</td><td>Client tự gửi key</td></tr>
+          </tbody>
+        </table>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Ghi object voi SSE-KMS + bucket key</span>
+aws s3api put-object --bucket app-secure-bucket --key orders/1.json \
+  --body orders/1.json \
+  --server-side-encryption aws:kms \
+  --ssekms-key-id arn:aws:kms:ap-southeast-1:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab \
+  --bucket-key-enabled</code></pre></div>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Cần audit ai đọc object và kiểm soát key → <strong>SSE-KMS với customer managed key</strong>. Cần compliance mã hoá hai lớp → <strong>DSSE-KMS</strong>. Muốn zero cấu hình → để mặc định <strong>SSE-S3</strong>. Bắt buộc key do client giữ → <strong>SSE-C</strong>.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không dùng SSE-KMS <strong>không kèm Bucket Key</strong> cho bucket có lưu lượng lớn — dễ đụng hạn mức request KMS và tốn phí. Nhớ: SSE-C <strong>đã bị tắt mặc định</strong> cho bucket mới và không dùng được với bucket key.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Chia sẻ object S3 cross-account khi đang dùng <strong>SSE-KMS</strong>: bên nhận phải có quyền <code>kms:Decrypt</code>, nên <em>phải</em> dùng customer managed key và thêm vào key policy — key <code>aws/s3</code> do AWS quản lý <strong>không share cross-account được</strong>. Đây là bẫy rất hay gặp. Lưu ý DSSE-KMS cũng <strong>không</strong> hỗ trợ cùng lúc với bucket key trong mọi cấu hình.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/serv-side-encryption.html">AWS Docs — Protecting data with server-side encryption</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-key.html">AWS Docs — Reducing the cost of SSE-KMS with S3 Bucket Keys</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="secrets-management">
+    <h2 class="section-title">Secrets &amp; cấu hình</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS5</span> Secrets Manager và SSM Parameter Store — dùng cái nào, khác nhau ở đâu?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>Cả hai đều lưu giá trị cấu hình/bí mật và mã hoá bằng KMS, nhưng mục đích khác nhau. <strong>Secrets Manager</strong> sinh ra để quản lý <em>secret</em>: có <strong>rotation tự động</strong> qua Lambda (hỗ trợ sẵn RDS/Redshift/DocumentDB), <strong>versioning</strong> với nhãn <code>AWSCURRENT</code>/<code>AWSPREVIOUS</code>, resource policy cho cross-account, và đồng bộ nhiều region — nhưng <strong>tính phí</strong> theo secret/tháng. <strong>SSM Parameter Store</strong> rẻ hơn nhiều: loại <em>Standard</em> <strong>miễn phí</strong> (tối đa 10.000 parameter, 4 KB mỗi giá trị), loại <em>Advanced</em> tính phí (8 KB, 100.000 parameter) và có <code>SecureString</code> mã hoá bằng KMS.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Chọn theo nhu cầu: cần xoay vòng tự động cho mật khẩu DB → Secrets Manager. Cần lưu config, feature flag, connection string không đổi thường xuyên → Parameter Store. Trong app, cả hai đều lấy lúc runtime qua credential của role (không nhúng vào code).</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico secretsmanager"></span><span class="icon-label">Secrets Manager</span><span class="icon-note">rotation + versioning + cross-account</span></div>
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">Mã hoá KMS</span><span class="icon-note">key policy kiểm soát</span></div>
+            <div class="icon-node"><span class="aws-ico ssm"></span><span class="icon-label">Parameter Store</span><span class="icon-note">Standard 4 KB miễn phí</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Rotation Lambda</span><span class="icon-note">chỉ Secrets Manager</span></div>
+          </div>
+        </div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Secrets Manager</th><th>SSM Parameter Store</th></tr></thead>
+          <tbody>
+            <tr><td>Rotation tự động</td><td>Có (Lambda, native cho RDS)</td><td>Không (phải tự xây)</td></tr>
+            <tr><td>Phiên bản</td><td>Version + staging label</td><td>Có version, không staging label</td></tr>
+            <tr><td>Cross-account</td><td>Có (resource policy)</td><td>Hạn chế</td></tr>
+            <tr><td>Chi phí</td><td>Theo secret/tháng + API call</td><td>Standard miễn phí; Advanced tính phí</td></tr>
+            <tr><td>Kích thước</td><td>Lớn hơn</td><td>4 KB (Standard) / 8 KB (Advanced)</td></tr>
+          </tbody>
+        </table>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Secrets Manager: tao va doc secret</span>
+aws secretsmanager create-secret --name prod/orders/db \
+  --secret-string '{"username":"app","password":"replace-me"}'
+aws secretsmanager get-secret-value --secret-id prod/orders/db --query SecretString
+
+<span class="tok-comment"># Parameter Store: SecureString ma hoa bang KMS</span>
+aws ssm put-parameter --name /prod/orders/db_url --type SecureString \
+  --value "postgresql://prod-db.abc123.ap-southeast-1.rds.amazonaws.com:5432/orders" \
+  --key-id alias/app-data</code></pre></div>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Mật khẩu DB cần xoay định kỳ, cần cross-account, cần nhãn phiên bản → Secrets Manager. Cấu hình/app config và muốn tiết kiệm → Parameter Store.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không lạm dụng Secrets Manager cho mọi giá trị cấu hình nhỏ (tốn phí vô ích). Không lưu secret trong Parameter Store loại <code>String</code> <em>không</em> mã hoá — phải dùng <code>SecureString</code>.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Nhiều đề hỏi "rẻ nhất nhưng vẫn mã hoá và không cần rotation" → <strong>Parameter Store Standard + SecureString</strong>. "Cần xoay vòng mật khẩu RDS tự động" → <strong>Secrets Manager</strong>. Rotation Lambda trả secret về trạng thái sẵn sàng; nếu hàm xoay lỗi, nhãn <code>AWSCURRENT</code> không đổi.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html">AWS Docs — Rotate secrets</a> · <a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html">AWS Docs — Parameter Store</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS6</span> Tình huống: app gọi Secrets Manager mỗi request bị chậm/throttle — cache secret thế nào cho đúng?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>Ứng dụng microservice gọi <code>GetSecretValue</code> cho <em>từng</em> request. Khi traffic tăng, số API call tới Secrets Manager tăng vọt: độ trễ cộng dồn, có nguy cơ bị <em>throttle</em> (<code>ThrottlingException</code>) và chi phí API tăng. Đây là anti-pattern: secret không đổi giữa các request, không có lý do gì đọc lại liên tục.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Đọc secret một lần rồi <strong>cache trong bộ nhớ</strong> kèm <strong>TTL</strong> (ví dụ 5 phút). Hết TTL thì làm mới; nếu secret đã bị xoay, lần đọc mới sẽ trả bản mới qua nhãn <code>AWSCURRENT</code>. Khi gặp lỗi xác thực do secret cũ, chủ động <em>invalidate cache</em> và đọc lại ngay, thay vì crash. Tuyệt đối không ghi secret vào log hay response.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico serverless"></span><span class="icon-label">Request đến</span><span class="icon-note">không gọi API ngay</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">còn hạn?</span></div>
+            <div class="icon-node"><span class="aws-ico generic"></span><span class="icon-label">Cache trong RAM</span><span class="icon-note">TTL 300s</span></div>
+            <div class="icon-arrow">↺<span class="arrow-note">hết TTL</span></div>
+            <div class="icon-node"><span class="aws-ico secretsmanager"></span><span class="icon-label">Secrets Manager</span><span class="icon-note">GetSecretValue</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">KMS Decrypt</span></div>
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">CMK</span><span class="icon-note">trả plaintext secret</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="python"><pre><code>import time, boto3
+_cache = {"value": None, "exp": 0}
+TTL = 300  <span class="tok-comment"># giay</span>
+
+def get_db_password():
+    now = time.time()
+    if _cache["value"] is None or now > _cache["exp"]:
+        sm = boto3.client("secretsmanager")
+        resp = sm.get_secret_value(SecretId="prod/orders/db")
+        _cache["value"] = resp["SecretString"]
+        _cache["exp"] = now + TTL
+    return _cache["value"]
+
+<span class="tok-comment"># Khi auth loi do secret cu: xoa cache va doc lai ngay</span>
+def invalidate():
+    _cache["exp"] = 0</code></pre></div>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Cache + TTL cho mọi app đọc secret thường xuyên: service ECS/EKS, Lambda (cache trong scope global để tái dùng giữa các invocation), worker nền.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không cache vô thời hạn cho secret có rotation ngắn — TTL phải <em>ngắn hơn</em> chu kỳ xoay vòng. Không dùng TTL = 0 cho workload lớn. Không log giá trị secret, kể cả ở mức DEBUG.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Trong Lambda, biến/hằng khai báo ở <em>scope global</em> được tái dùng giữa các lần gọi (warm start) — nên cache ở đó là hợp lý. Nhưng khi secret xoay giữa lúc container còn sống, phải có đường <em>force refresh</em> khi gặp lỗi. Ngoài ra secret được mã hoá bởi KMS nên mỗi lần đọc thực chất tốn cả call KMS — thêm lý do để cache.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/secretsmanager/latest/userguide/best-practices.html">AWS Docs — Secrets Manager best practices</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="monitoring-guardrails">
+    <h2 class="section-title">Bảo vệ, phát hiện &amp; audit</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS7</span> WAF, Shield, GuardDuty, Inspector, Macie — mỗi dịch vụ chặn hay phát hiện cái gì?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>Năm dịch vụ bảo mật giải quyết năm bài toán khác nhau, rất dễ nhầm trong đề. <strong>AWS WAF</strong> chặn request HTTP xấu ở tầng ứng dụng (SQLi, XSS, IP/geo block, rate-limit, managed rules) — gắn vào ALB, CloudFront, API Gateway, AppSync. <strong>AWS Shield</strong> chống DDoS: bản <em>Standard</em> miễn phí (L3/L4) có sẵn cho mọi khách hàng, bản <em>Advanced</em> thêm bảo vệ L7, đội DRT và bồi hoàn chi phí. <strong>GuardDuty</strong> là <em>threat detection</em>: phân tích CloudTrail, VPC Flow Logs, DNS logs bằng ML để phát hiện hành vi bất thường. <strong>Inspector</strong> quét lỗ hổng (CVE) và mức độ tiếp cận mạng cho EC2, ECR image, Lambda. <strong>Macie</strong> dùng ML phát hiện dữ liệu nhạy cảm (PII, thông tin thanh toán) trong S3.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Nhìn theo chức năng: <em>ngăn chặn</em> (WAF, Shield) khác với <em>phát hiện</em> (GuardDuty, Inspector, Macie). GuardDuty và Macie không cần cài agent — bật là chạy và báo cáo về findings; WAF cần bạn viết rule và attach vào tài nguyên.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico waf"></span><span class="icon-label">WAF</span><span class="icon-note">chặn request HTTP xấu</span></div>
+            <div class="icon-node"><span class="aws-ico shield"></span><span class="icon-label">Shield</span><span class="icon-note">chống DDoS L3/L4/L7</span></div>
+            <div class="icon-node"><span class="aws-ico guardduty"></span><span class="icon-label">GuardDuty</span><span class="icon-note">phát hiện mối đe doạ</span></div>
+            <div class="icon-node"><span class="aws-ico inspector"></span><span class="icon-label">Inspector</span><span class="icon-note">quét lỗ hổng CVE</span></div>
+            <div class="icon-node"><span class="aws-ico macie"></span><span class="icon-label">Macie</span><span class="icon-note">PII trong S3</span></div>
+          </div>
+        </div>
+        <table class="feature-table">
+          <thead><tr><th>Dịch vụ</th><th>Vai trò</th><th>Phạm vi</th></tr></thead>
+          <tbody>
+            <tr><td>WAF</td><td>Ngăn chặn</td><td>HTTP request ở ALB/CloudFront/API Gateway</td></tr>
+            <tr><td>Shield</td><td>Ngăn chặn</td><td>DDoS; Advanced cho L7 + DRT</td></tr>
+            <tr><td>GuardDuty</td><td>Phát hiện</td><td>CloudTrail, VPC Flow, DNS</td></tr>
+            <tr><td>Inspector</td><td>Phát hiện</td><td>EC2, ECR, Lambda — lỗ hổng</td></tr>
+            <tr><td>Macie</td><td>Phát hiện</td><td>Dữ liệu nhạy cảm trong S3</td></tr>
+          </tbody>
+        </table>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Bat GuardDuty va Inspector (khong can agent)</span>
+aws guardduty create-detector --enable
+aws inspector2 enable --resource-types EC2 ECR LAMBDA
+
+<span class="tok-comment"># Macie phat hien PII trong S3</span>
+aws macie2 enable-macie</code></pre></div>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Có web app công khai → WAF (+Shield Standard tự động). Cần phát hiện xâm nhập/tài khoản bị chiếm → GuardDuty. Quét lỗ hổng máy chủ/container → Inspector. Rà soát PII trong kho S3 → Macie.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không kỳ vọng WAF chống DDoS tầng mạng (đó là Shield), cũng không kỳ vọng GuardDuty <em>tự chặn</em> tấn công — nó chỉ phát hiện và gửi finding để bạn xử lý (có thể tự động hoá qua EventBridge).</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Câu hỏi DVA hay ghép cặp: "cloud-native, không cần agent, phát hiện tài khoản bị lộ" → <strong>GuardDuty</strong>; "tìm dữ liệu nhạy cảm trong S3" → <strong>Macie</strong>; "quét CVE trên EC2" → <strong>Inspector</strong>; "chặn tấn công SQL injection" → <strong>WAF</strong>. Đừng lẫn Macie (dữ liệu) với Inspector (lỗ hổng).</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/waf/latest/developerguide/what-is-aws-waf.html">AWS Docs — AWS WAF</a> · <a href="https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html">AWS Docs — GuardDuty</a> · <a href="https://docs.aws.amazon.com/macie/latest/user/what-is-macie.html">AWS Docs — Macie</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS8</span> Làm sao audit ai đã đọc object trong S3? CloudTrail <em>data events</em> khác S3 access log thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p><strong>CloudTrail</strong> ghi lại <em>API activity</em>. Theo mặc định nó chỉ ghi <strong>management events</strong> (tạo/xoá bucket, sửa policy...). Các thao tác <em>theo object</em> như <code>GetObject</code>/<code>PutObject</code> là <strong>data events</strong> — <em>không</em> được ghi mặc định vì khối lượng lớn, và <strong>tính phí riêng</strong>. Muốn audit truy cập dữ liệu thì phải bật data events cho bucket cụ thể. <strong>S3 server access log</strong> là tính năng riêng của S3: ghi log từng request vào một bucket đích, best-effort, phù hợp phân tích thô nhưng không giàu ngữ cảnh IAM như CloudTrail.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Bật data events cho <code>S3 object</code> (và có thể Lambda <code>Invoke</code>) trên trail. Event ghi rõ principal, action, thời điểm, kết quả. Kết hợp CloudWatch Logs để cảnh báo khi có truy cập bất thường, và CloudTrail Lake/Athena nếu cần truy vấn dài hạn.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">S3 GetObject</span><span class="icon-note">data event</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">ghi lại</span></div>
+            <div class="icon-node"><span class="aws-ico cloudtrail"></span><span class="icon-label">CloudTrail</span><span class="icon-note">trail + data events</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">tổng hợp</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">CloudWatch Logs</span><span class="icon-note">cảnh báo bất thường</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">lưu trữ</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Log bucket</span><span class="icon-note">S3 access log</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Bat data events cho mot bucket cu the</span>
+aws cloudtrail put-event-selectors --trail-name org-trail \
+  --event-selectors '[{"ReadWriteType":"All","IncludeManagementEvents":true,
+    "DataResources":[{"Type":"AWS::S3::Object","Values":["arn:aws:s3:::app-secure-bucket/"]}]}]'</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>CloudTrail data events</th><th>S3 server access log</th></tr></thead>
+          <tbody>
+            <tr><td>Nguồn</td><td>CloudTrail</td><td>S3 ghi trực tiếp vào bucket</td></tr>
+            <tr><td>Bật mặc định?</td><td>Không (tính phí)</td><td>Không (phải bật)</td></tr>
+            <tr><td>Nội dung</td><td>Principal, IAM, API, kết quả</td><td>Request log best-effort</td></tr>
+            <tr><td>Hợp cho</td><td>Audit/compliance, forensics</td><td>Phân tích truy cập thô</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Bật data events khi cần trả lời "ai đã đọc file này" cho compliance hoặc điều tra sự cố. Dùng S3 access log khi cần thống kê truy cập khối lượng lớn với chi phí thấp.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không bật data events cho toàn bộ bucket mọi lúc nếu không cần — chi phí tăng rất nhanh với bucket nhiều request. Không dựa vào S3 access log khi cần bằng chứng pháp lý chặt (dùng CloudTrail).</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Câu hỏi "đã bật CloudTrail nhưng không thấy GetObject" → vì mặc định CloudTrail <strong>không ghi data events</strong>, phải bật thủ công. Đừng quên: xoá/ghi log cũng là hành vi cần trail riêng liên tục, và log bucket nên có Object Lock/versioning để không bị xoá dấu vết.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html">AWS Docs — Logging data events</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/ServerLogs.html">AWS Docs — S3 server access logging</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS9</span> Tình huống: thiết kế mã hoá và xoay vòng khoá cho hệ thống nhiều service (S3, RDS, ECS, Lambda) thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <div class="ans-label">What</div>
+          <p>Một nền tảng gồm S3 (file người dùng), RDS (đơn hàng), ECS (API) và Lambda (job) cần mã hoá at-rest nhất quán, kiểm soát ai dùng khoá nào, và xoay vòng định kỳ. Nếu dùng chung một key cho tất cả thì "blast radius" quá lớn: một principal bị lộ có thể giải mã mọi dữ liệu. Ngược lại, mỗi object một key thì không quản nổi.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">How</div>
+          <p>Thiết kế theo <strong>data domain</strong>: một customer managed key cho nhóm dữ liệu người dùng (S3), một key khác cho dữ liệu giao dịch (RDS). Gắn key policy least-privilege: chỉ role của ECS/Lambda được <code>Decrypt</code>/<code>GenerateDataKey</code>. S3 dùng SSE-KMS + <strong>Bucket Key</strong>; RDS bật mã hoá với key riêng (lưu ý <em>không đổi key được sau khi tạo</em> — phải snapshot rồi restore). Mật khẩu DB để trong Secrets Manager, xoay vòng qua Lambda định kỳ. Bật <strong>rotation cho CMK</strong> và CloudTrail data events để audit. Chia sẻ cross-account thì thêm quyền cả trong key policy lẫn IAM policy bên nhận.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">S3 (SSE-KMS)</span><span class="icon-note">key: user-data CMK</span></div>
+            <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">RDS encrypted</span><span class="icon-note">key: txn-data CMK</span></div>
+            <div class="icon-node"><span class="aws-ico secretsmanager"></span><span class="icon-label">Secrets Manager</span><span class="icon-note">xoay mật khẩu DB</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">role được phép</span></div>
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">ECS task</span><span class="icon-note">kms:Decrypt qua task role</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda job</span><span class="icon-note">execution role</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Bat tu dong xoay vong key (key material) cho CMK</span>
+aws kms enable-key-rotation --key-id 1234abcd-12ab-34cd-56ef-1234567890ab \
+  --rotation-period-in-days 365
+
+<span class="tok-comment"># Xoay mat khau DB moi 30 ngay qua Lambda rotation</span>
+aws secretsmanager rotate-secret --secret-id prod/orders/db \
+  --rotation-lambda-arn arn:aws:lambda:ap-southeast-1:111122223333:function:rotate-db \
+  --rotation-rules AutomaticallyAfterDays=30</code></pre></div>
+        <div class="ans-block">
+          <div class="ans-label">When</div>
+          <p>Áp dụng cho mọi hệ thống production nhiều service. Đặt rotation CMK ~365 ngày; rotation secret ngắn hơn nhiều (30–90 ngày) vì secret dễ bị lộ hơn key material trong KMS.</p>
+        </div>
+        <div class="ans-block">
+          <div class="ans-label">When NOT</div>
+          <p>Không xoay vòng bằng cách tạo key mới rồi bỏ key cũ ngay — dữ liệu cũ sẽ không đọc được. Rotation của KMS <strong>giữ nguyên key ID/ARN</strong>, chỉ thay <em>backing key</em>; không áp dụng được cho bất đối xứng/HMAC/imported key material. Không dùng chung key cho nhiều domain.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Đổi key cho RDS/EBS là bất khả thi tại chỗ — phải snapshot (snapshot kế thừa key hoặc copy sang key mới) rồi restore. Và khi share CMK cross-account, phải cấp quyền ở <em>cả hai</em> phía: key policy (cho account/role bên nhận) và IAM policy (cho principal được gọi KMS).</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html">AWS Docs — Rotating KMS keys</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html">AWS Docs — Using SSE-KMS</a> · <a href="https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html">AWS Docs — Rotate secrets</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <div class="nav-pager">
+    <a class="prev" href="30-aws-iam-identity.html">← 30. IAM, STS &amp; Cognito</a>
+    <a class="next" href="index.html">Trang chủ →</a>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,2206 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3. Spring Boot Framework — Java Interview Bank</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Java Interview<br><span>Bank</span></h1>
+        <p>Interview Prep Notes</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>3. Spring Boot Framework</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 03</div>
+          <h1 class="module-title">Spring Boot Framework</h1>
+          <p class="module-subtitle">DI/IoC, Bean lifecycle, AOP, @Transactional, async/events, validation, Actuator, caching — nền tảng backend Java enterprise.</p>
+        </div>
+
+        <!-- SECTION: Core Architecture -->
+        <section class="section" id="core">
+          <h2 class="section-title">Kiến trúc cốt lõi &amp; Bean</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q1</span> Giải thích Dependency Injection (DI) và Inversion of Control (IoC)?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>IoC (Inversion of Control):</strong> Đảo ngược quyền kiểm soát — thay vì class tự <code>new</code> dependency, <strong>Spring Container</strong> (<code>ApplicationContext</code>) quản lý vòng đời object và wiring. <strong>DI (Dependency Injection):</strong> Cơ chế cụ thể của IoC — container <em>inject</em> dependency vào object qua constructor, setter, hoặc field annotation.</p>
+              </div>
+              <div class="arch-diagram" data-caption="IoC Container wiring">
+                <div class="arch-row">
+                  <div class="arch-box host">ApplicationContext<span class="arch-sub">BeanFactory + lifecycle</span></div>
+                </div>
+                <div class="arch-arrow"><span class="arrow-label">creates &amp; injects</span></div>
+                <div class="arch-row">
+                  <div class="arch-box server">OrderController<span class="arch-sub">@RestController</span></div>
+                  <div class="arch-arrow" data-dir="horizontal"><span class="arrow-label">DI</span></div>
+                  <div class="arch-box server">OrderService<span class="arch-sub">@Service</span></div>
+                  <div class="arch-arrow" data-dir="horizontal"><span class="arrow-label">DI</span></div>
+                  <div class="arch-box edge">OrderRepository<span class="arch-sub">@Repository</span></div>
+                </div>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Loose coupling qua interface — swap implementation (mock, stub, prod) không sửa consumer. Testability: unit test inject mock thay vì cần DB thật. Single Responsibility: class chỉ lo business logic, không lo khởi tạo dependency graph. Spring quản lý singleton scope, lazy init, lifecycle hooks tập trung.</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>❌ Không DI (new thủ công)</h4>
+                  <ul>
+                    <li>Tight coupling — phụ thuộc concrete class</li>
+                    <li>Khó test — không mock được dependency</li>
+                    <li>Thay implementation phải sửa mọi nơi <code>new</code></li>
+                    <li>Quản lý lifecycle thủ công (connection pool, cleanup)</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>✅ Có DI (Spring Container)</h4>
+                  <ul>
+                    <li>Loose coupling qua interface</li>
+                    <li>Unit test inject mock dễ dàng</li>
+                    <li>Swap bean qua config, @Profile, @Primary</li>
+                    <li>Container quản lý scope, lifecycle, AOP proxy</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p><strong>Container bootstrap:</strong> component-scan (<code>@SpringBootApplication</code>) → đọc <code>@Configuration</code> + <code>@Bean</code> methods → đăng ký <code>BeanDefinition</code> → resolve dependency graph (topological sort, phát hiện circular dep) → instantiate từng bean → inject dependency → chạy lifecycle hooks → bean ready trong singleton pool.</p>
+                <table class="feature-table">
+                  <thead><tr><th>Loại DI</th><th>Cơ chế</th><th>Ưu điểm</th><th>Khuyến nghị</th></tr></thead>
+                  <tbody>
+                    <tr><td><strong>Constructor</strong></td><td>Spring gọi constructor với bean matching type</td><td><code>final</code> fields, required deps rõ, testable không context</td><td>✅ Default mọi required dependency</td></tr>
+                    <tr><td><strong>Setter</strong></td><td><code>@Autowired</code> trên setter method</td><td>Optional dep, reconfigure runtime</td><td>Plugin optional, legacy</td></tr>
+                    <tr><td><strong>Field</strong></td><td><code>@Autowired</code> trực tiếp trên field (reflection)</td><td>Code ngắn</td><td>❌ Anti-pattern — tránh code mới</td></tr>
+                  </tbody>
+                </table>
+                <p>Interface nhiều implementation → <code>@Primary</code> (default bean) hoặc <code>@Qualifier("stripe")</code> chỉ định tên bean. <code>@Profile("prod")</code> chỉ register bean khi profile active. Factory pattern: <code>@Bean</code> method trong <code>@Configuration</code> tạo object third-party không annotate được.</p>
+                <div class="flow-diagram">
+                  <div class="flow-row">
+                    <div class="flow-node primary"><span class="step-badge">1</span>Scan @Component</div>
+                    <div class="flow-arrow"><span class="arrow-label">register</span>→</div>
+                    <div class="flow-node secondary"><span class="step-badge">2</span>Resolve dependency graph</div>
+                    <div class="flow-arrow"><span class="arrow-label">topo sort</span>→</div>
+                    <div class="flow-node"><span class="step-badge">3</span>Instantiate + Inject</div>
+                    <div class="flow-arrow"><span class="arrow-label">ready</span>→</div>
+                    <div class="flow-node success"><span class="step-badge">4</span>Bean in Context</div>
+                  </div>
+                </div>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public interface</span> <span class="tok-class">PaymentGateway</span> { <span class="tok-keyword">void</span> <span class="tok-function">charge</span>(<span class="tok-class">Order</span> order); }
+
+<span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderService</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">OrderRepository</span> repo;
+  <span class="tok-keyword">private final</span> <span class="tok-class">PaymentGateway</span> payment; <span class="tok-comment">// inject interface, không new StripeGateway()</span>
+
+  <span class="tok-keyword">public</span> <span class="tok-class">OrderService</span>(<span class="tok-class">OrderRepository</span> repo, <span class="tok-class">PaymentGateway</span> payment) {
+    <span class="tok-keyword">this</span>.repo = repo;
+    <span class="tok-keyword">this</span>.payment = payment;
+  }
+}
+
+<span class="tok-comment">// Test: new OrderService(mockRepo, mockPayment) — không cần Spring context</span></code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Mọi Spring Boot app enterprise — service inject repository, controller inject service. Dùng interface cho dependency cross-cutting (payment, notification, storage). @Profile để inject bean khác nhau theo môi trường (dev mock vs prod real).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng inject mọi thứ — value object, DTO, utility pure static không cần bean. POJO domain entity không nên là Spring bean (tránh coupling domain với framework). Tránh Service Locator anti-pattern (<code>context.getBean()</code>) — dùng constructor injection thay thế.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                WMS order flow: OrderController inject OrderService → OrderService inject OrderRepository + InventoryClient + PaymentGateway. Dev profile inject MockPaymentGateway; prod inject StripeGateway — cùng interface, không đổi OrderService.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                <strong>Field injection</strong> che dependency — khó thấy class cần gì. <strong>Quá nhiều dependency</strong> (>5-6) = God class — refactor. <strong>Inject concrete class</strong> thay vì interface → tight coupling trở lại. Circular dependency (A→B→A) = design smell, không phải lỗi Spring.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>IoC: container kiểm soát object lifecycle, không tự new.</li>
+                  <li>DI: cách inject — constructor (khuyến nghị), setter, field.</li>
+                  <li>Lợi ích: loose coupling, testable, swap implementation dễ.</li>
+                  <li>Phỏng vấn: IoC là nguyên tắc, DI là implementation cụ thể.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q2</span> Constructor Injection vs Field Injection vs Setter Injection?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p>Spring hỗ trợ 3 cách inject dependency: <strong>Constructor</strong> (param constructor), <strong>Setter</strong> (method <code>setXxx()</code>), <strong>Field</strong> (<code>@Autowired</code> trực tiếp trên field). Cả ba đều do container thực hiện sau khi instantiate bean — khác nhau ở thời điểm và cách gán dependency.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Constructor injection được Spring team khuyến nghị từ 4.3+: immutable (<code>final</code> fields), required dependency bắt buộc tại creation time, dễ unit test không cần reflection. Field injection ngắn code nhưng ẩn dependency, vi phạm encapsulation, khó mock trong test. Setter phù hợp optional dependency có thể thay đổi runtime.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Loại</th><th>Ưu điểm</th><th>Nhược điểm</th><th>Khi dùng</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Constructor</strong></td><td>Immutable, testable, deps rõ ràng, circular dep fail sớm</td><td>Nhiều param → constructor dài</td><td>Default cho mọi required dependency</td></tr>
+                  <tr><td><strong>Setter</strong></td><td>Optional dep, re-configure runtime</td><td>Object có thể half-initialized</td><td>Optional plugin, legacy integration</td></tr>
+                  <tr><td><strong>Field</strong></td><td>Code ngắn nhất</td><td>Anti-pattern: khó test, ẩn dep, cần reflection</td><td>Tránh — chỉ legacy code</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Constructor: Spring 4.3+ auto-detect single constructor — không cần <code>@Autowired</code>. Nhiều constructor → annotate constructor cần dùng. Lombok <code>@RequiredArgsConstructor</code> generate constructor cho <code>final</code> fields. Setter: <code>@Autowired</code> trên setter method. Field: <code>@Autowired</code> trên field — container inject qua reflection (package-private OK).</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderService</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">OrderRepository</span> repo;
+  <span class="tok-keyword">private final</span> <span class="tok-class">PaymentClient</span> payment;
+
+  <span class="tok-comment">// ✅ Constructor — 1 constructor → @Autowired optional</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">OrderService</span>(<span class="tok-class">OrderRepository</span> repo, <span class="tok-class">PaymentClient</span> payment) {
+    <span class="tok-keyword">this</span>.repo = repo;
+    <span class="tok-keyword">this</span>.payment = payment;
+  }
+}
+
+<span class="tok-comment">// Lombok equivalent:</span>
+<span class="tok-annotation">@Service</span> <span class="tok-annotation">@RequiredArgsConstructor</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderService</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">OrderRepository</span> repo;
+  <span class="tok-keyword">private final</span> <span class="tok-class">PaymentClient</span> payment;
+}
+
+<span class="tok-comment">// ❌ Field injection — tránh</span>
+<span class="tok-annotation">@Autowired</span> <span class="tok-keyword">private</span> <span class="tok-class">OrderRepository</span> repo;</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Constructor cho tất cả required dependency (repository, client, config). Setter cho optional dependency (cache provider có thể null). @RequiredArgsConstructor + final fields khi team dùng Lombok — giữ immutability.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng field inject trong code mới — SonarQube rule S3305. Constructor >6 params = smell — tách bean hoặc facade. Đừng setter inject required dependency — object có thể dùng trước khi setter gọi. Circular dependency qua constructor → Spring fail startup (đúng — buộc refactor).</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                OrderService cần OrderRepository + PaymentClient (required) → constructor injection. AuditExporter optional, chỉ prod bật → setter injection hoặc Optional&lt;AuditExporter&gt; trong constructor. Unit test: <code>new OrderService(mockRepo, mockPayment)</code> không cần @SpringBootTest.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Field injection khiến dependency invisible trong constructor signature. Test phải dùng <code>ReflectionTestUtils.setField()</code> thay vì constructor. Circular dep: constructor A→B→A fail ngay; field/setter có thể "pass" qua early reference — che design flaw.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>3 loại: constructor (best), setter (optional), field (anti-pattern).</li>
+                  <li>Constructor: final fields, testable, Spring khuyến nghị từ 4.3+.</li>
+                  <li>Lombok @RequiredArgsConstructor cho final fields — ngắn gọn.</li>
+                  <li>Phỏng vấn trap: field injection "tiện" nhưng SonarQube cấm.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q3</span> Vòng đời Spring Bean (Bean Lifecycle)?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Bean Lifecycle</strong> là chuỗi phase từ khi Spring Container nhận bean definition đến khi bean bị destroy. Mỗi bean đi qua: instantiate → populate (DI) → aware callbacks → BeanPostProcessor → init → ready → destroy. Hiểu lifecycle giúp biết khi nào chạy warmup, khi nào AOP proxy được tạo.</p>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary"><span class="step-badge">1</span>Instantiation<br><small>Constructor / factory</small></div>
+                </div>
+                <div class="flow-arrow"><span class="arrow-label">new object</span>↓</div>
+                <div class="flow-row">
+                  <div class="flow-node secondary"><span class="step-badge">2</span>Populate Properties<br><small>@Autowired / @Value DI</small></div>
+                </div>
+                <div class="flow-arrow"><span class="arrow-label">inject deps</span>↓</div>
+                <div class="flow-row">
+                  <div class="flow-node"><span class="step-badge">3</span>Aware callbacks<br><small>BeanNameAware, ApplicationContextAware</small></div>
+                </div>
+                <div class="flow-arrow"><span class="arrow-label">callback</span>↓</div>
+                <div class="flow-row">
+                  <div class="flow-node warning"><span class="step-badge">4</span>BeanPostProcessor<br><small>postProcessBeforeInitialization</small></div>
+                </div>
+                <div class="flow-arrow"><span class="arrow-label">before init</span>↓</div>
+                <div class="flow-row">
+                  <div class="flow-node success"><span class="step-badge">5</span>Init methods<br><small>@PostConstruct, afterPropertiesSet()</small></div>
+                </div>
+                <div class="flow-arrow"><span class="arrow-label">after init</span>↓</div>
+                <div class="flow-row">
+                  <div class="flow-node warning"><span class="step-badge">6</span>BeanPostProcessor<br><small>postProcessAfterInitialization → AOP proxy</small></div>
+                </div>
+                <div class="flow-arrow"><span class="arrow-label">proxy wrap</span>↓</div>
+                <div class="flow-row">
+                  <div class="flow-node primary"><span class="step-badge">7</span>Bean Ready<br><small>Serve requests / in singleton pool</small></div>
+                </div>
+                <div class="flow-arrow"><span class="arrow-label">context shutdown</span>↓</div>
+                <div class="flow-row">
+                  <div class="flow-node"><span class="step-badge">8</span>Destroy<br><small>@PreDestroy, destroy(), DisposableBean</small></div>
+                </div>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Lifecycle hooks cho phép init resource (connection, cache warmup) sau khi DI hoàn tất nhưng trước khi bean serve request. BeanPostProcessor là extension point mạnh — @Transactional, @Cacheable, @Async đều tạo proxy tại đây. @PreDestroy đảm bảo graceful shutdown (flush buffer, close connection).</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Hook</th><th>Thời điểm</th><th>Dùng cho</th></tr></thead>
+                <tbody>
+                  <tr><td><code>@PostConstruct</code></td><td>Sau DI, trước bean ready</td><td>Warmup cache, validate config</td></tr>
+                  <tr><td><code>InitializingBean</code></td><td>Tương tự @PostConstruct</td><td>Legacy — prefer @PostConstruct (JSR-250)</td></tr>
+                  <tr><td><code>BeanPostProcessor</code></td><td>Before/after init</td><td>AOP proxy, custom wrapping</td></tr>
+                  <tr><td><code>@PreDestroy</code></td><td>Context shutdown</td><td>Close resource, flush queue</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p><strong>Chi tiết từng phase:</strong></p>
+                <ol>
+                  <li><strong>Instantiation:</strong> Container gọi constructor (hoặc <code>@Bean</code> factory method). Object tồn tại nhưng dependency chưa inject — <em>đừng dùng dependency trong constructor logic</em>.</li>
+                  <li><strong>Populate (DI):</strong> Inject constructor args, setter, <code>@Value</code>, <code>@Autowired</code> fields. Circular dependency constructor-based → fail startup (design smell).</li>
+                  <li><strong>Aware interfaces:</strong> <code>BeanNameAware.setBeanName()</code>, <code>BeanFactoryAware</code>, <code>ApplicationContextAware</code> — bean biết context metadata.</li>
+                  <li><strong>BeanPostProcessor before init:</strong> Custom preprocessing trước init hooks (<code>@PostConstruct</code>).</li>
+                  <li><strong>Init:</strong> <code>@PostConstruct</code> (JSR-250, khuyến nghị), <code>InitializingBean.afterPropertiesSet()</code>, hoặc custom <code>init-method</code> XML — warmup cache, validate config sau khi DI xong.</li>
+                  <li><strong>BeanPostProcessor after init:</strong> <em>Quan trọng phỏng vấn</em> — Spring tạo <strong>AOP proxy</strong> (CGLIB/JDK) cho <code>@Transactional</code>, <code>@Cacheable</code>, <code>@Async</code>. Caller inject proxy, không phải raw bean.</li>
+                  <li><strong>Ready:</strong> Bean trong singleton pool, phục vụ request. Prototype scope: mỗi <code>getBean()</code> tạo instance mới.</li>
+                  <li><strong>Destroy:</strong> Context shutdown (K8s SIGTERM) → <code>@PreDestroy</code>, <code>DisposableBean.destroy()</code> — close connection, flush queue. Prototype: destroy không tự động.</li>
+                </ol>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Component</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">CacheWarmup</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">ProductRepository</span> repo;
+
+  <span class="tok-keyword">public</span> <span class="tok-class">CacheWarmup</span>(<span class="tok-class">ProductRepository</span> repo) { <span class="tok-keyword">this</span>.repo = repo; }
+
+  <span class="tok-annotation">@PostConstruct</span>
+  <span class="tok-keyword">public void</span> <span class="tok-function">init</span>() {
+    loadTopProductsIntoCache(); <span class="tok-comment">// repo đã inject — an toàn gọi DB</span>
+  }
+
+  <span class="tok-annotation">@PreDestroy</span>
+  <span class="tok-keyword">public void</span> <span class="tok-function">cleanup</span>() { flushPendingWrites(); }
+}
+
+<span class="tok-comment">// Custom BeanPostProcessor — wrap bean trước khi return</span>
+<span class="tok-keyword">public</span> <span class="tok-class">Object</span> <span class="tok-function">postProcessAfterInitialization</span>(<span class="tok-class">Object</span> bean, <span class="tok-class">String</span> name) {
+  <span class="tok-keyword">return</span> createProxyIfNeeded(bean); <span class="tok-comment">// AOP, @Transactional proxy</span>
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>@PostConstruct cho startup logic cần dependency đã inject (load config từ DB, warm cache). @PreDestroy cho cleanup trước shutdown (K8s SIGTERM). BeanPostProcessor khi cần custom proxy/wrapping toàn bộ bean type.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng heavy I/O trong constructor — dependency chưa inject xong. Đừng @PostConstruct cho logic nên lazy (first request). Tránh InitializingBean interface — couple với Spring API; dùng @PostConstruct. Prototype scope bean: @PreDestroy không gọi tự động — phải manage manually.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                WMS startup: CacheWarmup @PostConstruct load top 1000 SKU vào Redis trước traffic. MqttClient @PreDestroy disconnect broker khi pod terminate. @Transactional trên OrderService → Spring tạo CGLIB proxy ở BeanPostProcessor — caller luôn qua proxy.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Gọi dependency trong constructor → NullPointerException. @PostConstruct throw exception → bean fail, app không start. Nhầm thứ tự: BeanPostProcessor chạy <em>trước</em> @PostConstruct (before) và <em>sau</em> (after — proxy wrap). Prototype bean không có full destroy lifecycle.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>8 bước: instantiate → DI → Aware → BPP before → @PostConstruct → BPP after (proxy) → ready → destroy.</li>
+                  <li>@PostConstruct: init sau DI — warmup cache, validate config.</li>
+                  <li>AOP proxy (@Transactional) tạo ở postProcessAfterInitialization — caller qua proxy.</li>
+                  <li>Trap: logic trong constructor — dependency chưa sẵn sàng; prototype không auto @PreDestroy.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q4</span> Phân biệt @Component, @Service, @Repository?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><code>@Component</code>, <code>@Service</code>, <code>@Repository</code> đều là <strong>stereotype annotations</strong> — meta-annotated với <code>@Component</code>. Spring component-scan đăng ký cả ba như bean bình thường. Khác nhau về <em>ngữ nghĩa layer</em> (DDD/clean architecture) và một số behavior đặc biệt của @Repository.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Phân layer giúp team đọc code nhanh — biết class thuộc persistence hay business logic. @Repository kích hoạt <code>PersistenceExceptionTranslationPostProcessor</code> — translate SQLException/vendor-specific exception → Spring <code>DataAccessException</code> hierarchy, giúp catch exception portable giữa các DB.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Annotation</th><th>Layer</th><th>Behavior đặc biệt</th><th>Ví dụ</th></tr></thead>
+                <tbody>
+                  <tr><td><code>@Component</code></td><td>Generic</td><td>Không thêm behavior</td><td>EmailValidator, IdGenerator, Mapper helper</td></tr>
+                  <tr><td><code>@Service</code></td><td>Business / Use case</td><td>Semantic only — @Transactional thường ở đây</td><td>OrderService, InventoryService</td></tr>
+                  <tr><td><code>@Repository</code></td><td>Persistence</td><td>Exception translation SQLException → DataAccessException</td><td>OrderRepository, JpaOrderRepository</td></tr>
+                  <tr><td><code>@Controller</code></td><td>Presentation</td><td>View resolution (MVC)</td><td>AdminDashboardController</td></tr>
+                  <tr><td><code>@RestController</code></td><td>REST API</td><td>= @Controller + @ResponseBody</td><td>OrderApiController</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p><code>@SpringBootApplication</code> kích hoạt component scan package gốc trở xung. Class có stereotype → BeanDefinition registered → instantiate khi context refresh. @Repository trigger exception translation AOP advisor trên persistence layer.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Repository</span>
+<span class="tok-keyword">public interface</span> <span class="tok-class">OrderRepository</span> <span class="tok-keyword">extends</span> <span class="tok-class">JpaRepository</span>&lt;<span class="tok-class">Order</span>, <span class="tok-class">Long</span>&gt; {}
+
+<span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderService</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">OrderRepository</span> repo;
+  <span class="tok-annotation">@Transactional</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">Order</span> <span class="tok-function">placeOrder</span>(<span class="tok-class">Order</span> order) { <span class="tok-keyword">return</span> repo.save(order); }
+}
+
+<span class="tok-annotation">@Component</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">SkuValidator</span> {
+  <span class="tok-keyword">public boolean</span> <span class="tok-function">isValid</span>(<span class="tok-class">String</span> sku) { <span class="tok-keyword">return</span> sku.matches(<span class="tok-string">"^[A-Z0-9]{6,12}$"</span>); }
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>@Repository cho mọi data access (JPA repo, JDBC template wrapper). @Service cho business logic, transaction boundary. @Component cho utility/helper không thuộc layer cụ thể. Package-by-feature: mỗi feature folder có controller/service/repository riêng.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng @Service cho pure utility không có business logic — dùng @Component. Đừng @Repository cho HTTP client — đó là infrastructure adapter, không phải persistence. Entity class (@Entity) không annotate @Component — JPA quản lý lifecycle riêng. Không cần phân biệt quá cứng nếu team nhỏ — nhưng interview expect biết semantic.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                WMS module order/: OrderController (REST) → OrderService (@Transactional business rules) → OrderRepository (JPA + exception translation). SkuValidator (@Component) dùng chung bởi service và import job — không thuộc layer cụ thể.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Nghĩ @Service/@Repository khác behavior ngoài exception translation — thực tế gần như giống @Component. Business logic trong @Repository (complex query + calculation) — vi phạm SRP. @Component scan miss nếu class ngoài base package — cần @ComponentScan explicit.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Cả ba đều là @Component stereotype — scan và register bean.</li>
+                  <li>@Repository: translate SQLException → DataAccessException.</li>
+                  <li>@Service: business layer; @Component: generic helper.</li>
+                  <li>Thêm @Controller/@RestController cho presentation layer.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q5</span> Phân biệt @Controller vs @RestController?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><code>@Controller</code> đánh dấu presentation layer — xử lý HTTP request, trả về view name hoặc redirect. <code>@RestController</code> = <code>@Controller</code> + <code>@ResponseBody</code> trên class level — mọi handler method auto serialize return value thành JSON/XML qua <code>HttpMessageConverter</code> (Jackson).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Tách SSR web (render HTML template) vs REST API (trả JSON). @RestController giảm boilerplate — không cần @ResponseBody từng method. Content negotiation: Accept header + registered converters quyết định format response. Separation giúp API versioning và frontend decoupling (SPA/mobile).</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>@Controller</h4>
+                  <ul>
+                    <li>Return view name → ViewResolver render HTML</li>
+                    <li>JSON cần @ResponseBody từng method</li>
+                    <li>SSR: Thymeleaf, JSP, FreeMarker</li>
+                    <li>Form submit, redirect, Model attribute</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>@RestController</h4>
+                  <ul>
+                    <li>Mọi method auto @ResponseBody</li>
+                    <li>Jackson serialize object → JSON</li>
+                    <li>REST API cho SPA, mobile, microservice</li>
+                    <li>Return DTO/ResponseEntity trực tiếp</li>
+                  </ul>
+                </div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Aspect</th><th>@Controller</th><th>@RestController</th></tr></thead>
+                <tbody>
+                  <tr><td>Return type</td><td>String (view name), ModelAndView</td><td>DTO, List, ResponseEntity&lt;T&gt;</td></tr>
+                  <tr><td>Content-Type</td><td>text/html (default)</td><td>application/json (default)</td></tr>
+                  <tr><td>Exception handling</td><td>@ControllerAdvice</td><td>@RestControllerAdvice (auto @ResponseBody)</td></tr>
+                  <tr><td>Hybrid</td><td>Thêm @ResponseBody per method</td><td>Thêm @Controller + view method nếu cần</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>DispatcherServlet route request → HandlerMapping tìm @RequestMapping/@GetMapping → invoke method → nếu @ResponseBody: HttpMessageConverter write body; nếu @Controller thuần: ViewResolver resolve template. @RestController meta-annotation apply @ResponseBody lên class.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// REST API — @RestController</span>
+<span class="tok-annotation">@RestController</span>
+<span class="tok-annotation">@RequestMapping</span>(<span class="tok-string">"/api/orders"</span>)
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderApiController</span> {
+  <span class="tok-annotation">@GetMapping</span>(<span class="tok-string">"/{id}"</span>)
+  <span class="tok-keyword">public</span> <span class="tok-class">OrderDto</span> <span class="tok-function">get</span>(<span class="tok-annotation">@PathVariable</span> <span class="tok-class">Long</span> id) {
+    <span class="tok-keyword">return</span> orderService.findById(id); <span class="tok-comment">// auto JSON</span>
+  }
+}
+
+<span class="tok-comment">// SSR — @Controller</span>
+<span class="tok-annotation">@Controller</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">AdminController</span> {
+  <span class="tok-annotation">@GetMapping</span>(<span class="tok-string">"/dashboard"</span>)
+  <span class="tok-keyword">public</span> <span class="tok-class">String</span> <span class="tok-function">dashboard</span>(<span class="tok-class">Model</span> model) {
+    model.addAttribute(<span class="tok-string">"stats"</span>, statsService.today());
+    <span class="tok-keyword">return</span> <span class="tok-string">"admin/dashboard"</span>; <span class="tok-comment">// → templates/admin/dashboard.html</span>
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>@RestController cho backend API phục vụ React/Vue/mobile/microservice. @Controller cho admin panel SSR, legacy JSP/Thymeleaf. ResponseEntity khi cần custom status code/header. @RestControllerAdvice cho global JSON error response.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng business logic trong controller — chỉ validate input, map DTO, gọi service. Đừng @RestController nếu app pure SSR không có API. Tránh expose JPA entity trực tiếp — lazy load exception + over-posting. Đừng mix SSR và API trong cùng controller class — tách rõ.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                WMS: OrderApiController (@RestController) serve JSON cho handheld scanner app. AdminDashboardController (@Controller + Thymeleaf) render báo cáo HTML cho warehouse manager. Cùng OrderService backend — hai presentation adapter khác nhau.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Return entity từ @RestController → LazyInitializationException khi Jackson serialize association ngoài session. Thiếu @Valid trên @RequestBody → invalid input vào service. @Controller return object không phải String → Spring coi là view name → 404 confusing.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>@Controller: MVC, return view name, SSR HTML.</li>
+                  <li>@RestController = @Controller + @ResponseBody — auto JSON.</li>
+                  <li>Controller mỏng: validate, map DTO, delegate service.</li>
+                  <li>Trap: return entity → lazy load leak khi serialize JSON.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q6</span> Circular Dependency — Spring xử lý thế nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Circular Dependency</strong> xảy ra khi bean A cần B, B cần A (hoặc chuỗi A→B→C→A). Spring không thể instantiate cả hai nếu dùng constructor injection — không có bean nào hoàn chỉnh để inject trước. Spring Boot 2.6+ mặc định <code>spring.main.allow-circular-references=false</code> — fail fast thay vì workaround im lặng.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Circular dependency là <strong>design smell</strong> — hai class phụ thuộc lẫn nhau vi phạm SRP và khó test. Spring 3-level singleton cache cho phép field/setter injection "pass" bằng early reference — nhưng che giấu vấn đề thiết kế. Fail fast buộc developer refactor thay vì patch.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Cache level</th><th>Chứa gì</th><th>Vai trò</th></tr></thead>
+                <tbody>
+                  <tr><td><code>singletonObjects</code></td><td>Bean hoàn chỉnh, fully initialized</td><td>Pool bean ready sử dụng</td></tr>
+                  <tr><td><code>earlySingletonObjects</code></td><td>Early reference (chưa init xong)</td><td>Cho phép inject bean đang khởi tạo</td></tr>
+                  <tr><td><code>singletonFactories</code></td><td>ObjectFactory tạo early ref</td><td>Callback khi cần expose sớm</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Constructor circular: Spring detect cycle trong dependency graph → throw BeanCurrentlyInCreationException. Field/setter: tạo A (chưa inject) → đăng early ref vào factory → tạo B → inject early A vào B → hoàn thiện A → hoàn thiện B. @Lazy trên một dependency: inject proxy, resolve thật khi first call.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// ❌ Constructor circular — FAIL startup</span>
+<span class="tok-annotation">@Service</span> <span class="tok-keyword">public class</span> <span class="tok-class">ServiceA</span> {
+  <span class="tok-keyword">public</span> <span class="tok-class">ServiceA</span>(<span class="tok-class">ServiceB</span> b) {} <span class="tok-comment">// cần B hoàn chỉnh</span>
+}
+<span class="tok-annotation">@Service</span> <span class="tok-keyword">public class</span> <span class="tok-class">ServiceB</span> {
+  <span class="tok-keyword">public</span> <span class="tok-class">ServiceB</span>(<span class="tok-class">ServiceA</span> a) {} <span class="tok-comment">// cần A hoàn chỉnh → deadlock</span>
+}
+
+<span class="tok-comment">// ✅ Refactor: tách logic chung</span>
+<span class="tok-annotation">@Service</span> <span class="tok-keyword">public class</span> <span class="tok-class">SharedHelper</span> { ... }
+<span class="tok-annotation">@Service</span> <span class="tok-keyword">public class</span> <span class="tok-class">ServiceA</span> {
+  <span class="tok-keyword">public</span> <span class="tok-class">ServiceA</span>(<span class="tok-class">SharedHelper</span> helper) {}
+}
+<span class="tok-annotation">@Service</span> <span class="tok-keyword">public class</span> <span class="tok-class">ServiceB</span> {
+  <span class="tok-keyword">public</span> <span class="tok-class">ServiceB</span>(<span class="tok-class">SharedHelper</span> helper) {}
+}
+
+<span class="tok-comment">// Workaround tạm: @Lazy</span>
+<span class="tok-keyword">public</span> <span class="tok-class">ServiceA</span>(<span class="tok-annotation">@Lazy</span> <span class="tok-class">ServiceB</span> b) {}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Gặp circular dep → refactor trước tiên. @Lazy khi không thể refactor ngay (legacy). Event-driven decouple: A publish event, B listen — không direct dependency. ApplicationContext.getBean() self-injection cho @Transactional self-call (khác circular dep nhưng related).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng bật <code>allow-circular-references=true</code> để "fix" — che design flaw. Đừng dùng field injection workaround trong code mới. @Lazy everywhere = lazy loading surprise + khó debug. Prototype scope circular phức tạp hơn singleton — tránh.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                OrderService cần NotificationService, NotificationService cần OrderService (query order detail) → refactor: tách OrderQueryService bean thứ 3, cả hai inject query service. Hoặc NotificationService listen OrderPlacedEvent thay vì inject OrderService.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Field injection "fix" circular dep nhưng object có thể half-init khi method gọi. @Lazy proxy → first call mới resolve — unexpected NPE nếu B chưa ready. 3+ bean cycle (A→B→C→A) khó detect hơn — graph tool hoặc startup log. Spring Boot 2.6+ fail nếu chưa migrate — check release notes.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>A→B→A: constructor injection fail; field/setter có thể early ref.</li>
+                  <li>3-level cache: singletonObjects, earlySingletonObjects, factories.</li>
+                  <li>Boot 2.6+ cấm circular ref mặc định — fail fast.</li>
+                  <li>Fix đúng: refactor, tách bean 3, event-driven — không patch @Lazy.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q7</span> Spring Boot Auto-configuration hoạt động thế nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Auto-configuration</strong> là cơ chế Spring Boot tự động cấu hình bean dựa trên classpath và properties — không cần viết XML/Java config thủ công. <code>@SpringBootApplication</code> meta-include <code>@EnableAutoConfiguration</code>, load danh sách auto-config classes và filter bằng @Conditional annotations.</p>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row"><div class="flow-node primary">@SpringBootApplication</div></div>
+                <div class="flow-arrow">↓ meta</div>
+                <div class="flow-row">
+                  <div class="flow-node">@EnableAutoConfiguration</div>
+                  <div class="flow-node">@ComponentScan</div>
+                </div>
+                <div class="flow-arrow">↓ load</div>
+                <div class="flow-row"><div class="flow-node secondary">META-INF/spring/AutoConfiguration.imports</div></div>
+                <div class="flow-arrow">↓ filter</div>
+                <div class="flow-row">
+                  <div class="flow-node success">@ConditionalOnClass</div>
+                  <div class="flow-node">@ConditionalOnMissingBean</div>
+                  <div class="flow-node">@ConditionalOnProperty</div>
+                </div>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Convention over configuration — thêm starter dependency (spring-boot-starter-data-jpa) → DataSource, EntityManagerFactory, TransactionManager auto wired. Giảm boilerplate từ hàng trăm dòng XML xuống vài dòng properties. @ConditionalOnMissingBean cho phép override — user define bean riêng thì auto-config skip.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>@Conditional</th><th>Điều kiện</th><th>Ví dụ</th></tr></thead>
+                <tbody>
+                  <tr><td><code>@ConditionalOnClass</code></td><td>Classpath có class</td><td>Có HikariCP → config DataSource</td></tr>
+                  <tr><td><code>@ConditionalOnMissingBean</code></td><td>User chưa define bean</td><td>Skip default DataSource nếu đã có @Bean</td></tr>
+                  <tr><td><code>@ConditionalOnProperty</code></td><td>Property match</td><td>spring.cache.type=redis → RedisCacheConfig</td></tr>
+                  <tr><td><code>@ConditionalOnWebApplication</code></td><td>Servlet vs reactive</td><td>Chỉ config MVC nếu web app</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Boot 3 load từ <code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code> (thay spring.factories Boot 2). Mỗi @AutoConfiguration class evaluate conditions → match thì register @Bean. AutoConfigurationImportSelector đọc file imports lúc startup. Debug: <code>--debug</code> hoặc <code>logging.level.org.springframework.boot.autoconfigure=DEBUG</code>.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@AutoConfiguration</span>
+<span class="tok-annotation">@ConditionalOnClass</span>(<span class="tok-class">DataSource</span>.<span class="tok-keyword">class</span>)
+<span class="tok-annotation">@EnableConfigurationProperties</span>(<span class="tok-class">DataSourceProperties</span>.<span class="tok-keyword">class</span>)
+<span class="tok-keyword">public class</span> <span class="tok-class">DataSourceAutoConfiguration</span> {
+  <span class="tok-annotation">@Bean</span>
+  <span class="tok-annotation">@ConditionalOnMissingBean</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">DataSource</span> <span class="tok-function">dataSource</span>(<span class="tok-class">DataSourceProperties</span> props) {
+    <span class="tok-keyword">return</span> props.initializeDataSourceBuilder().build();
+  }
+}
+
+<span class="tok-comment">// Override: user bean thắng auto-config</span>
+<span class="tok-annotation">@Configuration</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">DbConfig</span> {
+  <span class="tok-annotation">@Bean</span> <span class="tok-comment">// @ConditionalOnMissingBean → auto DataSource skip</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">DataSource</span> <span class="tok-function">dataSource</span>() { <span class="tok-keyword">return</span> customPool(); }
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Dùng starter dependencies thay vì manual config. Override bằng @Bean + @ConditionalOnMissingBean pattern. Exclude auto-config không cần: <code>@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)</code>. Custom starter library: tạo own AutoConfiguration.imports.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng exclude auto-config tùy tiện — hiểu trước bean nào bị ảnh hưởng. Đừng duplicate @Bean mà không biết auto-config đã có — conflict hoặc unexpected override. Tránh <code>@EnableAutoConfiguration(exclude = ...)</code> quá rộng trong microservice nhỏ — mất lợi ích convention.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                Thêm spring-boot-starter-data-redis → RedisConnectionFactory, RedisTemplate auto config nếu spring.data.redis.host set. Multi-datasource: define 2 @Bean DataSource → auto-config skip, full control. Actuator auto-config expose /health khi starter-actuator on classpath.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Bean không tạo nhưng không error — check conditions failed silently (debug log). Thứ tự auto-config matters — @AutoConfigureAfter/@Before. Boot 2→3 migration: spring.factories → AutoConfiguration.imports. Property typo → condition fail → missing bean runtime NPE.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>@EnableAutoConfiguration load classes từ AutoConfiguration.imports.</li>
+                  <li>@ConditionalOnClass/MissingBean/Property filter config.</li>
+                  <li>Starter = dependency + auto-config — convention over config.</li>
+                  <li>Override: define @Bean riêng → MissingBean skip default.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q8</span> Thiết kế Spring Boot clean architecture?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Clean Architecture</strong> trong Spring Boot tách concern theo layer: Controller (presentation) → Service (use case/business) → Repository (persistence) → Domain Entity. Dependency chỉ đi vào trong — outer layer phụ thuộc inner, không ngược. DTO tách biệt API contract khỏi persistence model.</p>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Controller (API)</div>
+                </div>
+                <div class="flow-arrow">↓ DTO in/out</div>
+                <div class="flow-row">
+                  <div class="flow-node secondary">Service (Use case)</div>
+                </div>
+                <div class="flow-arrow">↓ Domain model</div>
+                <div class="flow-row">
+                  <div class="flow-node success">Repository (Port)</div>
+                  <div class="flow-node">Domain / Entity</div>
+                </div>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Testability: mock repository test service logic. Maintainability: thay DB (PostgreSQL → Mongo) chỉ sửa repository impl. Security: DTO filter field — client không gửi/nhận field nhạy cảm (role, internalId). Tránh lazy load leak khi serialize entity ra JSON.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Layer</th><th>Trách nhiệm</th><th>Không làm</th></tr></thead>
+                <tbody>
+                  <tr><td>Controller</td><td>Validate input, map DTO, HTTP status</td><td>Business logic, @Transactional</td></tr>
+                  <tr><td>Service</td><td>Orchestration, domain rules, @Transactional</td><td>HTTP concern, SQL trực tiếp</td></tr>
+                  <tr><td>Repository</td><td>CRUD, query persistence</td><td>Business calculation</td></tr>
+                  <tr><td>Domain/Entity</td><td>Business state, invariants</td><td>Spring annotation (tránh couple)</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Package-by-feature: <code>com.wms.order/</code> chứa OrderController, OrderService, OrderRepository, Order entity, OrderDto — thay vì package-by-layer phẳng. MapStruct/ModelMapper convert Entity ↔ DTO. Service inject repository interface. Global exception handler (@RestControllerAdvice) tập trung error response.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// order/ package-by-feature</span>
+<span class="tok-annotation">@RestController</span> <span class="tok-annotation">@RequestMapping</span>(<span class="tok-string">"/api/orders"</span>)
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderController</span> {
+  <span class="tok-annotation">@PostMapping</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">OrderDto</span> <span class="tok-function">create</span>(<span class="tok-annotation">@Valid @RequestBody</span> <span class="tok-class">CreateOrderRequest</span> req) {
+    <span class="tok-keyword">return</span> orderMapper.toDto(orderService.placeOrder(req)); <span class="tok-comment">// DTO only</span>
+  }
+}
+
+<span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderService</span> {
+  <span class="tok-annotation">@Transactional</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">Order</span> <span class="tok-function">placeOrder</span>(<span class="tok-class">CreateOrderRequest</span> req) {
+    validateBusinessRules(req);
+    <span class="tok-keyword">return</span> orderRepo.save(orderMapper.toEntity(req));
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Mọi production Spring Boot app >3 endpoints. Package-by-feature khi team >2 dev hoặc domain phức tạp (WMS, e-commerce). Hexagonal variant: port interface trong domain, adapter impl ở infrastructure package.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng over-engineer POC/prototype — layer đơn giản OK. Tránh Anemic Domain Model nếu DDD thật sự cần — entity chỉ getter/setter, logic hết trong service. Không bắt buộc MapStruct cho CRUD đơn giản — manual mapping 5 field OK.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                WMS: order/ feature module — CreateOrderRequest DTO nhận SKU + qty, OrderService validate tồn kho + @Transactional reserve bin, OrderRepository JPA persist. API trả OrderDto (không có lazy OrderLine collection) — tránh N+1 và lazy exception.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Fat controller: validation + business + persistence trong 1 class. Entity leak: return @Entity trực tiếp → Jackson trigger lazy load. Transaction trên controller → giữ connection suốt HTTP request. God service: 2000-line OrderService — tách use case class.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Layer: Controller → Service → Repository → Entity.</li>
+                  <li>DTO tách API khỏi entity — tránh lazy leak, over-posting.</li>
+                  <li>Package-by-feature (order/) thay vì layer phẳng.</li>
+                  <li>@Transactional ở service, không ở controller.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: AOP & Configuration -->
+        <section class="section" id="aop">
+          <h2 class="section-title">AOP &amp; Configuration</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q9</span> AOP — Aspect, Join Point, Advice, Pointcut?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>AOP (Aspect-Oriented Programming)</strong> tách cross-cutting concern (logging, security, transaction) khỏi business code. Spring AOP dùng runtime proxy (JDK dynamic proxy hoặc CGLIB). <strong>Aspect</strong> = module chứa advice; <strong>Join Point</strong> = điểm có thể inject (method execution); <strong>Pointcut</strong> = expression chọn join points; <strong>Advice</strong> = code chạy tại join point.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>DRY: logging mọi service method không copy-paste. Separation of concerns: business code không biết transaction/logging wrapper. @Transactional, @Cacheable, @Async đều implement qua AOP proxy — hiểu AOP = hiểu tại sao self-invocation fail.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Khái niệm</th><th>Ý nghĩa</th><th>Ví dụ</th></tr></thead>
+                <tbody>
+                  <tr><td>Aspect</td><td>Module cross-cutting logic</td><td>@Aspect class PerformanceAspect</td></tr>
+                  <tr><td>Join Point</td><td>Điểm execution có thể advise</td><td>Method call OrderService.placeOrder()</td></tr>
+                  <tr><td>Pointcut</td><td>Expression chọn join points</td><td><code>execution(* com.wms..*Service.*(..))</code></td></tr>
+                  <tr><td>Advice</td><td>Code tại join point</td><td>@Before, @After, @Around, @AfterThrowing</td></tr>
+                  <tr><td>Weaving</td><td>Gắn aspect vào target</td><td>Spring: runtime proxy (not compile-time)</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>@EnableAspectJAutoProxy (auto trong Boot) → BeanPostProcessor wrap bean matching pointcut → proxy delegate tới target. @Around: control trước/sau, gọi <code>pjp.proceed()</code> cho target method. Pointcut expression: <code>@annotation(Timed)</code>, <code>execution(* *(..))</code>, <code>within(@Service *)</code>.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Aspect</span> <span class="tok-annotation">@Component</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">PerformanceAspect</span> {
+  <span class="tok-annotation">@Around</span>(<span class="tok-string">"@annotation(Timed)"</span>)
+  <span class="tok-keyword">public</span> <span class="tok-class">Object</span> <span class="tok-function">measure</span>(<span class="tok-class">ProceedingJoinPoint</span> pjp) <span class="tok-keyword">throws</span> <span class="tok-class">Throwable</span> {
+    <span class="tok-keyword">long</span> start = System.nanoTime();
+    <span class="tok-keyword">try</span> { <span class="tok-keyword">return</span> pjp.proceed(); }
+    <span class="tok-keyword">finally</span> {
+      log.info(<span class="tok-string">"{} took {}ms"</span>, pjp.getSignature(), (System.nanoTime()-start)/1e6);
+    }
+  }
+
+  <span class="tok-annotation">@AfterThrowing</span>(pointcut = <span class="tok-string">"within(@Service *)"</span>, throwing = <span class="tok-string">"ex"</span>)
+  <span class="tok-keyword">public void</span> <span class="tok-function">logServiceError</span>(<span class="tok-class">Exception</span> ex) { alertService.notify(ex); }
+}
+
+<span class="tok-comment">// @Transactional cũng là AOP — TransactionInterceptor @Around service method</span></code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Logging/audit cross-cutting. Performance monitoring (@Timed). Security @PreAuthorize. Custom retry/circuit breaker aspect. Hiểu AOP để debug @Transactional/@Cacheable/@Async không hoạt động.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng AOP cho core business logic — khó đọc, debug stack phức tạp. Spring AOP chỉ method execution trên Spring bean — không advise constructor, field access, private method (non-proxy). Tránh pointcut quá rộng (<code>execution(* *(..))</code>) — performance overhead.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                @Transactional trên OrderService.placeOrder(): proxy begin TX → method → commit. PerformanceAspect @Around @Timed methods — log slow query >500ms. AuditAspect @AfterReturning trên @Service — ghi who/when/what không sửa business code.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Self-invocation <code>this.txMethod()</code> bypass proxy — TX không chạy. Final class/method → CGLIB không extend được. Pointcut typo → aspect im lặng không match. @Order aspect conflicts — thứ tự advice matters (@Order annotation).
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Aspect = cross-cutting module; Pointcut chọn method; Advice = code chạy.</li>
+                  <li>Spring AOP = runtime proxy, chỉ public method trên bean.</li>
+                  <li>@Transactional/@Cacheable/@Async đều là AOP.</li>
+                  <li>Trap: this.method() bypass proxy — self-invocation fail.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q10</span> Phân biệt @Configuration vs @Component?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><code>@Configuration</code> đánh dấu class Java-based config — chứa <code>@Bean</code> methods định nghĩa bean manually. <code>@Component</code> là generic stereotype — class được scan và instantiate trực tiếp. Khác biệt quan trọng: @Configuration full mode CGLIB-enhance @Bean methods — gọi lẫn nhau vẫn trả singleton.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>@Configuration cho third-party class không annotate được (@Bean RestTemplate, DataSource). Full mode đảm bảo <code>orderClient()</code> gọi <code>restTemplate()</code> trong cùng class → cùng singleton instance. @Component class gọi method nội bộ = plain Java call → mỗi lần object mới nếu @Bean trên @Component (anti-pattern).</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>@Configuration</th><th>@Component</th></tr></thead>
+                <tbody>
+                  <tr><td>Mục đích</td><td>Java config, define @Bean</td><td>Generic bean — business/utility class</td></tr>
+                  <tr><td>@Bean method inter-call</td><td>CGLIB proxy → singleton shared</td><td>Plain call → new instance mỗi lần</td></tr>
+                  <tr><td>proxyBeanMethods</td><td>true (full, default) / false (lite)</td><td>N/A — không enhance</td></tr>
+                  <tr><td>Typical use</td><td>DataSource, RestTemplate, SecurityFilterChain</td><td>Service, Validator, Helper</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>@Configuration full mode: Spring tạo CGLIB subclass — mỗi @Bean method intercepted, lần đầu tạo bean và cache, lần sau return cached. Lite mode (<code>proxyBeanMethods=false</code>): không CGLIB — @Bean methods độc lập, inject qua param thay vì gọi method nội bộ. Boot 2.2+ default lite cho @SpringBootApplication internal config.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Configuration</span> <span class="tok-comment">// proxyBeanMethods=true — full mode</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">AppConfig</span> {
+  <span class="tok-annotation">@Bean</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">RestTemplate</span> <span class="tok-function">restTemplate</span>() { <span class="tok-keyword">return new</span> <span class="tok-class">RestTemplate</span>(); }
+
+  <span class="tok-annotation">@Bean</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">OrderClient</span> <span class="tok-function">orderClient</span>() {
+    <span class="tok-keyword">return new</span> <span class="tok-class">OrderClient</span>(restTemplate()); <span class="tok-comment">// ✅ qua proxy → cùng singleton</span>
+  }
+}
+
+<span class="tok-annotation">@Configuration</span>(proxyBeanMethods = <span class="tok-keyword">false</span>) <span class="tok-comment">// lite — @Bean inject param thay vì gọi method</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">LiteConfig</span> {
+  <span class="tok-annotation">@Bean</span> <span class="tok-keyword">public</span> <span class="tok-class">OrderClient</span> <span class="tok-function">orderClient</span>(<span class="tok-class">RestTemplate</span> rt) {
+    <span class="tok-keyword">return new</span> <span class="tok-class">OrderClient</span>(rt); <span class="tok-comment">// inject — không gọi restTemplate()</span>
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>@Configuration cho mọi @Bean definition (third-party, multi-bean setup). Full mode khi @Bean methods gọi lẫn nhau. Lite mode (proxyBeanMethods=false) khi @Bean độc lập — startup nhanh hơn, ít CGLIB. @Component cho class logic, không define @Bean (trừ anti-pattern).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng @Bean trên @Component class — mất singleton guarantee khi inter-call. Đừng @Configuration cho business service — không phải config class. Lite mode + gọi @Bean method nội bộ → duplicate bean instances bug.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                SecurityConfig @Configuration define SecurityFilterChain + AuthenticationManager beans. RedisConfig @Bean RedisConnectionFactory + RedisTemplate — OrderClient inject RestTemplate qua constructor param (lite mode safe).
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                @Component + @Bean method gọi nhau → 2 RestTemplate instances — subtle bug. Full mode CGLIB yêu cầu class non-final. Nhầm @Configuration với @ConfigurationProperties — khác hoàn toàn (properties binding).
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>@Configuration: Java config, @Bean methods, CGLIB proxy full mode.</li>
+                  <li>@Component: generic bean — không enhance @Bean inter-call.</li>
+                  <li>Full mode: gọi @Bean method trong class → cùng singleton.</li>
+                  <li>Lite (proxyBeanMethods=false): inject param, startup nhanh hơn.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q11</span> @Bean vs @Autowired — @Qualifier vs @Primary?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><code>@Bean</code>: đăng ký object vào container — bạn <strong>tạo và cấu hình</strong> instance (thường trong @Configuration). <code>@Autowired</code>: Spring <strong>inject bean có sẵn</strong> vào constructor/field/setter. Khi nhiều bean cùng type: <code>@Primary</code> chọn default, <code>@Qualifier("name")</code> chọn cụ thể.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>@Bean cho class bạn không control (RestTemplate, ObjectMapper custom config). @Autowired cho dependency consumption. @Primary tránh ambiguity khi có default impl. @Qualifier khi cần inject non-default bean cùng lúc (Stripe + PayPal gateway).</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Annotation</th><th>Vai trò</th><th>Dùng ở đâu</th></tr></thead>
+                <tbody>
+                  <tr><td><code>@Bean</code></td><td>Define/produce bean</td><td>@Configuration method</td></tr>
+                  <tr><td><code>@Autowired</code></td><td>Consume/inject bean</td><td>Constructor, field, setter</td></tr>
+                  <tr><td><code>@Primary</code></td><td>Default khi ambiguous</td><td>@Bean hoặc @Component class</td></tr>
+                  <tr><td><code>@Qualifier("x")</code></td><td>Chọn bean by name</td><td>Inject point hoặc @Bean method</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>@Bean method return object → Spring register với bean name = method name. @Autowired resolve by type; nhiều match → @Primary wins, hoặc bắt buộc @Qualifier. @Qualifier on @Bean method set explicit name. Constructor injection: Spring 4.3+ single constructor không cần @Autowired.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Configuration</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">PaymentConfig</span> {
+  <span class="tok-annotation">@Bean</span> <span class="tok-annotation">@Primary</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">PaymentGateway</span> <span class="tok-function">stripeGateway</span>() {
+    <span class="tok-keyword">return new</span> <span class="tok-class">StripeGateway</span>(apiKey);
+  }
+
+  <span class="tok-annotation">@Bean</span> <span class="tok-annotation">@Qualifier</span>(<span class="tok-string">"paypal"</span>)
+  <span class="tok-keyword">public</span> <span class="tok-class">PaymentGateway</span> <span class="tok-function">paypalGateway</span>() {
+    <span class="tok-keyword">return new</span> <span class="tok-class">PaypalGateway</span>(clientId);
+  }
+}
+
+<span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">CheckoutService</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">PaymentGateway</span> defaultGateway;  <span class="tok-comment">// @Primary → Stripe</span>
+  <span class="tok-keyword">private final</span> <span class="tok-class">PaymentGateway</span> paypal;
+
+  <span class="tok-keyword">public</span> <span class="tok-class">CheckoutService</span>(
+      <span class="tok-class">PaymentGateway</span> defaultGateway,
+      <span class="tok-annotation">@Qualifier</span>(<span class="tok-string">"paypal"</span>) <span class="tok-class">PaymentGateway</span> paypal) {
+    <span class="tok-keyword">this</span>.defaultGateway = defaultGateway;
+    <span class="tok-keyword">this</span>.paypal = paypal;
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>@Bean: third-party lib, custom ObjectMapper, DataSource, RestTemplate builder. @Primary: default impl trong multi-impl setup. @Qualifier: inject specific bean by name — A/B payment, primary/secondary cache.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng @Bean cho class đã @Component scan được — duplicate bean. Nhiều @Primary cùng type → startup error. @Qualifier typo → NoUniqueBeanDefinitionException hoặc NoSuchBeanDefinitionException. Tránh @Autowired field — dùng constructor.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                PaymentConfig: @Primary StripeGateway cho checkout mặc định, @Qualifier("paypal") cho market EU. NotificationService inject @Primary EmailSender; AdminService inject @Qualifier("smtpBulk") cho campaign email.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                2+ bean cùng type không @Primary không @Qualifier → NoUniqueBeanDefinitionException. @Bean method name = bean name — rename method = break @Qualifier reference. @Autowired optional dependency: dùng <code>Optional&lt;T&gt;</code> hoặc <code>@Autowired(required=false)</code>.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>@Bean: tạo bean; @Autowired: inject bean có sẵn.</li>
+                  <li>@Primary: default khi nhiều impl cùng type.</li>
+                  <li>@Qualifier: chọn bean cụ thể by name.</li>
+                  <li>Trap: 2 bean cùng type thiếu Primary/Qualifier → fail startup.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Transaction & Profiles -->
+        <section class="section" id="transaction">
+          <h2 class="section-title">Giao dịch &amp; Cấu hình</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q12</span> @Transactional — propagation, isolation, pitfalls?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>@Transactional</strong> khai báo transaction boundary trên method/class. Spring không sửa bytecode trực tiếp — tạo <strong>AOP proxy</strong> (JDK dynamic proxy hoặc CGLIB subclass) bọc bean. Proxy mở TX trước method, commit/rollback sau — caller luôn gọi qua proxy, không phải object gốc.</p>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Controller / Caller</div>
+                </div>
+                <div class="flow-arrow">↓ inject &amp; invoke</div>
+                <div class="flow-row">
+                  <div class="flow-node secondary">OrderService$$SpringCGLIB$$Proxy</div>
+                </div>
+                <div class="flow-arrow">↓ TransactionInterceptor</div>
+                <div class="flow-row">
+                  <div class="flow-node success">begin TX</div>
+                  <div class="flow-node">→ target method</div>
+                  <div class="flow-node">commit / rollback</div>
+                </div>
+                <div class="flow-arrow">↓ bypass nếu self-invocation</div>
+                <div class="flow-row">
+                  <div class="flow-node danger">this.internalSave()</div>
+                  <div class="flow-node">= gọi trực tiếp target, KHÔNG qua proxy</div>
+                </div>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Declarative TX tách business logic khỏi boilerplate <code>connection.setAutoCommit(false)</code>. Propagation định nghĩa TX join hay tách riêng. Isolation kiểm soát phenomena (dirty read, phantom). Proxy pattern là lý do nhiều “bug TX không chạy” — hiểu proxy = hiểu 80% pitfalls.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Propagation</th><th>Hành vi</th><th>Ví dụ</th></tr></thead>
+                <tbody>
+                  <tr><td><code>REQUIRED</code> (default)</td><td>Có TX → join; không → tạo mới</td><td>placeOrder() gọi updateInventory()</td></tr>
+                  <tr><td><code>REQUIRES_NEW</code></td><td>Luôn TX mới — suspend outer TX</td><td>Audit log commit dù order rollback</td></tr>
+                  <tr><td><code>NESTED</code></td><td>Savepoint trong TX hiện tại</td><td>Partial rollback nested step</td></tr>
+                  <tr><td><code>NOT_SUPPORTED</code></td><td>Suspend TX, chạy non-TX</td><td>Report generation read-only</td></tr>
+                </tbody>
+              </table>
+              <table class="feature-table">
+                <thead><tr><th>Isolation</th><th>Dirty read</th><th>Non-repeatable read</th><th>Phantom read</th></tr></thead>
+                <tbody>
+                  <tr><td>READ_UNCOMMITTED</td><td>Có thể</td><td>Có</td><td>Có</td></tr>
+                  <tr><td>READ_COMMITTED (default DB)</td><td>Không</td><td>Có</td><td>Có</td></tr>
+                  <tr><td>REPEATABLE_READ</td><td>Không</td><td>Không</td><td>Có</td></tr>
+                  <tr><td>SERIALIZABLE</td><td>Không</td><td>Không</td><td>Không</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p><code>REQUIRED</code>: cùng connection, cùng commit/rollback. <code>REQUIRES_NEW</code>: suspend outer TX, mở connection mới, commit độc lập — outer rollback không ảnh hưởng inner đã commit.</p>
+                <p><strong>Đặt @Transactional ở đâu?</strong> Trên <strong>public method của @Service</strong> — đúng transaction boundary (use case). Không đặt Controller (transaction quá rộng, giữ DB connection suốt HTTP request, trộn HTTP concern). Không đặt Repository thông thường (TX boundary nên ở orchestration layer; repo chỉ persistence). <code>@Transactional(readOnly = true)</code> trên query service — hint Hibernate skip flush, tối ưu read. <code>REQUIRES_NEW</code> trên bean khác (AuditService) cho audit log commit dù outer rollback.</p>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">OrderController</div></div>
+                  <div class="flow-arrow">↓ HTTP validate + map DTO — KHÔNG @Transactional</div>
+                  <div class="flow-row"><div class="flow-node secondary">OrderService @Transactional</div></div>
+                  <div class="flow-arrow">↓ begin TX → business rules → repo calls</div>
+                  <div class="flow-row">
+                    <div class="flow-node">OrderRepository</div>
+                    <div class="flow-node success">InventoryRepository</div>
+                  </div>
+                  <div class="flow-arrow">↓ commit / rollback — connection trả pool</div>
+                </div>
+                <p><strong>Self-invocation / private:</strong> <code>this.inner()</code> bypass proxy — TX không apply. Fix: inject chính interface (<code>@Lazy OrderService self</code>), tách <code>AuditService</code> bean riêng, hoặc <code>AopContext.currentProxy()</code>. Method <code>private</code> @Transactional im lặng không hoạt động (Spring AOP không advise private).</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderQueryService</span> {
+  <span class="tok-annotation">@Transactional</span>(readOnly = <span class="tok-keyword">true</span>)
+  <span class="tok-keyword">public</span> <span class="tok-class">OrderDto</span> <span class="tok-function">findById</span>(Long id) { <span class="tok-keyword">return</span> mapper.toDto(orderRepo.findById(id).orElseThrow()); }
+}
+
+<span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderService</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">AuditService</span> audit;
+
+  <span class="tok-annotation">@Transactional</span> <span class="tok-comment">// REQUIRED — 1 TX cho cả flow</span>
+  <span class="tok-keyword">public void</span> <span class="tok-function">placeOrder</span>(<span class="tok-class">Order</span> order) {
+    orderRepo.save(order);
+    inventoryService.decrement(order);  <span class="tok-comment">// join cùng TX</span>
+    audit.log(<span class="tok-string">"ORDER_CREATED"</span>, order.getId()); <span class="tok-comment">// REQUIRES_NEW → TX riêng</span>
+    <span class="tok-keyword">if</span> (order.isInvalid()) <span class="tok-keyword">throw new</span> <span class="tok-class">BusinessException</span>();
+    <span class="tok-comment">// order + inventory rollback; audit log VẪN commit</span>
+  }
+}
+
+<span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">AuditService</span> {
+  <span class="tok-annotation">@Transactional</span>(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+  <span class="tok-keyword">public void</span> <span class="tok-function">log</span>(<span class="tok-class">String</span> action, <span class="tok-class">Long</span> refId) {
+    auditRepo.save(<span class="tok-keyword">new</span> <span class="tok-class">AuditEntry</span>(action, refId));
+  }
+}
+
+<span class="tok-comment">// ❌ Self-invocation — TX không apply</span>
+<span class="tok-keyword">public void</span> <span class="tok-function">outer</span>() { <span class="tok-keyword">this</span>.inner(); } <span class="tok-comment">// bypass proxy!</span>
+<span class="tok-annotation">@Transactional</span> <span class="tok-keyword">public void</span> <span class="tok-function">inner</span>() { repo.save(x); }
+
+<span class="tok-comment">// ❌ Swallowed exception — không rollback</span>
+<span class="tok-annotation">@Transactional</span>
+<span class="tok-keyword">public void</span> <span class="tok-function">risky</span>() {
+  <span class="tok-keyword">try</span> { payment.charge(); }
+  <span class="tok-keyword">catch</span> (<span class="tok-class">Exception</span> e) { log.error(e); } <span class="tok-comment">// nuốt → commit!</span>
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Đặt @Transactional ở <strong>service layer public methods</strong> (use case boundary). Dùng <code>REQUIRES_NEW</code> trên <strong>bean khác</strong> (AuditService) cho audit/outbox — commit độc lập outer TX. <code>readOnly = true</code> trên query service (OrderQueryService). Chỉ định <code>rollbackFor = Exception.class</code> khi cần rollback checked exception. Self-invocation: inject proxy bean thay gọi <code>this</code>.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng @Transactional trên controller (quá sớm, giữ connection lâu). Đừng gọi <code>this.txMethod()</code> — inject self proxy hoặc tách bean. Method <code>private</code>/<code>final</code> không bị intercept. Đừng expect rollback khi catch exception mà không rethrow. Bean <code>new</code> thủ công không có proxy.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                placeOrder (REQUIRED): save order + reserve bin trong 1 TX. AuditService.log (REQUIRES_NEW): ghi "attempt" ngay cả khi validation fail và order rollback — compliance trace. Outbox pattern thường dùng REQUIRES_NEW cho event row.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                <strong>Self-invocation</strong> là trap #1 phỏng vấn. <strong>Default rollback chỉ RuntimeException</strong> — checked exception commit TX trừ khi khai báo rollbackFor. <strong>private method</strong> @Transactional im lặng không hoạt động. Long TX (gọi HTTP trong @Transactional) giữ DB connection → pool exhaustion.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>@Transactional = AOP proxy: begin → method → commit/rollback.</li>
+                  <li>Đặt trên Service public method — không Controller/Repository/private.</li>
+                  <li>readOnly=true query; REQUIRES_NEW audit trên bean riêng.</li>
+                  <li>Fail: self-invocation (this.), private/final, swallowed exception.</li>
+                  <li>Default rollback RuntimeException only — dùng rollbackFor nếu cần.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q13</span> Profiles trong Spring Boot?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Spring Profiles</strong> là cơ chế tách cấu hình và bean theo môi trường hoặc vai trò runtime. File <code>application-{profile}.yml</code> merge vào base config; annotation <code>@Profile</code> quyết định bean nào được đăng ký vào ApplicationContext. Có thể kích hoạt nhiều profile cùng lúc (<code>prod,metrics</code>).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Tránh hard-code URL DB, API key, log level trong code. Một artifact JAR chạy được mọi môi trường — chỉ đổi profile qua env var hoặc CLI. @Profile thay thế if-else khởi tạo bean (mock email dev vs SMTP prod). Spring Boot 2.4+ ưu tiên <code>spring.config.import</code> và profile groups cho cấu trúc phức tạp hơn.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Cách kích hoạt</th><th>Ví dụ</th><th>Khi dùng</th></tr></thead>
+                <tbody>
+                  <tr><td>Env var</td><td><code>SPRING_PROFILES_ACTIVE=prod</code></td><td>Docker, K8s, CI/CD</td></tr>
+                  <tr><td>CLI arg</td><td><code>--spring.profiles.active=dev</code></td><td>Local debug nhanh</td></tr>
+                  <tr><td>application.yml</td><td><code>spring.profiles.active: staging</code></td><td>Default cho team (tránh prod default!)</td></tr>
+                  <tr><td>Profile group</td><td><code>spring.profiles.group.prod: prod,metrics,secure</code></td><td>Bật bundle profile một lần</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Đặt shared config trong <code>application.yml</code>; override theo profile trong <code>application-prod.yml</code>. Bean có <code>@Profile("!prod")</code> = mọi profile trừ prod. <code>@Profile({"dev","test"})</code> = OR logic. Conditional bean (<code>@ConditionalOnProperty</code>) bổ sung profile khi cần feature flag chi tiết hơn.</p>
+              </div>
+              <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># application.yml — shared</span>
+spring:
+  application.name: wms-api
+  profiles.active: ${SPRING_PROFILES_ACTIVE:dev}
+
+<span class="tok-comment"># application-prod.yml</span>
+spring:
+  datasource:
+    url: jdbc:postgresql://prod-db:5432/wms
+    hikari.maximum-pool-size: 20
+logging.level.root: WARN
+management.endpoints.web.exposure.include: health,metrics</code></pre></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Profile</span>(<span class="tok-string">"dev"</span>)
+<span class="tok-annotation">@Bean</span>
+<span class="tok-keyword">public</span> <span class="tok-class">EmailSender</span> <span class="tok-function">mockEmailSender</span>() { <span class="tok-keyword">return new</span> <span class="tok-class">LoggingEmailSender</span>(); }
+
+<span class="tok-annotation">@Profile</span>(<span class="tok-string">"prod"</span>)
+<span class="tok-annotation">@Bean</span>
+<span class="tok-keyword">public</span> <span class="tok-class">EmailSender</span> <span class="tok-function">smtpEmailSender</span>() { <span class="tok-keyword">return new</span> <span class="tok-class">SmtpEmailSender</span>(); }
+
+<span class="tok-annotation">@Profile</span>(<span class="tok-string">"!prod"</span>) <span class="tok-comment">// dev + test + staging</span>
+<span class="tok-annotation">@Bean</span>
+<span class="tok-keyword">public</span> <span class="tok-class">DataSeeder</span> <span class="tok-function">devDataSeeder</span>() { ... }</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Dùng profile cho mọi khác biệt môi trường: datasource, broker URL, log level, feature toggle, mock vs real integration. K8s: inject <code>SPRING_PROFILES_ACTIVE</code> qua ConfigMap/Secret. Test: <code>@ActiveProfiles("test")</code> trên @SpringBootTest. Staging mirror prod profile nhưng datasource riêng.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng nhét secret thật vào <code>application-prod.yml</code> trong repo — dùng env/Secret Manager. Đừng tạo 20 profile cho từng tenant — dùng multi-tenancy config động. Đừng rely profile để branch business logic phức tạp — đó là code smell, dùng strategy bean hoặc feature flag service.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                WMS API: profile <code>dev</code> dùng H2 + LoggingEmailSender; <code>staging</code> trỏ PostgreSQL staging + SMTP sandbox; <code>prod</code> pool lớn, log WARN, Actuator hạn chế. Profile group <code>prod</code> = prod + secure + metrics — deploy một env var, bật đủ bundle.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Quên set profile prod trên K8s → app chạy default <code>dev</code> trên production. Hai bean cùng type không có @Primary khi nhiều profile overlap → <code>NoUniqueBeanDefinitionException</code>. File <code>application-prod.yml</code> trong git lộ cấu trúc infra — mask sensitive qua placeholder <code>${DB_URL}</code>.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Profile = tách config + bean theo môi trường, không đổi JAR.</li>
+                  <li>application-{profile}.yml merge; @Profile trên @Bean/@Configuration.</li>
+                  <li>Kích hoạt: SPRING_PROFILES_ACTIVE, CLI, profile groups.</li>
+                  <li>Secret qua env; tránh profile cho logic nghiệp vụ phức tạp.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Async, Scheduling, Events -->
+        <section class="section" id="async">
+          <h2 class="section-title">Async, Scheduling &amp; Events</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q14</span> @Async + @EnableAsync?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>@EnableAsync</strong> bật xử lý bất đồng bộ qua Spring AOP proxy. <strong>@Async</strong> trên method khiến caller trả về ngay (thường <code>void</code> hoặc <code>Future</code>/<code>CompletableFuture</code>) trong khi method thực thi trên thread pool riêng — tách khỏi request thread của Tomcat.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Giải phóng HTTP thread khi task I/O-bound dài: gửi email, generate PDF, gọi API bên thứ ba. Tăng throughput không cần tăng max threads servlet. CompletableFuture cho phép compose nhiều async task. Cơ chế proxy giống @Transactional — hiểu proxy = tránh bug “async không chạy”.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Return type</th><th>Hành vi caller</th><th>Ghi chú</th></tr></thead>
+                <tbody>
+                  <tr><td><code>void</code></td><td>Fire-and-forget, không biết kết quả</td><td>Exception → AsyncUncaughtExceptionHandler</td></tr>
+                  <tr><td><code>Future&lt;T&gt;</code></td><td><code>future.get()</code> block chờ</td><td>Legacy, vẫn dùng được</td></tr>
+                  <tr><td><code>CompletableFuture&lt;T&gt;</code></td><td>Chain <code>thenApply</code>, non-blocking compose</td><td>Khuyến nghị cho flow phức tạp</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Thêm <code>@EnableAsync</code> trên @Configuration. Khai báo <code>Executor</code> bean (ThreadPoolTaskExecutor) — set core/max pool, queue, thread prefix để debug. Gắn <code>@Async("taskExecutor")</code> nếu nhiều pool. Method phải public, gọi qua proxy từ bean khác — không <code>this.async()</code>.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Configuration</span>
+<span class="tok-annotation">@EnableAsync</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">AsyncConfig</span> {
+  <span class="tok-annotation">@Bean</span>(<span class="tok-string">"taskExecutor"</span>)
+  <span class="tok-keyword">public</span> <span class="tok-class">Executor</span> <span class="tok-function">taskExecutor</span>() {
+    <span class="tok-class">ThreadPoolTaskExecutor</span> ex = <span class="tok-keyword">new</span> <span class="tok-class">ThreadPoolTaskExecutor</span>();
+    ex.setCorePoolSize(<span class="tok-number">4</span>); ex.setMaxPoolSize(<span class="tok-number">16</span>);
+    ex.setQueueCapacity(<span class="tok-number">500</span>); ex.setThreadNamePrefix(<span class="tok-string">"async-"</span>);
+    ex.setRejectedExecutionHandler(<span class="tok-keyword">new</span> <span class="tok-class">CallerRunsPolicy</span>());
+    ex.initialize(); <span class="tok-keyword">return</span> ex;
+  }
+}
+
+<span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">ReportService</span> {
+  <span class="tok-annotation">@Async</span>(<span class="tok-string">"taskExecutor"</span>)
+  <span class="tok-keyword">public</span> <span class="tok-class">CompletableFuture</span>&lt;<span class="tok-class">Report</span>&gt; <span class="tok-function">generate</span>(<span class="tok-class">Long</span> id) {
+    <span class="tok-class">Report</span> r = heavyPdfBuild(id);
+    <span class="tok-keyword">return</span> <span class="tok-class">CompletableFuture</span>.completedFuture(r);
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Side-effect không cần kết quả ngay trong response: notification, audit enrich, cache warm. CPU/IO work song song với CompletableFuture.allOf. Tách pool riêng cho email vs report để tránh starvation. Kết hợp @Async @EventListener cho event handler không block publisher.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng @Async cho logic cần kết quả đồng bộ trong cùng request (race, mất error handling). Đừng dùng default SimpleAsyncTaskExecutor (tạo thread mới mỗi lần) ở prod. Đừng @Async method có @Transactional cần join TX caller — TX không propagate sang thread khác. CPU-bound nặng trên pool nhỏ → dùng @Scheduled hoặc message queue.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                POST /orders trả 201 ngay; @Async gửi confirmation email + push webhook. Report dashboard: controller gọi 3 @Async service, CompletableFuture.allOf gom kết quả trước khi render — Tomcat thread chỉ chờ compose, không build PDF.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                <strong>Self-invocation</strong> (<code>this.generate()</code>) chạy sync — inject self hoặc tách bean. Exception trong void @Async bị nuốt nếu không cấu hình handler. Queue đầy + CallerRunsPolicy chạy trên caller thread → vô tình block HTTP. Mất SecurityContext/MDC — cần TaskDecorator copy context sang async thread.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>@EnableAsync + @Async = AOP proxy, method chạy trên thread pool.</li>
+                  <li>Return void/Future/CompletableFuture; cấu hình pool size + queue.</li>
+                  <li>Dùng cho side-effect I/O; không propagate @Transactional.</li>
+                  <li>Trap: self-invocation, nuốt exception, mất request context.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q15</span> @Scheduled — cron, fixedRate vs fixedDelay, cluster?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>@Scheduled</strong> chạy method theo lịch trong JVM — cron expression, fixedRate (chu kỳ từ lúc bắt đầu), hoặc fixedDelay (chờ job xong + delay). Cần <code>@EnableScheduling</code>. Mặc định single-thread scheduler — job dài block job khác trên cùng instance.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Automate batch nội bộ: sync inventory, cleanup temp, refresh cache. Đơn giản hơn Quartz cho monolith nhỏ. Cron linh hoạt (giờ/phút/ngày). fixedDelay an toàn khi job duration không cố định — tránh overlap chồng chéo.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Attribute</th><th>Timing</th><th>Overlap?</th><th>Ví dụ</th></tr></thead>
+                <tbody>
+                  <tr><td><code>fixedRate</code></td><td>Mỗi N ms từ <em>start</em> lần trước</td><td>Có nếu job &gt; interval</td><td>Heartbeat mỗi 30s</td></tr>
+                  <tr><td><code>fixedDelay</code></td><td>N ms sau khi job <em>hoàn thành</em></td><td>Không</td><td>Cleanup file sau khi xong batch</td></tr>
+                  <tr><td><code>cron</code></td><td>Calendar-based (6 field Spring)</td><td>Phụ thuộc duration</td><td><code>0 0 2 * * ?</code> = 2h sáng</td></tr>
+                  <tr><td><code>initialDelay</code></td><td>Trì hoãn lần chạy đầu</td><td>—</td><td>Chờ app warmup 60s</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Bật @EnableScheduling. Gắn @Scheduled trên public method của @Component. Cluster: mỗi pod chạy duplicate → dùng <strong>ShedLock</strong> (DB/Redis lock), Quartz cluster, hoặc external scheduler (K8s CronJob). Cấu hình TaskScheduler pool nếu nhiều job song song.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Component</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">InventorySyncJob</span> {
+  <span class="tok-annotation">@Scheduled</span>(cron = <span class="tok-string">"0 */15 * * * *"</span>) <span class="tok-comment">// mỗi 15 phút</span>
+  <span class="tok-annotation">@SchedulerLock</span>(name = <span class="tok-string">"syncInventory"</span>, lockAtMostFor = <span class="tok-string">"14m"</span>)
+  <span class="tok-keyword">public void</span> <span class="tok-function">syncInventory</span>() { ... }
+
+  <span class="tok-annotation">@Scheduled</span>(fixedDelay = <span class="tok-number">60000</span>, initialDelay = <span class="tok-number">10000</span>)
+  <span class="tok-keyword">public void</span> <span class="tok-function">cleanupTempFiles</span>() { ... }
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Monolith single instance hoặc đã có distributed lock. Job ngắn (&lt; vài phút), idempotent. Cron cho business window (off-peak 2AM). fixedDelay cho pipeline tuần tự. K8s CronJob khi cần scale-to-zero hoặc tách workload khỏi app pod.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng @Scheduled trên cluster 5 pod không lock → 5 lần charge customer. Đừng cron job dài trong request thread pool. Job cần retry phức tạp, misfire policy, persistence → Quartz/Spring Batch. Hard real-time (&lt; 1s precision) — cron JVM drift, dùng external scheduler.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                WMS: cron 02:00 archive orders cũ; fixedDelay 60s poll message queue fallback; ShedLock đảm bảo 3 replica chỉ 1 pod chạy nightly reconciliation — lockAtMostFor tránh deadlock nếu pod crash giữ lock.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Timezone cron mặc định server JVM — prod UTC vs dev local gây lệch giờ. fixedRate + job 20 phút + interval 15 phút → overlap 2 instance cùng lúc. Quên @SchedulerLock trong K8s → duplicate side-effect. Exception không catch → scheduler im lặng skip lần sau tùy config.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>@Scheduled + @EnableScheduling — cron, fixedRate, fixedDelay.</li>
+                  <li>fixedRate từ start (overlap); fixedDelay sau khi xong.</li>
+                  <li>Cluster cần ShedLock/Quartz/K8s CronJob — tránh duplicate.</li>
+                  <li>Chú ý timezone và job duration vs interval.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q16</span> Spring Event — sync, async, @TransactionalEventListener?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Spring Application Events</strong> là observer pattern trong cùng ApplicationContext: bean publish event qua <code>ApplicationEventPublisher</code>, listener nhận qua <code>@EventListener</code>. <code>@TransactionalEventListener</code> gắn listener với phase của transaction (AFTER_COMMIT, AFTER_ROLLBACK...). Event có thể sync (cùng thread) hoặc async (@Async).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Tách side-effect khỏi core flow: placeOrder chỉ save + publish; email, analytics, cache invalidation ở listener. Loose coupling — thêm listener không sửa OrderService. AFTER_COMMIT đảm bảo listener chỉ chạy khi DB đã commit — tránh “ghost notification” khi TX rollback.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Listener</th><th>Thread</th><th>TX phase</th><th>Khi dùng</th></tr></thead>
+                <tbody>
+                  <tr><td><code>@EventListener</code></td><td>Sync — cùng thread publisher</td><td>Trong TX nếu publisher @Transactional</td><td>Validation nội bộ nhanh</td></tr>
+                  <tr><td><code>@Async @EventListener</code></td><td>Thread pool async</td><td>Sau publish (có thể trước commit!)</td><td>Email, webhook — cần AFTER_COMMIT nếu trong TX</td></tr>
+                  <tr><td><code>@TransactionalEventListener</code></td><td>Sync hoặc @Async</td><td>AFTER_COMMIT / AFTER_ROLLBACK</td><td>Side-effect phụ thuộc data đã persist</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Define immutable event record/class. Inject ApplicationEventPublisher vào service, publish sau business logic. Listener method nhận event type — Spring route theo parameter type. AFTER_COMMIT listener đăng ký “pending” trong TX, fire thật khi commit. Order listener với @Order nếu cần thứ tự.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public record</span> <span class="tok-class">OrderPlacedEvent</span>(<span class="tok-class">Long</span> orderId, <span class="tok-class">Instant</span> at) {}
+
+<span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderService</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">ApplicationEventPublisher</span> publisher;
+
+  <span class="tok-annotation">@Transactional</span>
+  <span class="tok-keyword">public void</span> <span class="tok-function">placeOrder</span>(<span class="tok-class">Order</span> order) {
+    orderRepo.save(order);
+    publisher.publishEvent(<span class="tok-keyword">new</span> <span class="tok-class">OrderPlacedEvent</span>(order.getId(), <span class="tok-class">Instant</span>.now()));
+  }
+}
+
+<span class="tok-annotation">@Component</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderEventHandlers</span> {
+  <span class="tok-annotation">@TransactionalEventListener</span>(phase = TransactionPhase.AFTER_COMMIT)
+  <span class="tok-annotation">@Async</span>
+  <span class="tok-keyword">public void</span> <span class="tok-function">sendConfirmation</span>(<span class="tok-class">OrderPlacedEvent</span> e) {
+    notificationService.send(e.orderId());
+  }
+
+  <span class="tok-annotation">@TransactionalEventListener</span>(phase = TransactionPhase.AFTER_ROLLBACK)
+  <span class="tok-keyword">public void</span> <span class="tok-function">onRollback</span>(<span class="tok-class">OrderPlacedEvent</span> e) {
+    metrics.increment(<span class="tok-string">"order.rollback"</span>);
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Domain event trong monolith: order placed, payment captured. AFTER_COMMIT cho email, Kafka outbox trigger, third-party API. Sync listener cho enrich in-memory trước response (hiếm). @Async listener giảm latency TX chính. Không thay message broker cho cross-service — chỉ in-process.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng dùng event cho flow cần guaranteed delivery cross JVM — dùng Kafka/RabbitMQ. @EventListener sync trong TX làm kéo dài transaction. Publish event trước save → listener đọc data chưa có. Circular event (A→B→A) gây stack overflow hoặc vòng lặp vô hạn.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                placeOrder commit xong → AFTER_COMMIT gửi email + push inventory event sang WCS. Nếu validation fail rollback → AFTER_ROLLBACK increment metric, không gửi email “đơn thành công” cho khách — classic ghost notification fix.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                @Async @EventListener không có AFTER_COMMIT vẫn có thể chạy trước commit nếu publish trong TX. Listener exception sync trong TX có thể rollback order. Event mất khi JVM crash — không durable. Generic ApplicationEvent deprecated — dùng POJO/record event.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Publish qua ApplicationEventPublisher; @EventListener nhận theo type.</li>
+                  <li>@TransactionalEventListener AFTER_COMMIT = side-effect sau DB commit.</li>
+                  <li>@Async tách thread; kết hợp AFTER_COMMIT cho email/webhook.</li>
+                  <li>In-process only; cross-service dùng message broker.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Exception, Validation, Actuator -->
+        <section class="section" id="web">
+          <h2 class="section-title">Exception, Validation &amp; Actuator</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q17</span> @ControllerAdvice / @RestControllerAdvice — global exception?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>@ControllerAdvice</strong> (hoặc <strong>@RestControllerAdvice</strong> = @ControllerAdvice + @ResponseBody) định nghĩa global exception handler cho mọi @Controller/@RestController. Method <code>@ExceptionHandler</code> map exception type → HTTP status + response body thống nhất — không cần try-catch lặp ở từng endpoint.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>API contract nhất quán: client luôn nhận JSON <code>{code, message, details}</code> thay vì stack trace HTML 500. Tách cross-cutting concern khỏi business controller. @ResponseStatus hoặc ResponseEntity kiểm soát status code. Có thể @ExceptionHandler trên controller riêng nhưng Advice áp toàn app.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Annotation</th><th>Phạm vi</th><th>Response</th></tr></thead>
+                <tbody>
+                  <tr><td><code>@ControllerAdvice</code></td><td>Global hoặc basePackages/assignableTypes</td><td>View hoặc @ResponseBody method</td></tr>
+                  <tr><td><code>@RestControllerAdvice</code></td><td>Same</td><td>Luôn serialize body JSON</td></tr>
+                  <tr><td><code>@ExceptionHandler</code></td><td>Method trong Advice/Controller</td><td>Map 1+ exception class</td></tr>
+                  <tr><td><code>@ControllerAdvice(basePackages=...)</code></td><td>Chỉ package cụ thể</td><td>Micro-module trong monolith</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Tạo class @RestControllerAdvice. Mỗi @ExceptionHandler method nhận exception (+ HttpServletRequest tùy chọn). Trả ErrorResponse DTO. Xử lý MethodArgumentNotValidException cho @Valid. ExceptionHandler có priority: handler cụ thể trước Exception.class catch-all. Log server-side, trả message an toàn client.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@RestControllerAdvice</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">GlobalExceptionHandler</span> {
+
+  <span class="tok-annotation">@ExceptionHandler</span>(<span class="tok-class">ResourceNotFoundException</span>.<span class="tok-keyword">class</span>)
+  <span class="tok-annotation">@ResponseStatus</span>(<span class="tok-class">HttpStatus</span>.NOT_FOUND)
+  <span class="tok-keyword">public</span> <span class="tok-class">ErrorResponse</span> <span class="tok-function">handleNotFound</span>(<span class="tok-class">ResourceNotFoundException</span> ex) {
+    <span class="tok-keyword">return new</span> <span class="tok-class">ErrorResponse</span>(<span class="tok-string">"NOT_FOUND"</span>, ex.getMessage());
+  }
+
+  <span class="tok-annotation">@ExceptionHandler</span>(<span class="tok-class">MethodArgumentNotValidException</span>.<span class="tok-keyword">class</span>)
+  <span class="tok-annotation">@ResponseStatus</span>(<span class="tok-class">HttpStatus</span>.BAD_REQUEST)
+  <span class="tok-keyword">public</span> <span class="tok-class">ErrorResponse</span> <span class="tok-function">handleValidation</span>(<span class="tok-class">MethodArgumentNotValidException</span> ex) {
+    <span class="tok-class">List</span>&lt;<span class="tok-class">String</span>&gt; errors = ex.getBindingResult().getFieldErrors().stream()
+        .map(f -&gt; f.getField() + <span class="tok-string">": "</span> + f.getDefaultMessage()).toList();
+    <span class="tok-keyword">return new</span> <span class="tok-class">ErrorResponse</span>(<span class="tok-string">"VALIDATION_ERROR"</span>, errors);
+  }
+
+  <span class="tok-annotation">@ExceptionHandler</span>(<span class="tok-class">Exception</span>.<span class="tok-keyword">class</span>)
+  <span class="tok-keyword">public</span> <span class="tok-class">ResponseEntity</span>&lt;<span class="tok-class">ErrorResponse</span>&gt; <span class="tok-function">handleUnexpected</span>(<span class="tok-class">Exception</span> ex) {
+    log.error(<span class="tok-string">"Unhandled"</span>, ex);
+    <span class="tok-keyword">return</span> <span class="tok-class">ResponseEntity</span>.status(<span class="tok-number">500</span>)
+        .body(<span class="tok-keyword">new</span> <span class="tok-class">ErrorResponse</span>(<span class="tok-string">"INTERNAL_ERROR"</span>, <span class="tok-string">"Unexpected error"</span>));
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Mọi REST API production: map business exception → 4xx, infrastructure → 5xx. Centralize validation error format. Problem Details (RFC 7807) với ResponseEntity nếu team chuẩn hóa. basePackages khi admin API vs public API error shape khác nhau.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng expose stack trace hoặc SQL message ra client prod. Đừng @ExceptionHandler(Exception) quá rộng nuốt lỗi cần fail fast. Non-web layer (@Service) không bị Advice — exception propagate lên controller. GraphQL/Servlet filter error cần handler riêng ngoài @ControllerAdvice.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                WMS REST: SkuNotFoundException → 404 + code SKU_NOT_FOUND; InsufficientStockException → 409 CONFLICT; @Valid fail → 400 field list. Mobile app parse code cố định, không phụ thuộc message tiếng Anh thay đổi.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Quên handle MethodArgumentNotValidException → 500 thay vì 400. Handler Exception.class che lỗi programming bug mà không log đủ context. @ControllerAdvice không catch exception từ @ControllerAdvice khác theo thứ tự không mong muốn. Trả ex.getMessage() có thể leak internal path/constraint name.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>@RestControllerAdvice = global handler cho mọi controller.</li>
+                  <li>@ExceptionHandler map exception → status + ErrorResponse JSON.</li>
+                  <li>Handle validation, business 4xx, catch-all 500 không leak stack.</li>
+                  <li>Chỉ web layer; service throw, advice translate.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q18</span> Bean Validation — @Valid vs @Validated?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Bean Validation (JSR-380)</strong> khai báo ràng buộc trên DTO/entity qua annotation (<code>@NotNull</code>, <code>@Size</code>, <code>@Email</code>...). <code>@Valid</code> (javax/jakarta) trigger validation cascade. <code>@Validated</code> (Spring) thêm hỗ trợ <strong>validation groups</strong> và validate method parameters trên @Service.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Declarative validation tách khỏi if-else trong controller. Fail fast tại boundary với HTTP 400 chuẩn. Nested object cần @Valid trên field collection. Groups cho cùng DTO: Create vs Update rule khác nhau (@NotNull id chỉ Update). Custom ConstraintValidator cho rule domain (SKU format, warehouse code).</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>@Valid (JSR-380)</th><th>@Validated (Spring)</th></tr></thead>
+                <tbody>
+                  <tr><td>Nguồn</td><td>Jakarta standard</td><td>Spring wrapper</td></tr>
+                  <tr><td>Nested validation</td><td><code>@Valid</code> trên nested field</td><td>Same + groups</td></tr>
+                  <tr><td>Validation groups</td><td><code>@NotNull(groups=Create.class)</code></td><td><code>@Validated(Create.class)</code> kích hoạt group</td></tr>
+                  <tr><td>Method-level @Service</td><td>Không</td><td><code>@Validated</code> trên class + constraint param</td></tr>
+                  <tr><td>Controller param</td><td><code>@Valid @RequestBody</code></td><td><code>@Validated(Update.class) @RequestBody</code></td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Thêm spring-boot-starter-validation. Annotate DTO fields. Controller: @Valid @RequestBody → MethodArgumentNotValidException nếu fail. Nested: @NotEmpty List&lt;@Valid OrderLine&gt;. Groups: interface Create {} / Update {}; @Validated(Create.class) on method. Custom: @interface ValidSku + ConstraintValidator implementation, inject repo nếu cần check DB.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public record</span> <span class="tok-class">CreateOrderRequest</span>(
+    <span class="tok-annotation">@NotNull</span> <span class="tok-class">Long</span> customerId,
+    <span class="tok-annotation">@NotEmpty</span> <span class="tok-class">List</span>&lt;<span class="tok-annotation">@Valid</span> <span class="tok-class">OrderLineRequest</span>&gt; lines,
+    <span class="tok-annotation">@Email</span> <span class="tok-class">String</span> notifyEmail
+) {}
+
+<span class="tok-annotation">@PostMapping</span>
+<span class="tok-keyword">public</span> <span class="tok-class">OrderDto</span> <span class="tok-function">create</span>(<span class="tok-annotation">@Valid @RequestBody</span> <span class="tok-class">CreateOrderRequest</span> req) { ... }
+
+<span class="tok-annotation">@Validated</span>
+<span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">TransferService</span> {
+  <span class="tok-keyword">public void</span> <span class="tok-function">transfer</span>(<span class="tok-annotation">@NotBlank @ValidSku</span> <span class="tok-class">String</span> sku, <span class="tok-annotation">@Positive</span> <span class="tok-keyword">int</span> qty) { ... }
+}
+
+<span class="tok-keyword">public class</span> <span class="tok-class">SkuValidator</span> <span class="tok-keyword">implements</span> <span class="tok-class">ConstraintValidator</span>&lt;<span class="tok-class">ValidSku</span>, <span class="tok-class">String</span>&gt; {
+  <span class="tok-keyword">public boolean</span> <span class="tok-function">isValid</span>(<span class="tok-class">String</span> sku, <span class="tok-class">ConstraintValidatorContext</span> ctx) {
+    <span class="tok-keyword">return</span> sku != <span class="tok-keyword">null</span> &amp;&amp; sku.matches(<span class="tok-string">"^[A-Z0-9]{6,12}$"</span>);
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>@Valid trên mọi request DTO REST. @Validated groups khi PATCH vs POST cùng record. @Validated @Service cho param validation nội bộ (transfer qty &gt; 0). Custom validator khi rule không express được bằng built-in annotation. Kết hợp @ControllerAdvice format lỗi field.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng duplicate validation controller + service cùng rule — chọn boundary rõ (DTO inbound vs domain invariant). Đừng inject heavy DB call trong ConstraintValidator mỗi field — cache hoặc validate service layer. Entity JPA @NotNull không auto validate trừ khi gọi validator explicitly. Business rule phức tạp (stock đủ không) → domain service, không chỉ annotation.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                Create order API: @Valid request + nested @Valid lines; Update order dùng @Validated(Update.class) bắt buộc orderId. @ValidSku đảm bảo format trước khi query inventory — fail 400 với field "sku" thay vì 500 NPE sâu trong service.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Quên @Valid trên nested List → chỉ validate list not empty, không validate từng line. @Validated trên controller param không thay @Valid cho cascade — thường cần cả hai vai trò khác nhau. Method validation cần @Validated trên class, không chỉ method. Hibernate @NotNull trên entity ≠ automatic REST validation.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>JSR-380 annotations trên DTO; @Valid trigger tại controller.</li>
+                  <li>@Validated (Spring) = groups + validate @Service method params.</li>
+                  <li>Nested cần @Valid trên field; custom ConstraintValidator cho domain.</li>
+                  <li>Rule nghiệp vụ phức tạp vẫn thuộc service, không chỉ annotation.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q19</span> Spring Boot Actuator — health, metrics, K8s probes?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Spring Boot Actuator</strong> (<code>spring-boot-starter-actuator</code>) expose operational endpoints qua HTTP/JMX: health, metrics, env, loggers... Tích hợp <strong>Micrometer</strong> export Prometheus/Datadog. Health indicators kiểm tra DB, disk, custom dependency. K8s probes: <code>/actuator/health/liveness</code> và <code>/actuator/health/readiness</code>.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Production observability: orchestrator biết khi nào restart pod (liveness) vs ngừng route traffic (readiness). Metrics cho alerting (latency p99, error rate). Không cần custom /health servlet. Unified model across Spring apps — SRE onboard nhanh.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Endpoint</th><th>Mục đích</th><th>Prod lưu ý</th></tr></thead>
+                <tbody>
+                  <tr><td><code>/actuator/health</code></td><td>Aggregate UP/DOWN</td><td>Public qua ingress có thể OK</td></tr>
+                  <tr><td><code>/actuator/health/liveness</code></td><td>Process còn sống?</td><td>K8s livenessProbe — fail → restart</td></tr>
+                  <tr><td><code>/actuator/health/readiness</code></td><td>Sẵn sàng traffic?</td><td>DB down → OUT_OF_SERVICE, không nhận request</td></tr>
+                  <tr><td><code>/actuator/metrics</code></td><td>Micrometer (jvm, http.server.requests)</td><td>Scrape Prometheus; hạn chế exposure</td></tr>
+                  <tr><td><code>/actuator/env</code></td><td>Property values</td><td>Ẩn sensitive; chỉ admin network</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Thêm dependency actuator. Cấu hình <code>management.endpoints.web.exposure.include</code> — prod thường chỉ health,metrics,prometheus. Bật probes: <code>management.endpoint.health.probes.enabled=true</code>. Custom HealthIndicator bean return Health.up()/down(). Readiness: mark down khi warmup chưa xong hoặc DB unreachable.</p>
+              </div>
+              <div class="code-block" data-lang="yaml"><pre><code>management:
+  endpoints.web.exposure.include: health,metrics,prometheus
+  endpoint.health.probes.enabled: true
+  health:
+    livenessstate.enabled: true
+    readinessstate.enabled: true
+<span class="tok-comment"># K8s livenessProbe → /actuator/health/liveness</span>
+<span class="tok-comment"># K8s readinessProbe → /actuator/health/readiness</span></code></pre></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Component</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">WcsHealthIndicator</span> <span class="tok-keyword">implements</span> <span class="tok-class">HealthIndicator</span> {
+  <span class="tok-keyword">public</span> <span class="tok-class">Health</span> <span class="tok-function">health</span>() {
+    <span class="tok-keyword">if</span> (!wcsClient.ping()) {
+      <span class="tok-keyword">return</span> <span class="tok-class">Health</span>.down().withDetail(<span class="tok-string">"wcs"</span>, <span class="tok-string">"unreachable"</span>).build();
+    }
+    <span class="tok-keyword">return</span> <span class="tok-class">Health</span>.up().build();
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Mọi service deploy K8s/ECS. Liveness: deadlock detection — restart pod. Readiness: dependency fail tạm thời — remove khỏi load balancer, không restart. Custom indicator cho Kafka consumer lag, WCS PLC connection. Prometheus scrape /actuator/prometheus cho Grafana dashboard.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng expose <code>/actuator/env</code>, <code>/beans</code>, <code>/heapdump</code> public internet — lộ secret và enable DoS. Đừng gắn liveness vào DB check — DB blip restart toàn bộ pod (thundering herd). Local dev có thể expose * nhưng không copy config đó sang prod.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                WMS API: readiness DOWN khi PostgreSQL hoặc Redis cache chưa connect — K8s không route traffic trong rolling deploy. Liveness chỉ check JVM/responsive. Metric http.server.requests tag uri=/api/orders alert p99 &gt; 2s. WcsHealthIndicator DOWN → readiness fail, pod giữ sống để reconnect.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Default exposure chỉ health — quên bật prometheus. Liveness probe check DB → restart loop khi DB maintenance. /actuator/env leak <code>spring.datasource.password</code> — dùng <code>management.endpoint.env.show-values=never</code>. Health aggregate DOWN vì optional dependency → toàn pod “not ready” — tách critical vs non-critical indicator.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Actuator = health, metrics, operational endpoints + Micrometer.</li>
+                  <li>Liveness = restart pod; Readiness = nhận traffic — tách mục đích.</li>
+                  <li>Custom HealthIndicator; prod hạn chế exposure, mask env secrets.</li>
+                  <li>Đừng liveness phụ thuộc DB — dùng readiness cho dependency.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Caching & Data Access -->
+        <section class="section" id="data">
+          <h2 class="section-title">Caching &amp; Data Access</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q20</span> @Cacheable, @CacheEvict, @CachePut — Redis cache?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p>Spring Cache abstraction (<code>@EnableCaching</code>) bọc method bằng AOP proxy: <strong>@Cacheable</strong> đọc cache trước DB, <strong>@CacheEvict</strong> xóa entry khi write, <strong>@CachePut</strong> luôn chạy method và cập nhật cache. Backend thường là <strong>Redis</strong> qua RedisCacheManager — distributed cache nhiều pod.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Giảm load DB cho read-heavy data (product catalog, config). Latency ổn định — Redis in-memory vs query phức tạp. TTL tránh stale vô hạn. SpEL key linh hoạt (#sku, composite key). unless skip cache null result tránh cache poison.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Annotation</th><th>Hành vi</th><th>Typical use</th></tr></thead>
+                <tbody>
+                  <tr><td><code>@Cacheable</code></td><td>Cache hit → skip method</td><td>findBySku, getWarehouseConfig</td></tr>
+                  <tr><td><code>@CacheEvict</code></td><td>Xóa key/allEntries sau method</td><td>updateProduct, deleteSku</td></tr>
+                  <tr><td><code>@CachePut</code></td><td>Luôn execute + put result</td><td>Refresh cache với data mới compute</td></tr>
+                  <tr><td><code>@Caching</code></td><td>Combine nhiều annotation</td><td>Evict 2 cache name cùng lúc</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>@EnableCaching + RedisCacheManager bean: entryTtl, JSON serializer (GenericJackson2JsonRedisSerializer). @Cacheable(value="products", key="#sku"). Write path @CacheEvict cùng key. allEntries=true khi bulk invalidate. Cache chỉ hiệu quả khi gọi qua proxy — public method bean khác gọi.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Configuration</span>
+<span class="tok-annotation">@EnableCaching</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">CacheConfig</span> {
+  <span class="tok-annotation">@Bean</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">RedisCacheManager</span> <span class="tok-function">cacheManager</span>(<span class="tok-class">RedisConnectionFactory</span> factory) {
+    <span class="tok-class">RedisCacheConfiguration</span> config = <span class="tok-class">RedisCacheConfiguration</span>.defaultCacheConfig()
+        .entryTtl(Duration.ofMinutes(<span class="tok-number">30</span>))
+        .serializeValuesWith(RedisSerializationContext.SerializationPair
+            .fromSerializer(<span class="tok-keyword">new</span> <span class="tok-class">GenericJackson2JsonRedisSerializer</span>()));
+    <span class="tok-keyword">return</span> <span class="tok-class">RedisCacheManager</span>.builder(factory).cacheDefaults(config).build();
+  }
+}
+
+<span class="tok-annotation">@Cacheable</span>(value = <span class="tok-string">"products"</span>, key = <span class="tok-string">"#sku"</span>, unless = <span class="tok-string">"#result == null"</span>)
+<span class="tok-keyword">public</span> <span class="tok-class">Product</span> <span class="tok-function">findBySku</span>(<span class="tok-class">String</span> sku) { <span class="tok-keyword">return</span> repo.findBySku(sku); }
+
+<span class="tok-annotation">@CacheEvict</span>(value = <span class="tok-string">"products"</span>, key = <span class="tok-string">"#sku"</span>)
+<span class="tok-keyword">public void</span> <span class="tok-function">updateProduct</span>(<span class="tok-class">String</span> sku, <span class="tok-class">Product</span> p) { repo.save(p); }</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Read >> write, data chấp nhận eventual consistency vài phút. Product master, exchange rate, permission snapshot. Redis cluster cho multi-pod. @CacheEvict trên mọi write path cập nhật cùng entity — tránh stale read sau update.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng cache inventory qty real-time — oversell risk. Data personalized per user/session trên shared key sai. Method trong cùng class gọi @Cacheable (self-invocation bypass). Entity JPA managed object trong cache → detached/lazy issues. Strong consistency bắt buộc → đọc DB hoặc cache-aside với versioning.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                WMS product lookup by SKU: @Cacheable 30 phút — pick station query cùng SKU hàng nghìn lần/giờ. Admin update product → @CacheEvict(sku). Bulk import 10k SKU → @CacheEvict(allEntries=true) một lần thay vì từng key.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Quên @CacheEvict → user thấy giá cũ sau update. Key SpEL sai (#id vs #product.id) → cache miss hoặc collision. Serialize entity có lazy collection → JsonMappingException hoặc blob khổng lồ. Thundering herd khi TTL hết cùng lúc — random TTL jitter. @Transactional + @Cacheable order: cache có thể đọc uncommitted nếu không cẩn thận.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>@Cacheable/Evict/Put = AOP cache layer; Redis backend phổ biến.</li>
+                  <li>SpEL key + unless; @CacheEvict mọi write path.</li>
+                  <li>Read-heavy, chấp nhận stale ngắn; không cache stock realtime.</li>
+                  <li>Self-invocation bypass cache; evict khi bulk update.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q21</span> Spring Data JPA Specification &amp; Criteria API?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>JpaSpecificationExecutor</strong> + <code>Specification&lt;T&gt;</code> compose dynamic query type-safe thay vì tạo hàng chục method <code>findByStatusAndCreatedAtAfter...</code>. Mỗi spec là predicate (root, query, cb) → Criteria API. Kết hợp bằng <code>.and()</code> / <code>.or()</code> theo filter UI gửi lên.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Search screen với optional filters — tránh explosion repository methods. Type-safe hơn string JPQL concat. Reuse spec fragments (hasStatus, createdAfter) across use cases. Criteria API generate SQL tối ưu hơn load-all-filter-in-memory. Test từng spec unit riêng.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Approach</th><th>Ưu</th><th>Nhược</th></tr></thead>
+                <tbody>
+                  <tr><td>Derived query <code>findByXAndY</code></td><td>Đơn giản, ít code</td><td>Explosion khi nhiều filter combo</td></tr>
+                  <tr><td>@Query JPQL static</td><td>Rõ ràng, portable</td><td>Dynamic WHERE awkward</td></tr>
+                  <tr><td>Specification</td><td>Composable, type-safe</td><td>Verbose syntax, learning curve</td></tr>
+                  <tr><td>Criteria API thuần</td><td>Full control</td><td>Boilerplate cao hơn Specification</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Repository extends JpaSpecificationExecutor&lt;Order&gt;. Static factory methods trả Specification — null-safe: filter null → spec luôn true (cb.conjunction()). Service build spec chain từ request DTO. findAll(spec, Pageable) cho pagination. Join fetch trong spec cẩn thận — distinct + count query.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public interface</span> <span class="tok-class">OrderRepository</span> <span class="tok-keyword">extends</span>
+    <span class="tok-class">JpaRepository</span>&lt;<span class="tok-class">Order</span>, <span class="tok-class">Long</span>&gt;, <span class="tok-class">JpaSpecificationExecutor</span>&lt;<span class="tok-class">Order</span>&gt; {}
+
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderSpecs</span> {
+  <span class="tok-keyword">public static</span> <span class="tok-class">Specification</span>&lt;<span class="tok-class">Order</span>&gt; <span class="tok-function">hasStatus</span>(<span class="tok-class">OrderStatus</span> status) {
+    <span class="tok-keyword">return</span> (root, query, cb) -&gt;
+        status == <span class="tok-keyword">null</span> ? cb.conjunction() : cb.equal(root.get(<span class="tok-string">"status"</span>), status);
+  }
+  <span class="tok-keyword">public static</span> <span class="tok-class">Specification</span>&lt;<span class="tok-class">Order</span>&gt; <span class="tok-function">createdAfter</span>(<span class="tok-class">Instant</span> from) {
+    <span class="tok-keyword">return</span> (root, query, cb) -&gt;
+        from == <span class="tok-keyword">null</span> ? cb.conjunction() : cb.greaterThan(root.get(<span class="tok-string">"createdAt"</span>), from);
+  }
+  <span class="tok-keyword">public static</span> <span class="tok-class">Specification</span>&lt;<span class="tok-class">Order</span>&gt; <span class="tok-function">customerId</span>(<span class="tok-class">Long</span> id) {
+    <span class="tok-keyword">return</span> (root, query, cb) -&gt;
+        id == <span class="tok-keyword">null</span> ? cb.conjunction() : cb.equal(root.get(<span class="tok-string">"customerId"</span>), id);
+  }
+}
+
+<span class="tok-class">Specification</span>&lt;<span class="tok-class">Order</span>&gt; spec = OrderSpecs.hasStatus(filter.status())
+    .and(OrderSpecs.createdAfter(filter.from()))
+    .and(OrderSpecs.customerId(filter.customerId()));
+<span class="tok-class">Page</span>&lt;<span class="tok-class">Order</span>&gt; page = orderRepo.findAll(spec, PageRequest.of(<span class="tok-number">0</span>, <span class="tok-number">20</span>, Sort.by(<span class="tok-string">"createdAt"</span>).descending()));</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Admin search với 5+ optional filters. Report query build runtime từ user criteria. Shared filter library (date range, tenantId) dùng nhiều entity. Kết hợp Specification với Pageable/Sort chuẩn Spring Data.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Query cố định 2-3 param → derived query đủ. Complex SQL (window function, CTE) → native @Query. Dynamic sort field từ user input — SQL injection risk qua Sort, whitelist column. Fetch graph lớn — Specification join fetch dễ N+1 hoặc cartesian product.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                WMS order search: filter status PENDING/SHIPPED, date range, warehouseId, customerId — UI gửi JSON, service compose spec, trả Page 20 items. Export CSV cùng spec không pagination limit — reuse logic, tránh duplicate JPQL string.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Field name string <code>"createdAt"</code> refactor rename entity → runtime error. Join fetch trong spec + Pageable count query fail hoặc slow — tách query count. Null filter quên conjunction → WHERE null = null sai logic. Over-nesting and/or khó đọc — extract spec class per domain aggregate.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>Specification = composable Criteria API predicates.</li>
+                  <li>JpaSpecificationExecutor.findAll(spec, Pageable).</li>
+                  <li>Static factory + and/or; null filter → conjunction().</li>
+                  <li>Tránh cho query cố định; cẩn thận join fetch + pagination.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q22</span> @Query — JPQL vs Native Query, @Modifying?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>@Query</strong> trên Spring Data repository khai báo JPQL hoặc native SQL. <strong>JPQL</strong> dùng entity/field name — portable across DB. <strong>Native query</strong> (<code>nativeQuery=true</code>) dùng bảng/cột SQL thật. <strong>@Modifying</strong> bắt buộc cho UPDATE/DELETE — kèm <code>@Transactional</code> trên service/repository.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Derived query không đủ cho JOIN FETCH, subquery, aggregate. JPQL giữ abstraction ORM — map entity tự động. Native cho performance tuning: index hint, window function, PostgreSQL INTERVAL. @Modifying bulk update tránh load entity vào memory — decrement stock atomic một câu SQL.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>JPQL</th><th>Native SQL</th></tr></thead>
+                <tbody>
+                  <tr><td>Syntax</td><td>Entity.field, JOIN FETCH</td><td>Table.column, DB functions</td></tr>
+                  <tr><td>Portability</td><td>Cao — Hibernate translate</td><td>Thấp — lock-in dialect</td></tr>
+                  <tr><td>Mapping</td><td>Entity auto</td><td>Entity hoặc DTO projection</td></tr>
+                  <tr><td>Performance tune</td><td>Hạn chế</td><td>Hint, CTE, partial index</td></tr>
+                  <tr><td>Update/Delete</td><td>@Modifying + @Query</td><td>Same — clearAutomatically</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>@Param bind named parameter. JOIN FETCH tránh N+1 load collection. Native text block Java 15+. @Modifying: set clearAutomatically=true flush persistence context sau bulk update. Return int = rows affected. Interface projection hoặc SqlResultSetMapping cho native DTO.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// JPQL — portable, JOIN FETCH</span>
+<span class="tok-annotation">@Query</span>(<span class="tok-string">"SELECT o FROM Order o JOIN FETCH o.lines WHERE o.customerId = :cid"</span>)
+<span class="tok-class">List</span>&lt;<span class="tok-class">Order</span>&gt; <span class="tok-function">findWithLines</span>(<span class="tok-annotation">@Param</span>(<span class="tok-string">"cid"</span>) <span class="tok-class">Long</span> customerId);
+
+<span class="tok-comment">// Native — DB-specific</span>
+<span class="tok-annotation">@Query</span>(value = <span class="tok-string">"""
+    SELECT * FROM orders o
+    WHERE o.status = :status AND o.created_at &gt; NOW() - INTERVAL '7 days'
+    """</span>, nativeQuery = <span class="tok-keyword">true</span>)
+<span class="tok-class">List</span>&lt;<span class="tok-class">Order</span>&gt; <span class="tok-function">findRecentByStatus</span>(<span class="tok-annotation">@Param</span>(<span class="tok-string">"status"</span>) <span class="tok-class">String</span> status);
+
+<span class="tok-comment">// Bulk update — @Modifying + @Transactional</span>
+<span class="tok-annotation">@Modifying</span>(clearAutomatically = <span class="tok-keyword">true</span>)
+<span class="tok-annotation">@Query</span>(<span class="tok-string">"UPDATE Inventory i SET i.qty = i.qty - :qty WHERE i.sku = :sku AND i.qty &gt;= :qty"</span>)
+<span class="tok-keyword">int</span> <span class="tok-function">decrementStock</span>(<span class="tok-annotation">@Param</span>(<span class="tok-string">"sku"</span>) <span class="tok-class">String</span> sku, <span class="tok-annotation">@Param</span>(<span class="tok-string">"qty"</span>) <span class="tok-keyword">int</span> qty);</code></pre></div>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>JPQL: fetch graph, filter entity relationship, portable app multi-DB. Native: report SQL phức tạp, pagination tối ưu với index cụ thể. @Modifying: bulk status update, soft delete batch, optimistic lock version increment — return 0 rows = conflict/stale.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>CRUD đơn giản → derived query. Native everywhere → mất portability, khó test H2 vs PostgreSQL. @Modifying không có @Transactional → TransactionRequiredException hoặc silent fail. JPQL UPDATE entity với relationship cascade phức tạp — load entity an toàn hơn. Dynamic WHERE nhiều → Specification thay vì concat @Query string.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                WMS: JPQL JOIN FETCH order + lines cho pick list screen một query. Native report “orders last 7 days by status” dùng PostgreSQL INTERVAL. decrementStock @Modifying atomic — return 0 nếu không đủ qty, service throw InsufficientStockException không race condition load-modify-save.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall</div>
+                Quên @Modifying trên UPDATE → exception hoặc hành vi lạ. Bulk update không refresh persistence context — entity cached trong session stale (dùng clearAutomatically). Native column name snake_case vs entity camelCase mismatch. JOIN FETCH nhiều bag collection → MultipleBagFetchException — fetch từng collection hoặc DTO query.
+              </div>
+              <div class="speak-notes">
+                <div class="ans-label">Nói trong 60 giây</div>
+                <ul>
+                  <li>@Query JPQL = entity name portable; native = SQL DB-specific.</li>
+                  <li>JOIN FETCH fix N+1; native cho tune phức tạp.</li>
+                  <li>@Modifying + @Transactional cho UPDATE/DELETE bulk.</li>
+                  <li>Return rows affected; clearAutomatically tránh stale cache.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+<section class="section" id="deep-dive-aop-proxy">
+          <h2 class="section-title">Deep Dive — Spring Proxy &amp; AOP runtime</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D1</span> Spring AOP tạo proxy thế nào — CGLIB vs JDK Dynamic Proxy, và vì sao final/private/self-invocation phá advice?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p>Spring AOP <strong>không sửa bytecode của class bạn</strong> — nó tạo một object <strong>proxy</strong> bọc quanh bean gốc rồi inject proxy thay cho bean. Có hai công nghệ:</p>
+                <ul>
+                  <li><strong>JDK dynamic proxy</strong> (<code>java.lang.reflect.Proxy</code> + <code>InvocationHandler</code>): chỉ dùng được khi target <em>implements ít nhất một interface</em>; proxy cũng implements đúng interface đó.</li>
+                  <li><strong>CGLIB</strong> (repackaged trong <code>spring-core</code>): sinh bytecode tạo <em>subclass</em> của class target, override method để chèn advice chain.</li>
+                </ul>
+                <p><strong>Spring Framework</strong>: target có interface → JDK proxy; không có → CGLIB. <strong>Spring Boot mặc định <code>spring.aop.proxy-target-class=true</code></strong> nên thực tế hầu hết bean dùng CGLIB, kể cả khi có interface.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Mọi cross-cutting concern — <code>@Transactional</code>, <code>@Cacheable</code>, <code>@Async</code>, custom <code>@Aspect</code> — chỉ hoạt động khi lời gọi <strong>đi qua proxy</strong>. Hiểu cơ chế proxy là hiểu vì sao advice “im lặng không chạy”, và vì sao chọn JDK vs CGLIB lại ảnh hưởng tới class bị <code>final</code>, method <code>private</code>, hay lời gọi nội bộ.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Luồng gọi chuẩn: caller giữ tham chiếu tới <strong>proxy</strong>, proxy chạy Interceptor chain (các advice), rồi mới gọi method thật trên target. Bất kỳ lời gọi nào phát sinh từ bên trong target (qua <code>this</code>) đều không đi qua proxy.</p>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Caller (@Autowired)</div>
+                </div>
+                <div class="flow-arrow">↓ inject &amp; gọi — caller chỉ thấy proxy, không thấy bean gốc</div>
+                <div class="flow-row">
+                  <div class="flow-node secondary">Proxy: JDK $Proxy42 | CGLIB OrderService$$SpringCGLIB$$0</div>
+                </div>
+                <div class="flow-arrow">↓ chạy Interceptor chain (advice theo @Order)</div>
+                <div class="flow-row">
+                  <div class="flow-node">TransactionInterceptor</div>
+                  <div class="flow-node">LoggingAspect</div>
+                </div>
+                <div class="flow-arrow">↓ sau advice mới tới method thật</div>
+                <div class="flow-row">
+                  <div class="flow-node success">Target OrderService (object gốc)</div>
+                </div>
+                <div class="flow-arrow">↓ nhưng: gọi nội bộ this.inner() từ trong target</div>
+                <div class="flow-row">
+                  <div class="flow-node danger">this.inner() = chạy trực tiếp, BYPASS proxy → advice bị bỏ qua</div>
+                </div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Tiêu chí</th><th>JDK Dynamic Proxy</th><th>CGLIB</th></tr></thead>
+                <tbody>
+                  <tr><td>Điều kiện</td><td>Cần implements ≥ 1 interface</td><td>Subclass concrete class</td></tr>
+                  <tr><td>Cơ chế</td><td><code>java.lang.reflect.Proxy</code> + <code>InvocationHandler</code></td><td>Bytecode subclass + <code>MethodInterceptor</code></td></tr>
+                  <tr><td>Class <code>final</code></td><td>Không liên quan (chỉ proxy interface)</td><td>❌ Không proxy được (không subclass được)</td></tr>
+                  <tr><td>Method <code>final</code> / <code>private</code></td><td>❌ Không advise (không override được)</td><td>❌ Không override/advise được</td></tr>
+                  <tr><td>Cast về class cụ thể</td><td>❌ <code>ClassCastException</code></td><td>✅ Được (proxy là subclass)</td></tr>
+                  <tr><td>Mặc định Spring Boot</td><td>Không (từ Boot 2)</td><td>✅ <code>proxy-target-class=true</code></td></tr>
+                  <tr><td>Tên class proxy lúc runtime</td><td><code>com.sun.proxy.$Proxy42</code></td><td><code>OrderService$$SpringCGLIB$$0</code></td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Khi cần thêm hành vi xuyên tầng (logging, metrics, security check, transaction, cache) mà không sửa business method. Chọn <strong>CGLIB</strong> khi cần intercept <em>concrete method không nằm trong interface</em> nào (đây cũng là lý do Spring Boot mặc định bật nó). Chọn <strong>JDK proxy</strong> khi thiết kế interface-driven, muốn giới hạn advice đúng theo hợp đồng interface.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Đừng force CGLIB toàn cục chỉ vì “cho chắc” — nó kéo theo giới hạn của subclass (<code>final</code> class/method, ctor, Kotlin class mặc định <code>final</code>). Không dựa vào proxy cho logic bắt buộc chạy: method <code>private</code>, method <code>final</code>, và <strong>self-invocation</strong> đều bypass proxy. Nếu thật sự cần intercept cả <code>private</code>/<code>final</code> hoặc lời gọi nội bộ mà không muốn refactor, phải dùng AspectJ load-time weaving (không phải Spring AOP proxy).</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Kiem tra proxy thuc te (JDK vs CGLIB)</span>
+<span class="tok-class">System</span>.out.println(orderService.getClass().getName());
+<span class="tok-comment">// JDK:   com.sun.proxy.$Proxy42          (implements interface)</span>
+<span class="tok-comment">// CGLIB: OrderService$$SpringCGLIB$$0    (subclass)</span>
+
+<span class="tok-keyword">boolean</span> jdk   = <span class="tok-class">AopUtils</span>.isJdkDynamicProxy(orderService);
+<span class="tok-keyword">boolean</span> cglib = <span class="tok-class">AopUtils</span>.isCglibProxy(orderService);
+
+<span class="tok-comment">// Generics trong code block phai escape: &lt; &gt; &amp;</span>
+<span class="tok-class">List</span>&lt;<span class="tok-class">Order</span>&gt; orders = orderService.<span class="tok-function">findAll</span>();
+
+<span class="tok-comment">// Self-invocation: goi noi bo qua this -> bypass proxy</span>
+<span class="tok-keyword">public void</span> <span class="tok-function">outer</span>() { <span class="tok-keyword">this</span>.<span class="tok-function">inner</span>(); }  <span class="tok-comment">// advice tren inner() KHONG chay</span></code></pre></div>
+              <div class="code-block" data-lang="properties"><pre><code><span class="tok-comment"># Tat CGLIB -> dung JDK proxy khi bean co interface (mac dinh Boot = true)</span>
+spring.aop.proxy-target-class=<span class="tok-keyword">false</span></code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Một <code>@Aspect</code> ghi metrics (thời gian xử lý) và một <code>@Transactional</code> cùng áp lên service: cả hai chỉ chạy vì caller gọi qua proxy. Muốn đổi thứ tự chạy giữa các aspect, điều khiển bằng <code>@Order</code> / <code>Ordered</code> — số nhỏ hơn chạy ngoài (vào trước, ra sau), tương tự mô hình “onion”.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Ba cái bẫy “advice không chạy”: (1) <strong>final class</strong> → CGLIB báo lỗi subclass; <strong>final method</strong> / <strong>private method</strong> → không override được nên <code>@Transactional</code>/<code>@Cacheable</code> im lặng vô hiệu; (2) <strong>self-invocation</strong> — <code>this.inner()</code> không qua proxy, TX/cache/async đều mất; (3) nhầm tưởng <code>spring.aop.proxy-target-class=false</code> sẽ “fix” được self-invocation — không, đổi loại proxy không giải quyết được lời gọi nội bộ. Fix đúng: tách method sang bean khác, inject chính proxy (<code>@Lazy</code> self), hoặc <code>AopContext.currentProxy()</code>.</p>
+              </div>
+              <p><small>Nguồn: <a href="https://docs.spring.io/spring-framework/reference/core/aop/proxying.html">Spring Framework — Proxying Mechanisms</a> · <a href="https://docs.spring.io/spring-framework/reference/core/aop/ataspectj/advice.html">Spring Framework — Advice Ordering</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="section" id="deep-dive-tx-rollback">
+          <h2 class="section-title">Deep Dive — Transaction rollback rules</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D2</span> @Transactional rollback: mặc định khi nào rollback, checked exception có rollback không, rollbackFor/noRollbackFor và readOnly khác gì?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Rollback rule</strong> quyết định transaction có rollback hay không dựa trên <em>loại exception</em> ném ra khỏi method. Mặc định của Spring: <strong>rollback trên <code>RuntimeException</code> và <code>Error</code>, nhưng KHÔNG rollback trên checked exception</strong> (business exception). Cấu hình qua <code>rollbackFor</code> / <code>noRollbackFor</code> (theo type) hoặc <code>rollbackForClassName</code> / <code>noRollbackForClassName</code> (theo pattern tên class).</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Đây là nguồn bug dữ liệu “âm thầm”: method ném checked exception, tưởng là thất bại nhưng Spring vẫn <strong>commit</strong> phần đã ghi trước đó → dữ liệu nửa vời. Ngược lại, hiểu sai khiến lập trình viên dùng <code>rollbackFor = Exception.class</code> tràn lan, vô tình rollback cả những lỗi nghiệp vụ chỉ nên bỏ qua.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p><code>TransactionInterceptor</code> bọc method: mở TX → gọi target → khi có exception ném ra tới proxy, nó đối chiếu với các <code>RollbackRuleAttribute</code> đã đăng ký để quyết định rollback hay commit.</p>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Caller → Proxy @Transactional</div>
+                </div>
+                <div class="flow-arrow">↓ TransactionInterceptor: begin TX</div>
+                <div class="flow-row">
+                  <div class="flow-node secondary">target method thực thi (repo.save…)</div>
+                </div>
+                <div class="flow-arrow">↓ exception ném ra tới proxy → đối chiếu rollback rule</div>
+                <div class="flow-row">
+                  <div class="flow-node">RuntimeException / Error → rollback mặc định</div>
+                  <div class="flow-node danger">Checked exception → commit (!) trừ khi có rollbackFor</div>
+                </div>
+                <div class="flow-arrow">↓ kết thúc</div>
+                <div class="flow-row">
+                  <div class="flow-node success">rollback</div>
+                  <div class="flow-node success">commit</div>
+                </div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Exception ném ra</th><th>Rollback mặc định?</th><th>Cần cấu hình gì</th></tr></thead>
+                <tbody>
+                  <tr><td><code>RuntimeException</code> (unchecked)</td><td>✅ Có</td><td>—</td></tr>
+                  <tr><td><code>Error</code></td><td>✅ Có</td><td>—</td></tr>
+                  <tr><td>Checked exception (business)</td><td>❌ Không — <strong>commit</strong></td><td><code>rollbackFor = XxxException.class</code></td></tr>
+                  <tr><td>Custom unchecked nhưng muốn commit</td><td>✅ Có</td><td><code>noRollbackFor = XxxException.class</code></td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Dùng <code>rollbackFor</code> khi business exception của bạn là <strong>checked</strong> mà vẫn muốn rollback (ví dụ <code>PaymentDeclinedException extends Exception</code>). Dùng <code>noRollbackFor</code> khi muốn transaction vẫn commit dù một exception nào đó được ném ra và được xử lý ở tầng trên (ví dụ ghi log “best-effort”). <code>readOnly = true</code> dùng cho query service: là hint để Hibernate bỏ dirty-check/flush, tối ưu read.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Không đặt <code>readOnly = true</code> lên method có ghi — có provider/DB ném lỗi hoặc tệ hơn là âm thầm bỏ qua ý định ghi. Không dùng <code>rollbackFor = Exception.class</code> như “công tắc rollback mọi thứ” — nó biến cả lỗi nghiệp vụ bình thường thành rollback. Không <code>try/catch</code> rồi “ăn” exception bên trong method TX: nuốt exception khiến TX không thấy lỗi và vẫn commit.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">PaymentService</span> {
+
+  <span class="tok-comment">// BUG: checked exception -> KHONG rollback -> van COMMIT</span>
+  <span class="tok-annotation">@Transactional</span>
+  <span class="tok-keyword">public void</span> <span class="tok-function">payWrong</span>() <span class="tok-keyword">throws</span> <span class="tok-class">PaymentException</span> {
+    repo.<span class="tok-function">save</span>(tx);
+    <span class="tok-keyword">if</span> (fail) <span class="tok-keyword">throw new</span> <span class="tok-class">PaymentException</span>();  <span class="tok-comment">// checked -> commit (!)</span>
+  }
+
+  <span class="tok-comment">// FIX: rollbackFor cho checked exception</span>
+  <span class="tok-annotation">@Transactional</span>(rollbackFor = <span class="tok-class">PaymentException</span>.<span class="tok-keyword">class</span>)
+  <span class="tok-keyword">public void</span> <span class="tok-function">payOk</span>() <span class="tok-keyword">throws</span> <span class="tok-class">PaymentException</span> { <span class="tok-comment">/** ... **/</span> }
+
+  <span class="tok-comment">// ngoai le: mot so unchecked van muon commit</span>
+  <span class="tok-annotation">@Transactional</span>(noRollbackFor = <span class="tok-class">DuplicateKeyException</span>.<span class="tok-keyword">class</span>)
+  <span class="tok-keyword">public void</span> <span class="tok-function">upsert</span>() { <span class="tok-comment">/** ... **/</span> }
+
+  <span class="tok-comment">// read-only la HINT toi uu read, khong phai security</span>
+  <span class="tok-annotation">@Transactional</span>(readOnly = <span class="tok-keyword">true</span>)
+  <span class="tok-keyword">public</span> <span class="tok-class">List</span>&lt;<span class="tok-class">Order</span>&gt; <span class="tok-function">list</span>() { <span class="tok-keyword">return</span> repo.<span class="tok-function">findAll</span>(); }</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Trong luồng thanh toán: <code>charge()</code> (REQUIRED) ghi payment, gọi <code>auditService.log()</code> đánh dấu <code>REQUIRES_NEW</code> để audit luôn được ghi dù payment rollback. Nếu <code>charge()</code> ném checked exception mà quên <code>rollbackFor</code>, payment đã ghi vẫn commit mà client lại nhận báo lỗi — sai lệch nghiêm trọng.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p><strong><code>UnexpectedRollbackException</code></strong>: inner method dùng propagation <code>REQUIRED</code> (join TX ngoài) gặp lỗi, Spring đánh dấu <em>rollback-only</em> lên TX vật lý; nhưng nếu exception bị inner <code>try/catch</code> nuốt mất, outer method thấy “không có lỗi” nên gọi commit → lúc này Spring buộc phải rollback và ném <code>UnexpectedRollbackException</code>. Đây là cái bẫy kinh điển: “tôi bắt exception rồi mà sao transaction vẫn fail?”.</p>
+              </div>
+              <p><small>Nguồn: <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/annotation/Transactional.html">Spring — @Transactional javadoc (rollback rules)</a> · <a href="https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/rolling-back.html">Spring — Rolling Back a Declarative Transaction</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="section" id="deep-dive-virtual-threads">
+          <h2 class="section-title">Deep Dive — Virtual Threads (Boot 3.2+ / Java 21)</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D3</span> Virtual Threads trong Spring Boot 3.2+ (Java 21): bật thế nào, lợi ích gì và khi nào KHÔNG nên bật?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <div class="ans-label">What</div>
+                <p><strong>Virtual thread</strong> (Project Loom, Java 21) là thread do JVM quản lý, rẻ hơn nhiều so với platform thread (OS thread). Spring Boot 3.2+ hỗ trợ bật bằng một property: <code>spring.threads.virtual.enabled=true</code> (cần Java 21+). Khi bật: Tomcat/Jetty dùng virtual thread cho request processing; <code>applicationTaskExecutor</code> trở thành <code>SimpleAsyncTaskExecutor</code> dùng virtual thread (nên <code>@Async</code> cũng chạy trên virtual thread); <code>taskScheduler</code> trở thành <code>SimpleAsyncTaskScheduler</code> dùng virtual thread.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">Why</div>
+                <p>Với workload <strong>I/O-bound</strong> (gọi HTTP service, JDBC, đọc file), platform thread bị <em>block</em> suốt lúc chờ I/O, nên muốn xử lý nhiều request đồng thời phải tăng thread pool — tốn RAM và context switch. Virtual thread cho phép mỗi request một thread rẻ, hàng triệu virtual thread có thể tồn tại; JVM “unmount” virtual thread khỏi carrier thread khi nó block, giải phóng carrier để phục vụ việc khác.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">How</div>
+                <p>Virtual thread chạy trên một pool <strong>carrier thread</strong> (ForkJoinPool) có kích thước xấp xỉ số CPU. Khi gặp thao tác blocking “biết nhường”, scheduler unmount virtual thread khỏi carrier. Lợi ích chỉ hiện rõ với code thật sự blocking và có thể unmount được.</p>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Request đến (Tomcat / Jetty)</div>
+                </div>
+                <div class="flow-arrow">↓ spring.threads.virtual.enabled = true (Java 21+)</div>
+                <div class="flow-row">
+                  <div class="flow-node secondary">1 request → 1 virtual thread</div>
+                </div>
+                <div class="flow-arrow">↓ block I/O (JDBC, HTTP client) → unmount khỏi carrier</div>
+                <div class="flow-row">
+                  <div class="flow-node success">carrier thread (≈ số CPU) chạy virtual thread khác</div>
+                </div>
+                <div class="flow-arrow">↓ nhưng trần thật nằm ở tài nguyên bên ngoài</div>
+                <div class="flow-row">
+                  <div class="flow-node warning">HikariCP max-pool-size = số query đồng thời thực tế</div>
+                </div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Tiêu chí</th><th>Platform thread (pool)</th><th>Virtual thread</th></tr></thead>
+                <tbody>
+                  <tr><td>Ánh xạ</td><td>1:1 với OS thread</td><td>M:N với carrier thread</td></tr>
+                  <tr><td>Chi phí tạo</td><td>Đắt (stack ~1MB, OS)</td><td>Rẻ (stack trên heap, linh hoạt)</td></tr>
+                  <tr><td>Số lượng</td><td>Bounded (vd 200 trong pool)</td><td>Gần như unbounded (theo RAM)</td></tr>
+                  <tr><td>Khi block I/O</td><td>Giữ OS thread suốt lúc chờ</td><td>Unmount, nhường carrier</td></tr>
+                  <tr><td>Phù hợp</td><td>CPU-bound, compute</td><td>I/O-bound, nhiều blocking call</td></tr>
+                  <tr><td>Pinning</td><td>Không</td><td>Có, nếu gặp <code>synchronized</code>/native</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <div class="ans-label">When</div>
+                <p>Bật khi app là <strong>web/io-bound</strong>: REST controller gọi downstream, đọc DB, I/O file — đặc biệt khi bạn đang phải tăng thread pool vì thread hay block. Cũng hợp khi muốn nhiều <code>@Async</code> task song song mà không muốn tune pool.</p>
+              </div>
+              <div class="ans-block">
+                <div class="ans-label">When NOT</div>
+                <p>Không nên bật khi: (1) workload <strong>CPU-bound</strong> — virtual thread không giúp, chỉ thêm overhead; (2) code còn nhiều <code>synchronized</code> bao quanh thao tác blocking → <strong>pinning</strong>, carrier bị giữ, lợi ích biến mất; (3) gọi <strong>native/JNI</strong> blocking; (4) phụ thuộc nặng <code>ThreadLocal</code>; (5) trần thật là <strong>connection pool DB</strong> — bật virtual thread mà HikariCP vẫn 10 connection thì throughput query không tăng tương ứng (thậm chí dồn ứ).</p>
+              </div>
+              <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># Bat virtual threads (can Java 21+). Mac dinh: false</span>
+spring:
+  threads:
+    virtual:
+      enabled: <span class="tok-keyword">true</span></code></pre></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// PINNING: synchronized + blocking I/O giu carrier thread</span>
+<span class="tok-keyword">public synchronized</span> <span class="tok-class">String</span> <span class="tok-function">fetch</span>() {
+  <span class="tok-keyword">return</span> restClient.get().body(<span class="tok-class">String</span>.<span class="tok-keyword">class</span>);  <span class="tok-comment">// pin carrier!</span>
+}
+
+<span class="tok-comment">// THAY BANG ReentrantLock -> khong pin (Java 21)</span>
+<span class="tok-keyword">private final</span> <span class="tok-class">ReentrantLock</span> lock = <span class="tok-keyword">new</span> <span class="tok-class">ReentrantLock</span>();
+<span class="tok-keyword">public</span> <span class="tok-class">String</span> <span class="tok-function">fetchLocked</span>() {
+  lock.<span class="tok-function">lock</span>();
+  <span class="tok-keyword">try</span> { <span class="tok-keyword">return</span> restClient.get().body(<span class="tok-class">String</span>.<span class="tok-keyword">class</span>); }
+  <span class="tok-keyword">finally</span> { lock.<span class="tok-function">unlock</span>(); }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>API gateway/service gọi 3 downstream bằng HTTP blocking: trước đây pool 200 thread chỉ phục vụ ~200 request đồng thời; bật virtual thread có thể phục vụ số request lớn hơn nhiều với cùng CPU. Nhưng nếu mỗi request cần 1 DB connection thì <code>spring.datasource.hikari.maximum-pool-size</code> vẫn là trần thật.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p><strong>Pinning</strong>: một virtual thread thực hiện blocking bên trong khối/method <code>synchronized</code> (hoặc trong native method) sẽ <em>ghim</em> carrier thread; JVM có cờ/diagnostics để phát hiện (ví dụ chạy với Flight Recorder sẽ thấy event pinning). Hệ quả: tưởng “blocking rẻ” nhưng thực tế carrier bị block như platform thread. Ngoài ra <code>spring.task.execution.*</code> và <code>spring.task.scheduling.*</code> kiểu pool sẽ bị <strong>bỏ qua</strong> khi virtual thread bật, vì executor đổi sang loại non-pool. Và đừng quên: trên Java 21 pinning do <code>synchronized</code> là thật; đến Java 24+ (JEP 491) mới gỡ hạn chế này.</p>
+              </div>
+              <p><small>Nguồn: <a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2.0-M1-Release-Notes">Spring Boot 3.2.0 Release Notes — Virtual Threads</a> · <a href="https://docs.spring.io/spring-boot/reference/features/task-execution-and-scheduling.html">Spring Boot — Task Execution and Scheduling</a> · <a href="https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html">Oracle — Virtual Threads (Java 21)</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        
+<section class="section" id="interview-prototype-provider"><h2 class="section-title">Bổ sung chiều sâu phỏng vấn</h2><article class="qa-card" id="deep-prototype-provider"><h3 class="qa-question">Bean scopes: prototype trong singleton và ObjectProvider</h3><div class="qa-answer"><div class="ans-block"><span class="ans-label">What</span><p>Prototype được tạo mỗi lần container resolve bean, không phải mỗi lần gọi method. Inject trực tiếp prototype vào singleton chỉ resolve một lần; dùng ObjectProvider.getObject() trong từng thao tác để lấy instance mới và tự quản lý cleanup.</p></div><div class="ans-block"><span class="ans-label">Scope và lifecycle</span><p>singleton mặc định là một instance mỗi bean definition trong ApplicationContext, không phải một object toàn JVM. prototype tạo mới mỗi lần lookup; request/session gắn vòng đời web scope. Container inject và gọi initialization callback cho prototype nhưng không tự gọi destruction callback lúc context đóng.</p></div><div class="ans-block"><span class="ans-label">Bẫy injection</span><p>Singleton ReportService nhận Worker prototype qua constructor: Worker được tạo lúc singleton khởi tạo rồi bị giữ dùng lại. Nếu Worker chứa mutable buffer, request đồng thời có thể tranh chấp. Scope prototype không tự làm object thread-safe.</p></div><div class="ans-block"><span class="ans-label">ObjectProvider</span><p>Inject ObjectProvider&lt;Worker&gt;, gọi getObject một lần ở đầu use case, giữ instance đó cho toàn bộ thao tác. Gọi nhiều lần trong cùng use case tạo nhiều worker khác nhau. Scoped proxy hay @Lookup là lựa chọn khác nhưng phải hiểu target resolution; ObjectProvider biểu lộ rõ nơi cần object mới.</p></div><div class="ans-block"><span class="ans-label">Cleanup và kiểm thử</span><p>Worker giữ resource phải có close rõ ràng và caller gọi try/finally; @PreDestroy của prototype không tự chạy. Test hai lời gọi nhận hai Worker khác nhau; constructor injection trực tiếp thì cùng Worker. Với stateless service hãy dùng singleton đơn giản, đừng prototype mọi bean.</p></div><div class="flow-diagram">Singleton service → ObjectProvider.getObject mỗi use case → prototype mới → init → run → caller close</div><pre class="code-block"><code>@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+class Worker implements AutoCloseable {
+  public void run() { /* buffer riêng */ }
+  public void close() { /* giải phóng resource */ }
+}
+@Service
+class ReportService {
+  private final ObjectProvider&lt;Worker&gt; workers;
+  ReportService(ObjectProvider&lt;Worker&gt; workers) { this.workers = workers; }
+  void execute() { try (Worker w = workers.getObject()) { w.run(); } }
+}</code></pre><div class="ans-block"><span class="ans-label">Nguồn chính thức / tài liệu dự án</span><ul><li><a href="https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html">scope — tài liệu tham khảo</a></li><li><a href="https://docs.spring.io/spring-framework/reference/core/aop/proxying.html">aop — tài liệu tham khảo</a></li></ul></div></div></article></section>
+
+<section class="section" id="interview-audit-safe"><h2 class="section-title">Bổ sung chiều sâu phỏng vấn</h2><article class="qa-card" id="deep-audit-safe"><h3 class="qa-question">AOP audit an toàn: allowlist log và phân biệt attempt với committed event</h3><div class="qa-answer"><div class="ans-block"><span class="ans-label">What</span><p>Audit aspect chỉ nên ghi trường allowlist như actor ID, operation, resource ID, trace ID và kết quả; không dump arguments, JWT hay response. Method return thành công chưa chứng minh transaction đã commit, nên audit nghiệp vụ cần gắn đúng transaction boundary.</p></div><div class="ans-block"><span class="ans-label">Giữ kiến thức proxy hiện có</span><p>JDK proxy intercept qua interface, CGLIB dùng subclass; self-invocation bỏ qua cả hai. Điểm cần làm sâu là log có kiểm soát, không phải thêm aspect ghi toàn object. Method final trên target vẫn có thể được gọi qua JDK interface proxy; giới hạn override final chủ yếu thuộc CGLIB, còn private không phải interface method.</p></div><div class="ans-block"><span class="ans-label">Schema allowlist</span><p>Ghi timestamp, actor nội bộ/pseudonym, operation enum, resource ID được kiểm soát, outcome và trace ID. Không ghi Authorization, Cookie, password, OTP, số thẻ, toàn request DTO hay exception message chứa dữ liệu. Giới hạn chiều dài và loại CR/LF để chống log injection; log backend phải có access control và retention.</p></div><div class="ans-block"><span class="ans-label">Commit khác return</span><p>@AfterReturning chỉ biết method trả bình thường. Thứ tự transaction advice có thể khiến commit xảy ra sau advice audit. Audit attempt độc lập có thể dùng REQUIRES_NEW và phải ghi ATTEMPT/FAILED thật; business event thành công nên được ghi outbox trong cùng REQUIRED transaction với business data. Không đặt outbox độc lập REQUIRES_NEW vì sẽ phát ghost event nếu business rollback.</p></div><div class="ans-block"><span class="ans-label">Độ bền và lỗi</span><p>AFTER_COMMIT listener in-process không bảo đảm delivery sau crash. Relay outbox cần retry/idempotency. Audit bắt buộc vì compliance phải xác định fail-closed/fail-open với nghiệp vụ, không nuốt lỗi tùy tiện. Ví dụ này là thiết kế minh họa, không phải tuyên bố hệ thống đã đạt chứng nhận.</p></div><div class="flow-diagram">Proxy → allowlisted attempt → business TX + outbox → commit → relay → immutable audit sink</div><pre class="code-block"><code>// Minh họa schema allowlist, không serialize pjp.getArgs()
+audit.record(actorId, Operation.UPDATE_LIMIT, resourceId, traceId, Outcome.ATTEMPT);
+// Business event: INSERT business + outbox cùng transaction REQUIRED.
+// Không log bearer token hay entity.toString().</code></pre><div class="ans-block"><span class="ans-label">Nguồn chính thức / tài liệu dự án</span><ul><li><a href="https://docs.spring.io/spring-framework/reference/core/aop/proxying.html">aop — tài liệu tham khảo</a></li><li><a href="https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html">outbox — tài liệu tham khảo</a></li><li><a href="https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html">scope — tài liệu tham khảo</a></li></ul></div></div></article></section>
+<div class="nav-pager">
+          <a class="prev" href="02-multithreading.html">
+            <span class="label">Trước</span>
+            <span class="title">2. Multithreading &amp; Concurrency</span>
+          </a>
+          <a class="next" href="04-jpa-hibernate.html">
+            <span class="label">Tiếp</span>
+            <span class="title">4. Hibernate / JPA</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Module 03 / 14</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

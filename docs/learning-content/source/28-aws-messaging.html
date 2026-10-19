@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SQS, SNS &amp; EventBridge — DVA-C02 Deep Dive</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="module-header">
+  <span class="module-tag">AWS · Integration</span>
+  <h1 class="module-title">SQS, SNS &amp; EventBridge — DVA-C02 Deep Dive</h1>
+  <p class="module-subtitle">Queue, pub/sub và event-driven bền vững.</p>
+</div>
+<main class="content">
+
+  <section class="section" id="messaging-core">
+    <h2 class="section-title">Queue &amp; consumer cơ bản</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS1</span> Queue, pub/sub hay event bus: khi nào chọn SQS, SNS, EventBridge?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Ba mô hình tích hợp bất đồng bộ hay bị gộp làm một, nhưng khác nhau ở <strong>số người nhận</strong> và <strong>cách định tuyến</strong>. <strong>SQS</strong> là queue point-to-point: một message được <em>một</em> consumer group xử lý rồi xoá. <strong>SNS</strong> là pub/sub push: một message được nhân bản tới <em>tất cả</em> subscriber (fan-out). <strong>EventBridge</strong> là event bus: producer đẩy event lên bus, các <em>rule</em> match theo <em>event pattern</em> rồi mới gửi tới target — tách hoàn toàn producer khỏi consumer.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>SQS dùng mô hình <strong>pull</strong> (consumer tự poll, message nằm chờ tới khi bị xoá hoặc hết retention). SNS dùng mô hình <strong>push</strong> (đẩy ngay tới endpoint). EventBridge cũng là push nhưng thêm lớp lọc nội dung: event chỉ tới target nếu khớp pattern của rule.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">SQS</span><span class="icon-note">queue, 1 consumer group, buffer + retry</span></div>
+            <div class="icon-node"><span class="aws-ico sns"></span><span class="icon-label">SNS</span><span class="icon-note">pub/sub, push fan-out tới N subscriber</span></div>
+            <div class="icon-node"><span class="aws-ico eventbridge"></span><span class="icon-label">EventBridge</span><span class="icon-note">event bus, rule + pattern, cross-account</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Chọn <strong>SQS</strong> khi cần <em>decouple</em> một worker khỏi producer, hấp thụ traffic burst, retry và DLQ. Chọn <strong>SNS</strong> khi một sự kiện phải tới <em>nhiều</em> hệ thống (email + queue + Lambda). Chọn <strong>EventBridge</strong> khi cần định tuyến theo <em>nội dung event</em>, nhiều producer/consumer độc lập, hoặc nhận event từ AWS service/SaaS.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng dùng SQS khi cần fan-out cho nhiều consumer đọc cùng một event (mỗi message chỉ một nhóm xử lý). Đừng dùng SNS thuần khi consumer cần <em>buffer</em> hoặc retry dài — hãy ghép SNS → SQS. Đừng dùng EventBridge cho luồng throughput cực cao, độ trễ cực thấp: nó là bus định tuyến, không phải message broker hiệu năng cao.</p>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Cùng một "order created" → ba kiểu tích hợp khác nhau</span>
+aws sqs send-message --queue-url https://sqs.ap-southeast-1.amazonaws.com/123456789012/orders \
+  --message-body '{"orderId":"o-1"}'
+
+aws sns publish --topic-arn arn:aws:sns:ap-southeast-1:123456789012:order-events \
+  --message '{"orderId":"o-1"}'
+
+aws events put-events --entries file://event.json   <span class="tok-comment"># custom event bus</span></code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>SQS</th><th>SNS</th><th>EventBridge</th></tr></thead>
+          <tbody>
+            <tr><td>Số consumer / message</td><td>1 nhóm</td><td>N subscriber</td><td>N target (rule)</td></tr>
+            <tr><td>Mô hình lấy event</td><td>pull (poll)</td><td>push</td><td>push</td></tr>
+            <tr><td>Định tuyến theo nội dung</td><td>không</td><td>filter policy ở subscription</td><td>event pattern ở rule (mạnh nhất)</td></tr>
+            <tr><td>Buffer + retry sẵn có</td><td>có (queue)</td><td>có retry, cần DLQ</td><td>có retry + DLQ per rule</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Đề hay hỏi "một event cần tới 5 dịch vụ" → đáp án fan-out là <strong>SNS</strong> hoặc <strong>EventBridge</strong>, không phải SQS. Ngược lại "5 worker tranh nhau xử lý một hàng đợi việc" → <strong>SQS</strong>. Còn "lọc theo giá trị trong event, nhiều nguồn AWS" → <strong>EventBridge</strong>.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html">AWS Docs — What is Amazon SQS</a> · <a href="https://docs.aws.amazon.com/sns/latest/dg/welcome.html">AWS Docs — What is Amazon SNS</a> · <a href="https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html">AWS Docs — What is Amazon EventBridge</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS2</span> SQS Standard vs FIFO: ordering, exactly-once processing và throughput</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Standard queue</strong> cho throughput gần như không giới hạn, nhưng chỉ đảm bảo <em>at-least-once</em> và ordering <em>best-effort</em> — message có thể tới trùng hoặc lệch thứ tự. <strong>FIFO queue</strong> đảm bảo <em>strict ordering</em> trong từng <strong>MessageGroupId</strong> và <em>exactly-once processing</em> nhờ dedup, đổi lại throughput thấp hơn và bắt buộc đặt tên có hậu tố <code>.fifo</code>.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>FIFO gắn mỗi message một <strong>MessageDeduplicationId</strong> (hoặc bật <code>ContentBasedDeduplication</code> để lấy hash SHA-256 của body). Nếu cùng dedup id xuất hiện lại trong <strong>5 phút</strong>, message đó bị coi là trùng và <em>không được gửi lần hai</em>. Message group quyết định phạm vi ordering: cùng group thì tuần tự, khác group thì chạy song song.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Producer</span><span class="icon-note">MessageGroupId = orderId</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">SendMessage</span></div>
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">orders.fifo</span><span class="icon-note">strict order per group</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">ordered poll</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">Worker</span><span class="icon-note">xử lý đúng thứ tự</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Chọn <strong>FIFO</strong> khi thứ tự nghiệp vụ quan trọng: giao dịch tài chính, cập nhật tồn kho theo cùng một SKU, state machine của một order. Chọn <strong>Standard</strong> cho hầu hết workload còn lại khi đã viết consumer idempotent.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng chọn FIFO chỉ vì "an toàn hơn" khi không thực sự cần ordering — bạn mất throughput và tăng độ trễ. FIFO cũng <em>không</em> hỗ trợ per-message delay (chỉ delay ở mức queue với <code>DelaySeconds</code>).</p>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tạo FIFO queue + bật content-based dedup</span>
+aws sqs create-queue --queue-name orders.fifo \
+  --attributes FifoQueue=true,ContentBasedDeduplication=true
+
+<span class="tok-comment"># Gửi message có ordering theo orderId</span>
+aws sqs send-message --queue-url https://sqs.ap-southeast-1.amazonaws.com/123456789012/orders.fifo \
+  --message-body '{"orderId":"o-1","step":"paid"}' \
+  --message-group-id o-1   # dedup id tự sinh từ body khi bật content-based</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Standard</th><th>FIFO</th></tr></thead>
+          <tbody>
+            <tr><td>Delivery semantics</td><td>at-least-once (có thể trùng)</td><td>exactly-once processing</td></tr>
+            <tr><td>Ordering</td><td>best-effort</td><td>strict, theo MessageGroupId</td></tr>
+            <tr><td>Throughput</td><td>gần như không giới hạn</td><td>300 msg/s; 3.000 msg/s khi batch hoặc high-throughput mode</td></tr>
+            <tr><td>Dedup</td><td>không có API dedup</td><td>MessageDeduplicationId, cửa sổ 5 phút</td></tr>
+            <tr><td>Message size / retention</td><td colspan="2">mặc định 256 KiB (SQS nay cho tới 1 MiB) · retention 1 phút – 14 ngày, mặc định 4 ngày</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Exactly-once của FIFO chỉ trong <strong>cửa sổ 5 phút</strong> và chỉ trong phạm vi SQS. Ngoài cửa sổ đó, hoặc ở Standard queue, consumer vẫn có thể nhận trùng — luôn thiết kế idempotent. Đổi loại queue sau khi tạo là <strong>không thể</strong>.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html">AWS Docs — FIFO queues</a> · <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-messages.html">AWS Docs — SQS message quotas</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS3</span> Visibility timeout: đặt bao lâu và xử lý message quá hạn thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Visibility timeout</strong> là khoảng thời gian một message bị "ẩn" sau khi được <code>ReceiveMessage</code>, để consumer khác không giành mất. Giá trị mặc định <strong>30 giây</strong>, chỉnh được từ 0 đến tối đa <strong>12 giờ</strong>. Nếu hết timeout mà message chưa bị <code>DeleteMessage</code>, nó <em>hiện lại</em> trong queue và có thể bị xử lý lần nữa.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Consumer nhận message → đồng hồ chạy. Xong việc thì xoá; nếu việc kéo dài hơn dự kiến thì gia hạn bằng <code>ChangeMessageVisibility</code> (heartbeat). Mỗi lần message bị nhận lại mà không xoá được tính là một <em>failed receive</em> — vượt <code>maxReceiveCount</code> sẽ bị đẩy sang DLQ.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">Queue</span><span class="icon-note">message ẩn 30s</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">receive</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">Worker</span><span class="icon-note">đang xử lý</span></div>
+            <div class="icon-arrow">↔<span class="arrow-note">ChangeMessageVisibility</span></div>
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">Hết hạn</span><span class="icon-note">hiện lại → duplicate</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Đặt visibility timeout <strong>≥ thời gian xử lý p99</strong> của consumer (quy tắc an toàn hay dùng: gấp ~6 lần timeout trung bình). Với job dài, dùng heartbeat để gia hạn thay vì đặt một con số khổng lồ cho mọi message.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng đặt quá ngắn: message đang xử lý bị nhả ra, gây xử lý trùng và lãng phí. Đừng đặt quá dài: khi consumer chết thật, message bị treo lâu mới được thử lại.</p>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Long polling + gia hạn visibility cho job dài</span>
+aws sqs receive-message --queue-url $QURL \
+  --max-number-of-messages 10 --wait-time-seconds 20
+
+aws sqs change-message-visibility --queue-url $QURL \
+  --receipt-handle "$RH" --visibility-timeout 300
+
+<span class="tok-comment"># Xong thì xoá để không bị xử lý lại</span>
+aws sqs delete-message --queue-url $QURL --receipt-handle "$RH"</code></pre></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Message "quá hạn" không phải là lỗi — đó là cơ chế at-least-once. Hệ quả là <strong>duplicate</strong>, nên mọi consumer phải idempotent. Nếu một message cứ quay vòng vì payload hỏng, visibility timeout không cứu được: cần <strong>DLQ</strong> + <code>maxReceiveCount</code>.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html">AWS Docs — Visibility timeout</a> · <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-messages.html">AWS Docs — Message quotas</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS4</span> Long polling vs short polling, batch và Lambda event source mapping</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Short polling</strong> trả về ngay lập tức — kể cả khi queue rỗng — nên tốn nhiều lượt gọi rỗng. <strong>Long polling</strong> (<code>WaitTimeSeconds</code> 1–20) giữ kết nối và trả về ngay khi có message, giảm mạnh số empty response và chi phí. Với Lambda, bạn không tự poll: <strong>event source mapping (ESM)</strong> làm việc đó.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>ESM kéo một <em>batch</em> message rồi gọi function một lần. <strong>BatchSize</strong> mặc định 10, có thể tăng (SQS hỗ trợ tới 10.000) cùng <code>MaximumBatchingWindowInSeconds</code> (tối đa 300 giây) để gom cho đủ. Lambda tự scale concurrency theo queue. Bật <strong>partial batch response</strong> để chỉ trả về các record lỗi.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">SQS queue</span><span class="icon-note">buffer</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">ESM poll, BatchSize=10</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">xử lý cả batch</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">batchItemFailures</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Retry</span><span class="icon-note">chỉ record lỗi</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Luôn bật long polling khi tự viết consumer (<code>WaitTimeSeconds=20</code>). Dùng batch để tăng throughput và giảm số lần gọi; dùng batching window khi muốn gom message thưa. Bật <code>ReportBatchItemFailures</code> cho mọi hàm xử lý SQS.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không nên tăng batch/batching window khi cần <em>độ trễ thấp</em> — gom batch làm tăng thời gian chờ. Không dùng short polling trong vòng lặp liên tục vì sẽ đốt request rỗng.</p>
+        </div>
+        <div class="code-block" data-lang="javascript"><pre><code><span class="tok-comment">// Partial batch response: chỉ báo record lỗi để phần còn lại được xoá</span>
+<span class="tok-keyword">export const</span> handler = <span class="tok-keyword">async</span> (event) =&gt; {
+  <span class="tok-keyword">const</span> batchItemFailures = [];
+  <span class="tok-keyword">for</span> (<span class="tok-keyword">const</span> record <span class="tok-keyword">of</span> event.Records) {
+    <span class="tok-keyword">try</span> { <span class="tok-keyword">await</span> process(record.body); }
+    <span class="tok-keyword">catch</span> (err) { batchItemFailures.push({ itemIdentifier: record.messageId }); }
+  }
+  <span class="tok-keyword">return</span> { batchItemFailures };
+};</code></pre></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Nếu <em>không</em> bật partial batch response, một record lỗi làm Lambda throw → cả batch được trả về queue → các message đã xử lý thành công bị chạy lại (duplicate). Đây là nguyên nhân duplicate ÂM THẦM hay bị hỏi nhất. Cần khai báo <code>FunctionResponseTypes=["ReportBatchItemFailures"]</code> cho ESM.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-short-and-long-polling.html">AWS Docs — Short and long polling</a> · <a href="https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html">AWS Docs — Lambda với SQS</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="fanout-reliability">
+    <h2 class="section-title">Fan-out, filtering &amp; độ bền</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS5</span> Tình huống: message "độc" làm consumer retry vô hạn — DLQ + redrive xử lý thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Một queue chỉ có consumer lỗi (payload hỏng, schema sai) sẽ khiến cùng một message bị nhận lại mãi, chôn các message phía sau. <strong>Dead-letter queue (DLQ)</strong> là queue riêng hứng các message "độc" đó, còn <strong>redrive policy</strong> quy định khi nào đẩy sang DLQ.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Gắn redrive policy vào source queue gồm hai tham số: <code>deadLetterTargetArn</code> (DLQ) và <code>maxReceiveCount</code> (số lần nhận tối đa trước khi chuyển). Khi vượt ngưỡng, SQS chuyển message sang DLQ. Sau khi điều tra, dùng <strong>redrive task</strong> để đẩy message từ DLQ về lại source queue.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">orders</span><span class="icon-note">maxReceiveCount = 5</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">vượt 5 lần nhận</span></div>
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">orders-dlq</span><span class="icon-note">giữ message lỗi</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">alarm + redrive</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">CloudWatch</span><span class="icon-note">cảnh báo DLQ depth</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Đặt DLQ cho <em>mọi</em> queue production. Đặt <code>maxReceiveCount</code> đủ lớn để vượt qua lỗi tạm thời (thường 3–5) nhưng đủ nhỏ để không chôn queue. Luôn gắn alarm CloudWatch theo dõi <code>ApproximateNumberOfMessagesVisible</code> của DLQ.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>DLQ không phải nơi "sửa rồi quên": message trong DLQ vẫn tính retention và sẽ bị xoá khi hết hạn — cần điều tra và redrive kịp. Với FIFO, DLQ <em>bắt buộc</em> cũng là FIFO.</p>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Gắn redrive policy: đẩy sang DLQ sau 5 lần nhận thất bại</span>
+aws sqs set-queue-attributes \
+  --queue-url https://sqs.ap-southeast-1.amazonaws.com/123456789012/orders \
+  --attributes '{
+    "RedrivePolicy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:ap-southeast-1:123456789012:orders-dlq\",\"maxReceiveCount\":\"5\"}"
+  }'
+
+<span class="tok-comment"># Khi sự cố đã sửa: bắt đầu redrive đưa message về source queue</span>
+aws sqs start-message-move-task \
+  --source-arn arn:aws:sqs:ap-southeast-1:123456789012:orders-dlq</code></pre></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p><code>maxReceiveCount</code> không phải số lần <em>lỗi</em> mà là số lần message được <em>nhận</em> (bao gồm cả lần nhận đầu) — đặt 5 nghĩa là sau lần nhận thứ 5 không xoá được thì message vào DLQ. Và hết visibility timeout cũng tính là một lần nhận thất bại.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html">AWS Docs — Dead-letter queues</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS6</span> SNS topic: Standard vs FIFO và delivery retry khi endpoint lỗi</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>SNS là pub/sub <em>push</em>. <strong>Standard topic</strong> cho throughput gần như không giới hạn, at-least-once và ordering best-effort, fan-out tới SQS, Lambda, HTTP/S, email, SMS. <strong>FIFO topic</strong> cho strict ordering + dedup nhưng <em>chỉ</em> fan-out tới <strong>SQS FIFO</strong>, với throughput mặc định 300 msg/s mỗi MessageGroupId và 3.000 msg/s mỗi topic (high-throughput mode nâng lên 3.000 msg/s theo từng message group).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Với mỗi subscription, SNS gửi message và <em>retry</em> nếu endpoint lỗi theo một <strong>delivery policy</strong> JSON: <code>healthyRetryPolicy</code> gồm <code>numRetries</code>, <code>minDelayTarget</code>/<code>maxDelayTarget</code>, số lần retry không delay và <code>backoffFunction</code> (linear, arithmetic, exponential, geometric). Khi cạn retry, message có thể được đẩy sang một <strong>DLQ (SQS)</strong> gắn ở subscription.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico sns"></span><span class="icon-label">orders.fifo</span><span class="icon-note">FifoThroughputScope</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">subscription + retry policy</span></div>
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">SQS FIFO</span><span class="icon-note">endpoint chính</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cạn retry</span></div>
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">sub-DLQ</span><span class="icon-note">message không gửi được</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng FIFO topic khi thứ tự + dedup bắt buộc và mọi subscriber là SQS FIFO. Dùng Standard topic cho fan-out thông thường. Luôn đặt subscription DLQ cho endpoint "có thể chết" (HTTP/HTTPS) và cấu hình delivery policy phù hợp độ chịu lỗi của endpoint.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng chọn FIFO topic nếu subscriber không phải SQS FIFO — SNS FIFO không giao tới Lambda/HTTP/email. Đừng dựa vào retry để che lỗi logic (payload sai sẽ fail mãi) — đó là việc của DLQ + monitoring.</p>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># FIFO topic cho luồng thanh toán có thứ tự</span>
+aws sns create-topic --name payments.fifo \
+  --attributes FifoTopic=true,ContentBasedDeduplication=true
+
+<span class="tok-comment"># DLQ cho subscription: message không gửi được sau khi cạn retry</span>
+aws sns set-subscription-attributes \
+  --subscription-arn arn:aws:sns:ap-southeast-1:123456789012:payments.fifo:sub-id \
+  --attribute-name RedrivePolicy \
+  --attribute-value '{"deadLetterTargetArn":"arn:aws:sqs:ap-southeast-1:123456789012:payments-dlq"}'</code></pre></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Message mặc định tối đa <strong>256 KiB</strong>; SNS có thể nâng lên 1 MiB qua thuộc tính <code>MaximumMessageSize</code> nhưng khi đó topic bị giới hạn <strong>≤ 100 subscription</strong> và chỉ nhận endpoint SQS, Firehose hoặc Lambda. Message >256 KiB không gửi được tới email/HTTP.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/sns/latest/dg/sns-create-topic.html">AWS Docs — SNS topic types</a> · <a href="https://docs.aws.amazon.com/sns/latest/dg/sns-fifo-topics.html">AWS Docs — SNS FIFO topics</a> · <a href="https://docs.aws.amazon.com/sns/latest/dg/sns-message-delivery-retries.html">AWS Docs — Message delivery retries</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS7</span> Fan-out SNS → nhiều SQS và message filtering policy</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Pattern kinh điển: <strong>một</strong> event được publish lên SNS topic, rồi được nhân bản tới <strong>nhiều</strong> SQS queue, mỗi queue phục vụ một consumer riêng. Thêm <strong>FilterPolicy</strong> ở cấp subscription để mỗi queue chỉ nhận đúng loại event nó cần.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>FilterPolicy là một JSON so khớp với <strong>message attributes</strong> của SNS (không so khớp body). Chỉ message khớp mới được gửi tới subscription đó; message không khớp bị bỏ qua. Queue policy phải cho phép principal <code>sns.amazonaws.com</code> gửi vào — thiếu quyền này là nguyên nhân fan-out "im lặng" rất hay gặp.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Publisher</span><span class="icon-note">publish + attributes</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">fan-out</span></div>
+            <div class="icon-node"><span class="aws-ico sns"></span><span class="icon-label">order-events</span><span class="icon-note">topic</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">FilterPolicy</span></div>
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">billing-q</span><span class="icon-note">eventType=order.created</span></div>
+            <div class="icon-arrow">→</div>
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">shipping-q</span><span class="icon-note">eventType=order.shipped</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng fan-out khi một sự kiện phải kích hoạt nhiều hệ thống độc lập. Dùng filter policy để giảm nhiễu và chi phí — SNS chỉ tính phí cho event khớp filter. Đặt SQS đứng giữa thay vì SNS → Lambda trực tiếp khi cần <em>buffer</em>, retry bền và DLQ cho từng consumer.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng lọc theo nội dung body nếu bạn chưa đưa dữ liệu đó vào message attributes. Đừng fan-out tới Lambda trực tiếp nếu consumer hay fail và bạn cần giữ lại message — không có queue đệm thì message có thể mất sau retry.</p>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Subscribe một SQS queue với filter chỉ nhận order.created</span>
+aws sns subscribe \
+  --topic-arn arn:aws:sns:ap-southeast-1:123456789012:order-events \
+  --protocol sqs \
+  --notification-endpoint arn:aws:sqs:ap-southeast-1:123456789012:billing-q \
+  --attributes '{"FilterPolicy":"{\"eventType\":[\"order.created\"]}"}'
+
+<span class="tok-comment"># Publish kèm attribute để filter hoạt động</span>
+aws sns publish --topic-arn arn:aws:sns:ap-southeast-1:123456789012:order-events \
+  --message '{"orderId":"o-1"}' \
+  --message-attributes '{"eventType":{"DataType":"String","StringValue":"order.created"}}'</code></pre></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Folder filtering chỉ khớp <strong>MessageAttributes</strong>: nếu filter dùng <code>"eventType"</code> nhưng bạn chỉ để nó trong body JSON, message sẽ bị <em>drop im lặng</em>. Ngoài ra Subscribe phải bật <code>RawMessageDelivery</code> nếu muốn consumer nhận đúng payload gốc thay vì envelope của SNS.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/sns/latest/dg/sns-common-scenarios.html">AWS Docs — SNS fan-out scenario</a> · <a href="https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html">AWS Docs — Message filtering</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="eventbridge-and-choice">
+    <h2 class="section-title">EventBridge &amp; chọn service</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS8</span> EventBridge: rule, event pattern, event bus và scheduled rule</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>EventBridge</strong> là event bus serverless. Bạn có <strong>default bus</strong> (nhận event từ AWS services như S3, EC2), <strong>custom bus</strong> (event của ứng dụng bạn), và <strong>partner bus</strong> (SaaS). Mỗi <strong>rule</strong> gắn một <strong>event pattern</strong> với một hoặc nhiều target; event khớp pattern mới được gửi đi. EventBridge còn có <em>Schema Registry</em>, <em>Archive &amp; Replay</em>, và <em>scheduled rule</em> (cron/rate) như một cron serverless.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Producer <code>PutEvents</code> lên bus; EventBridge so từng event với pattern của từng rule (engine content-based filtering với các operator như <code>prefix</code>, <code>anything-but</code>, <code>numeric</code>, <code>exists</code>); khớp thì gửi tới target, kèm retry và DLQ per target. Scheduled rule không cần producer: EventBridge tự sinh event theo lịch.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">S3 / app</span><span class="icon-note">producer</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">PutEvents</span></div>
+            <div class="icon-node"><span class="aws-ico eventbridge"></span><span class="icon-label">event bus</span><span class="icon-note">rule + pattern</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">match</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">target</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">enrich</span></div>
+            <div class="icon-node"><span class="aws-ico eventbridge-pipes"></span><span class="icon-label">Pipes</span><span class="icon-note">source → enrich → target</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng EventBridge khi cần <em>định tuyến theo nội dung</em>, nhiều nguồn/nhiều đích, cross-account qua resource policy, hoặc tái xử lý sự kiện cũ bằng archive &amp; replay. Dùng scheduled rule thay cho cron trên EC2. Dùng <strong>Pipes</strong> cho tích hợp point-to-point có filter + enrichment (ví dụ SQS → API Destination → Step Functions).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng dùng EventBridge cho throughput cực lớn, độ trễ cực thấp — đó là sân của Kinesis/SQS. Đừng dùng nó như hàng đợi có ordering: EventBridge không đảm bảo thứ tự.</p>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code><span class="tok-comment">// Rule pattern: bắt mọi object .jpg mới trong bucket uploads/</span>
+{
+  "source": ["aws.s3"],
+  "detail-type": ["Object Created"],
+  "detail": {
+    "bucket": { "name": ["my-uploads-bucket"] },
+    "object": { "key": [{ "prefix": "uploads/" }, { "suffix": ".jpg" }] }
+  }
+}</code></pre></div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Scheduled rule chạy mỗi 5 phút (thay cron truyền thống)</span>
+aws events put-rule --name every-5-min --schedule-expression "rate(5 minutes)"
+
+<span class="tok-comment"># Input transformer của Pipes: chèn field từ event (escape &lt; &gt; trong HTML)</span>
+<span class="tok-comment"># "Event happened at &lt;$.detail.time&gt; for &lt;$.detail.orderId&gt;"</span>
+aws events put-events --entries file://events.json --event-bus-name app-bus</code></pre></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Event tối đa <strong>256 KB</strong>; pattern match <em>case-sensitive</em> và <strong>không có wildcard <code>*</code> trong string</strong> — muốn khớp "bắt đầu bằng" phải dùng <code>{"prefix": "..."}</code>. Số không so theo giá trị mà theo <em>biểu diễn chuỗi</em> (<code>300</code>, <code>300.0</code> khác nhau); dùng operator <code>numeric</code> cho so sánh số.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-patterns.html">AWS Docs — Event patterns</a> · <a href="https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-bus.html">AWS Docs — Event buses</a> · <a href="https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-archive.html">AWS Docs — Archive and replay</a> · <a href="https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-pipes.html">AWS Docs — EventBridge Pipes</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS9</span> So sánh SQS vs SNS vs EventBridge và bảng chọn nhanh</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Ba service giải ba bài toán khác nhau, nhưng đề thi hay gài để bạn chọn đúng giữa chúng. Ghi nhớ một câu: <strong>SQS = hàng đợi việc</strong>, <strong>SNS = phát thông báo</strong>, <strong>EventBridge = tổng đài định tuyến event</strong>.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Đọc đề, tìm "tín hiệu" rồi map sang service. Đề cần <em>decouple</em>, hấp thụ burst, retry, DLQ → SQS. Đề cần <em>một sự kiện tới nhiều nơi</em> ngay lập tức → SNS. Đề cần <em>lọc theo nội dung</em>, nhiều nguồn AWS, tái xử lý, cross-account → EventBridge.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">SQS</span><span class="icon-note">pull · 1 consumer group · buffer</span></div>
+            <div class="icon-node"><span class="aws-ico sns"></span><span class="icon-label">SNS</span><span class="icon-note">push · fan-out tới N subscriber</span></div>
+            <div class="icon-node"><span class="aws-ico eventbridge"></span><span class="icon-label">EventBridge</span><span class="icon-note">rule/pattern · routing theo nội dung</span></div>
+            <div class="icon-node"><span class="aws-ico kinesis"></span><span class="icon-label">Kinesis</span><span class="icon-note">stream · replay · nhiều consumer đọc chung</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Ghép service: SNS → nhiều SQS (fan-out bền), EventBridge → SQS/Lambda (routing + filter), SQS → Lambda (worker tự scale). Khi cần nhiều consumer đọc <em>cùng</em> một luồng có replay, chuyển sang Kinesis thay vì SQS.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng hy vọng SNS giữ message khi consumer chết (không có buffer) — hãy đặt SQS phía sau. Đừng dùng SQS cho fan-out (mỗi message chỉ một nhóm xử lý). Đừng dùng EventBridge khi cần ordering chặt hoặc throughput rất cao.</p>
+        </div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>SQS</th><th>SNS</th><th>EventBridge</th></tr></thead>
+          <tbody>
+            <tr><td>Pattern</td><td>queue, point-to-point</td><td>pub/sub fan-out</td><td>event bus, routing theo rule</td></tr>
+            <tr><td>Ai lấy event</td><td>consumer pull</td><td>push tới subscriber</td><td>push tới target của rule</td></tr>
+            <tr><td>Filter theo nội dung</td><td>không</td><td>filter policy (attribute)</td><td>event pattern (mạnh nhất)</td></tr>
+            <tr><td>Ordering</td><td>FIFO có, Standard best-effort</td><td>FIFO có (tới SQS FIFO)</td><td>không đảm bảo</td></tr>
+            <tr><td>Buffer / retry</td><td>buffer dài, DLQ, redrive</td><td>retry + DLQ per subscription</td><td>retry + DLQ per rule</td></tr>
+            <tr><td>Replay event cũ</td><td>không (trong retention)</td><td>không</td><td>có (archive &amp; replay)</td></tr>
+            <tr><td>Cross-account</td><td>queue policy</td><td>topic policy</td><td>resource policy trên bus</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-info"><div class="callout-title">Mẹo chọn nhanh</div><p>Đề có "route based on the <em>content</em> of the event", "không muốn sửa code khi thêm consumer mới", hoặc "nhận event từ SaaS" → <strong>EventBridge</strong>. Có "notify nhiều hệ thống" → <strong>SNS</strong>. Có "queue", "worker pool", "backlog" → <strong>SQS</strong>.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-related-service-sns.html">AWS Docs — EventBridge và SNS</a> · <a href="https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-related-service-sqs.html">AWS Docs — EventBridge và SQS</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS10</span> Tình huống: consumer nhận trùng message — thiết kế idempotency thế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Một dịch vụ đặt hàng đôi khi tạo <strong>hai đơn</strong> cho cùng một yêu cầu. Nguyên nhân: SQS/SNS/Lambda ESM đều là <em>at-least-once</em>, và visibility timeout hết hạn cũng tạo redelivery. Idempotency là trách nhiệm của <strong>consumer</strong>, không phải của queue.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Gắn mỗi message một <strong>idempotency key</strong> (business key như <code>orderId</code>), rồi ghi kết quả bằng <strong>conditional write</strong> vào DynamoDB: chỉ tạo nếu key chưa tồn tại (<code>attribute_not_exists</code>). Nếu đã tồn tại, bỏ qua xử lý và trả về kết quả cũ. Với FIFO queue/topic, thêm <code>MessageDeduplicationId</code> để chặn trùng ngay ở tầng queue (cửa sổ 5 phút).</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico sqs"></span><span class="icon-label">queue</span><span class="icon-note">at-least-once</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">có thể giao trùng</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Consumer</span><span class="icon-note">đọc idempotency key</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">attribute_not_exists</span></div>
+            <div class="icon-node"><span class="aws-ico dynamodb"></span><span class="icon-label">DynamoDB</span><span class="icon-note">chỉ ghi 1 lần</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">TTL dọn dẹp</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Metric</span><span class="icon-note">đếm duplicate bị chặn</span></div>
+          </div>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Idempotency key nên là <em>business key</em> ổn định (orderId + action), không phải messageId (đổi mỗi lần redelivery). Bật TTL trên bảng idempotency để tự dọn. Luôn log/đếm số lần duplicate bị chặn để phát hiện redelivery bất thường.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng tin "exactly-once" là bảo đảm end-to-end. FIFO chỉ dedup trong 5 phút; Step Functions Standard đảm bảo exactly-once ở tầng <em>orchestration</em>, không phải ở side effect của bạn. Nếu side effect gọi API ngoài (trừ tiền, gửi email), vẫn phải tự idempotent.</p>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Ghi kết quả idempotent: chỉ tạo nếu orderId chưa xử lý</span>
+aws dynamodb put-item \
+  --table-name order_idempotency \
+  --item '{"pk":{"S":"order#o-1"},"status":{"S":"DONE"},"ttl":{"N":"1767225600"}}' \
+  --condition-expression "attribute_not_exists(pk)"
+
+<span class="tok-comment"># Nếu ConditionalCheckFailedException → message trùng, bỏ qua</span></code></pre></div>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Đừng dùng <code>messageId</code> làm idempotency key — mỗi lần redelivery nó khác nhau. Dùng business key. Và nhớ: dedup của FIFO chỉ trong <strong>5 phút</strong>; ngoài cửa sổ đó duplicate vẫn lọt, nên tầng DynamoDB conditional write là lá chắn cuối.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html">AWS Docs — FIFO queues (dedup)</a> · <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/WorkingWithItems.html">AWS Docs — DynamoDB conditional writes</a> · <a href="https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-errorhandling.html">AWS Docs — Lambda SQS error handling</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <div class="nav-pager"><a class="prev" href="27-aws-edge-apigw.html">← Trước</a><a class="next" href="29-aws-orchestration-streaming.html">Tiếp →</a></div>
+</main>
+</body>
+</html>

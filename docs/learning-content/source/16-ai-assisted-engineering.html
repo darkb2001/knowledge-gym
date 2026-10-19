@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>16. AI-assisted Engineering — Interview Bank</title><link rel="stylesheet" href="styles.css?v=6"></head><body><div class="layout"><nav class="sidebar" id="sidebar"><div class="sidebar-brand"><h1>Engineering<br><span>Interview Bank</span></h1><p>AI-assisted development</p></div><div class="sidebar-nav"><a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a><div class="nav-group"><div class="nav-label">AI Engineering</div><a href="16-ai-assisted-engineering.html" class="nav-item active"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a></div></div></nav><div class="main"><header class="topbar"><button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button><span>AI-assisted Engineering</span></header><div class="content"><div class="breadcrumbs">Engineering / AI-assisted Development</div><h1 class="page-title">AI-assisted Engineering</h1><p class="page-lead">Ôn luyện dùng AI trong phát triển phần mềm: prompt, validation, automation, security, playbook, RAG, tool calling và AI hỗ trợ SQL/backend.</p><section class="section" id="ai-engineering">          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-01</span> AI-assisted development: dùng AI ở đâu trong SDLC mà vẫn giữ trách nhiệm kỹ thuật?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Dùng AI để khám phá, tạo scaffold, refactor có kiểm soát, viết test, tạo tài liệu và phân tích lỗi; con người vẫn chịu trách nhiệm về yêu cầu, kiến trúc, bảo mật, review và quyết định merge.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>AI tăng tốc phần lặp lại nhưng không hiểu đầy đủ business context, dependency nội bộ hoặc ràng buộc vận hành. Vì vậy output phải là đề xuất có thể kiểm chứng, không phải source of truth.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Chia task nhỏ; đưa acceptance criteria và file liên quan; yêu cầu AI nêu assumption; chạy formatter, compiler, unit/integration test, SAST và review diff trước khi merge.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-02</span> Một prompt kỹ thuật tốt cho việc sửa bug backend Java cần có những thành phần nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Prompt tốt gồm triệu chứng tái hiện được, expected/actual behavior, log đã loại secret, contract liên quan, phạm vi file, ràng buộc không được phá vỡ và tiêu chí nghiệm thu.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Thiếu context khiến AI đoán nguyên nhân, sửa triệu chứng hoặc thay đổi ngoài phạm vi. Prompt có cấu trúc giúp output dễ review và lặp lại.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Yêu cầu trước tiên phân tích hypothesis và kế hoạch kiểm chứng; chỉ sau đó đề xuất patch; bắt buộc trích test chứng minh bug đã được sửa.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-03</span> Làm thế nào validate code Java do AI sinh ra trước khi đưa vào production?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Validate theo nhiều lớp: compile/type check, unit test, integration/contract test, static analysis, dependency/license scan, security review, performance test và manual review theo business invariant.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Code có thể biên dịch nhưng vẫn sai transaction boundary, race condition, authorization hoặc xử lý dữ liệu biên.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>So sánh diff với acceptance criteria; thêm test cho happy path, boundary, retry, timeout, duplicate và unauthorized; không merge chỉ vì test mẫu pass.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-04</span> AI hallucination trong code và tài liệu kỹ thuật là gì, phát hiện thế nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Hallucination là output khẳng định API, behavior hoặc citation không tồn tại. Phát hiện bằng cách đối chiếu official docs, dependency source, compiler, test thực tế và link tham khảo.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Tên method nhìn hợp lý không có nghĩa là tồn tại; tài liệu sai có thể dẫn đến thiết kế sai hoặc lỗ hổng bảo mật.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Yêu cầu AI ghi nguồn và mức độ chắc chắn; kiểm tra version cụ thể; dùng một probe tối thiểu trước khi áp dụng rộng.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-05</span> Khi dùng AI với source code, log và dữ liệu production cần kiểm soát bảo mật gì?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Không gửi secret, token, password, PII, customer data hoặc source proprietary ngoài policy đã phê duyệt. Redact dữ liệu, dùng dữ liệu tổng hợp, giới hạn retention và kiểm soát provider/tool access.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Prompt cũng là dữ liệu có thể bị lưu hoặc dùng để huấn luyện tùy chính sách. Rò rỉ một token trong log có thể dẫn tới compromise hệ thống.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Thiết lập secret scanning trước khi gửi; phân loại dữ liệu; audit tool permissions; rotate secret nếu đã lộ; ghi rõ dữ liệu nào được phép dùng.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-06</span> AI coding agent khác autocomplete ở điểm nào và cần guardrail gì?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Autocomplete dự đoán đoạn code cục bộ; coding agent có thể đọc nhiều file, chạy lệnh và tạo thay đổi liên file. Agent cần sandbox, allowlist command, giới hạn scope, approval cho side effect và diff review.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Quyền rộng làm tăng blast radius: agent có thể sửa migration, dependency, infra hoặc xóa dữ liệu ngoài ý muốn.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Mặc định read-only; chia task; cấm production credential; chạy test trong môi trường cô lập; ghi lại command và yêu cầu human approval trước write/deploy.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-07</span> Thiết kế workflow tự động dùng AI để triage issue và tạo pull request?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Workflow gồm trigger, thu thập context tối thiểu, phân loại, tạo patch branch, chạy quality gates, gắn evidence vào PR và yêu cầu reviewer phê duyệt trước merge.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Automation chỉ đáng tin khi failure có thể quan sát và dừng an toàn. PR tự động không được bypass branch protection.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Dùng idempotency key, timeout, retry có backoff, budget token, audit log và rollback; phân biệt suggestion-only với auto-fix được phép.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-08</span> Một AI playbook tốt cho team engineering nên chứa gì?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Playbook ghi rõ use case, input được phép, prompt/template, expected output schema, validation commands, security constraints, owner, version và rollback/escalation path.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Template giúp cách làm lặp lại và giảm chất lượng không đồng đều giữa thành viên; version giúp biết thay đổi nào gây regression.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Bắt đầu bằng use case hẹp; lưu examples tốt/xấu; đo time saved và defect rate; review định kỳ khi model, repo hoặc policy thay đổi.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-09</span> Đánh giá chất lượng AI-generated code nên dùng metric nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Kết hợp correctness pass rate, test coverage có ý nghĩa, escaped defects, review rework, security findings, latency/cost và thời gian hoàn thành; không dùng LOC hoặc token count làm KPI chính.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Một output dài không đồng nghĩa với output tốt. Tối ưu tốc độ mà bỏ qua defect và rework sẽ làm tổng chi phí tăng.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Tạo benchmark task đại diện; đo baseline trước AI; lưu version model/prompt; đánh giá cả reviewer và production feedback.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-10</span> Dùng AI hỗ trợ viết SQL cần kiểm tra những rủi ro nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Kiểm tra semantics, JOIN cardinality, NULL, duplicate, transaction isolation, authorization filter, execution plan, index usage và khả năng SQL injection trước khi chạy.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>SQL hợp lệ vẫn có thể trả sai dữ liệu, lock quá rộng hoặc full scan bảng lớn. AI không biết schema và workload hiện tại nếu không cung cấp context chính xác.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Chạy EXPLAIN trên dữ liệu non-production; giới hạn SELECT; dùng bind parameter; so sánh result count với query chuẩn; cấm AI tự chạy destructive SQL.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-11</span> RAG giúp AI trả lời câu hỏi nội bộ đáng tin hơn như thế nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>RAG retrieve các đoạn tài liệu liên quan rồi đưa vào context để model trả lời có căn cứ; pipeline gồm chunking, embedding, retrieval, reranking, generation và citation.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Model nền không tự biết policy nội bộ hoặc version code mới. Retrieval giảm đoán mò nhưng không đảm bảo đúng nếu index stale hoặc chunk sai.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Lưu metadata version/permission; filter theo quyền trước retrieval; yêu cầu citation; đánh giá recall, groundedness và câu trả lời khi không tìm thấy tài liệu.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-12</span> Tool calling trong AI agent cần bảo vệ authorization ra sao?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Mỗi tool phải có schema, allowlist, authorization độc lập, validation input, timeout, audit log và phân biệt read/write. Không coi prompt hoặc role trong output model là quyền.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Model output là untrusted input. Nếu tool tự tin tưởng nó, prompt injection có thể biến thành truy cập trái phép hoặc side effect.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Enforce quyền ở backend; require confirmation cho write; giới hạn resource/tenant; sanitize result; từ chối tool call ngoài policy và log lý do.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-13</span> Làm sao dùng AI để tạo unit test mà không tự lừa rằng code đã an toàn?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>AI có thể tạo test theo behavior hiện tại, nhưng cần bổ sung test theo requirement và mutation/property-based testing để phát hiện test chỉ lặp lại implementation bug.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Nếu prompt chỉ yêu cầu cover code, AI thường tạo assertion yếu hoặc test happy path; coverage cao vẫn có thể thiếu defect.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Review assertion; test boundary/null/exception/concurrency; chạy mutation score; kiểm tra test fail khi cố tình phá implementation.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-14</span> AI có thể hỗ trợ code review microservices ở những điểm nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>AI có thể rà API compatibility, retry/idempotency, timeout, circuit breaker, event schema, transaction boundary, logging và observability; reviewer vẫn quyết định trade-off.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Distributed system có lỗi chỉ lộ khi network chậm, duplicate hoặc partial failure. Review theo diff đơn lẻ thường bỏ sót contract liên service.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Đưa sequence diagram và contract version vào context; yêu cầu checklist failure mode; kiểm tra bằng contract test và fault injection.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-15</span> Khi nào không nên dùng AI-generated patch?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Không nên dùng trực tiếp cho migration destructive, crypto/auth core, payment/financial invariant, production incident command hoặc thay đổi không có test/reviewer phù hợp.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Chi phí sai sót ở các vùng này rất lớn và khó rollback; tốc độ sinh code không bù được rủi ro.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Dùng AI chỉ để phân tích, tạo checklist hoặc test fixture; patch cuối cùng phải do người có ownership review và triển khai theo change control.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">AI-16</span> Làm thế nào xây dựng tiêu chuẩn sử dụng AI lâu dài cho đội kỹ thuật?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><span class="ans-label">What</span><p>Tiêu chuẩn cần quy định dữ liệu được phép, tool/model được phê duyệt, attribution, review bắt buộc, test/security gates, incident reporting, IP/license và cách đo hiệu quả.</p></div>
+              <div class="ans-block"><span class="ans-label">Why</span><p>Không có policy, mỗi người dùng AI theo cách khác nhau và team khó điều tra khi output sai hoặc dữ liệu bị gửi nhầm.</p></div>
+              <div class="ans-block"><span class="ans-label">How</span><p>Publish policy ngắn gọn; đào tạo bằng case thực tế; audit sample PR; cập nhật playbook theo incident và feedback; không biến policy thành checklist hình thức.</p></div>
+              <div class="ans-block"><span class="ans-label">When NOT</span><p>Không dùng output mà không có context, validation và người chịu trách nhiệm. Khi không thể kiểm chứng bằng test, source chính thức hoặc review phù hợp, hãy dừng ở mức đề xuất.</p></div>
+            </div>
+          </article>
+</section><div class="nav-pager"><a class="prev" href="14-study-plan.html"><span class="label">Trước</span><span class="title">14. Kế hoạch ôn tập</span></a><a class="next" href="20-aws-lambda.html"><span class="label">Tiếp</span><span class="title">20. AWS Lambda</span></a></div></div><footer class="site-footer"><p>AI-assisted Engineering — Module 16</p></footer></div></div></body></html>

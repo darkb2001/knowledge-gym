@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📅 Kế hoạch ôn tập — Java Interview Bank</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Java Interview<br><span>Bank</span></h1>
+        <p>Interview Prep Notes</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>📅 Kế hoạch ôn tập</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Roadmap</div>
+          <h1 class="module-title">Kế hoạch ôn tập Java Interview</h1>
+          <p class="module-subtitle">Lộ trình ~3 tuần + mock interview — từ Java Core đến WCS/WMS, kèm nguồn YouTube chất lượng cao. Mỗi ngày một bước, mỗi tuần một cột mốc.</p>
+        </div>
+
+        <div class="callout callout-success">
+          <div class="callout-title">Bạn đã đi được bao xa?</div>
+          <p>12 modules, 150+ câu hỏi, 50+ code examples — bạn không cần học hết trong một đêm. Hãy tin vào quá trình: <strong>consistency beats intensity</strong>. 2 giờ mỗi ngày trong 3 tuần sẽ mạnh hơn 12 giờ cram trong 1 ngày.</p>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-value">~56h</div><div class="stat-label">Tổng thời lượng</div></div>
+          <div class="stat-card"><div class="stat-value">22</div><div class="stat-label">Ngày học</div></div>
+          <div class="stat-card"><div class="stat-value">12</div><div class="stat-label">Modules</div></div>
+          <div class="stat-card"><div class="stat-value">8</div><div class="stat-label">Nhóm YouTube</div></div>
+        </div>
+
+        <!-- STUDY PLAN WEEKS -->
+        <section class="section" id="roadmap">
+          <h2 class="section-title">Lộ trình theo tuần</h2>
+
+          <div class="module-grid">
+            <div class="module-card" style="cursor:default;border-left:4px solid var(--primary)">
+              <span class="num">Tuần 1 · 7 ngày · ~15h</span>
+              <h3>Java Core, Multithreading &amp; Database</h3>
+              <p><strong>Mục tiêu:</strong> Nói trôi chảy cơ chế HashMap, JMM, GC, Virtual Threads. Giải thích volatile vs synchronized vs ReentrantLock. Nắm CompletableFuture, deadlock detection. B-Tree Index, Sharding, Replication, Connection Pool tuning.</p>
+              <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                <a href="01-java-core.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600">Module 01 →</a>
+                <a href="02-multithreading.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600">Module 02 →</a>
+                <a href="05-database.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600">Module 05 →</a>
+              </div>
+            </div>
+
+            <div class="module-card" style="cursor:default;border-left:4px solid var(--secondary)">
+              <span class="num">Tuần 2 · 7 ngày · ~15h</span>
+              <h3>Spring Boot, Microservices &amp; Messaging</h3>
+              <p><strong>Mục tiêu:</strong> Bean Lifecycle, AOP, Auto-configuration, @Transactional propagation. Trình bày Saga, CQRS, Outbox, Circuit Breaker, Bulkhead. Kafka consumer lag, DLQ, Schema Registry.</p>
+              <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                <a href="03-spring-boot.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600">Module 03 →</a>
+                <a href="07-microservices.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600">Module 07 →</a>
+                <a href="04-jpa-hibernate.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600">Module 04 →</a>
+              </div>
+            </div>
+
+            <div class="module-card" style="cursor:default;border-left:4px solid var(--accent)">
+              <span class="num">Tuần 3 · 5 ngày · ~12h</span>
+              <h3>System Design, Security &amp; WMS</h3>
+              <p><strong>Mục tiêu:</strong> Phản xạ nhanh với câu hỏi sự cố production. OWASP Top 10, OAuth 2.0 flows. WCS/WMS, OPC-UA/MQTT, AGV Traffic, Digital Twin, Bin Concurrency.</p>
+              <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                <a href="08-system-design.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600">Module 08 →</a>
+                <a href="06-rest-api.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600">Module 06 →</a>
+              </div>
+            </div>
+
+            <div class="module-card" style="cursor:default;border-left:4px solid var(--success)">
+              <span class="num">3 ngày cuối · ~8h</span>
+              <h3>Mock Interview &amp; DSA Patterns</h3>
+              <p><strong>Mục tiêu:</strong> Tự nói thành tiếng trả lời câu hỏi tình huống. Lướt lại DSA patterns: Sliding Window, Two Pointers, Binary Search, DP, BFS/DFS, Union-Find.</p>
+              <div style="margin-top:12px">
+                <a href="11-dsa.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600">Module 11 →</a>
+              </div>
+            </div>
+
+            <div class="module-card" style="cursor:default;border-left:4px solid var(--text-muted)">
+              <span class="num">Bonus · 2-3 ngày · ~6h</span>
+              <h3>Oracle / SQL Server &amp; Database Design</h3>
+              <p><strong>Mục tiêu:</strong> Phân biệt Oracle vs SQL Server architecture, PL/SQL vs T-SQL, RAC &amp; Data Guard. Vẽ ERD, thiết kế schema warehouse. Class Diagram, Sequence Diagram, State Diagram (PlantUML).</p>
+              <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                <a href="05-database.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600">Module 05 →</a>
+                <a href="12-software-design.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600">Module 12 →</a>
+              </div>
+            </div>
+          </div>
+
+          <table class="feature-table">
+            <thead>
+              <tr><th>Giai đoạn</th><th>Thời lượng</th><th>Giờ/ngày gợi ý</th><th>Checkpoint</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Tuần 1</td><td>7 ngày (~15h)</td><td>~2h/ngày</td><td>Giải thích HashMap + JMM không cần notes</td></tr>
+              <tr><td>Tuần 2</td><td>7 ngày (~15h)</td><td>~2h/ngày</td><td>Vẽ được Saga flow trên whiteboard</td></tr>
+              <tr><td>Tuần 3</td><td>5 ngày (~12h)</td><td>~2.5h/ngày</td><td>Trả lời 3 production incident scenarios</td></tr>
+              <tr><td>3 ngày cuối</td><td>3 ngày (~8h)</td><td>~2.5h/ngày</td><td>Mock interview 45 phút với bạn</td></tr>
+              <tr><td>Bonus</td><td>2-3 ngày (~6h)</td><td>~2h/ngày</td><td>Vẽ PlantUML Class + Sequence cho WCS</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- DAILY TIPS -->
+        <section class="section" id="tips">
+          <h2 class="section-title">Chiến lược học hiệu quả</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">💡</span> Phương pháp Feynman + Active Recall</h3>
+            <div class="qa-answer">
+              <ol>
+                <li><strong>Học (30 min):</strong> Đọc module + xem 1 video YouTube liên quan.</li>
+                <li><strong>Giải thích (15 min):</strong> Nói to (hoặc ghi voice memo) như đang dạy junior.</li>
+                <li><strong>Code (30 min):</strong> Viết lại 1 example từ module không nhìn notes.</li>
+                <li><strong>Review (15 min):</strong> Flashcard hoặc quiz tự tạo từ qa-card headings.</li>
+              </ol>
+              <div class="callout callout-warning">
+                <div class="callout-title">Tránh passive learning</div>
+                Chỉ xem video hoặc đọc lướt không đủ. Interviewer hỏi "tại sao" và "what if" — bạn cần active recall.
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- YOUTUBE SOURCES -->
+        <section class="section" id="youtube">
+          <h2 class="section-title">Nguồn ôn tập YouTube</h2>
+          <p style="color:var(--text-muted);margin-bottom:24px;font-style:italic">Các kênh và video bài giảng chất lượng cao, phân chia theo từng module kỹ thuật.</p>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">YT1</span> Java Core, JVM &amp; Concurrency</h3>
+            <div class="qa-answer">
+              <p><strong>Kênh Defog Tech:</strong></p>
+              <ul>
+                <li><em>"How HashMap Works Internally in Java"</em> — Hash collision, Buckets, Red-Black tree</li>
+                <li><em>"ConcurrentHashMap in Java"</em> — Segment locking vs CAS + Synchronized</li>
+                <li><em>"Java Memory Model (JMM)"</em> &amp; <em>"Java Volatile Keyword Explained"</em></li>
+              </ul>
+              <p><strong>Kênh SivaLabs / Kênh Java:</strong></p>
+              <ul>
+                <li><em>"JVM Architecture and Garbage Collection Explained"</em></li>
+                <li><em>"Java Thread Dump Analysis"</em> — jstack, jcmd debug High CPU &amp; Deadlock</li>
+              </ul>
+              <p><strong>Kênh Jakob Jenkov:</strong></p>
+              <ul>
+                <li>Playlist: <em>"Java Concurrency / Multithreading Tutorials"</em> — Thread, Runnable/Callable, Race Condition, ExecutorService</li>
+              </ul>
+              <p><strong>Virtual Threads (Java 21):</strong></p>
+              <ul>
+                <li><em>"Java 21 Virtual Threads Explained"</em></li>
+                <li><em>"Project Loom and Virtual Threads in Java"</em></li>
+              </ul>
+              <p style="margin-top:8px"><a href="01-java-core.html" style="color:var(--primary);font-weight:600">→ Module 01, 02</a></p>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">YT2</span> Spring Boot, Security &amp; Hibernate/JPA</h3>
+            <div class="qa-answer">
+              <p><strong>Kênh Java Brains:</strong></p>
+              <ul>
+                <li>Playlist: <em>Spring Boot Quick Start</em> — Bean Lifecycle, DI, Auto-configuration</li>
+                <li>Playlist: <em>Spring Security Basics</em> — Auth vs Authorization, Filter Chain, JWT</li>
+                <li>Playlist: <em>OAuth 2.0 and OpenID Connect (in plain English)</em></li>
+              </ul>
+              <p><strong>Kênh Amigoscode:</strong></p>
+              <ul>
+                <li><em>"Spring Boot 3 + Spring Security 6 + JWT"</em></li>
+              </ul>
+              <p><strong>Kênh Vlad Mihalcea:</strong></p>
+              <ul>
+                <li><em>"The N+1 Query Problem Explained"</em></li>
+                <li><em>"Optimistic vs Pessimistic Locking"</em></li>
+                <li><em>"JPA First Level vs Second Level Cache"</em></li>
+              </ul>
+              <p><strong>Kênh Thorben Janssen:</strong></p>
+              <ul>
+                <li>Playlist: <em>"Hibernate Performance Tuning"</em> — N+1, FetchType.LAZY vs EAGER</li>
+              </ul>
+              <p style="margin-top:8px"><a href="03-spring-boot.html" style="color:var(--primary);font-weight:600">→ Module 03, 04, 06</a></p>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">YT3</span> Database, SQL &amp; Performance</h3>
+            <div class="qa-answer">
+              <p><strong>Kênh Hussein Nasser:</strong></p>
+              <ul>
+                <li><em>"Database Indexing Explained (B-Trees)"</em></li>
+                <li><em>"ACID Explained"</em></li>
+                <li><em>"Database Locking: Optimistic vs Pessimistic Locking"</em></li>
+                <li><em>"How Connection Pooling Works"</em></li>
+                <li><em>"Database Replication Explained"</em> &amp; <em>"Database Sharding Explained"</em></li>
+                <li><em>"How to Read and Understand Execution Plans (EXPLAIN)"</em></li>
+                <li><em>"Oracle Database Architecture Explained"</em> &amp; <em>"Oracle RAC and Data Guard"</em></li>
+                <li><em>"SQL Server Internals"</em> &amp; <em>"SQL Server Locking and Blocking"</em></li>
+                <li><em>"Database Schema Design Best Practices"</em> &amp; <em>"ER Diagram Tutorial"</em></li>
+              </ul>
+              <p><strong>Kênh ByteByteGo:</strong></p>
+              <ul>
+                <li><em>"SQL vs NoSQL: When to Use Which"</em></li>
+                <li><em>"CAP Theorem Simplified"</em></li>
+                <li><em>"Database Design Patterns"</em></li>
+              </ul>
+              <p><strong>Kênh Oracle Learning Library:</strong> Playlist <em>"Oracle Database SQL and PL/SQL Fundamentals"</em></p>
+              <p><strong>Kênh Microsoft SQL Server:</strong> Playlist <em>"SQL Server Tutorial for Beginners"</em></p>
+              <p style="margin-top:8px"><a href="05-database.html" style="color:var(--primary);font-weight:600">→ Module 05</a></p>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">YT4</span> Microservices, Kafka &amp; Distributed</h3>
+            <div class="qa-answer">
+              <p><strong>Kênh CodeOpinion:</strong></p>
+              <ul>
+                <li><em>"Saga Pattern: How to handle distributed transactions"</em></li>
+                <li><em>"Outbox Pattern: Avoid dual-writes to database &amp; message broker"</em></li>
+                <li><em>"Circuit Breaker Pattern - Why &amp; How"</em></li>
+                <li><em>"CQRS Pattern Explained"</em></li>
+              </ul>
+              <p><strong>Kênh Confluent:</strong></p>
+              <ul>
+                <li>Playlist: <em>"Kafka Internals"</em> — Message ordering, Partitioning, Consumer Lag, Idempotent Producer</li>
+              </ul>
+              <p><strong>Kênh Tech Primers:</strong></p>
+              <ul>
+                <li><em>"Spring Cloud Gateway"</em>, <em>"Resilience4j with Spring Boot"</em>, <em>"Distributed Tracing with Micrometer and Zipkin"</em></li>
+              </ul>
+              <p style="margin-top:8px"><a href="07-microservices.html" style="color:var(--primary);font-weight:600">→ Module 07</a></p>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">YT5</span> System Design &amp; Production Scenarios</h3>
+            <div class="qa-answer">
+              <p><strong>Kênh ByteByteGo:</strong></p>
+              <ul>
+                <li><em>"Design a Rate Limiter"</em></li>
+                <li><em>"Design a URL Shortener"</em></li>
+                <li><em>"Design a Payment System"</em></li>
+                <li><em>"Cache Strategies: Cache-Aside, Write-Through, Write-Behind"</em></li>
+              </ul>
+              <p><strong>Kênh Gaurav Sen:</strong></p>
+              <ul>
+                <li>Playlist: <em>"System Design"</em> — High Availability, Sharding, Load Balancing, Horizontal Scaling</li>
+              </ul>
+              <p><strong>Kênh Hussein Nasser:</strong></p>
+              <ul>
+                <li><em>"Why is my API Slow? Troubleshooting Latency in Production"</em></li>
+              </ul>
+              <p style="margin-top:8px"><a href="08-system-design.html" style="color:var(--primary);font-weight:600">→ Module 08, 09</a></p>
+            </div>
+          </article>
+
+          <article class="qa-card">
+        <h3 class="qa-question"><span class="badge">YT6</span> Testing &amp; Code Quality — JUnit 5, Mockito, Testcontainers</h3>
+        <div class="qa-answer">
+          <p><strong>Kênh Spring Developer (official):</strong></p>
+          <ul>
+            <li><em>"Spring Boot Testing"</em> — <code>@SpringBootTest</code>, slice test, <code>MockMvc</code>, <code>@DataJpaTest</code></li>
+            <li><em>"Testcontainers in Spring Boot"</em> — chạy PostgreSQL/Kafka thật trong Docker thay vì H2</li>
+          </ul>
+          <p><strong>Kênh JetBrains:</strong></p>
+          <ul>
+            <li><em>"Debugging Java Applications"</em> — breakpoint có điều kiện, thread dump, profiler</li>
+          </ul>
+          <p><strong>Tài liệu nên đọc (link chính thức):</strong></p>
+          <ul>
+            <li>JUnit 5 User Guide — <a href="https://junit.org/junit5/docs/current/user-guide/">junit.org</a></li>
+            <li>Mockito — <a href="https://site.mockito.org/">site.mockito.org</a></li>
+            <li>AssertJ — <a href="https://assertj.github.io/doc/">assertj.github.io</a></li>
+            <li>Testcontainers — <a href="https://testcontainers.com/">testcontainers.com</a></li>
+            <li>Spring Boot Testing — <a href="https://docs.spring.io/spring-boot/reference/testing/index.html">docs.spring.io</a></li>
+          </ul>
+          <p><strong>Mẹo ôn:</strong> mỗi câu hỏi lý thuyết viết kèm 1 test nhỏ (Arrange–Act–Assert); dùng Testcontainers cho test repository thay vì mock — vừa học JUnit vừa luyện integration test.</p>
+        </div>
+      </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">YT7</span> Coding, DSA &amp; Algorithms</h3>
+            <div class="qa-answer">
+              <p><strong>Kênh NeetCode:</strong></p>
+              <ul>
+                <li>Playlist: <em>"NeetCode 150"</em> — Sliding Window, Two Pointers, Linked List, Trees, Graphs BFS/DFS</li>
+                <li>Playlist: <em>"Dynamic Programming"</em> — Climbing Stairs, Coin Change, Knapsack, LCS</li>
+              </ul>
+              <p><strong>Kênh take U forward:</strong></p>
+              <ul>
+                <li>Playlist: <em>"Graph Series by Striver"</em> — BFS, DFS, Dijkstra, Topological Sort</li>
+              </ul>
+              <p style="margin-top:8px"><a href="11-dsa.html" style="color:var(--primary);font-weight:600">→ Module 11</a></p>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">YT8</span> UML &amp; Software Design</h3>
+            <div class="qa-answer">
+              <p><strong>Kênh Derek Banas:</strong></p>
+              <ul>
+                <li>Playlist: <em>"UML Diagram Tutorials"</em> — Class, Sequence, State, Activity diagram</li>
+              </ul>
+              <p><strong>Kênh Lucidchart:</strong></p>
+              <ul>
+                <li>Playlist: <em>"UML Diagram Basics"</em> — Use case, Component, Deployment diagram</li>
+              </ul>
+              <p><strong>Kênh Hussein Nasser:</strong></p>
+              <ul>
+                <li><em>"Software Architecture Documentation Best Practices"</em></li>
+              </ul>
+              <p style="margin-top:8px"><a href="12-software-design.html" style="color:var(--primary);font-weight:600">→ Module 12</a></p>
+            </div>
+          </article>
+        </section>
+
+        <!-- MOTIVATION -->
+        <section class="section" id="motivation">
+          <h2 class="section-title">Lời nhắn trước ngày phỏng vấn</h2>
+
+          <article class="qa-card">
+            <div class="qa-answer">
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Prepare</div>
+                  <div class="flow-node secondary">Practice</div>
+                  <div class="flow-node success">Perform</div>
+                </div>
+              </div>
+              <p>Interviewer không mong bạn biết mọi thứ — họ muốn thấy <strong>cách bạn suy nghĩ</strong>. Khi gặp câu khó:</p>
+              <ul>
+                <li>Clarify requirements trước khi trả lời</li>
+                <li>Nói trade-offs out loud (CAP, consistency vs availability)</li>
+                <li>Draw diagram trên whiteboard — Class Diagram, Sequence Diagram cho WCS flow</li>
+                <li>Admit khi không biết, nhưng suggest hướng tìm hiểu</li>
+              </ul>
+              <div class="callout callout-success">
+                <div class="callout-title">You've got this.</div>
+                3 tuần consistent effort + 12 modules này = bạn đã chuẩn bị tốt hơn 90% ứng viên. Hẹn gặp bạn ở phía bên kia của offer letter.
+              </div>
+            </div>
+          </article>
+        </section>
+
+<section class="section" id="deep-dive-plan">
+          <h2 class="section-title">Deep Dive — Lộ trình 8–12 tuần &amp; cách luyện tập</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D1</span> Lộ trình 8–12 tuần chi tiết theo tuần</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Mở rộng lộ trình 3 tuần thành <strong>8–12 tuần</strong> cho người đi làm (khoảng 8–12 giờ/tuần). Nguyên tắc: <em>fundamentals trước, rehearsal sau</em>, và <em>apply sớm</em> — bắt đầu nộp CV từ tuần 5–6 để các buổi phỏng vấn đầu rơi vào lúc đã "nóng máy".</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Nhồi 12 module trong 3 tuần chỉ hiệu quả khi học full-time. Với người đi làm, dàn trải theo tuần kèm spaced repetition (ôn lại đúng chỗ hay sai, không phải chỗ mình thích) giữ kiến thức bền hơn nhiều.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <p>Bảng lộ trình theo tuần với deliverable rõ ràng:</p>
+                <table class="feature-table">
+                  <thead>
+                    <tr><th>Tuần</th><th>Trọng tâm</th><th>Deliverable</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>1</td><td>Java Core + 6 câu chuyện hành vi (STAR)</td><td>Viết đủ 6 story + cập nhật CV</td></tr>
+                    <tr><td>2</td><td>Java 8+ (record/sealed/virtual threads)</td><td>Giải thích được stream laziness, lambda internals</td></tr>
+                    <tr><td>3</td><td>Collections internals</td><td>Vẽ HashMap internals không nhìn notes</td></tr>
+                    <tr><td>4</td><td>Concurrency: JMM, volatile, lock, thread pool</td><td>Viết chương trình deadlock rồi tìm bằng jstack</td></tr>
+                    <tr><td>5</td><td>JVM, GC, memory + BẮT ĐẦU APPLY</td><td>Đọc được GC log; gửi 2–3 application</td></tr>
+                    <tr><td>6</td><td>Production incident + Spring/@Transactional proxy</td><td>Rehearse 3 incident story có số liệu</td></tr>
+                    <tr><td>7</td><td>System design + coding patterns</td><td>3 walkthrough 45 phút + 2 mock interview</td></tr>
+                    <tr><td>8</td><td>Rehearsal, vá điểm yếu, tập trung công ty ưu tiên</td><td>Không học chủ đề mới; nghỉ ngơi trước loop quan trọng</td></tr>
+                    <tr><td>9–12 (tùy chọn)</td><td>Docker/K8s/CI-CD, DDD-lite, DSA sâu</td><td>Deploy 1 app có CI; 150+ bài DSA</td></tr>
+                  </tbody>
+                </table>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Tuần 1–4: Fundamentals</div></div>
+                  <div class="flow-arrow">↓ nền tảng vững mới sang phần sau</div>
+                  <div class="flow-row"><div class="flow-node secondary">Tuần 5–6: Apply + Incidents</div></div>
+                  <div class="flow-arrow">↓ phỏng vấn thật để lộ gap</div>
+                  <div class="flow-row"><div class="flow-node success">Tuần 7–8: System design + Mocks</div></div>
+                </div>
+              </div>
+              <div class="code-block" data-lang="text"><pre><code># Checklist tuần (copy vào Notion/Google Sheet)
+[ ] Đọc 1 module + xem 1 video (3h)
+[ ] Viết lại 1 code example KHÔNG nhìn notes (1h)
+[ ] Nói to trả lời 5 câu hỏi khó nhất của tuần (1h)
+[ ] Giải 3-5 bài DSA theo pattern đang học (2h)
+[ ] Ôn spaced-repetition: chỉ những mục tuần trước làm SAI (1h)
+[ ] Ghi lại 1 "story" mới hoặc bổ sung số liệu cho story cũ (0.5h)
+# Cuối tuần: tự đánh giá đạt/không đạt checkpoint, ghi vào log</code></pre></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Người đi làm có 1–2h/ngày, muốn chuẩn bị bài bản 2–3 tháng trước khi nhảy việc.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Nếu chỉ còn 1 tuần thì đừng chạy lộ trình này — dùng bản rút gọn: 6 story + công nghệ trong JD + 3 incident story. Nếu đã rất vững Java Core, bỏ qua tuần 1–3 và dồn vào concurrency + system design.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Failure mode phổ biến nhất là <em>re-read what you already know</em> vì nó "cảm giác hiệu quả". Hãy track những gì mình trả lời SAI và chỉ ôn lại chúng. Đừng để việc học chiếm hết thời gian apply — phỏng vấn thật mới lộ ra gap thực sự.</p></div>
+              <p><small>Nguồn: <a href="https://roadmap.sh/java">roadmap.sh — Java Roadmap</a> · <a href="https://docs.docker.com/get-started/">Docker Docs — Get Started</a> · <a href="https://kubernetes.io/docs/concepts/overview/">Kubernetes Docs — Concepts</a></small></p>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D2</span> Phân bổ thời gian &amp; độ khó — học gì trước, luyện gì nặng</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Phân bổ nỗ lực theo <strong>độ khó</strong> và <strong>tần suất xuất hiện khi phỏng vấn</strong>, theo nguyên tắc 70/20/10: 70% cho chủ đề core hay hỏi, 20% cho chủ đề phân hóa (concurrency, system design), 10% cho chủ đề hiếm (JDK internals quá sâu, trivia).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Ôn dàn trải mọi thứ là cách chắc chắn trượt. Ngân sách thời gian có hạn nên phải đầu tư vào nơi tạo khác biệt — nhưng đừng bỏ hoàn toàn các mục dễ, vì sai cơ bản (ví dụ equals/hashCode) gây ấn tượng rất xấu.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="stat-card"><span class="stat-value">70%</span><span class="stat-label">Core hay hỏi — Java, Spring, DB, OOP</span></div>
+                <div class="stat-card"><span class="stat-value">20%</span><span class="stat-label">Phân hóa — concurrency, system design, production</span></div>
+                <div class="stat-card"><span class="stat-value">10%</span><span class="stat-label">Hiếm — JDK internals sâu, trivia</span></div>
+                <table class="feature-table">
+                  <thead>
+                    <tr><th>Chủ đề</th><th>Độ khó</th><th>Tần suất hỏi</th><th>Thứ tự học</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Java Core (HashMap, equals/hashCode, String pool)</td><td>Trung bình</td><td>Cao</td><td>1</td></tr>
+                    <tr><td>OOP + SOLID + Design Patterns</td><td>Trung bình</td><td>Cao</td><td>2</td></tr>
+                    <tr><td>SQL / Index / Transaction</td><td>Trung bình</td><td>Cao</td><td>3</td></tr>
+                    <tr><td>Spring Boot / JPA / @Transactional</td><td>Trung bình–cao</td><td>Cao</td><td>4</td></tr>
+                    <tr><td>Concurrency / JMM</td><td>Cao</td><td>Trung–cao</td><td>5</td></tr>
+                    <tr><td>System design / Distributed</td><td>Cao</td><td>Trung–cao (mid+up)</td><td>6</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="code-block" data-lang="text"><pre><code># Phân bổ một ngày ~2h (weekday) / ~5h (weekend)
+Mon  2h: 30' lý thuyết mới + 60' code lại example + 30' ghi flashcard
+Tue  2h: 90' DSA theo pattern + 30' ôn flashcard đến hạn (spaced repetition)
+Wed  2h: 60' lý thuyết mới + 60' trả lời "what-if" out loud
+Thu  2h: 60' DSA (mix bài mới + bài khó cũ) + 60' đọc production story
+Fri  2h: 60' code feature nhỏ end-to-end + 60' review notes tuần
+Sat  5h: 3h system design walkthrough (có timer) + 2h mock interview
+Sun  3h: ôn spaced-repetition + viết story/STAR + lên kế hoạch tuần sau</code></pre></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Khi đã có nền và cần tối ưu điểm rơi: dồn thời gian cho concurrency và system design — nơi phân hóa ứng viên mid-level trở lên.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Fresher/junior nên tăng tỉ trọng DSA + core và giảm system design nặng. Đừng micro-optimize lịch học đến mức bỏ code thực hành — đọc không bằng gõ.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p><strong>Passive learning</strong>: đọc/xem video mà không gõ lại code và không nói to thì kiến thức không neo. Interviewer hay hỏi "why" và "what if" (đổi requirement thì sao) — đó là active recall chứ không phải kiểm tra trí nhớ.</p></div>
+              <p><small>Nguồn: <a href="https://roadmap.sh/java">roadmap.sh — Java Roadmap</a> · <a href="https://neetcode.io/roadmap">NeetCode — Roadmap</a> · <a href="https://github.com/donnemartin/system-design-primer">System Design Primer</a></small></p>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D3</span> Luyện System Design + Coding &amp; checklist tự đánh giá</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>System design</strong> là một buổi nói 45 phút theo khung, không phải đọc thêm kiến thức. <strong>Coding</strong> nên luyện theo <em>pattern</em> (sliding window, two pointers, BFS/DFS, DP, heap, union-find) thay vì cày số lượng bài. <strong>Checklist tự đánh giá</strong> giúp biết mình recall được thật hay chỉ thấy quen.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Nhớ code mẫu không qua được vòng phỏng vấn: interviewer xem <em>cách bạn suy nghĩ</em> — clarify, trade-off, vẽ, rồi mới code. Luyện spoken walkthrough đúng nhịp quan trọng hơn đọc thêm lý thuyết.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <p>Khung 5 bước cho mọi buổi system design:</p>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">1. Clarify requirements &amp; scale</div></div>
+                  <div class="flow-arrow">↓</div>
+                  <div class="flow-row"><div class="flow-node">2. Estimate (QPS, storage, latency)</div></div>
+                  <div class="flow-arrow">↓</div>
+                  <div class="flow-row"><div class="flow-node">3. High-level components + API</div></div>
+                  <div class="flow-arrow">↓</div>
+                  <div class="flow-row"><div class="flow-node">4. Deep-dive bottleneck + trade-off</div></div>
+                  <div class="flow-arrow">↓</div>
+                  <div class="flow-row"><div class="flow-node success">5. Chốt + nêu điều kiện xem lại</div></div>
+                </div>
+                <table class="feature-table">
+                  <thead>
+                    <tr><th>Kỹ năng</th><th>Cách luyện</th><th>Target</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Communication</td><td>Nói to, timer 45', whiteboard/shared doc</td><td>3 walkthrough/tuần</td></tr>
+                    <tr><td>Coding patterns</td><td>30–50 bài trải đều 6 pattern, không cày volume</td><td>2–3 bài/ngày</td></tr>
+                    <tr><td>Trade-off</td><td>Mỗi lựa chọn nêu 1 ưu + 1 nhược + điều kiện</td><td>Mỗi quyết định trong design</td></tr>
+                    <tr><td>Mock interview</td><td>Có người ngồi xem, không tự nói trước gương</td><td>2 buổi/tuần (tuần 7–8)</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="code-block" data-lang="text"><pre><code># Checklist tự đánh giá (chỉ tick khi KHÔNG nhìn notes)
+[ ] Vẽ được HashMap internals (bucket, load factor 0.75, treeify &gt; 8)
+[ ] Giải thích được happens-before và vì sao volatile không làm count++ atomic
+[ ] Phân biệt check-then-act race vs data race; nêu cách fix
+[ ] Giải thích @Transactional self-invocation fail (proxy) và 2 cách fix
+[ ] Nêu được N+1 query, cách phát hiện, cách fix
+[ ] Vẽ được Saga (choreography vs orchestration) + khi nào cần
+[ ] Với 1 yêu cầu mới: nêu index, transaction boundary, failure mode
+[ ] Kể 3 incident story có số liệu (trước/sau, latency, số record)
+# Nếu tick &lt; 6/8: dành thêm 1 tuần trước khi apply mạnh</code></pre></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Giai đoạn 1–2 tuần trước phỏng vấn và trong tuần rehearsal. Dùng để quyết định "đã đủ tự tin apply chưa".</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng biến checklist thành "học tủ" — nếu chỉ ghi nhớ câu trả lời mà không hiểu cơ chế, câu hỏi follow-up sẽ lộ ngay. Không mock interview một mình cho vòng system design — cần người phản biện.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Over-preparing lý thuyết và <em>không dám apply</em>: phỏng vấn thật mới calibrate được trình độ. Ngược lại cũng đừng apply khi checklist riêng còn &lt; 6/8. Cân bằng: apply từ tuần 5–6 và đi phỏng vấn nhẹ trước để "vào form".</p></div>
+              <p><small>Nguồn: <a href="https://github.com/donnemartin/system-design-primer">System Design Primer</a> · <a href="https://neetcode.io/roadmap">NeetCode — Roadmap</a> · <a href="https://refactoring.guru/design-patterns/catalog">refactoring.guru — Pattern Catalog</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <div class="nav-pager">
+          <a class="prev" href="13-design-patterns.html">
+            <span class="label">Trước</span>
+            <span class="title">13. Design Patterns</span>
+          </a>
+          <a class="next" href="index.html">
+            <span class="label">Tiếp</span>
+            <span class="title">🏠 Trang chủ</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Kế hoạch ôn tập</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

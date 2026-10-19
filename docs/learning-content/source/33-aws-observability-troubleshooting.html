@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AWS CloudWatch, X-Ray &amp; Troubleshooting — DVA-C02 Deep Dive</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="module-header">
+  <span class="module-tag">AWS · Observability</span>
+  <h1 class="module-title">AWS CloudWatch, X-Ray &amp; Troubleshooting — DVA-C02 Deep Dive</h1>
+  <p class="module-subtitle">Giám sát, log, trace và debug lỗi thường gặp.</p>
+</div>
+<main class="content">
+
+  <section class="section" id="metrics-logs">
+    <h2 class="section-title">CloudWatch Metrics &amp; Logs</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS1</span> CloudWatch metrics, alarm và composite alarm: từ số liệu thô tới hành động tự động</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>Một <strong>metric</strong> là chuỗi data point theo thời gian, định danh bằng <em>namespace</em> (ví dụ <code>AWS/Lambda</code>, <code>OrderApi/App</code>) + <em>tên metric</em> (ví dụ <code>Duration</code>) + <em>dimensions</em> (cặp key/value như <code>FunctionName=order-api</code>). Mỗi data point là một tập <em>statistics</em> (Average, Sum, Min, Max, SampleCount, p50/p90/p99) trên một <em>period</em>.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Số liệu chảy từ service (metric có sẵn của AWS) hoặc do bạn tự <em>publish</em> (PUT metric data) về <strong>alarm</strong>. Alarm có 3 trạng thái OK / ALARM / INSUFFICIENT_DATA và có thể gắn <em>action</em>: gửi <strong>SNS</strong>, thực thi <strong>Auto Scaling action</strong> hoặc <strong>EC2 action</strong> (stop / terminate / reboot / recover).</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Metric</span><span class="icon-note">period 60s, Sum</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">ngưỡng + M-of-N</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Alarm</span><span class="icon-note">ALARM / OK</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">alarm action</span></div>
+            <div class="icon-node"><span class="aws-ico sns"></span><span class="icon-label">SNS</span><span class="icon-note">báo on-call</span></div>
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">EC2 / ASG</span><span class="icon-note">reboot, recover, scale</span></div>
+          </div>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Dùng alarm cho mọi thứ cần phản ứng tự động: 5xx tăng, queue backlog, CPU, error rate, business metric tự publish (đơn hàng lỗi/phút). <strong>Composite alarm</strong> dùng khi có quá nhiều alarm cùng kêu trong một sự cố — gom theo logic AND/OR/NOT để giảm <em>alarm noise</em> (ví dụ chỉ kêu khi vừa latency cao vừa error rate cao trên cùng một service).</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng dùng alarm cho dữ liệu cần audit hay truy vết "ai gọi API gì" — đó là việc của CloudTrail. Đừng lạm dụng composite alarm để che hết alarm con: khi incident xảy ra bạn vẫn cần nhìn thấy alarm con nào kêu.</p></div>
+        <div class="code-block" data-lang="bash"><pre><code>aws cloudwatch put-metric-alarm \
+  --alarm-name order-api-5xx-high \
+  --namespace AWS/ApplicationELB \
+  --metric-name HTTPCode_Target_5XX_Count \
+  --statistic Sum --period 60 --evaluation-periods 3 \
+  --datapoints-to-alarm 2 --threshold 10 \
+  --comparison-operator GreaterThanThreshold \
+  --treat-missing-data notBreaching \
+  --alarm-actions arn:aws:sns:ap-southeast-1:123456789012:oncall \
+  --ok-actions    arn:aws:sns:ap-southeast-1:123456789012:oncall</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Độ phân giải / period</th><th>Ý nghĩa</th><th>Lưu giữ data point</th></tr></thead>
+          <tbody>
+            <tr><td>Standard (60 giây)</td><td>Mặc định cho mọi metric</td><td>15 ngày</td></tr>
+            <tr><td>High-resolution (nhỏ nhất 1 giây)</td><td>Cần bật bằng <code>--storage-resolution 1</code>; dùng period 1 / 5 / 10 / 30 giây</td><td>3 giờ (period dưới 60 giây)</td></tr>
+            <tr><td>Period 300 giây</td><td>Metric tổng hợp thưa</td><td>63 ngày</td></tr>
+            <tr><td>Period 3600 giây</td><td>Metric 1 giờ (dashboard dài hạn)</td><td>455 ngày</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Alarm độ phân giải cao (period 10 hoặc 30 giây) chỉ hợp lệ khi metric là high-resolution. Đặt <code>evaluation-periods</code> × <code>period</code> = "M trong N phút" là điểm hay bị hỏi: alarm kêu chỉ khi có ÍT NHẤT M data point vượt ngưỡng trong N lần đánh giá gần nhất.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/working_with_metrics.html">AWS Docs — CloudWatch metrics</a> · <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html">AWS Docs — Alarm actions</a> · <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CompositeAlarms.html">AWS Docs — Composite alarms</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS2</span> CloudWatch Logs: log group, log stream, retention, metric filter và subscription filter</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p><strong>Log group</strong> là đơn vị quản lý (thường một group = một ứng dụng), <strong>log stream</strong> là chuỗi sự kiện từ một nguồn cụ thể (một Lambda instance, một EC2, một ECS task). Retention được đặt ở mức <em>log group</em>, không phải từng stream.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Log đi vào CloudWatch Logs rồi có thể đi tiếp theo 3 hướng: <em>metric filter</em> biến dòng log thành metric (để alarm), <em>subscription filter</em> đẩy log theo thời gian thực sang đích xử lý, và <em>export</em> (batch) ra S3 để lưu trữ lâu dài.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">App / ECS</span><span class="icon-note">stdout</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">PutLogEvents</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Log group</span><span class="icon-note">/order-api/app</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">filter pattern</span></div>
+            <div class="icon-node"><span class="aws-ico kinesisfirehose"></span><span class="icon-label">Firehose</span><span class="icon-note">→ S3 / OpenSearch</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">real-time xử lý</span></div>
+          </div>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Metric filter khi bạn cần <em>đếm</em> thứ gì đó trong log (số lần <code>ERROR</code>, số lần thanh toán thất bại) để alarm. Subscription filter khi cần log đi đâu đó gần như tức thời (Lambda enrich, Kinesis để phân tích, Firehose gom vào S3/OpenSearch).</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng dùng export ra S3 cho mục đích real-time — export là job batch, có thể mất tới vài giờ mới xong và không phải luồng liên tục. Và đừng để retention mặc định (Never expire) cho môi trường prod lâu dài nếu không kiểm soát chi phí lưu trữ.</p></div>
+        <div class="code-block" data-lang="bash"><pre><code># 1) biến dòng log chứa ERROR thành metric ErrorCount
+aws logs put-metric-filter \
+  --log-group-name /order-api/app \
+  --filter-name ErrorCount \
+  --filter-pattern "ERROR" \
+  --metric-transformations \
+      metricName=ErrorCount,metricNamespace=OrderApi,metricValue=1,defaultValue=0
+
+# 2) đặt retention 30 ngày cho log group
+aws logs put-retention-policy --log-group-name /order-api/app --retention-in-days 30
+
+# 3) đẩy log real-time sang Kinesis Data Firehose
+aws logs put-subscription-filter \
+  --log-group-name /order-api/app \
+  --filter-name to-firehose \
+  --filter-pattern "" \
+  --destination-arn arn:aws:firehose:ap-southeast-1:123456789012:deliverystream/logs-to-s3</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Cơ chế</th><th>Đích / kết quả</th><th>Đặc điểm</th></tr></thead>
+          <tbody>
+            <tr><td>Metric filter</td><td>Tạo metric trong namespace tự chọn</td><td>Dùng được alarm; không phải luồng dữ liệu</td></tr>
+            <tr><td>Subscription filter</td><td>Lambda, Kinesis Data Streams, Kinesis Data Firehose, OpenSearch</td><td>Gần real-time; mỗi group tối đa 2 subscription filter</td></tr>
+            <tr><td>Export log</td><td>S3</td><td>Batch, độ trễ có thể tới hàng giờ, không mã hoá-exactly-once</td></tr>
+            <tr><td>Retention</td><td>1 ngày → 3653 ngày (10 năm)</td><td>Mặc định Never expire; log vượt retention bị xoá</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Log đã export sang S3 thì <strong>không</strong> query được bằng Logs Insights nữa. Muốn giữ lâu + vẫn phân tích thì dùng subscription filter đẩy sang Firehose → S3, rồi query bằng Athena.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html">AWS Docs — CloudWatch Logs</a> · <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/MonitoringLogData.html">AWS Docs — Metric filters</a> · <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html">AWS Docs — Subscription filters</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS3</span> CloudWatch Logs Insights: viết query để tìm đúng dòng log lỗi</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>Logs Insights là công cụ query log có cấu trúc, chạy trên log group trong CloudWatch Logs. Ngôn ngữ query gồm các lệnh xếp theo dòng, ngăn bởi <code>|</code>: <code>fields</code>, <code>filter</code>, <code>parse</code>, <code>stats</code>, <code>sort</code>, <code>limit</code>, <code>pattern</code>. Bạn có thể query tối đa nhiều log group cùng lúc trong một lần chạy.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Query chạy trên dữ liệu log còn trong log group (kể cả khi bạn không đặt retention), trả về theo thứ tự thời gian hoặc theo bảng thống kê.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Log groups</span><span class="icon-note">chọn nhiều group</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">query syntax</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Logs Insights</span><span class="icon-note">filter + stats</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">visualize / export</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Dashboard</span><span class="icon-note">add to dashboard</span></div>
+          </div>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Khi cần trả lời nhanh câu hỏi "lỗi gì, từ bao giờ, tập trung ở đâu": đếm theo thời gian, gom theo status code, tìm request chậm, lọc theo requestId để dựng lại một transaction.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Không thay thế trace phân tán (dùng X-Ray) hay audit (dùng CloudTrail). Query trên tập log cực lớn nên giới hạn khoảng thời gian để tránh tốn thời gian và chi phí scan.</p></div>
+        <div class="code-block" data-lang="bash"><pre><code>fields @timestamp, @requestId, @message, @duration
+| filter @message like /ERROR/ and @duration > 1000
+| parse @message /(?&lt;code&gt;\d{3}) /
+| stats count(*) as n, avg(@duration) as avg_ms by bin(5m), code
+| sort n desc
+| limit 20</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Lệnh</th><th>Việc nó làm</th></tr></thead>
+          <tbody>
+            <tr><td><code>fields</code></td><td>Chọn cột hiển thị / dùng tiếp</td></tr>
+            <tr><td><code>filter</code></td><td>Lọc dòng theo điều kiện (so sánh, regex, <code>in</code>)</td></tr>
+            <tr><td><code>parse</code></td><td>Tách trường từ chuỗi log bằng regex (glob hoặc named capture)</td></tr>
+            <tr><td><code>stats ... by bin(5m)</code></td><td>Aggregate theo thời gian: count, avg, pct, sum</td></tr>
+            <tr><td><code>sort</code> / <code>limit</code></td><td>Sắp xếp và giới hạn số dòng trả về</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p><code>@message</code>, <code>@timestamp</code>, <code>@requestId</code>, <code>@duration</code> là các trường hệ thống (bắt đầu bằng <code>@</code>). Nhiều log mặc định không phải JSON nên bạn phải <code>parse</code> để lấy field; nếu app ghi log JSON thì các field đó có sẵn ngay.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html">AWS Docs — Logs Insights</a> · <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html">AWS Docs — Query syntax</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="tracing-debug">
+    <h2 class="section-title">X-Ray, CloudTrail &amp; debug Lambda</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS4</span> X-Ray: trace, segment, subsegment, sampling rule và cách đọc một trace lỗi</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>X-Ray là dịch vụ <em>trace phân tán</em>. Một <strong>trace</strong> là hành trình đầy đủ của MỘT request qua nhiều service; trace gồm nhiều <strong>segment</strong> (một segment = một service xử lý, ví dụ một Lambda invocation); mỗi segment chia thành <strong>subsegment</strong> cho các lời gọi xuống dưới (SQL, HTTP, AWS SDK, downstream service). <em>Annotations</em> (key/value, được index nên tìm kiếm được) khác <em>metadata</em> (không index).</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Ứng dụng nhúng <strong>X-Ray SDK</strong> (Node.js, Python, Java, .NET, Go, Ruby) để tự sinh segment/subsegment, hoặc bật <em>Active Tracing</em> cho Lambda. Dữ liệu segment được gửi tới <strong>X-Ray daemon</strong> (UDP cổng 2000, chạy trên EC2/ECS/Elastic Beanstalk) hoặc qua API. Backend dựng <em>service map</em> để bạn thấy nút nào lỗi/chậm.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Client</span><span class="icon-note">request</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">trace header</span></div>
+            <div class="icon-node"><span class="aws-ico apigateway"></span><span class="icon-label">API Gateway</span><span class="icon-note">segment 1</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">invoke</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">segment 2</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">subsegment</span></div>
+            <div class="icon-node"><span class="aws-ico dynamodb"></span><span class="icon-label">DynamoDB</span><span class="icon-note">subsegment lỗi</span></div>
+          </div>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Khi cần tìm <em>nút thắt</em> trong hệ microservice/serverless: service nào chậm, lời gọi nào lỗi, retry ở đâu. Rất hợp câu hỏi "vì sao request này chậm 3 giây" mà log từng service riêng lẻ không kể được.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng X-Ray để trả lời "ai đã đổi security group" (CloudTrail) hay "resource này có đúng cấu hình không" (AWS Config). Cũng không bật trace 100% traffic đắt đỏ — hãy dùng sampling rule.</p></div>
+        <div class="code-block" data-lang="bash"><pre><code># Lọc trace lỗi của service order-api
+aws xray get-trace-summaries \
+  --start-time 2026-10-04T09:00:00Z --end-time 2026-10-04T09:15:00Z \
+  --filter-expression 'service("order-api") AND fault = true'
+
+# Lấy chi tiết một trace theo Id
+aws xray batch-get-traces --trace-ids 1-5e8f7c3a-0123456789abcdef01234567</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Khái niệm</th><th>Ý nghĩa</th><th>Ghi chú</th></tr></thead>
+          <tbody>
+            <tr><td>Trace</td><td>1 request end-to-end</td><td>Trace ID truyền qua header</td></tr>
+            <tr><td>Segment</td><td>1 service xử lý</td><td>Ví dụ 1 Lambda invocation</td></tr>
+            <tr><td>Subsegment</td><td>1 lời gọi con</td><td>SQL / HTTP / AWS SDK</td></tr>
+            <tr><td>Sampling mặc định</td><td>1 request/giây + 5% số request còn lại</td><td>Chỉnh bằng sampling rule</td></tr>
+            <tr><td>Lưu trace</td><td>30 ngày</td><td>Sau đó tự xoá</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Lambda cần quyền IAM <code>AWSXRayDaemonWriteAccess</code> (qua role của function) mới gửi được trace. Trên EC2/ECS phải chạy X-Ray daemon và mở UDP 2000 — SDK không tự gửi trực tiếp nếu thiếu daemon.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html">AWS Docs — X-Ray concepts</a> · <a href="https://docs.aws.amazon.com/xray/latest/devguide/xray-console-sampling.html">AWS Docs — Sampling rules</a> · <a href="https://docs.aws.amazon.com/xray/latest/devguide/xray-services-lambda.html">AWS Docs — X-Ray với Lambda</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS5</span> CloudWatch vs CloudTrail vs X-Ray vs Config: bốn service dễ nhầm nhất</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>Cả bốn đều là "observability/governance" nhưng trả lời bốn câu hỏi hoàn toàn khác nhau. Nhầm chúng là lỗi phổ biến trong đề DVA-C02.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">CloudWatch</span><span class="icon-note">"hệ thống đang khoẻ không?" — metric, log, alarm</span></div>
+            <div class="icon-node"><span class="aws-ico cloudtrail"></span><span class="icon-label">CloudTrail</span><span class="icon-note">"ai đã gọi API gì?" — audit</span></div>
+            <div class="icon-node"><span class="aws-ico xray"></span><span class="icon-label">X-Ray</span><span class="icon-note">"request đi đâu, chậm ở đâu?" — trace</span></div>
+            <div class="icon-node"><span class="aws-ico config"></span><span class="icon-label">AWS Config</span><span class="icon-note">"cấu hình có đúng chuẩn?" — compliance</span></div>
+          </div>
+        </div>
+        <div class="ans-block"><div class="ans-label">How</div><p>CloudWatch thu metric/log của resource; CloudTrail ghi lại các lời gọi API (management events mặc định, data events phải bật riêng); X-Ray dựng trace phân tán; Config đánh giá cấu hình resource theo rule và ghi lại lịch sử thay đổi cấu hình.</p></div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Chẩn đoán hiệu năng/lỗi runtime → CloudWatch + X-Ray. Điều tra "ai làm, từ IP nào, lúc nào" → CloudTrail. Kiểm tra tuân thủ cấu hình (bật encryption, đúng tag, không mở public) → AWS Config.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng dùng CloudTrail để xem CPU/latency (nó chỉ có sự kiện API). Đừng dùng Config để chặn thao tác xấu theo thời gian thực — Config ghi nhận và đánh giá, không phải WAF/GuardDuty.</p></div>
+        <div class="code-block" data-lang="bash"><pre><code># CloudWatch — lấy metric lỗi của Lambda
+aws cloudwatch get-metric-statistics --namespace AWS/Lambda --metric-name Errors \
+  --dimensions Name=FunctionName,Value=order-api \
+  --start-time 2026-10-04T09:00:00Z --end-time 2026-10-04T10:00:00Z \
+  --period 300 --statistics Sum
+
+# CloudTrail — tìm hành động phá huỷ
+aws cloudtrail lookup-events \
+  --lookup-attributes AttributeKey=EventName,AttributeValue=DeleteTable \
+  --start-time 2026-10-04T09:00:00Z
+
+# AWS Config — rule nào đang NON_COMPLIANT
+aws configservice describe-compliance-by-config-rule --compliance-types NON_COMPLIANT</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>CloudWatch</th><th>CloudTrail</th><th>X-Ray</th><th>Config</th></tr></thead>
+          <tbody>
+            <tr><td>Trả lời câu hỏi</td><td>Khoẻ / lỗi?</td><td>Ai làm gì?</td><td>Chậm/lỗi ở đâu?</td><td>Cấu hình đúng chuẩn?</td></tr>
+            <tr><td>Dữ liệu chính</td><td>Metric, log, alarm</td><td>API event (management/data)</td><td>Trace, segment</td><td>Config item + rule</td></tr>
+            <tr><td>Bật mặc định</td><td>Metric có sẵn</td><td>Management events: có (bản copy đầu)</td><td>Không — phải instrument</td><td>Không — phải bật recorder</td></tr>
+            <tr><td>Chi phí đặc thù</td><td>Theo metric/log/alarm</td><td>Data events tính phí riêng, mặc định TẮT</td><td>Theo trace ghi lại</td><td>Theo config item + rule eval</td></tr>
+            <tr><td>Lưu giữ</td><td>Metric 3h–455 ngày; log 1 ngày–10 năm</td><td>90 ngày event history + trail→S3</td><td>30 ngày</td><td>Tuỳ cấu hình</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Câu chữa cháy hay gặp: "cần biết ai đã tạo/xoá resource" → <strong>CloudTrail</strong>; "cần alert khi resource sai chuẩn cấu hình" → <strong>AWS Config</strong> (không phải CloudWatch). Còn "data events" (S3 object-level, Lambda Invoke) của CloudTrail mặc định <strong>không</strong> bật và tính phí riêng.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html">AWS Docs — CloudTrail concepts</a> · <a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html">AWS Docs — Data events</a> · <a href="https://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html">AWS Docs — AWS Config</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS6</span> Tình huống: function Lambda vừa báo timeout vừa bị throttling — đọc gì và sửa gì?</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>Bạn có một API Lambda <code>order-api</code>. Dashboard báo <code>Duration</code> sát trần, một số invocation trả về <code>Task timed out after 3.00 seconds</code>, đồng thời xuất hiện <code>TooManyRequestsException</code> (throttling 429). Cần phân biệt rõ 5 loại lỗi Lambda hay gặp để xử lý đúng.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Đối chiếu metric với log và cấu hình để tách nguyên nhân. Bộ metric cần nhìn: Invocations, Errors, Throttles, Duration, ConcurrentExecutions, IteratorAge, và log stream của từng instance.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Metric</span><span class="icon-note">Duration, Throttles, Errors</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">log stream</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Log Lambda</span><span class="icon-note">REPORT line</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">trace</span></div>
+            <div class="icon-node"><span class="aws-ico xray"></span><span class="icon-label">X-Ray</span><span class="icon-note">subsegment chậm</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">fix</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Config</span><span class="icon-note">timeout/memory/concurrency</span></div>
+          </div>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Checklist 5 lỗi kinh điển, mỗi lỗi một hướng sửa: (1) <em>Timeout</em> — tăng Timeout (tối đa 15 phút) và tối ưu đoạn chậm; (2) <em>OOM</em> — tăng MemorySize (memory cũng tỷ lệ CPU); (3) <em>Cold start</em> — giảm package, dùng Provisioned Concurrency hoặc SnapStart; (4) <em>Throttling</em> — kiểm tra concurrency (mặc định 1.000/account/region) và reserved concurrency; (5) <em>AccessDenied</em> — kiểm tra execution role/resource policy.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng "tăng timeout" như phản xạ cho timeout nếu nguyên nhân thật là downstream chậm — timeout dài chỉ che đi vấn đề và làm bill tăng. Cũng đừng tăng memory nếu log cho thấy function chết vì lỗi code, không phải hết RAM.</p></div>
+        <div class="code-block" data-lang="bash"><pre><code># Xem cấu hình đang chạy
+aws lambda get-function-configuration --function-name order-api \
+  --query '{timeout:Timeout,memory:MemorySize,reserved:ReservedConcurrentExecutions}'
+
+# Xem REPORT cuối mỗi invocation (Duration, Billed Duration, Max Memory Used)
+aws logs filter-log-events --log-group-name /aws/lambda/order-api \
+  --filter-pattern "REPORT" --limit 20
+
+# Xem 15 phút gần nhất có bị throttling không
+aws cloudwatch get-metric-statistics --namespace AWS/Lambda --metric-name Throttles \
+  --dimensions Name=FunctionName,Value=order-api \
+  --start-time 2026-10-04T09:00:00Z --end-time 2026-10-04T09:15:00Z \
+  --period 60 --statistics Sum</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Triệu chứng</th><th>Metric / dấu hiệu</th><th>Cách xử lý</th></tr></thead>
+          <tbody>
+            <tr><td>Timeout</td><td>Errors + Duration ≈ Timeout</td><td>Tăng Timeout (≤ 900s) &amp; tối ưu code; kiểm tra downstream</td></tr>
+            <tr><td>Out of memory</td><td><code>Max Memory Used</code> ≈ cấu hình; Runtime exited</td><td>Tăng MemorySize (CPU tăng theo)</td></tr>
+            <tr><td>Cold start</td><td>Duration spike ở invocation đầu</td><td>Provisioned Concurrency / SnapStart / giảm package</td></tr>
+            <tr><td>Throttling</td><td>Throttles &gt; 0, 429 TooManyRequestsException</td><td>Tăng reserved/account concurrency, xử lý bất đồng bộ + queue</td></tr>
+            <tr><td>AccessDenied</td><td>Error log <code>AccessDeniedException</code></td><td>Sửa execution role hoặc resource policy (S3, KMS, SQS)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Throttling xảy ra khi vượt concurrency. Chú ý: reserved concurrency "giữ chỗ" cho function nhưng lấy đi phần của các function khác; provisioned concurrency mới là thứ giữ instance nóng. Đọc kỹ đề để không chọn nhầm cái nào.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/lambda/latest/dg/monitoring-metrics.html">AWS Docs — Lambda metrics</a> · <a href="https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html">AWS Docs — Lambda concurrency</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="troubleshooting">
+    <h2 class="section-title">Troubleshooting hệ thống trên AWS</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS7</span> 502 / 504 / 403 sau ALB và API Gateway: đọc log gì, tìm ở đâu?</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>Các mã lỗi 5xx ở tầng load balancer thường KHÔNG phải lỗi app mà là lỗi kết nối tới target hoặc target trả lời sai. Hiểu ý nghĩa từng mã giúp khoanh vùng nhanh thay vì đọc log app vô ích.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Bật <strong>access log</strong> của ALB (đích là S3), rồi so khớp <code>elb_status_code</code> với <code>target_status_code</code> và <code>target_response_time</code> để biết LB lỗi hay target lỗi.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Client</span><span class="icon-note">HTTPS</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">idle timeout 60s</span></div>
+            <div class="icon-node"><span class="aws-ico alb"></span><span class="icon-label">ALB</span><span class="icon-note">access log → S3</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">health check</span></div>
+            <div class="icon-node"><span class="aws-ico ecs"></span><span class="icon-label">Target</span><span class="icon-note">ECS / Lambda task</span></div>
+          </div>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Dùng access log + target health để phân loại: target bị <em>unhealthy</em>, target đóng kết nối giữa chừng, hay target không phản hồi trong thời gian cho phép.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>403 không phải lỗi 5xx: nó thường do WAF, security group/NACL, authorizer của API Gateway, hoặc Lambda resource policy chặn — không cần đọc access log 5xx mà kiểm tra lớp bảo vệ.</p></div>
+        <div class="code-block" data-lang="bash"><pre><code># Dòng access log ALB mẫu (rút gọn): elb_status_code, target_status_code, times
+http 2026-10-04T09:12:33.101Z app/order-alb/50dc6c495c0c9188 10.0.1.5:43210 10.0.2.9:8080 \
+0.001 30.012 0.000 504 504 0 1234 "GET https://api.example.com/orders HTTP/1.1" "curl/8.0" \
+- - "Root=1-5e8f7c3a-..." "-" "-" "-" "10.0.2.9:8080" "-" "-" "-"
+
+# Lấy target health của target group
+aws elbv2 describe-target-health \
+  --target-group-arn arn:aws:elasticloadbalancing:ap-southeast-1:123456789012:targetgroup/order/abc
+
+# Xem reason của ECS task vừa dừng
+aws ecs describe-tasks --cluster prod \
+  --tasks arn:aws:ecs:ap-southeast-1:123456789012:task/prod/abc123 \
+  --query 'tasks[].{stoppedReason:stoppedReason,containers:containers[].reason}'</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Mã lỗi</th><th>Nghĩa thường gặp</th><th>Chỗ cần xem</th></tr></thead>
+          <tbody>
+            <tr><td>502 Bad Gateway</td><td>Target đóng kết nối / trả về response không hợp lệ</td><td>Log app, response format của Lambda, target health</td></tr>
+            <tr><td>504 Gateway Timeout</td><td>Target không phản hồi kịp (vượt idle timeout, mặc định 60s ở ALB)</td><td>Duration của target, timeout integration</td></tr>
+            <tr><td>503 Service Unavailable</td><td>Không còn target healthy</td><td>Target group health check, capacity</td></tr>
+            <tr><td>403 Forbidden</td><td>Bị chặn bởi WAF / authorizer / SG / resource policy</td><td>WAF log, API Gateway authorizer, Lambda permission</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>API Gateway có giới hạn thời gian tích hợp (khoảng 29 giây) — nếu backend chạy lâu hơn, client thấy 504 dù Lambda vẫn đang chạy. Với ALB thì giới hạn là <em>idle timeout</em> (mặc định 60s), có thể chỉnh. Đây là khác biệt hay bị hỏi.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html">AWS Docs — ALB access logs</a> · <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/stopped-task-errors.html">AWS Docs — ECS stopped task errors</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS8</span> Tình huống: Lambda trong VPC gọi RDS bị timeout — VPC, NAT gateway và connection pool</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>Bạn chuyển Lambda <code>order-api</code> vào VPC để truy cập RDS PostgreSQL private. Sau đó function bắt đầu timeout, và mỗi lần scale lên lại có thêm connection mới tới DB. Có hai vấn đề độc lập cần tách ra: <em>định tuyến ra Internet</em> và <em>quản lý connection</em>.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Lambda trong VPC chỉ có IP private. Muốn ra Internet (gọi API ngoài, tải package) phải đi qua <strong>NAT gateway</strong> ở public subnet; muốn gọi service AWS nội bộ thì thêm <strong>VPC endpoint</strong>. Về DB, mỗi Lambda instance mở connection riêng nên khi scale đột biến có thể vượt <code>max_connections</code> — dùng <strong>RDS Proxy</strong> để gom connection pool.</p>
+          <div class="stack">
+            <div class="stack-title">VPC 10.0.0.0/16</div>
+            <div class="sub-grid">
+              <div class="stack"><div class="stack-title">Public subnet (AZ a)</div>
+                <div class="icon-node"><span class="aws-ico nat-gateway"></span><span class="icon-label">NAT Gateway</span><span class="icon-note">ra Internet</span></div>
+              </div>
+              <div class="stack"><div class="stack-title">Private subnet (AZ a)</div>
+                <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda</span><span class="icon-note">ENI trong subnet</span></div>
+                <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">RDS Proxy</span><span class="icon-note">pool connection</span></div>
+                <div class="icon-node"><span class="aws-ico aurora"></span><span class="icon-label">RDS / Aurora</span><span class="icon-note">private only</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Đặt Lambda trong VPC + private subnet khi DB không public. Thêm VPC endpoint cho Secrets Manager/S3/CloudWatch Logs để không phải kéo traffic qua NAT (giảm chi phí + độ trễ). Dùng RDS Proxy khi có nhiều Lambda hoặc traffic tăng giảm thất thường.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Nếu function chỉ dùng service AWS và không cần DB private, đừng nhét vào VPC — thêm VPC chỉ làm phức tạp và (trước đây) tăng cold start. Cũng đừng lạm dụng RDS Proxy cho workload connection ổn định, ít function.</p></div>
+        <div class="code-block" data-lang="bash"><pre><code># Kiểm tra Lambda đang ở subnet nào + security group
+aws lambda get-function-configuration --function-name order-api \
+  --query 'VpcConfig.{subnets:SubnetIds,sg:SecurityGroupIds}'
+
+# Kiểm tra RDS còn slot connection không
+aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections \
+  --dimensions Name=DBInstanceIdentifier,Value=order-db \
+  --start-time 2026-10-04T09:00:00Z --end-time 2026-10-04T09:15:00Z \
+  --period 60 --statistics Maximum
+
+# Tạo RDS Proxy (PostgreSQL) để gom connection pool
+aws rds create-db-proxy --db-proxy-name order-api-proxy \
+  --engine-family POSTGRESQL \
+  --role-arn arn:aws:iam::123456789012:role/rds-proxy-role \
+  --vpc-subnet-ids subnet-aaa subnet-bbb</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Triệu chứng</th><th>Nguyên nhân hay gặp</th><th>Khắc phục</th></tr></thead>
+          <tbody>
+            <tr><td>Lambda timeout chỉ sau khi vào VPC</td><td>Không có NAT/endpoint để gọi ra ngoài</td><td>Thêm NAT gateway + route 0.0.0.0/0, hoặc VPC endpoint</td></tr>
+            <tr><td><code>too many connections</code></td><td>Scale Lambda → nhiều connection tới DB</td><td>Dùng RDS Proxy / giảm max pool mỗi instance</td></tr>
+            <tr><td>Không resolve được DB</td><td>Security group / route table sai</td><td>SG cho phép cổng DB từ SG của Lambda</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Bật "VPC" cho Lambda <strong>không</strong> tự động cho nó ra Internet. Đây là bẫy kinh điển: function gọi API ngoài sẽ timeout cho tới khi bạn thêm NAT gateway (hoặc VPC endpoint cho service AWS).</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html">AWS Docs — Lambda trong VPC</a> · <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.html">AWS Docs — RDS Proxy</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS9</span> Dashboard, CloudWatch agent và operational excellence: SLO cơ bản + structured JSON log</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p><strong>SLO</strong> là mục tiêu chất lượng dịch vụ (ví dụ 99,9% request thành công trong 30 ngày) đo bằng <strong>SLI</strong> (chỉ số thực tế: latency p99, error rate, availability). Chênh lệch giữa mục tiêu và thực tế là <em>error budget</em> — dùng để quyết định "được phép release rủi ro tới đâu".</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Gom metric + log vào <strong>CloudWatch dashboard</strong>, đặt alarm theo SLO. Với tài nguyên EC2/ECS cần thêm số liệu tầng OS (RAM, disk) — metric mặc định của CloudWatch <em>không</em> có memory/disk — phải chạy <strong>CloudWatch agent</strong>. Log nên ghi dạng <strong>structured JSON</strong> để Logs Insights query thẳng field, kèm <code>correlationId</code>/<code>requestId</code>.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico ec2"></span><span class="icon-label">EC2 / ECS</span><span class="icon-note">app + agent</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">mem, disk, JSON log</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">CloudWatch</span><span class="icon-note">metrics + logs</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">SLO alarm</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">Dashboard</span><span class="icon-note">one pane of glass</span></div>
+          </div>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Dashboard cho on-call nhìn nhanh tình trạng; agent cho workload IaaS/PaaS cần metric OS; structured log khi bạn cần phân tích/alert trên field cụ thể thay vì grep chuỗi.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng nhồi mọi metric lên một dashboard (nhiễu, khó đọc) — tách dashboard theo service/team. Và đừng đặt SLO 100%: không có error budget nghĩa là không thể release.</p></div>
+        <div class="code-block" data-lang="bash"><pre><code>{
+  "metrics": {
+    "namespace": "OrderApi",
+    "append_dimensions": { "InstanceId": "${aws:InstanceId}" },
+    "metrics_collected": {
+      "mem":  { "measurement": ["mem_used_percent"] },
+      "disk": { "measurement": ["used_percent"], "resources": ["/"] }
+    }
+  },
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          { "file_path": "/var/log/order-api/app.log",
+            "log_group_name": "/order-api/app",
+            "log_stream_name": "{instance_id}" }
+        ]
+      }
+    }
+  }
+}
+
+# Ví dụ một dòng structured JSON log nên ghi ra
+{"ts":"2026-10-04T09:12:33Z","level":"ERROR","service":"order-api","requestId":"d4f1","msg":"payment timeout","latencyMs":30012}</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Khái niệm</th><th>Ví dụ</th><th>Dùng để</th></tr></thead>
+          <tbody>
+            <tr><td>SLI</td><td>Tỷ lệ request 2xx (%); p99 latency</td><td>Đo thực tế</td></tr>
+            <tr><td>SLO</td><td>≥ 99,9% request thành công / 30 ngày</td><td>Mục tiêu cam kết</td></tr>
+            <tr><td>Error budget</td><td>0,1% × tổng request</td><td>Cho phép rủi ro khi deploy</td></tr>
+            <tr><td>CloudWatch agent</td><td>mem_used_percent, disk used, custom log</td><td>Metric OS mà CloudWatch không có sẵn</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>EC2 không tự có metric memory/disk. Đây là câu hỏi rất hay gặp: "muốn monitor RAM của EC2/ECS thì làm gì?" → cài <strong>CloudWatch agent</strong> (và bật Container Insights cho ECS/EKS).</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html">AWS Docs — CloudWatch agent config</a> · <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Dashboards.html">AWS Docs — CloudWatch dashboards</a> · <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cloudwatch-metrics.html">AWS Docs — ECS CloudWatch metrics</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS10</span> Tình huống tổng hợp: sự cố prod 9h00 — lần theo metric → log → trace → audit</h3>
+      <div class="qa-answer">
+        <div class="ans-block"><div class="ans-label">What</div><p>9h00 sáng, alarm <code>order-api-5xx-high</code> kêu. Bạn có 15 phút để khoanh vùng. Quy trình chuẩn là đi từ <em>triệu chứng</em> (metric) tới <em>chi tiết</em> (log), tới <em>luồng request</em> (trace), và cuối cùng là <em>thay đổi cấu hình/API</em> (CloudTrail + Config) nếu nghi do ai đó vừa deploy.</p></div>
+        <div class="ans-block"><div class="ans-label">How</div><p>Bốn bước, mỗi bước trả lời một câu hỏi và thu hẹp phạm vi trước khi sang bước sau.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">1. Metric</span><span class="icon-note">lỗi từ khi nào?</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">khoanh thời gian</span></div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">2. Logs Insights</span><span class="icon-note">lỗi gì, ở đâu?</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">requestId</span></div>
+            <div class="icon-node"><span class="aws-ico xray"></span><span class="icon-label">3. X-Ray</span><span class="icon-note">nút nào chậm/lỗi?</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">ai đổi gì?</span></div>
+            <div class="icon-node"><span class="aws-ico cloudtrail"></span><span class="icon-label">4. CloudTrail</span><span class="icon-note">audit thay đổi</span></div>
+          </div>
+        </div>
+        <div class="ans-block"><div class="ans-label">When</div><p>Áp dụng cho mọi incident runtime. Nếu nghi vấn liên quan tới hành động của con người/CI (deploy, xoá resource, đổi SG), bước 4 là bắt buộc — và AWS Config cho biết cấu hình đã lệch chuẩn ở đâu.</p></div>
+        <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng bắt đầu bằng cách đọc log thô toàn bộ — sẽ ngập. Luôn bắt đầu từ metric để có mốc thời gian, rồi mới lọc log theo khoảng đó và theo <code>requestId</code>.</p></div>
+        <div class="code-block" data-lang="bash"><pre><code># Bước 1 — lỗi bắt đầu từ lúc nào (theo phút)
+aws cloudwatch get-metric-statistics --namespace AWS/ApplicationELB \
+  --metric-name HTTPCode_Target_5XX_Count \
+  --start-time 2026-10-04T08:30:00Z --end-time 2026-10-04T09:20:00Z \
+  --period 60 --statistics Sum
+
+# Bước 2 — tìm dòng log lỗi trong đúng khoảng đó
+# Logs Insights query:
+#   fields @timestamp, @requestId, @message
+#   | filter @message like /ERROR/ or @message like /500/
+#   | sort @timestamp desc | limit 50
+
+# Bước 3 — trace lỗi của service
+aws xray get-trace-summaries \
+  --start-time 2026-10-04T08:55:00Z --end-time 2026-10-04T09:15:00Z \
+  --filter-expression 'service("order-api") AND error = true'
+
+# Bước 4 — ai đã thay đổi gì quanh thời điểm đó
+aws cloudtrail lookup-events \
+  --start-time 2026-10-04T08:45:00Z --end-time 2026-10-04T09:05:00Z \
+  --lookup-attributes AttributeKey=EventName,AttributeValue=UpdateService</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Bước</th><th>Câu hỏi</th><th>Nguồn dữ liệu</th></tr></thead>
+          <tbody>
+            <tr><td>1. Metric</td><td>Lỗi tăng từ khi nào, mức nào?</td><td>CloudWatch metrics + alarm</td></tr>
+            <tr><td>2. Log</td><td>Log lỗi nói gì, tập trung ở đâu?</td><td>Logs Insights trên log group</td></tr>
+            <tr><td>3. Trace</td><td>Request đi qua nút nào và chết ở đâu?</td><td>X-Ray trace + service map</td></tr>
+            <tr><td>4. Audit</td><td>Ai/cái gì vừa thay đổi hệ thống?</td><td>CloudTrail (API), AWS Config (cấu hình)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Thứ tự này là "vũ khí" khi đề cho một sự cố mơ hồ. Nhớ cặp đôi kinh điển: <em>thay đổi cấu hình / hành động API</em> → CloudTrail; <em>cấu hình sai chuẩn / drift</em> → AWS Config. Còn <em>ai gọi cái gì với dữ liệu S3</em> thường phải bật thêm <strong>CloudTrail data events</strong> (mặc định tắt, tính phí riêng).</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html">AWS Docs — Logs Insights</a> · <a href="https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html">AWS Docs — X-Ray concepts</a> · <a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html">AWS Docs — CloudTrail concepts</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <div class="nav-pager"><a class="prev" href="32-aws-cicd-iac.html">← Trước</a><a class="next" href="index.html">Tiếp →</a></div>
+</main>
+</body>
+</html>

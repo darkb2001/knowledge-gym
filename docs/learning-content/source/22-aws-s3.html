@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amazon S3 cho Developer — DVA-C02 Deep Dive</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="module-header">
+  <span class="module-tag">AWS · Storage</span>
+  <h1 class="module-title">Amazon S3 cho Developer — DVA-C02 Deep Dive</h1>
+  <p class="module-subtitle">Storage class, bảo mật, mã hoá, presigned URL, lifecycle và hiệu năng.</p>
+</div>
+<main class="content">
+
+  <section class="section" id="s3-core">
+    <h2 class="section-title">S3 cơ bản &amp; storage classes</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS1</span> S3 là gì? Bucket, object, key và consistency model</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Amazon S3</strong> là object storage: dữ liệu lưu thành <strong>object</strong> trong <strong>bucket</strong>. Object gồm <em>data</em> + <em>metadata</em> + <strong>key</strong> (đường dẫn đầy đủ, tối đa 1024 byte UTF-8). Bucket có tên <em>unique toàn cầu</em>, gắn một <strong>region</strong>, dài 3–63 ký tự. S3 không có thư mục thật — <strong>prefix</strong> trong key tạo thư mục ảo (<code>img/2026/logo.png</code>). Metadata có thể là <em>system-defined</em> (Content-Type, ETag) hoặc <em>user-defined</em> (tối đa 2 KB mỗi PUT).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Từ 12/2020 S3 cung cấp <strong>strong read-after-write consistency</strong> ở mọi region: sau <code>PUT</code> object mới, ghi đè hoặc <code>DELETE</code>, lần đọc kế tiếp thấy ngay kết quả mới. Thao tác <strong>LIST</strong> cũng strongly consistent. Mô hình <em>eventual consistency</em> cho overwrite + list là kiến thức cũ — vẫn là bẫy của đề thi cũ.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Client</span><span class="icon-note">SDK / CLI / console</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">PUT / GET / DELETE</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Bucket</span><span class="icon-note">region-scoped, tên unique</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">key + version id</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Object</span><span class="icon-note">data + metadata</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tạo bucket (tên phải unique toàn cầu) rồi upload object</span>
+aws s3 mb s3://my-app-assets --region ap-southeast-1
+aws s3 cp ./logo.png s3://my-app-assets/img/logo.png
+aws s3api head-object --bucket my-app-assets --key img/logo.png
+
+<span class="tok-comment"># Liệt kê theo prefix (thư mục ảo) và xem kích thước</span>
+aws s3api list-objects-v2 --bucket my-app-assets --prefix img/ \
+  --query 'Contents[].{Key:Key,Size:Size}'</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Giới hạn cần nhớ</th><th>Giá trị</th></tr></thead>
+          <tbody>
+            <tr><td>Kích thước tối đa một object</td><td>5 TB</td></tr>
+            <tr><td>Kích thước tối đa một lần PUT đơn</td><td>5 GB</td></tr>
+            <tr><td>Ngưỡng nên dùng multipart upload</td><td>trên 100 MB</td></tr>
+            <tr><td>Độ dài key</td><td>tối đa 1024 byte UTF-8</td></tr>
+            <tr><td>Consistency</td><td>strong read-after-write từ 12/2020 cho PUT &amp; DELETE; LIST cũng consistent</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>5 TB là giới hạn <strong>mỗi object</strong>, không phải mỗi bucket. Object &gt; 5 GB <em>bắt buộc</em> upload bằng multipart, không thể PUT một phát. Bucket không lồng nhau, và tên bucket dùng chung namespace giữa mọi account nên có thể bị trùng tên.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html">AWS Docs — What is Amazon S3</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/consistency.html">AWS Docs — Amazon S3 consistency model</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS2</span> Chọn storage class nào? So sánh Standard tới Glacier Deep Archive</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>S3 có nhiều <strong>storage class</strong> đánh đổi giữa chi phí lưu trữ, thời gian lấy dữ liệu và availability. Tất cả class đều có durability <strong>99.999999999% (11 số 9)</strong> — khác nhau ở <em>availability</em>, <em>thời gian retrieval</em> và <em>minimum storage duration</em> (thời gian lưu tối thiểu bị tính phí).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Chọn class theo tần suất truy cập. Khi chưa biết access pattern, dùng <strong>Intelligent-Tiering</strong> để S3 tự chuyển tier theo ngày không truy cập. Với dữ liệu archive, đi theo mô hình thác nước: Standard → Standard-IA → Glacier Instant Retrieval → Glacier Flexible Retrieval → Glacier Deep Archive.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Standard</span><span class="icon-note">truy cập thường xuyên</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">30 ngày</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Standard-IA</span><span class="icon-note">ít truy cập, cần nhanh</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">90 ngày</span></div>
+            <div class="icon-node"><span class="aws-ico glacier"></span><span class="icon-label">Glacier IR / Flexible</span><span class="icon-note">archive</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">180 ngày</span></div>
+            <div class="icon-node"><span class="aws-ico glacier"></span><span class="icon-label">Deep Archive</span><span class="icon-note">rẻ nhất</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Chọn storage class ngay khi upload</span>
+aws s3 cp ./report.pdf s3://my-app-assets/reports/ --storage-class INTELLIGENT_TIERING
+
+<span class="tok-comment"># Đổi class object đã có (tạo bản copy mới, giữ nguyên nội dung)</span>
+aws s3api copy-object --bucket my-app-assets --key reports/report.pdf \
+  --copy-source my-app-assets/reports/report.pdf \
+  --storage-class STANDARD_IA --metadata-directive COPY</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Storage class</th><th>Availability</th><th>Min duration</th><th>Retrieval</th><th>Dùng khi</th></tr></thead>
+          <tbody>
+            <tr><td>S3 Standard</td><td>99.99%</td><td>—</td><td>tức thì (ms)</td><td>dữ liệu nóng, latency thấp</td></tr>
+            <tr><td>S3 Intelligent-Tiering</td><td>99.9%</td><td>—</td><td>tức thì (ms)</td><td>access pattern thay đổi / chưa biết</td></tr>
+            <tr><td>S3 Standard-IA</td><td>99.9%</td><td>30 ngày</td><td>tức thì (ms)</td><td>ít truy cập nhưng cần lấy ngay</td></tr>
+            <tr><td>S3 One Zone-IA</td><td>99.5%</td><td>30 ngày</td><td>tức thì (ms)</td><td>ít truy cập, dữ liệu tạo lại được</td></tr>
+            <tr><td>S3 Glacier Instant Retrieval</td><td>99.9%</td><td>90 ngày</td><td>tức thì (ms)</td><td>archive nhưng cần truy cập tức thì</td></tr>
+            <tr><td>S3 Glacier Flexible Retrieval</td><td>99.99%</td><td>90 ngày</td><td>1–5 phút / 3–5 giờ / 5–12 giờ</td><td>backup, DR theo tier</td></tr>
+            <tr><td>S3 Glacier Deep Archive</td><td>99.99%</td><td>180 ngày</td><td>12 giờ / 48 giờ</td><td>lưu trữ dài hạn, compliance</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Glacier Flexible và Deep Archive là <em>archive</em>: object không đọc trực tiếp được, phải gọi <code>RestoreObject</code> rồi chờ. <strong>Glacier Instant Retrieval</strong> cũng là Glacier nhưng đọc được ngay — class dễ nhầm nhất khi đề hỏi \"archive cần truy cập trong vài mili-giây\".</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html">AWS Docs — Understanding and managing Amazon S3 storage classes</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="s3-security">
+    <h2 class="section-title">Bảo mật, mã hoá &amp; chia sẻ</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS3</span> Block Public Access vs bucket policy vs IAM vs ACL — chọn cơ chế nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>S3 có bốn lớp kiểm soát truy cập hay bị nhầm: <strong>Block Public Access (BPA)</strong> là công tắc chặn public, <strong>bucket policy</strong> và <strong>IAM policy</strong> là policy JSON, còn <strong>ACL</strong> là cơ chế cũ cấp quyền theo object/bucket. Từ 2023 bucket mới mặc định bật <em>Block Public Access</em> và tắt ACL (bucket owner enforced).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Quyết định truy cập là tổ hợp: IAM policy trên <em>principal</em> cộng bucket policy trên <em>resource</em>; request bị từ chối nếu bất kỳ <strong>Deny</strong> nào khớp hoặc không có <strong>Allow</strong> nào. BPA là lớp <em>override</em> nằm trên cùng: khi bật, mọi truy cập public qua bucket policy/ACL đều bị chặn bất kể policy nói gì.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico iam"></span><span class="icon-label">IAM policy</span><span class="icon-note">principal: user / role</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">Allow / Deny</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Bucket policy</span><span class="icon-note">resource-based, Principal</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">kiểm tra trên cùng</span></div>
+            <div class="icon-node"><span class="aws-ico shield"></span><span class="icon-label">Block Public Access</span><span class="icon-note">override công tắc public</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "DenyNonTLS",
+    "Effect": "Deny",
+    "Principal": "*",
+    "Action": "s3:*",
+    "Resource": ["arn:aws:s3:::my-app-assets", "arn:aws:s3:::my-app-assets/*"],
+    "Condition": { "Bool": { "aws:SecureTransport": "false" } }
+  }]
+}</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Cơ chế</th><th>Gắn vào đâu</th><th>Khi dùng</th></tr></thead>
+          <tbody>
+            <tr><td>IAM identity policy</td><td>user / group / role</td><td>cấp quyền cho service, ứng dụng, người trong account</td></tr>
+            <tr><td>Bucket policy</td><td>bucket (resource)</td><td>cấp quyền cross-account, public, ép TLS, ép mã hoá</td></tr>
+            <tr><td>ACL</td><td>object / bucket</td><td>legacy, nên tắt; bucket owner enforced là mặc định mới</td></tr>
+            <tr><td>Block Public Access</td><td>account và/hoặc bucket</td><td>chặn tuyệt đối public — bật cho bucket nội bộ</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Đề hay hỏi \"bucket vẫn public dù ACL private\" — luôn kiểm tra cả <strong>bucket policy</strong> lẫn <strong>BPA</strong>. <strong>Deny tường minh</strong> luôn thắng <em>Allow</em>. Với bucket cross-account chưa tắt ACL, object do account khác ghi lên thuộc sở hữu account đó — bật <em>bucket owner enforced</em> để chủ bucket nắm toàn quyền.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-overview.html">AWS Docs — Access control in Amazon S3</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html">AWS Docs — Blocking public access</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS4</span> Mã hoá S3: SSE-S3 vs SSE-KMS vs SSE-C vs DSSE-KMS</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Mọi object S3 được mã hoá at-rest (mặc định <strong>SSE-S3</strong> từ 05/01/2023). Bốn lựa chọn server-side encryption: <strong>SSE-S3</strong> (S3 quản lý key), <strong>SSE-KMS</strong> (AWS KMS quản lý key, có audit + control), <strong>SSE-C</strong> (khách tự giữ key), <strong>DSSE-KMS</strong> (hai lớp mã hoá bằng KMS key).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Đặt <em>default encryption</em> cho bucket (chỉ SSE-S3, SSE-KMS hoặc DSSE-KMS — <strong>SSE-C không làm default được</strong>). Với SSE-KMS, mỗi GET/PUT gọi KMS nên tốn quota và có thể bị throttle; bật <strong>S3 Bucket Keys</strong> giảm tới <strong>99%</strong> request tới KMS. Với SSE-C, mỗi request phải gửi kèm key qua header (bắt buộc HTTPS) — S3 không lưu key.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">SSE-S3</span><span class="icon-note">AES-256, key do S3 quản</span></div>
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">SSE-KMS</span><span class="icon-note">audit + key policy</span></div>
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">SSE-C</span><span class="icon-note">khách giữ key</span></div>
+            <div class="icon-node"><span class="aws-ico kms"></span><span class="icon-label">DSSE-KMS</span><span class="icon-note">2 lớp, compliance</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># SSE-S3 (mặc định) — không cần quản lý key</span>
+aws s3 cp ./report.pdf s3://my-app-assets/reports/ --sse AES256
+
+<span class="tok-comment"># SSE-KMS với customer managed key (kèm quyền kms:GenerateDataKey / kms:Decrypt)</span>
+aws s3 cp ./report.pdf s3://my-app-assets/reports/ \
+  --sse aws:kms --sse-kms-key-id alias/app-key
+
+<span class="tok-comment"># SSE-C: gửi key trên từng request, S3 không lưu key</span>
+aws s3api put-object --bucket my-app-assets --key secret.bin --body secret.bin \
+  --sse-customer-algorithm AES256 --sse-customer-key fileb://key.bin</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Kiểu</th><th>Key do ai quản</th><th>Ai đọc được</th><th>Ghi chú</th></tr></thead>
+          <tbody>
+            <tr><td>SSE-S3</td><td>S3</td><td>Mọi principal có quyền S3</td><td>Mặc định, rẻ, không audit key</td></tr>
+            <tr><td>SSE-KMS</td><td>KMS</td><td>Chỉ principal được key policy cho phép</td><td>Tốn KMS quota; bật Bucket Keys để giảm phí</td></tr>
+            <tr><td>SSE-C</td><td>Khách</td><td>Ai có key (gửi mỗi request)</td><td>Không làm default; bắt buộc HTTPS</td></tr>
+            <tr><td>DSSE-KMS</td><td>KMS</td><td>Như SSE-KMS</td><td>Hai lớp, cho yêu cầu compliance khắt khe</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>SSE-KMS cần quyền <code>kms:Decrypt</code>/<code>kms:GenerateDataKey</code>; bucket policy chỉ có <code>s3:*</code> là <em>không đủ</em>. KMS quota theo region có thể throttle trước cả S3 — bucket key xử lý việc này. Mã hoá at-rest không thay cho TLS in-transit: dùng điều kiện <code>aws:SecureTransport</code> để ép HTTPS.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/serv-side-encryption.html">AWS Docs — Protecting data with server-side encryption</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html">AWS Docs — SSE-KMS &amp; S3 Bucket Keys</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS5</span> Presigned URL: chia sẻ object riêng tư không cần public bucket</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Presigned URL</strong> là URL đã ký (SigV4) cấp quyền tạm thời cho một thao tác trên một object, dùng chính credential của người tạo. Ai có URL thì thực hiện được đúng thao tác đó mà <em>không cần AWS credential</em> — bucket vẫn private.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>URL mang quyền của principal tạo nó: <code>GET</code> để tải xuống, <code>PUT</code> để client upload trực tiếp lên S3 (bỏ qua app server). URL hết hạn thì vô hiệu; hết hạn tối đa <strong>7 ngày (604.800 giây)</strong> với credential IAM dài hạn, còn với credential tạm thời (STS) thì không vượt quá vòng đời của token.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Client</span><span class="icon-note">trình duyệt / mobile</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">xin URL tạm thời</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Backend</span><span class="icon-note">sinh presigned URL</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">GET / PUT có chữ ký</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">S3 (private)</span><span class="icon-note">bucket không cần public</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tạo URL tải xuống object private, hiệu lực 1 giờ</span>
+aws s3 presign s3://my-app-assets/private/report.pdf --expires-in 3600
+
+<span class="tok-comment"># URL cho PUT để client upload trực tiếp (boto3, trong code backend)</span>
+<span class="tok-comment"># url = s3.generate_presigned_url('put_object',</span>
+<span class="tok-comment">#     Params={'Bucket': 'my-app-assets', 'Key': key}, ExpiresIn=900)</span></code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tình huống</th><th>Dùng gì</th><th>Ghi chú</th></tr></thead>
+          <tbody>
+            <tr><td>Chia sẻ file private cho user</td><td>Presigned GET URL</td><td>Không cần public bucket</td></tr>
+            <tr><td>Upload trực tiếp từ web/mobile</td><td>Presigned PUT URL</td><td>Giảm tải app server, payload không qua server</td></tr>
+            <tr><td>Thời hạn URL</td><td>Tối đa 7 ngày (SigV4)</td><td>STS token thì ngắn hơn — theo vòng đời token</td></tr>
+            <tr><td>App chạy trên EC2/Lambda</td><td>Credential từ IAM role</td><td>Ưu tiên role hơn IAM user dài hạn</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Không thể <em>thu hồi</em> một presigned URL đã phát (trừ khi rotate credential ký). URL kế thừa đúng quyền người tạo — đừng ký bằng user có quyền rộng. \"Maximum 7 days\" chỉ đúng với credential dài hạn; STS token làm URL hết hạn sớm hơn.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html">AWS Docs — Sharing objects with presigned URLs</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="s3-data-management">
+    <h2 class="section-title">Versioning, lifecycle &amp; hiệu năng</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS6</span> Versioning, lifecycle, MFA Delete và Object Lock</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>S3 Lifecycle</strong> là bộ quy tắc tự động chuyển object sang storage class rẻ hơn (<em>transition</em>) và xoá object hết hạn (<em>expiration</em>). Khi bật <strong>versioning</strong>, mỗi lần ghi đè/xoá tạo <em>version</em> mới; xoá thường chỉ thêm <strong>delete marker</strong>. <strong>Object Lock</strong> là cơ chế WORM chống xoá/ghi đè.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Rule gồm <strong>Filter</strong> (prefix/tag), <strong>Transitions</strong>, <strong>Expiration</strong>, <strong>NoncurrentVersionExpiration</strong> và <strong>AbortIncompleteMultipartUpload</strong>. Mỗi class có <em>minimum storage duration</em>: Standard-IA/One Zone-IA 30 ngày, Glacier IR/Flexible 90 ngày, Deep Archive 180 ngày — chuyển sớm vẫn bị tính đủ thời gian tối thiểu. <strong>MFA Delete</strong> đòi MFA để xoá vĩnh viễn một version hoặc đổi trạng thái versioning (chỉ root bật). <strong>Object Lock</strong> phải bật lúc tạo bucket, không tắt được; có mode <em>Governance</em> (cần <code>s3:BypassGovernanceRetention</code> để vượt) và <em>Compliance</em> (không ai xoá được, kể cả root).</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Object v1</span><span class="icon-note">PUT lần đầu</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">overwrite</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">v2 + delete marker</span><span class="icon-note">versioning giữ tất cả</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">NoncurrentVersionExpiration</span></div>
+            <div class="icon-node"><span class="aws-ico glacier"></span><span class="icon-label">Dọn version cũ</span><span class="icon-note">tiết kiệm chi phí</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="json"><pre><code>{
+  "Rules": [{
+    "ID": "logs-tiering",
+    "Status": "Enabled",
+    "Filter": { "Prefix": "logs/" },
+    "Transitions": [
+      { "Days": 30,  "StorageClass": "STANDARD_IA" },
+      { "Days": 90,  "StorageClass": "GLACIER_IR" },
+      { "Days": 365, "StorageClass": "DEEP_ARCHIVE" }
+    ],
+    "Expiration": { "Days": 1095 },
+    "NoncurrentVersionExpiration": { "NoncurrentDays": 30 },
+    "AbortIncompleteMultipartUpload": { "DaysAfterInitiation": 7 }
+  }]
+}</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Thao tác</th><th>Kết quả</th></tr></thead>
+          <tbody>
+            <tr><td>Bật versioning</td><td>Giữ mọi version; chỉ <em>suspend</em> được, không tắt hẳn</td></tr>
+            <tr><td>DELETE không có version id</td><td>Thêm delete marker (object \"biến mất\" nhưng còn dữ liệu)</td></tr>
+            <tr><td>DELETE có version id</td><td>Xoá vĩnh viễn version đó</td></tr>
+            <tr><td>NoncurrentVersionExpiration</td><td>Tự xoá version cũ để tránh phình chi phí</td></tr>
+            <tr><td>Object Lock (Compliance)</td><td>Không xoá/ghi đè trong hạn, kể cả root</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Bật versioning là con dao hai lưỡi: version cũ vẫn bị tính phí — luôn thêm <code>NoncurrentVersionExpiration</code>. Versioning <em>không thể tắt</em>, chỉ suspend. Object Lock chỉ bật được lúc tạo bucket và cần versioning; delete marker <em>không</em> được WORM bảo vệ.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html">AWS Docs — Managing the lifecycle of objects</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html">AWS Docs — Locking objects with Object Lock</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS7</span> Upload/download lớn bị chậm, throttle 503: multipart, prefix và Transfer Acceleration</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Một ứng dụng upload file lớn (vài GB) bị chậm và thỉnh thoảng nhận <code>503 SlowDown</code>. Một PUT đơn tối đa <strong>5 GB</strong>; để nhanh và bền vững phải dùng <strong>multipart upload</strong>, tăng <strong>prefix</strong> và/hoặc bật <strong>Transfer Acceleration</strong>.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p><strong>Multipart</strong>: chia object thành nhiều phần song song, tối đa <strong>10.000 part</strong>, mỗi part 5 MB–5 GB; lỗi chỉ cần retry part đó. Nên dùng khi &gt; 100 MB, bắt buộc khi &gt; 5 GB. S3 tự scale theo <strong>prefix</strong>: tối thiểu <strong>3.500 PUT/COPY/POST/DELETE</strong> và <strong>5.500 GET/HEAD mỗi giây, mỗi prefix</strong> — rải object qua nhiều prefix để tăng tổng throughput. <strong>Transfer Acceleration</strong> dùng edge location CloudFront + backbone AWS để giảm độ trễ. Tải xuống song song bằng <strong>byte-range fetch</strong>.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Client</span><span class="icon-note">file lớn</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">chia thành N part song song</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">UploadPart 1..N</span><span class="icon-note">5 MB–5 GB mỗi part</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">CompleteMultipartUpload</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">1 object</span><span class="icon-note">ghép lại tự động</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># aws s3 cp tự động dùng multipart cho file lớn; tăng độ song song</span>
+aws configure set default.s3.max_concurrent_requests 20
+aws configure set default.s3.multipart_threshold 64MB
+aws s3 cp ./big.iso s3://my-app-assets/data/big.iso --storage-class STANDARD
+
+<span class="tok-comment"># Bật Transfer Acceleration (endpoint bucket.s3-accelerate.amazonaws.com)</span>
+aws s3api put-bucket-accelerate-configuration --bucket my-app-assets \
+  --accelerate-configuration Status=Enabled</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Kỹ thuật</th><th>Giải quyết</th><th>Ghi chú</th></tr></thead>
+          <tbody>
+            <tr><td>Multipart upload</td><td>File lớn, mạng chập chờn</td><td>Bắt buộc &gt; 5 GB; tối đa 10.000 part</td></tr>
+            <tr><td>Prefix sharding</td><td>Throttle 503 do quá tải một prefix</td><td>3.500 PUT / 5.500 GET mỗi prefix/giây</td></tr>
+            <tr><td>Transfer Acceleration</td><td>Client xa region</td><td>Qua edge CloudFront; tốn thêm phí</td></tr>
+            <tr><td>Byte-range fetch</td><td>Tải object lớn song song</td><td>Chia GET theo dải byte</td></tr>
+            <tr><td>S3 Select</td><td>Chỉ lấy một phần dữ liệu</td><td>Lọc tại server (CSV/JSON/Parquet)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Mỗi <code>UploadPart</code> tính là một PUT vào ngân sách prefix — upload 1.000 part = 1.001 thao tác ghi, dễ tự gây throttle. 5 GB là trần một PUT đơn, nhưng object vẫn tối đa 5 TB nhờ multipart. Transfer Acceleration không nâng giới hạn prefix, chỉ giảm độ trễ đường truyền.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html">AWS Docs — Uploading objects with multipart upload</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html">AWS Docs — Best practices for Amazon S3 performance</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="s3-integration">
+    <h2 class="section-title">Tích hợp, replication &amp; chọn dịch vụ</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS8</span> Ứng dụng cần xử lý ngay khi có file mới: S3 Event Notifications hay polling?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Ứng dụng cần resize ảnh/scan virus mỗi khi có object mới. Giải pháp đúng là <strong>S3 Event Notifications</strong> (đẩy sự kiện) — <em>không</em> phải vòng lặp <code>ListObjects</code> liên tục (tốn request, trễ và không đảm bảo bắt kịp).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>S3 phát event như <code>s3:ObjectCreated:*</code>, <code>s3:ObjectRemoved:*</code>, <code>s3:ObjectRestore:*</code> tới <strong>SNS</strong>, <strong>SQS</strong> hoặc <strong>Lambda</strong> — mỗi rule chỉ một đích, muốn nhiều đích thì tạo nhiều rule. Hoặc bật gửi <em>mọi</em> event sang <strong>EventBridge</strong> để lọc nâng cao và route tới nhiều target (kể cả SQS FIFO).</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">Bucket</span><span class="icon-note">ObjectCreated:*</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">event notification</span></div>
+            <div class="icon-node"><span class="aws-ico eventbridge"></span><span class="icon-label">EventBridge / SQS / SNS</span><span class="icon-note">route theo prefix</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">batch / async</span></div>
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda resize</span><span class="icon-note">xử lý ảnh mới</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Route event ObjectCreated của prefix uploads/ tới một queue SQS</span>
+aws s3api put-bucket-notification-configuration \
+  --bucket my-app-assets \
+  --notification-configuration '{
+    "QueueConfigurations": [{
+      "QueueArn": "arn:aws:sqs:ap-southeast-1:111122223333:resize-jobs",
+      "Events": ["s3:ObjectCreated:*"],
+      "Filter": {"Key": {"FilterRules": [{"Name": "prefix", "Value": "uploads/"}]}}
+    }]
+  }'</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Đích</th><th>Đặc điểm</th><th>Khi dùng</th></tr></thead>
+          <tbody>
+            <tr><td>Lambda</td><td>Xử lý trực tiếp, async</td><td>Resize, index, scan từng object</td></tr>
+            <tr><td>SQS</td><td>Buffer, retry, DLQ</td><td>Cần chống mất event, xử lý chậm</td></tr>
+            <tr><td>SNS</td><td>Fan-out push</td><td>Nhiều subscriber cùng nhận</td></tr>
+            <tr><td>EventBridge</td><td>Mọi event + rule nâng cao</td><td>Lọc content, nhiều target, FIFO, cross-account</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Event notification tới SQS/SNS/Lambda cần cấp quyền cho S3 trong <em>resource-based policy</em> của đích (S3 ký với nguyên tắc <code>s3.amazonaws.com</code>). Event <strong>không đảm bảo thứ tự</strong> và có thể <strong>trùng</strong> (at-least-once) — code phải idempotent. Đừng quên: chỉ một đích mỗi rule.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/EventNotifications.html">AWS Docs — Amazon S3 Event Notifications</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-how-to-event-types-and-destinations.html">AWS Docs — Event types and destinations</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS9</span> Ứng dụng đa vùng cần bản sao ở region khác: S3 Replication (CRR/SRR)</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Ứng dụng chạy đa vùng cần bản sao object ở region khác (hoặc account khác) để giảm RPO và hỗ trợ DR/compliance. <strong>S3 Replication</strong> tự động copy object <em>bất đồng bộ</em>: <strong>CRR</strong> (cross-region) và <strong>SRR</strong> (same-region).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Bắt buộc <strong>versioning</strong> ở cả source và destination. Rule lọc theo prefix/tag, có thể replicate delete marker, giữ nguyên kiểu mã hoá (SSE-KMS cần quyền KMS), và chạy cross-account qua bucket policy + IAM role. Replication chỉ áp dụng cho object <em>mới</em>; dữ liệu đã có phải copy bằng <strong>S3 Batch Replication</strong>. <strong>S3 RTC</strong> đảm bảo SLA replicate trong 15 phút.</p>
+          <div class="stack">
+            <div class="stack-title">Multi-region</div>
+            <div class="sub-grid">
+              <div class="stack">
+                <div class="stack-title">ap-southeast-1 (source)</div>
+                <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">my-app-assets</span><span class="icon-note">versioning ON</span></div>
+              </div>
+              <div class="stack">
+                <div class="stack-title">eu-west-1 (destination)</div>
+                <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">my-app-assets-dr</span><span class="icon-note">versioning ON</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Bật versioning hai đầu trước khi cấu hình replication</span>
+aws s3api put-bucket-versioning --bucket my-app-assets \
+  --versioning-configuration Status=Enabled
+aws s3api put-bucket-versioning --bucket my-app-assets-dr \
+  --versioning-configuration Status=Enabled
+
+<span class="tok-comment"># Copy dữ liệu ĐÃ CÓ sẵn sang bucket đích (replication không hồi tố)</span>
+aws s3 batch-ops create-job --account-id 111122223333 \
+  --operation '{"S3ReplicateObject":{}}' \
+  --report '{"Bucket":"arn:aws:s3:::ops-reports"}' \
+  --manifest '{"Spec":{"Format":"S3BatchOperations_CSV_20180820"}}' \
+  --priority 10 --role-arn arn:aws:iam::111122223333:role/batch-ops</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Kiểu</th><th>Phạm vi</th><th>Dùng khi</th></tr></thead>
+          <tbody>
+            <tr><td>CRR (Cross-Region)</td><td>Khác region</td><td>DR đa vùng, giảm latency cho user xa, compliance</td></tr>
+            <tr><td>SRR (Same-Region)</td><td>Cùng region</td><td>Gộp log, sao chép giữa hai account, test</td></tr>
+            <tr><td>S3 Batch Replication</td><td>Copy object có sẵn</td><td>Dữ liệu trước khi bật replication</td></tr>
+            <tr><td>S3 RTC</td><td>Trong 15 phút, SLA 99.99%</td><td>Yêu cầu RPO nghiêm ngặt</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>Replication <strong>không hồi tố</strong> — object cũ không tự sang đích, phải dùng Batch Replication. Muốn tắt versioning ở source phải xoá cấu hình replication trước; nếu tắt ở đích, trạng thái object là <code>FAILED</code>. Cross-account cần cả bucket policy và IAM role; Object Lock source thì đích cũng phải bật Object Lock.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html">AWS Docs — Replicating objects within and across Regions</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/batch-ops.html">AWS Docs — S3 Batch Operations</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS10</span> So sánh S3 vs EBS vs EFS: chọn dịch vụ lưu trữ nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Ba dịch vụ lưu trữ hay bị nhầm trong đề: <strong>S3</strong> là <em>object storage</em> truy cập qua HTTP API, <strong>EBS</strong> là <em>block storage</em> gắn vào một EC2 trong một AZ, <strong>EFS</strong> là <em>file storage</em> NFS mount được từ nhiều EC2/Lambda.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Chọn theo <em>mô hình truy cập</em>: cần mount như ổ đĩa cho một EC2 → EBS; cần file system dùng chung cho nhiều compute → EFS; cần lưu/đọc đối tượng qua API, web, CDN, backing cho static site → S3. S3 gần như vô hạn, durability 11 số 9; EBS giới hạn theo volume và <em>gắn một AZ</em>; EFS auto-scale, gắn nhiều AZ trong region.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">S3</span><span class="icon-note">object, HTTP API, region</span></div>
+            <div class="icon-node"><span class="aws-ico ebs"></span><span class="icon-label">EBS</span><span class="icon-note">block, 1 EC2, 1 AZ</span></div>
+            <div class="icon-node"><span class="aws-ico efs"></span><span class="icon-label">EFS</span><span class="icon-note">file NFS, nhiều EC2/Lambda</span></div>
+          </div>
+        </div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>S3</th><th>EBS</th><th>EFS</th></tr></thead>
+          <tbody>
+            <tr><td>Mô hình</td><td>Object</td><td>Block</td><td>File (NFS)</td></tr>
+            <tr><td>Truy cập</td><td>HTTP/S API, SDK</td><td>Gắn vào EC2</td><td>Mount nhiều compute</td></tr>
+            <tr><td>Phạm vi</td><td>Region</td><td>Một AZ</td><td>Region (multi-AZ)</td></tr>
+            <tr><td>Scaling</td><td>Gần như vô hạn</td><td>Theo kích thước volume</td><td>Tự scale</td></tr>
+            <tr><td>Dùng khi</td><td>Asset, backup, data lake, static site</td><td>Boot volume, DB trên EC2</td><td>CMS chia sẻ, ML, container dùng chung</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning"><div class="callout-title">Bẫy thi / Pitfall</div><p>S3 <em>không</em> mount được như ổ đĩa (trừ khi dùng Mountpoint for S3 / gateway). EBS <strong>không share giữa nhiều AZ</strong> — snapshot rồi tạo volume ở AZ khác, hoặc dùng EFS nếu cần mount chung. Đừng dùng EFS cho dữ liệu chỉ một EC2 dùng — EBS rẻ hơn; đừng dùng EBS cho nội dung phục vụ qua internet — S3 + CloudFront hợp hơn.</p></div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html">AWS Docs — What is Amazon S3</a> · <a href="https://docs.aws.amazon.com/ebs/latest/userguide/what-is-ebs.html">AWS Docs — What is Amazon EBS</a> · <a href="https://docs.aws.amazon.com/efs/latest/ug/whatisefs.html">AWS Docs — What is Amazon EFS</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <div class="nav-pager"><a class="prev" href="21-aws-containers-ec2.html">← Trước</a><a class="next" href="24-aws-dynamodb.html">Tiếp →</a></div>
+</main>
+</body>
+</html>

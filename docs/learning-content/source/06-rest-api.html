@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>6. REST API &amp; Security — Java Interview Bank</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Java Interview<br><span>Bank</span></h1>
+        <p>Interview Prep Notes</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>6. REST API &amp; Security</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 06</div>
+          <h1 class="module-title">REST API &amp; Security</h1>
+          <p class="module-subtitle">Thiết kế API, CORS, Idempotency, JWT, OAuth 2.0/OIDC, OWASP Top 10, HTTPS, Rate Limiting — bắt buộc cho Backend &amp; Fullstack.</p>
+        </div>
+
+        <!-- SECTION: API Design -->
+        <section class="section" id="api-design">
+          <h2 class="section-title">Thiết kế API &amp; Giao thức</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q1</span> Phân biệt PUT vs PATCH?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>PUT</strong> thay thế <em>toàn bộ</em> representation của resource tại URI — client gửi full state mong muốn. <strong>PATCH</strong> áp dụng <em>partial update</em> — chỉ sửa fields được gửi (JSON Merge Patch RFC 7396 hoặc JSON Patch RFC 6902). Cả hai đều idempotent nếu thiết kế đúng: gọi N lần cùng body → cùng kết quả.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Phân biệt semantics tránh bug nghiệp vụ: PUT thiếu field → field bị NULL/default (mất data). PATCH phù hợp form sửa một phần (email, status). WMS: PUT thay thế toàn bộ pick task config; PATCH chỉ đổi <code>status=COMPLETED</code> mà không đụng line items.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <table class="feature-table">
+                  <thead><tr><th></th><th>PUT</th><th>PATCH</th></tr></thead>
+                  <tbody>
+                    <tr><td>Semantics</td><td>Replace entire resource</td><td>Partial update</td></tr>
+                    <tr><td>Idempotent</td><td>✅ Luôn</td><td>✅ Nếu patch deterministic</td></tr>
+                    <tr><td>Missing fields</td><td>NULL / default / reject</td><td>Giữ nguyên giá trị cũ</td></tr>
+                    <tr><td>Format</td><td>Full JSON body</td><td>Merge Patch hoặc JSON Patch ops</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>PUT khi client có full snapshot resource (sync form edit-all-fields). PATCH khi mobile/SPA chỉ gửi delta, hoặc API public cho phép sửa vài field (profile email, order status). Spring: <code>@PutMapping</code> + full DTO validation; <code>@PatchMapping</code> + <code>JsonMergePatch</code>.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng dùng PUT cho "chỉ sửa 1 field" — client phải GET trước rồi merge, race condition. Đừng PATCH với JSON Patch ops phức tạp nếu client đơn giản — Merge Patch dễ hơn. Không nhầm PATCH idempotent với POST — POST tạo mới không idempotent.</p></div>
+              <div class="code-block" data-lang="http"><pre><code><span class="tok-comment"># PUT — replace entire user</span>
+PUT /api/users/42
+{ "name": "Alice", "email": "a@x.com", "role": "ADMIN" }
+
+<span class="tok-comment"># PATCH — chỉ đổi email (Merge Patch)</span>
+PATCH /api/users/42
+Content-Type: application/merge-patch+json
+{ "email": "new@x.com" }</code></pre></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@PatchMapping</span>(<span class="tok-string">"/{id}"</span>)
+<span class="tok-keyword">public</span> <span class="tok-class">UserDto</span> <span class="tok-function">patch</span>(<span class="tok-annotation">@PathVariable</span> Long id,
+    <span class="tok-annotation">@RequestBody</span> <span class="tok-class">JsonMergePatch</span> patch) {
+  <span class="tok-class">UserDto</span> current = userService.findDto(id);
+  <span class="tok-class">JsonNode</span> patched = patch.apply(objectMapper.valueToTree(current));
+  <span class="tok-keyword">return</span> userService.update(id, objectMapper.treeToValue(patched, UserDto.class));
+}</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div>WMS operator đổi task priority qua PATCH <code>{"priority": 1}</code> — không cần gửi lại 20 fields pick line. Admin sync full order qua PUT khi import từ ERP.</div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div>"PATCH không idempotent" — SAI theo RFC nếu patch cùng body. Trap: PUT thiếu optional field → Hibernate set null → mất data. Luôn document API contract: PUT require all fields hay merge semantics.</div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+                <li>PUT = replace full resource; PATCH = partial update.</li>
+                <li>Cả hai idempotent nếu design đúng.</li>
+                <li>PUT thiếu field → NULL; PATCH giữ field cũ.</li>
+                <li>Spring: PutMapping full DTO, PatchMapping + JsonMergePatch.</li>
+                <li>WMS: PATCH status; PUT full config sync.</li>
+              </ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q2</span> CORS hoạt động như thế nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>CORS (Cross-Origin Resource Sharing)</strong> là cơ chế browser bảo vệ Same-Origin Policy: JS từ origin A không đọc response API origin B trừ khi server B trả headers cho phép. <strong>Simple request</strong> (GET, POST form) gửi thẳng; <strong>Preflight OPTIONS</strong> hỏi trước với non-simple method/header.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>CORS chỉ áp dụng <em>browser</em> — Postman/curl/server-to-server không bị. SPA WMS dashboard (app.wms.com) gọi API (api.wms.com) cần CORS config đúng. Thiếu CORS → browser block dù API trả 200 (opaque error).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Browser origin A</div></div>
+                  <div class="flow-arrow">↓ OPTIONS preflight (nếu Authorization, JSON body PUT...)</div>
+                  <div class="flow-row"><div class="flow-node secondary">Server B: Allow-Origin, Allow-Methods, Allow-Headers</div></div>
+                  <div class="flow-arrow">↓ Actual request + credentials nếu cần</div>
+                  <div class="flow-row"><div class="flow-node success">JS đọc response</div></div>
+                </div>
+                <p>Headers chính: <code>Access-Control-Allow-Origin</code>, <code>Allow-Methods</code>, <code>Allow-Headers</code>, <code>Allow-Credentials</code>, <code>Max-Age</code> (cache preflight).</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Bắt buộc khi SPA/mobile web gọi API khác subdomain/port/protocol. Spring: <code>CorsConfigurationSource</code> hoặc <code>@CrossOrigin</code> trên controller. Gateway có thể centralize CORS thay từng service.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Không cần CORS cho same-origin hoặc server-side BFF proxy (browser chỉ gọi cùng origin). Không fix CORS bằng disable security — config đúng origin whitelist. Không <code>Allow-Origin: *</code> khi <code>credentials: true</code>.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Bean</span>
+<span class="tok-class">CorsConfigurationSource</span> <span class="tok-function">corsSource</span>() {
+  <span class="tok-class">CorsConfiguration</span> cfg = <span class="tok-keyword">new</span> <span class="tok-class">CorsConfiguration</span>();
+  cfg.setAllowedOrigins(List.of(<span class="tok-string">"https://app.example.com"</span>));
+  cfg.setAllowedMethods(List.of(<span class="tok-string">"GET"</span>,<span class="tok-string">"POST"</span>,<span class="tok-string">"PUT"</span>,<span class="tok-string">"PATCH"</span>,<span class="tok-string">"DELETE"</span>));
+  cfg.setAllowedHeaders(List.of(<span class="tok-string">"Authorization"</span>, <span class="tok-string">"Content-Type"</span>));
+  cfg.setAllowCredentials(<span class="tok-keyword">true</span>);
+  <span class="tok-keyword">return</span> request -&gt; cfg;
+}</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div>WMS React dashboard gọi Spring Boot API — preflight OPTIONS cho PUT pick confirm kèm JWT Authorization header.</div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div>"CORS error = server lỗi 500" — SAI: thường API OK nhưng browser chặn đọc response. Trap: duplicate CORS header Gateway + Service. CORS ≠ authentication — chỉ control browser read access.</div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+                <li>CORS = browser policy, server trả Allow-* headers.</li>
+                <li>Preflight OPTIONS cho non-simple request.</li>
+                <li>Chỉ browser — Postman không cần.</li>
+                <li>Credentials true → origin cụ thể, không *.</li>
+                <li>Spring CorsConfigurationSource whitelist origin.</li>
+              </ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q3</span> Idempotency trong API?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Idempotency</strong>: gọi cùng request N lần → cùng kết quả, không tạo side effect thêm. HTTP GET/PUT/DELETE idempotent theo spec; POST mặc định <em>không</em> — retry có thể double-charge hoặc tạo duplicate order.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Network timeout, mobile retry, gateway replay — client không biết server đã xử lý chưa. Idempotency Key cho phép client retry an toàn: server nhận diện duplicate và trả cached response thay thực thi lại.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Client POST + Idempotency-Key: uuid</div></div>
+                  <div class="flow-arrow">↓ server check UNIQUE(key)</div>
+                  <div class="flow-row"><div class="flow-node secondary">Key mới → execute + cache response</div></div>
+                  <div class="flow-arrow">↓ retry cùng key</div>
+                  <div class="flow-row"><div class="flow-node success">Trả cached response — không charge lại</div></div>
+                </div>
+                <table class="feature-table">
+                  <thead><tr><th>Method</th><th>Idempotent?</th></tr></thead>
+                  <tbody>
+                    <tr><td>GET, PUT, DELETE</td><td>✅</td></tr>
+                    <tr><td>POST</td><td>❌ — cần Idempotency Key</td></tr>
+                    <tr><td>PATCH</td><td>✅ nếu deterministic</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>POST payment, create order, transfer stock — mọi non-idempotent mutation client có thể retry. Stripe/PayPal pattern: header <code>Idempotency-Key</code> TTL 24h. WMS: confirm pick POST với key tránh double-confirm khi scanner lag.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng idempotency key random mỗi retry — client phải reuse cùng key. Đừng cache response vô thời hạn — set TTL. GET không cần idempotency key — đã idempotent. Đừng nhầm idempotent với "exactly-once delivery" — cần outbox + consumer idempotency cho async.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@PostMapping</span>(<span class="tok-string">"/payments"</span>)
+<span class="tok-keyword">public</span> <span class="tok-class">PaymentResponse</span> <span class="tok-function">pay</span>(
+    <span class="tok-annotation">@RequestHeader</span>(<span class="tok-string">"Idempotency-Key"</span>) <span class="tok-class">String</span> key,
+    <span class="tok-annotation">@RequestBody</span> <span class="tok-class">PaymentRequest</span> req) {
+  <span class="tok-keyword">return</span> idempotencyService.execute(key, () -&gt; paymentService.charge(req));
+}
+<span class="tok-comment">// DB: UNIQUE(idempotency_key) + lưu response cached</span></code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>Mobile app POST payment timeout → retry cùng Idempotency-Key → server trả 200 cached, không charge 2 lần.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Key collision giữa users nếu không scope key theo tenant/user. Processing state: request đang xử lý, retry thứ 2 → return 409 Conflict hoặc wait.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Idempotent = N lần gọi = 1 kết quả.</li><li>POST cần Idempotency-Key cho retry an toàn.</li><li>DB UNIQUE key + cache response.</li><li>Client reuse key khi retry, không random mới.</li><li>Khác exactly-once async — cần outbox.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q4</span> API Versioning strategies?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>API Versioning</strong> cho phép thay đổi contract (breaking change) mà không làm gãy client cũ. Các strategy: URI path (<code>/v1/</code>), header (<code>Accept-Version</code>), query param, content negotiation (<code>Accept: application/vnd.app.v2+json</code>).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Mobile app không update ngay — cần support v1 song song v2. Breaking change: đổi field type, remove endpoint, đổi semantics. Version rõ ràng giúp deprecate có kế hoạch và monitor adoption.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <table class="feature-table">
+                  <thead><tr><th>Strategy</th><th>Ví dụ</th><th>Ưu / Nhược</th></tr></thead>
+                  <tbody>
+                    <tr><td>URI Path</td><td><code>/api/v1/users</code></td><td>Rõ ràng, dễ cache — URL dài</td></tr>
+                    <tr><td>Header</td><td><code>Accept-Version: 2</code></td><td>URL sạch — cache/CDN phức tạp</td></tr>
+                    <tr><td>Query param</td><td><code>?version=2</code></td><td>Đơn giản — ít RESTful</td></tr>
+                    <tr><td>Content Negotiation</td><td><code>Accept: application/vnd.app.v2+json</code></td><td>Chuẩn HTTP — client phức tạp</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>URI path: Spring Boot phổ biến nhất — <code>@RequestMapping("/api/v1")</code>. Header/Accept: public API lớn (GitHub). Chỉ bump major khi breaking — additive change (thêm optional field) không cần version mới.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng version mọi minor fix — version explosion. Đừng breaking change không bump version. Đừng maintain 5 version cùng lúc — sunset policy (Deprecation header, deadline). Không version internal service-to-service nếu deploy cùng pipeline — contract test đủ.</p></div>
+              <div class="callout callout-success"><div class="callout-title">Best practice</div><p>URI path + sunset header <code>Sunset: Sat, 01 Jan 2027</code>. Monitor v1 traffic → 0 trước khi remove. OpenAPI document per version.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>v1 và v2 share DB schema incompatible — migration phải backward compatible hoặc tách read model.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Versioning cho breaking change — additive không cần.</li><li>URI /v1/ phổ biến Spring Boot.</li><li>Deprecate + sunset header trước khi remove.</li><li>Monitor traffic version cũ.</li><li>Internal same-deploy có thể skip version.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q5</span> Pagination — cursor vs offset?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Offset pagination</strong>: <code>?page=2&amp;size=20</code> → SQL <code>OFFSET 20 LIMIT 20</code>. <strong>Cursor (keyset) pagination</strong>: <code>?cursor=base64(lastId,lastSort)</code> → <code>WHERE (sort_col, id) &lt; cursor ORDER BY ... LIMIT 20</code> — không scan bỏ qua rows.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Offset lớn (page 5000) = DB scan 100k rows rồi discard — chậm O(offset). Cursor ổn định khi insert/delete giữa pages (offset duplicate/skip items). Infinite scroll mobile cần cursor; admin table jump page cần offset.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="compare-grid">
+                  <div class="compare-col">
+                    <h4>Offset-based</h4>
+                    <ul>
+                      <li><code>?page=2&amp;size=20</code></li>
+                      <li>Jump to page N</li>
+                      <li>Chậm offset lớn</li>
+                      <li>Duplicate/skip khi data đổi</li>
+                    </ul>
+                  </div>
+                  <div class="compare-col">
+                    <h4>Cursor-based</h4>
+                    <ul>
+                      <li><code>?cursor=eyJpZCI6MTIzfQ&amp;limit=20</code></li>
+                      <li>Ổn định insert/delete</li>
+                      <li>Keyset — index-friendly</li>
+                      <li>Không jump page tùy ý</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- Keyset / cursor pagination</span>
+<span class="tok-keyword">SELECT</span> * <span class="tok-keyword">FROM</span> orders
+<span class="tok-keyword">WHERE</span> (created_at, id) &lt; (<span class="tok-string">'2024-01-15'</span>, <span class="tok-number">12345</span>)
+<span class="tok-keyword">ORDER BY</span> created_at <span class="tok-keyword">DESC</span>, id <span class="tok-keyword">DESC</span>
+<span class="tok-keyword">LIMIT</span> <span class="tok-number">20</span>;</code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Offset: admin UI, total count hiển thị, dataset &lt; 10k rows. Cursor: feed/timeline, WMS task list realtime, API public lớn. Spring Data: <code>Pageable</code> offset; custom keyset với encoded cursor.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Offset cho table 10M rows deep page. Cursor khi client cần "page 47 of 200" exact. Cursor không sort stable (non-unique sort key) → duplicate. Đừng expose raw DB id làm cursor nếu enumerable — opaque token.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>WMS mobile pick list scroll: cursor <code>lastTaskId</code> — operator scroll không miss task khi task mới insert. Admin report page 3: offset OK với filter date range nhỏ.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p><code>COUNT(*)</code> với offset pagination expensive — cân nhắc estimate hoặc bỏ total. Cursor decode tamper → validate signature trong token.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Offset đơn giản; cursor scale + stable scroll.</li><li>OFFSET lớn chậm — keyset dùng index.</li><li>Cursor không jump arbitrary page.</li><li>Spring Pageable = offset; keyset custom.</li><li>WMS mobile feed → cursor.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q6</span> WebSocket vs SSE — khi nào dùng?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>WebSocket</strong>: full-duplex persistent connection (<code>ws://</code> upgrade) — client và server gửi anytime. <strong>SSE (Server-Sent Events)</strong>: HTTP long-lived, server push one-way (<code>text/event-stream</code>). <strong>Long polling</strong>: REST hack — client poll, server hold đến có data.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>REST polling 1s interval = waste bandwidth + latency. Push giảm latency cho dashboard WMS task status, conveyor events. SSE đơn giản hơn WebSocket khi chỉ cần server→client.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <table class="feature-table">
+                  <thead><tr><th></th><th>WebSocket</th><th>SSE</th><th>REST Polling</th></tr></thead>
+                  <tbody>
+                    <tr><td>Direction</td><td>Bidirectional</td><td>Server → Client</td><td>Client pull</td></tr>
+                    <tr><td>Protocol</td><td>ws:// upgrade</td><td>HTTP stream</td><td>HTTP request/response</td></tr>
+                    <tr><td>Reconnect</td><td>Manual + heartbeat</td><td>Browser auto</td><td>Natural</td></tr>
+                    <tr><td>Proxy/LB</td><td>Sticky, timeout config</td><td>Standard HTTP</td><td>Easy</td></tr>
+                  </tbody>
+                </table>
+                <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// SSE — Spring Boot</span>
+<span class="tok-annotation">@GetMapping</span>(value = <span class="tok-string">"/events"</span>, produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+<span class="tok-keyword">public</span> <span class="tok-class">Flux</span>&lt;<span class="tok-class">ServerSentEvent</span>&lt;<span class="tok-class">OrderEvent</span>&gt;&gt; <span class="tok-function">stream</span>() {
+  <span class="tok-keyword">return</span> orderEventPublisher.getStream()
+    .map(e -&gt; <span class="tok-class">ServerSentEvent</span>.builder(e).id(e.getId()).build());
+}
+
+<span class="tok-comment">// WebSocket — STOMP</span>
+<span class="tok-annotation">@MessageMapping</span>(<span class="tok-string">"/task/update"</span>)
+<span class="tok-annotation">@SendTo</span>(<span class="tok-string">"/topic/tasks"</span>)
+<span class="tok-keyword">public</span> <span class="tok-class">TaskUpdate</span> <span class="tok-function">handle</span>(<span class="tok-class">TaskUpdate</span> msg) { <span class="tok-keyword">return</span> msg; }</code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>SSE: live dashboard order status, notification feed — browser native EventSource. WebSocket: WCS control bidirectional, chat, collaborative edit, sub-second PLC feedback loop. Polling: update 30s+ đủ, hoặc fallback behind strict firewall.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>WebSocket cho one-way notification — SSE đủ, ops đơn giản hơn. SSE cho binary stream — dùng WebSocket. Push khi client chỉ cần data 1 lần — GET đủ. WebSocket không auth JWT standard — cần handshake auth.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>WMS supervisor dashboard: SSE stream pick-task completed events. WCS operator console gửi stop conveyor: WebSocket bidirectional. ERP sync status 5 phút: REST polling OK.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>WebSocket qua LB timeout không heartbeat → silent disconnect. SSE không IE legacy — polyfill. Scale SSE/WebSocket cần Redis pub/sub hoặc message broker broadcast.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>SSE = server push one-way, HTTP đơn giản.</li><li>WebSocket = bidirectional, realtime control.</li><li>Polling OK latency &gt; 30s.</li><li>WMS dashboard SSE; WCS control WebSocket.</li><li>Scale push cần pub/sub backend.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Security & Auth -->
+        <section class="section" id="auth">
+          <h2 class="section-title">Security &amp; Authentication</h2>
+
+          <div class="callout callout-info">
+            <div class="callout-title">Deep dive Auth / RBAC / OAuth2</div>
+            <p>Q7–Q10 và Q16–Q19 là overview REST-focused. Chi tiết JWT structure, Spring Filter Chain, RBAC/ABAC, OAuth flows, S2S auth, pitfalls → <a href="15-auth-rbac-oauth.html"><strong>Module 15 — Auth, RBAC &amp; OAuth2</strong></a>.</p>
+          </div>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q7</span> JWT trong REST API — overview?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Client gửi <code>Authorization: Bearer &lt;jwt&gt;</code>; server verify signature + <code>exp</code> → set SecurityContext. JWT stateless — không lookup session DB.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Phù hợp SPA/mobile API và microservices — scale horizontal không shared session.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Public REST API, cross-domain. Không lưu token localStorage — prefer HttpOnly cookie qua BFF.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Khi cần revoke instant không blacklist — cân nhắc session. Đừng đặt sensitive data trong payload (Base64 readable).</p></div>
+              <div class="callout callout-info"><div class="callout-title">→ Module 15</div><p>Deep dive: header/payload/signature, refresh rotation, blacklist, audience validation, Spring BearerTokenFilter — <a href="15-auth-rbac-oauth.html">Module 15 Q3–Q5</a>.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 30 giây</div><ul><li>Bearer JWT, verify signature + exp.</li><li>Stateless scale — revoke cần blacklist/TTL.</li><li>Chi tiết → Module 15.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q8</span> Authentication vs Authorization — overview?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>AuthN</strong> = "Bạn là ai?" (401). <strong>AuthZ</strong> = "Bạn được làm gì?" (403). AuthN trước AuthZ trong Filter Chain.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng nhầm có JWT = có quyền — vẫn cần @PreAuthorize và object-level check (BOLA).</p></div>
+              <div class="callout callout-info"><div class="callout-title">→ Module 15</div><p>RBAC vs ABAC, resource scopes, privilege escalation — <a href="15-auth-rbac-oauth.html">Module 15 Q1–Q2</a>.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 30 giây</div><ul><li>AuthN who; AuthZ what — 401 vs 403.</li><li>JWT verify ≠ authorization.</li><li>RBAC/ABAC deep → Module 15.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q9</span> Session vs JWT — chọn gì cho REST?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Session + cookie</strong>: server state, revoke dễ. <strong>JWT</strong>: stateless, scale dễ, revoke khó hơn.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>JWT: SPA/mobile API. Session: SSR same-site app cần logout instant.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Session in-memory multi-pod không sticky. JWT 7 ngày không refresh.</p></div>
+              <div class="callout callout-info"><div class="callout-title">→ Module 15</div><p>Session/Cookie vs JWT trade-offs, refresh rotation — <a href="15-auth-rbac-oauth.html">Module 15 Q3–Q4</a>.</p></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q10</span> Microservice security — overview?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Zero trust: mTLS, JWT pass-through, Client Credentials, gateway token exchange — không trust internal network.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng plain HTTP internal. Đừng tin <code>X-User-Id</code> header không signed.</p></div>
+              <div class="callout callout-info"><div class="callout-title">→ Module 15</div><p>Compare mTLS vs pass-through vs Client Credentials vs mesh identity, WebClient OAuth2 — <a href="15-auth-rbac-oauth.html">Module 15 Q8–Q10</a>.</p></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: OWASP -->
+        <section class="section" id="owasp">
+          <h2 class="section-title">OWASP Top 10</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q11</span> SQL Injection?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Attacker inject SQL qua input không sanitize — concatenate string vào query. Payload <code>' OR '1'='1</code> bypass login; <code>; DROP TABLE</code> destructive (hiếm với prepared statement).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>OWASP #1 lịch sử — một lỗi concat SQL = full DB compromise. JPA native query với string concat vẫn vulnerable.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// ❌ Vulnerable</span>
+<span class="tok-class">String</span> sql = <span class="tok-string">"SELECT * FROM users WHERE name='"</span> + input + <span class="tok-string">"'"</span>;
+
+<span class="tok-comment">// ✅ PreparedStatement / JPA @Param</span>
+<span class="tok-annotation">@Query</span>(<span class="tok-string">"SELECT u FROM User u WHERE u.name = :name"</span>)
+<span class="tok-class">Optional</span>&lt;<span class="tok-class">User</span>&gt; <span class="tok-function">findByName</span>(<span class="tok-annotation">@Param</span>(<span class="tok-string">"name"</span>) <span class="tok-class">String</span> name);</code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Luôn parameterized query. Dynamic sort column: whitelist enum, không concat user input. Least privilege DB user (no DROP).</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng "escape" thủ công thay prepared statement. Đừng assume ORM 100% safe — native query + concat vẫn lỗi. WAF không thay fix code.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>Search SKU WMS: <code>WHERE sku = :sku</code> parameterized — attacker không inject UNION SELECT password.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p><code>ORDER BY ${column}</code> trong MyBatis — SQL injection vector. Second-order injection: store payload, execute later trong report query.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Concat SQL + user input = injection.</li><li>Fix: parameterized query, @Param, JPA bind.</li><li>Native query vẫn phải bind.</li><li>Least privilege DB user + WAF defense in depth.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q12</span> XSS (Cross-Site Scripting)?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Attacker inject script chạy trong browser victim — steal cookie/JWT localStorage, keylog, deface. Ba loại: <strong>Stored</strong> (DB), <strong>Reflected</strong> (URL param), <strong>DOM-based</strong> (client JS unsafe).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>XSS + JWT localStorage = account takeover. Stored XSS trong WMS comment field → admin mở → script chạy với admin session.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <table class="feature-table">
+                  <thead><tr><th>Loại</th><th>Mô tả</th><th>Phòng chống</th></tr></thead>
+                  <tbody>
+                    <tr><td>Stored</td><td>Script lưu DB</td><td>Output encoding, sanitize input</td></tr>
+                    <tr><td>Reflected</td><td>Script trong URL echo</td><td>Validate input, encode output</td></tr>
+                    <tr><td>DOM-based</td><td>JS xử lý URL unsafe</td><td>Avoid innerHTML, DOMPurify</td></tr>
+                  </tbody>
+                </table>
+                <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Thymeleaf auto-escape; CSP header</span>
+http.headers(headers -&gt; headers.contentSecurityPolicy(
+  <span class="tok-string">"default-src 'self'; script-src 'self'"</span>));</code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Encode output context-aware (HTML, JS, URL). CSP strict <code>script-src 'self'</code>. HttpOnly cookie — JS không đọc session.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng lưu JWT localStorage nếu có XSS surface — xem Module 15 Q11. Đừng trust client sanitize only — server encode output. <code>th:utext</code> Thymeleaf bypass escape.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>JSON API không XSS nếu Content-Type application/json — browser không execute. XSS risk ở SPA render user HTML. Link Module 15: JWT localStorage + XSS.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Stored/Reflected/DOM XSS — inject script.</li><li>Encode output + CSP + sanitize input.</li><li>JWT localStorage vulnerable XSS → Module 15.</li><li>HttpOnly cookie cho session token.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q13</span> CSRF (Cross-Site Request Forgery)?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Attacker lừa browser victim gửi request authenticated tới site đích — browser tự gửi cookie session. Victim không cần click nếu auto-submit form/image.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Cookie-based auth tự attach mọi request cùng domain — attacker exploit từ evil.com. Khác XSS: CSRF không cần inject script vào victim site.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">User login bank.com (cookie set)</div></div>
+                  <div class="flow-arrow">↓ visit evil.com</div>
+                  <div class="flow-row"><div class="flow-node">Hidden form POST bank.com/transfer</div></div>
+                  <div class="flow-arrow">↓ browser gửi kèm session cookie → transfer thành công</div>
+                </div>
+                <p>Spring <code>CsrfFilter</code>: Synchronizer Token Pattern — form kèm CSRF token server validate. <code>SameSite=Strict/Lax</code> cookie giảm risk.</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Bật CSRF protection cho cookie-session app (form POST/PUT/DELETE). Double-submit cookie hoặc token trong meta tag cho SPA.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>JWT Bearer header-only API — browser không auto-send → CSRF ít relevant (disable CSRF stateless API OK). Đừng disable CSRF trên cookie-auth app. CORS không chống CSRF.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>Thymeleaf admin WMS: mọi form có <code>th:action</code> + CSRF token auto. SPA + cookie JWT: cần CSRF token header.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>CSRF = browser gửi cookie khi victim visit evil site.</li><li>Fix: CSRF token, SameSite cookie.</li><li>Bearer JWT API — CSRF ít risk.</li><li>CORS ≠ CSRF protection.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q14</span> Broken Authentication?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>OWASP: login/register/password recovery implement sai — brute force, weak session, credential stuffing, predictable session ID, password reset token leak.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Auth là cửa ngõ — broken auth = full account compromise. API login endpoint hay bị bỏ qua rate limit.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <ul>
+                  <li>Rate limit login + CAPTCHA sau N fails</li>
+                  <li>Credential stuffing: check breached passwords (HIBP k-anonymity)</li>
+                  <li>Cookie: HttpOnly, Secure, SameSite</li>
+                  <li>Account lockout + notify user</li>
+                  <li>MFA cho admin/sensitive ops</li>
+                </ul>
+                <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@RateLimiter</span>(name = <span class="tok-string">"login"</span>, fallbackMethod = <span class="tok-string">"loginFallback"</span>)
+<span class="tok-keyword">public</span> <span class="tok-class">AuthResponse</span> <span class="tok-function">login</span>(<span class="tok-class">LoginRequest</span> req) { ... }</code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Mọi production auth endpoint. Lockout exponential backoff. Password policy + bcrypt/argon2.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng reveal "user không tồn tại" vs "sai password" — user enumeration. Đừng password reset link không expire. Đừng JWT forever không refresh.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>WMS admin login: 5 fails → lock 15 phút + email alert. Password reset token 1h TTL single-use.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Rate limit, lockout, MFA, secure cookies.</li><li>Credential stuffing — check breached passwords.</li><li>Không user enumeration qua error message.</li><li>Password hash bcrypt/argon2.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q15</span> Insecure Deserialization?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Deserialize object từ untrusted input → RCE qua gadget chains. Java <code>ObjectInputStream</code>, Jackson polymorphic <code>defaultTyping</code>, XMLDecoder — vector phổ biến.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Attacker craft byte stream trigger class chain execute arbitrary code — không cần SQLi. Redis/Java cache deserialize user data = critical.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// ❌ Không deserialize untrusted binary</span>
+<span class="tok-class">ObjectInputStream</span> ois = <span class="tok-keyword">new</span> <span class="tok-class">ObjectInputStream</span>(input);
+
+<span class="tok-comment">// ✅ JSON explicit DTO — no default typing</span>
+<span class="tok-class">ObjectMapper</span> mapper = <span class="tok-keyword">new</span> <span class="tok-class">ObjectMapper</span>();
+<span class="tok-comment">// @JsonTypeInfo với whitelist class nếu polymorphic cần thiết</span></code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>JSON DTO explicit types cho API. Validate schema. Disable Jackson default typing globally.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Java native serialization cho REST API. Accept <code>application/java-serialized-object</code>. Polymorphic deserialize without whitelist.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Log4Shell adjacent: untrusted data trigger unexpected code paths. Spring HTTP Invoker/RMI deprecated vì deserialization risk.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Untrusted deserialize → RCE gadget chains.</li><li>Không ObjectInputStream cho API input.</li><li>Jackson: no default typing, explicit DTO.</li><li>Whitelist polymorphic types nếu cần.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: OAuth -->
+        <section class="section" id="oauth">
+          <h2 class="section-title">OAuth 2.0 &amp; OpenID Connect</h2>
+
+          <div class="callout callout-info">
+            <div class="callout-title">Deep dive OAuth / OIDC / S2S</div>
+            <p>Overview dưới đây — chi tiết flows, PKCE, Client Credentials, OIDC tokens, Spring WebClient → <a href="15-auth-rbac-oauth.html"><strong>Module 15 Q6–Q10</strong></a>.</p>
+          </div>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q16</span> OAuth 2.0 flows — overview?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Framework delegate access — user authorize app gọi API thay mình. Flows chính: Authorization Code (+ PKCE), Client Credentials (S2S). Implicit/ROPC deprecated.</p></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Auth Code + PKCE: SPA/mobile. Client Credentials: batch/cron/service account.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Implicit, ROPC — không dùng app mới. OAuth khi chỉ cần API key nội bộ đơn giản (vẫn cân nhắc security).</p></div>
+              <div class="callout callout-info"><div class="callout-title">→ Module 15</div><p>Full flow diagrams, PKCE steps, when NOT Implicit/ROPC — <a href="15-auth-rbac-oauth.html">Module 15 Q6</a>.</p></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q17</span> Authorization Code + PKCE — overview?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>PKCE = code_verifier + code_challenge — public client (SPA/mobile) exchange auth code không cần client_secret.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>PKCE optional on public client — insecure. Auth code without PKCE on mobile — intercept risk.</p></div>
+              <div class="callout callout-info"><div class="callout-title">→ Module 15</div><p>PKCE 3-step flow, Spring Authorization Server config — <a href="15-auth-rbac-oauth.html">Module 15 Q6</a>.</p></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q18</span> Client Credentials vs Authorization Code?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Client Credentials</strong>: machine, no user. <strong>Authorization Code</strong>: user login + consent, token gắn identity.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Client Credentials khi API cần audit user nào thực hiện — mất user context.</p></div>
+              <div class="callout callout-info"><div class="callout-title">→ Module 15</div><p>S2S patterns, WebClient OAuth2 client — <a href="15-auth-rbac-oauth.html">Module 15 Q8–Q10</a>.</p></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q19</span> OIDC vs OAuth 2.0 — overview?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>OAuth = authorization (access API). OIDC = identity layer (+ ID Token JWT cho client). Access token → API; ID token → client UI only.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng gửi ID token tới Resource Server thay access token.</p></div>
+              <div class="callout callout-info"><div class="callout-title">→ Module 15</div><p>ID vs access vs refresh token, validate iss/aud/nonce — <a href="15-auth-rbac-oauth.html">Module 15 Q7</a>.</p></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: API Security Best Practices -->
+        <section class="section" id="best-practices">
+          <h2 class="section-title">API Security Best Practices</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q20</span> HTTPS / TLS handshake?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>TLS</strong> encrypt transit — handshake negotiate cipher, verify server certificate (CA chain), exchange symmetric session key. <strong>TLS 1.3</strong>: 1-RTT, forward secrecy mandatory, loại weak ciphers.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Plain HTTP = sniff password/JWT/API key on network. PCI/HIPAA require TLS. mTLS thêm client cert verify — S2S identity (Module 15).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Client Hello</div></div>
+                  <div class="flow-arrow">↓ cipher suites, TLS version, SNI</div>
+                  <div class="flow-row"><div class="flow-node secondary">Server Hello + Certificate chain</div></div>
+                  <div class="flow-arrow">↓ client verify CA + hostname</div>
+                  <div class="flow-row"><div class="flow-node">Key Exchange (ECDHE)</div></div>
+                  <div class="flow-arrow">↓ symmetric session key — encrypted app data</div>
+                  <div class="flow-row"><div class="flow-node success">HTTP request/response encrypted</div></div>
+                </div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Mọi production API public. HSTS header force HTTPS. cert-manager/Let's Encrypt auto-renew. Internal service mesh mTLS (Istio STRICT).</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>TLS 1.0/1.1 — disable. Self-signed cert production without trust chain. <code>trustServerCertificate=true</code> JDBC bypass verify. Terminate TLS at gateway rồi HTTP plain to backend without mTLS — risk east-west sniff.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Certificate expire midnight outage — monitor expiry 30 days ahead. Mixed content: HTTPS page load HTTP API — browser block.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>TLS encrypt transit — handshake + cert verify.</li><li>TLS 1.3, forward secrecy, disable 1.0/1.1.</li><li>HSTS + auto-renew cert.</li><li>mTLS for S2S — Module 15.</li><li>Không trust-all cert production.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q21</span> Rate Limiting?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Giới hạn số request per time window — chống abuse, DDoS, brute force, fair usage. Trả <code>429 Too Many Requests</code> + <code>Retry-After</code> header.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Expensive endpoint (/export, /report) có thể melt DB. Login brute force. API quota cho tier pricing. Protect downstream dependency.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <table class="feature-table">
+                  <thead><tr><th>Strategy</th><th>Scope</th><th>Algorithm</th></tr></thead>
+                  <tbody>
+                    <tr><td>Per-user</td><td>JWT sub / API key</td><td>Token Bucket</td></tr>
+                    <tr><td>Per-IP</td><td>Anonymous, DDoS</td><td>Leaky Bucket</td></tr>
+                    <tr><td>Per-endpoint</td><td>/export expensive</td><td>Sliding Window (Redis)</td></tr>
+                  </tbody>
+                </table>
+                <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@RateLimiter</span>(name = <span class="tok-string">"api"</span>)
+<span class="tok-annotation">@GetMapping</span>(<span class="tok-string">"/orders"</span>)
+<span class="tok-keyword">public</span> List&lt;Order&gt; <span class="tok-function">list</span>() { ... }
+<span class="tok-comment">// Headers: X-RateLimit-Limit, Remaining, Retry-After</span></code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Gateway global limit + service fine-grained. Login endpoint strict. Public API tier quota. Redis sliding window distributed limit.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Rate limit quá chặt block legitimate burst — token bucket cho phép burst. Limit internal health check — exclude /actuator/health. Sync in-memory limit multi-pod inconsistent — dùng Redis.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>WMS export CSV: 5 req/hour/user. Login: 10/min/IP. Gateway 1000 req/min/API key.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>429 + Retry-After khi vượt quota.</li><li>Token bucket cho burst; sliding window chính xác.</li><li>Per-user, per-IP, per-endpoint layers.</li><li>Redis cho distributed rate limit.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q22</span> API Key rotation không downtime?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Rotate API key mà không gãy client đang dùng key cũ — overlap period accept cả key_v1 và key_v2.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Key leak, employee offboard, compliance periodic rotation — cần quy trình zero-downtime.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">key_v1 active</div></div>
+                  <div class="flow-arrow">↓ issue key_v2, validator accept both</div>
+                  <div class="flow-row"><div class="flow-node secondary">key_v1 + key_v2 overlap 7–30 ngày</div></div>
+                  <div class="flow-arrow">↓ deploy clients key_v2, monitor v1 usage → 0</div>
+                  <div class="flow-row"><div class="flow-node success">revoke key_v1</div></div>
+                </div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Scheduled rotation 90 ngày. Emergency rotation sau leak — shorten overlap nếu cần. Log request by key_id để track migration.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Revoke key_v1 ngay khi issue v2 — downtime. Single shared key mọi partner — rotate ảnh hưởng all. Key trong code không env — deploy required mỗi rotate.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>ERP webhook integration: issue key_v2, partner migrate trong 30 ngày, dashboard show v1 traffic declining.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Dual-key overlap grace period.</li><li>Monitor v1 usage → 0 rồi revoke.</li><li>Log by key_id track migration.</li><li>Emergency vs scheduled rotation.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q23</span> Secrets Management?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Central store cho DB password, API keys, OAuth client secrets — inject runtime, không commit code. Vault, AWS Secrets Manager, K8s Secrets (encrypted etcd).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>12-Factor: config tách code. Git leak secret = breach. Rotation audit trail. Dynamic secrets (Vault DB creds TTL 1h).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <table class="feature-table">
+                  <thead><tr><th>Tool</th><th>Đặc điểm</th></tr></thead>
+                  <tbody>
+                    <tr><td>HashiCorp Vault</td><td>Dynamic secrets, lease, audit, K8s auth</td></tr>
+                    <tr><td>AWS Secrets Manager</td><td>Managed, auto-rotate RDS</td></tr>
+                    <tr><td>Spring Cloud Vault</td><td><code>spring.config.import=vault://</code></td></tr>
+                  </tbody>
+                </table>
+                <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># ❌ NEVER commit</span>
+db.password=SuperSecret123
+
+<span class="tok-comment"># ✅ Vault inject</span>
+spring.config.import: optional:vault://
+spring.cloud.vault.uri: https://vault.internal:8200
+spring.cloud.vault.authentication: KUBERNETES</code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Production mọi secret. CI inject short-lived token. Vault dynamic DB credentials per pod session.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Plaintext secret application.yml in git. Log secret on startup debug. K8s Secret base64 only — not encryption, use Sealed Secrets/ESO. Share one DB password mọi service — blast radius.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>.env committed — git history forever. Spring Actuator /env expose secrets — secure actuator. OAuth client secret in frontend bundle.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Secrets không trong code/git.</li><li>Vault/Secrets Manager inject runtime.</li><li>Dynamic secrets short TTL.</li><li>Rotate + audit + least privilege.</li><li>K8s Secret ≠ encrypted — dùng ESO.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+<section class="section" id="deep-dive-http-caching">
+          <h2 class="section-title">Deep Dive — HTTP Caching &amp; Conditional Requests</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q24</span> HTTP caching &amp; conditional requests (ETag, Cache-Control, 304) hoạt động thế nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>HTTP caching</strong> cho phép client, proxy và CDN tái sử dụng response thay vì gọi lại server — chuẩn hoá trong <em>RFC 9111</em>. <strong>Conditional request</strong>: client gửi validator đã lưu (<code>ETag</code> qua <code>If-None-Match</code>, <code>Last-Modified</code> qua <code>If-Modified-Since</code>); server so sánh và trả <code>304 Not Modified</code> (không kèm body) nếu chưa đổi, hoặc <code>200 OK</code> + body mới nếu đã đổi. <strong>Cache-Control</strong> quyết định ai được cache, cache bao lâu và có phải revalidate không.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>304 tiết kiệm băng thông và latency vì không truyền lại body, đồng thời giảm tải DB/CPU. Ngoài ra <code>If-Match</code> biến ETag thành cơ chế <strong>optimistic concurrency</strong> chống <em>lost update</em> khi nhiều client cùng sửa một resource. Chỉ method an toàn (<em>safe</em>: GET/HEAD) và idempotent mới nên cache được.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Client GET — đã có bản cache + ETag</div></div>
+                  <div class="flow-arrow">↓ gửi If-None-Match: "v3-abc123"</div>
+                  <div class="flow-row"><div class="flow-node secondary">Server so sánh ETag hiện tại với validator</div></div>
+                  <div class="flow-arrow">↓ giống → 304 (dùng cache) · khác → 200 + body mới + ETag mới</div>
+                  <div class="flow-row"><div class="flow-node success">Client/CDN phục vụ bản cache — không truyền lại body</div></div>
+                </div>
+                <table class="feature-table">
+                  <thead><tr><th>Header</th><th>Vai trò</th><th>Ví dụ</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>Cache-Control</code></td><td>Ai cache, bao lâu, có revalidate không</td><td><code>private, max-age=60, must-revalidate</code></td></tr>
+                    <tr><td><code>ETag</code></td><td>Validator version của representation</td><td><code>"v3-abc123"</code></td></tr>
+                    <tr><td><code>Last-Modified</code></td><td>Validator theo thời gian (độ chính xác giây)</td><td><code>Wed, 01 Oct 2026 08:00:00 GMT</code></td></tr>
+                    <tr><td><code>Vary</code></td><td>Chiều phải tính khi match cache</td><td><code>Authorization, Accept-Encoding</code></td></tr>
+                  </tbody>
+                </table>
+                <div class="code-block" data-lang="http"><pre><code>GET /api/products/42 HTTP/1.1
+If-None-Match: "v3-abc123"
+
+HTTP/1.1 304 Not Modified
+ETag: "v3-abc123"
+Cache-Control: private, max-age=60, must-revalidate
+
+<span class="tok-comment"># Optimistic concurrency — chống lost update</span>
+PUT /api/products/42
+If-Match: "v3-abc123"
+{ "price": 9.99 }
+<span class="tok-comment"># → 412 Precondition Failed nếu ETag đã đổi</span></code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>GET resource ít đổi (catalog, config, product detail) → <code>max-age</code> + ETag. Ghi cần chống đè: PUT/PATCH kèm <code>If-Match</code> để trả 412 khi bản client đã cũ. CDN/proxy cache public asset → <code>public</code> kèm <code>s-maxage</code>.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Không cache/share response chứa dữ liệu per-user nếu thiếu <code>private</code> và <code>Vary: Authorization</code>. Dữ liệu nhạy cảm (token, PII) → <code>no-store</code>. Đừng nhầm <code>no-cache</code> với <code>no-store</code>: <code>no-cache</code> vẫn lưu nhưng buộc revalidate, <code>no-store</code> mới là không lưu.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>Danh mục sản phẩm e-commerce: <code>ETag</code> + <code>Cache-Control: public, max-age=300</code> — CDN phục vụ hầu hết request, server chỉ trả body khi dữ liệu thực sự đổi.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Quên <code>Vary</code> → cache trả response của user A cho user B. ETag <em>yếu</em> (<code>W/"..."</code>) không đủ an toàn cho ghi. Cache "cũ" sau deploy do <code>max-age</code> dài — đổi tên asset hoặc dùng <code>stale-while-revalidate</code> đúng cách.</p></div>
+              <p><small>Nguồn: <a href="https://www.rfc-editor.org/rfc/rfc9111">RFC 9111 — HTTP Caching</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching">MDN — HTTP caching</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control">MDN — Cache-Control</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="section" id="deep-dive-problem-details">
+          <h2 class="section-title">Deep Dive — Chuẩn hoá lỗi API với RFC 9457 Problem Details</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q25</span> Problem Details (RFC 9457) — chuẩn error response cho REST API?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Problem Details</strong> (RFC 9457, thay thế RFC 7807) định nghĩa một JSON object machine-readable cho lỗi HTTP, dùng media type <code>application/problem+json</code>. Member chuẩn: <code>type</code> (URI định danh loại lỗi), <code>title</code> (mô tả ngắn, ổn định), <code>status</code> (mã HTTP), <code>detail</code> (giải thích cho occurrence cụ thể), <code>instance</code> (URI của lần lỗi). Có thể mở rộng thêm <em>extension member</em> tuỳ loại lỗi.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Client và nhiều service cần một <em>error contract</em> thống nhất thay vì mỗi endpoint một shape khác nhau. Problem Details cho phép phân nhánh theo <code>type</code> ổn định (không phụ thuộc chuỗi message), đồng thời giữ <code>detail</code> cho người đọc. Lỗi validation nhiều field gom vào extension <code>errors[]</code>, mỗi phần tử dùng JSON Pointer chỉ tới field sai.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <table class="feature-table">
+                  <thead><tr><th>Member</th><th>Bắt buộc?</th><th>Ý nghĩa</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>type</code></td><td>Khuyến nghị</td><td>URI định danh loại lỗi; mặc định <code>about:blank</code></td></tr>
+                    <tr><td><code>title</code></td><td>Khuyến nghị</td><td>Tóm tắt loại lỗi, không đổi giữa các instance</td></tr>
+                    <tr><td><code>status</code></td><td>Tuỳ chọn</td><td>Trùng mã HTTP của response</td></tr>
+                    <tr><td><code>detail</code></td><td>Tuỳ chọn</td><td>Giải thích riêng cho occurrence</td></tr>
+                    <tr><td><code>instance</code></td><td>Tuỳ chọn</td><td>URI của lần lỗi cụ thể — hỗ trợ tra log</td></tr>
+                  </tbody>
+                </table>
+                <div class="code-block" data-lang="http"><pre><code>HTTP/1.1 422 Unprocessable Content
+Content-Type: application/problem+json
+
+{
+  "type": "https://api.example.com/problems/validation-error",
+  "title": "Your request is not valid.",
+  "status": 422,
+  "detail": "2 field không hợp lệ.",
+  "instance": "/orders/req-7f3a",
+  "errors": [
+    { "detail": "must be a positive integer", "pointer": "#/quantity" },
+    { "detail": "must be 'green', 'red' or 'blue'", "pointer": "#/profile/color" }
+  ]
+}</code></pre></div>
+                <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@ExceptionHandler</span>(OrderNotFoundException.class)
+<span class="tok-class">ProblemDetail</span> <span class="tok-function">handle</span>(OrderNotFoundException ex) {
+  <span class="tok-class">ProblemDetail</span> pd = ProblemDetail.forStatusAndDetail(
+      HttpStatus.NOT_FOUND, ex.getMessage());
+  pd.setType(URI.create(<span class="tok-string">"https://api.example.com/problems/order-not-found"</span>));
+  pd.setTitle(<span class="tok-string">"Order not found"</span>);
+  <span class="tok-keyword">return</span> pd;
+}</code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Mọi response 4xx/5xx của REST API public hoặc giữa các service — đặc biệt validation (422), conflict (409), rate limit (429). Spring Boot 6+ hỗ trợ sẵn <code>ProblemDetail</code> và tự serialize thành <code>application/problem+json</code>.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng cho response thành công. Không nhồi stack trace, câu query SQL hay PII vào <code>detail</code> (rò rỉ nội bộ). Không trả <code>200 OK</code> kèm body lỗi — phải dùng đúng mã HTTP 4xx/5xx.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>API order trả 409 với <code>type=https://api.example.com/problems/insufficient-stock</code>; client đọc <code>type</code> để hiển thị thông báo đúng mà không phải parse message tiếng Việt/Anh.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bọc problem details trong một field khác (vd <code>{"error": {...}}</code>) làm mất tính chuẩn. <code>type</code> nên là URI dereferenceable (hoặc <code>about:blank</code>). Nhầm lẫn: Problem Details mô tả <em>lỗi</em>, không phải envelope cho mọi response.</p></div>
+              <p><small>Nguồn: <a href="https://www.rfc-editor.org/rfc/rfc9457">RFC 9457 — Problem Details for HTTP APIs</a> · <a href="https://datatracker.ietf.org/doc/html/rfc9457">IETF Datatracker — RFC 9457</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="section" id="deep-dive-rate-limiting-algorithms">
+          <h2 class="section-title">Deep Dive — Thuật toán Rate Limiting</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q26</span> Token bucket, leaky bucket hay sliding window — chọn thuật toán rate limiting nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Token bucket</strong>: bucket chứa tối đa <em>C</em> token, nạp token với tốc độ <em>r</em>/giây; mỗi request tiêu 1 token, hết token thì bị chặn. <strong>Leaky bucket</strong>: request vào queue (bucket), xả ra với tốc độ cố định <em>r</em>; queue đầy thì drop. <strong>Fixed window</strong>: đếm theo cửa sổ rời rạc. <strong>Sliding window log/counter</strong>: cửa sổ trượt chính xác (log) hoặc xấp xỉ (counter).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Traffic thật vốn <em>bursty</em> (người dùng click theo cụm). Token bucket tách bạch <em>burst capacity</em> (C) và <em>sustained rate</em> (r) — khớp với cách nhà cung cấp quảng cáo "100 RPS sustained, burst 200". Leaky bucket làm phẳng output, hợp downstream không chịu được spike (payment gateway, DB legacy, SMS).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <table class="feature-table">
+                  <thead><tr><th>Thuật toán</th><th>Burst</th><th>Memory</th><th>Dùng khi</th></tr></thead>
+                  <tbody>
+                    <tr><td>Token bucket</td><td>Cho phép tới C</td><td>O(1)</td><td>Public API, user action</td></tr>
+                    <tr><td>Leaky bucket</td><td>Không — output phẳng</td><td>O(1) hoặc O(queue)</td><td>Downstream cần rate đều</td></tr>
+                    <tr><td>Fixed window</td><td>Boundary tới 2× limit</td><td>O(1)</td><td>Quota thô theo giờ/ngày</td></tr>
+                    <tr><td>Sliding window log</td><td>Chính xác</td><td>O(n) mỗi key</td><td>Endpoint bảo mật, lưu lượng nhỏ</td></tr>
+                    <tr><td>Sliding window counter</td><td>Xấp xỉ tốt</td><td>O(1)</td><td>Gateway thông lượng cao</td></tr>
+                  </tbody>
+                </table>
+                <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Token bucket — tính token động theo timestamp, không cần job nền</span>
+<span class="tok-keyword">boolean</span> <span class="tok-function">tryAcquire</span>(<span class="tok-keyword">long</span> nowNanos) {
+  <span class="tok-keyword">double</span> refill = (nowNanos - lastRefillNanos) / 1e9 * ratePerSec;
+  tokens = Math.min(capacity, tokens + refill);
+  lastRefillNanos = nowNanos;
+  <span class="tok-keyword">if</span> (tokens &gt;= 1.0) { tokens -= 1.0; <span class="tok-keyword">return true</span>; }
+  <span class="tok-keyword">return false</span>; <span class="tok-comment">// → 429 Too Many Requests + Retry-After</span>
+}</code></pre></div>
+                <div class="code-block" data-lang="http"><pre><code>HTTP/1.1 429 Too Many Requests
+Retry-After: 30
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1730000000</code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Token bucket làm mặc định cho public API (cho phép burst hợp lệ). Leaky bucket khi downstream phải nhận rate đều. Sliding window counter cho rate limit phân tán chính xác hơn trên gateway. Luôn kèm <code>429</code> + <code>Retry-After</code> (RFC 6585) và header <code>X-RateLimit-*</code>.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Không self-limit trong bộ nhớ mỗi pod rồi tưởng đã giới hạn toàn cụm — nhiều worker sẽ "burst-collide"; cần store chung (Redis). Không dùng fixed window cho rate limit bảo mật vì kẻ tấn công khai thác biên cửa sổ (tới 2× limit). Đừng đặt limit quá khớp khiến burst hợp lệ bị chặn oan.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>Gateway: token bucket per API key (100 req/s, burst 200). Login endpoint: sliding window strict (10/phút/IP). Job gọi SMS provider giới hạn cứng 5/s → leaky bucket làm phẳng.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>429 không kèm <code>Retry-After</code> → client retry ngay (thundering herd). Reset theo đồng hồ server nhưng node lệch giờ → dùng timestamp tập trung. Nhầm key scope (IP vs user vs endpoint) làm NAT chặn nhầm cả một toà nhà.</p></div>
+              <p><small>Nguồn: <a href="https://www.rfc-editor.org/rfc/rfc6585">RFC 6585 — Additional HTTP Status Codes (429)</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429">MDN — 429 Too Many Requests</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After">MDN — Retry-After</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <div class="nav-pager">
+          <a class="prev" href="05-database.html">
+            <span class="label">Trước</span>
+            <span class="title">5. Database &amp; SQL</span>
+          </a>
+          <a class="next" href="07-microservices.html">
+            <span class="label">Tiếp</span>
+            <span class="title">7. Microservices &amp; Distributed</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Module 06 / 14</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AWS Databases — DVA-C02 Deep Dive</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="module-header">
+  <span class="module-tag">AWS · Database</span>
+  <h1 class="module-title">AWS Databases — DVA-C02 Deep Dive</h1>
+  <p class="module-subtitle">RDS, Aurora, ElastiCache, DAX, RDS Proxy và bản đồ chọn database theo workload.</p>
+</div>
+<main class="content">
+
+  <section class="section" id="rds-core">
+    <h2 class="section-title">RDS cơ bản, độ sẵn sàng &amp; backup</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS1</span> RDS là gì? Các engine và mô hình managed database</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Amazon RDS</strong> là dịch vụ <em>relational database</em> được quản lý (managed): AWS lo cài đặt, patching, backup và nhân bản, bạn chỉ làm việc với DB qua <strong>endpoint</strong> (một DNS name). Các engine hỗ trợ: <strong>MySQL, PostgreSQL, MariaDB, Oracle, SQL Server, Db2</strong>. Dữ liệu nằm trên storage do AWS quản lý (gp3/io1), bạn <em>không SSH được</em> vào máy chủ DB.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Luồng điển hình: ứng dụng chạy trên EC2/Lambda gọi <strong>endpoint</strong> của RDS; RDS có thể nhân bản sang standby (Multi-AZ) và ghi log/metric vào CloudWatch. Bạn chọn <em>instance class</em> (db.t4g, db.r6g…), <em>storage type</em>, <em>Multi-AZ</em> và <em>backup retention</em> lúc tạo hoặc sửa sau.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Ứng dụng</span><span class="icon-note">web / mobile</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">SQL qua 5432/3306</span></div>
+            <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">RDS endpoint</span><span class="icon-note">DNS name cố định</span></div>
+            <div class="icon-arrow">→</div>
+            <div class="icon-node"><span class="aws-ico cloudwatch"></span><span class="icon-label">CloudWatch</span><span class="icon-note">metric + log</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tao RDS PostgreSQL trong private subnet, bat Multi-AZ + backup</span>
+aws rds create-db-instance \
+  --db-instance-identifier orders-prod \
+  --db-instance-class db.r6g.large \
+  --engine postgres --engine-version 16.4 \
+  --allocated-storage 100 --storage-type gp3 \
+  --multi-az --storage-encrypted \
+  --backup-retention-period 14 \
+  --db-subnet-group-name app-private \
+  --no-publicly-accessible</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Engine</th><th>Đặc điểm</th><th>Aurora tương thích?</th></tr></thead>
+          <tbody>
+            <tr><td>MySQL / MariaDB</td><td>Phổ biến, nhiều read replica (tối đa 15)</td><td>Có (Aurora MySQL)</td></tr>
+            <tr><td>PostgreSQL</td><td>Mạnh về kiểu dữ liệu, extension</td><td>Có (Aurora PostgreSQL)</td></tr>
+            <tr><td>Oracle / SQL Server</td><td>Enterprise, license tốn kém, read replica tối đa 5</td><td>Không</td></tr>
+            <tr><td>Db2</td><td>IBM, dùng cho migration legacy</td><td>Không</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Khi cần <strong>ACID transaction</strong>, <strong>JOIN</strong>, schema cố định và SQL quen thuộc: ứng dụng e-commerce, ERP, hệ thống tài chính vừa và nhỏ.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không dùng RDS cho key-value scale cực lớn (DynamoDB), graph (Neptune), document MongoDB (DocumentDB), warehouse OLAP (Redshift) hay workload cần truy cập OS/root.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Không thể bật mã hoá at-rest sau khi tạo instance — phải <em>restore từ snapshot đã mã hoá</em> thành instance mới. RDS không cho bạn quyền OS; mọi thứ phải qua engine API.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html">AWS Docs — What is Amazon RDS</a> · <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html">AWS Docs — DB instance classes</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS2</span> Multi-AZ vs Read Replica: hai tính năng dễ nhầm nhất</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Multi-AZ</strong> phục vụ <em>độ sẵn sàng</em> (high availability): bản standby ở AZ khác, nhân bản <strong>synchronous</strong>, tự failover. <strong>Read Replica</strong> phục vụ <em>mở rộng đọc</em> (read scaling): nhân bản <strong>asynchronous</strong>, replica <em>đọc được</em>. Đây là cặp khái niệm bị hỏi nhiều nhất trong DVA-C02.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Multi-AZ: primary ghi đồng bộ sang standby ở AZ khác; khi primary lỗi, AWS đổi DNS (CNAME) sang standby, failover thường <strong>60–120 giây</strong>, không mất dữ liệu. Read Replica: ghi async nên đọc có thể <em>eventual consistent</em>; tối đa <strong>15</strong> replica với MySQL/MariaDB/PostgreSQL và <strong>5</strong> với Oracle/SQL Server; hỗ trợ cross-AZ và cross-Region, có thể <em>promote</em> thành DB độc lập.</p>
+          <div class="stack">
+            <div class="stack-title">Region ap-southeast-1</div>
+            <div class="sub-grid">
+              <div class="stack">
+                <div class="stack-title">AZ a — Primary</div>
+                <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">RDS writer</span><span class="icon-note">nhận ghi</span></div>
+              </div>
+              <div class="stack">
+                <div class="stack-title">AZ b — Standby</div>
+                <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">Multi-AZ standby</span><span class="icon-note">sync, không đọc</span></div>
+              </div>
+              <div class="stack">
+                <div class="stack-title">AZ c — Replica</div>
+                <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">Read Replica</span><span class="icon-note">async, đọc được</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Bat Multi-AZ (co the bat sau, khong downtime)</span>
+aws rds modify-db-instance \
+  --db-instance-identifier orders-prod \
+  --multi-az --apply-immediately
+
+<span class="tok-comment"># Tao read replica cho workload bao cao/analytics</span>
+aws rds create-db-instance-read-replica \
+  --db-instance-identifier orders-replica-1 \
+  --source-db-instance-identifier orders-prod \
+  --db-instance-class db.r6g.large</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Multi-AZ</th><th>Read Replica</th></tr></thead>
+          <tbody>
+            <tr><td>Mục đích</td><td>Availability / failover</td><td>Read scaling</td></tr>
+            <tr><td>Kiểu nhân bản</td><td>Synchronous</td><td>Asynchronous</td></tr>
+            <tr><td>Đọc được?</td><td>Không (deployment cổ điển)</td><td>Có</td></tr>
+            <tr><td>Failover</td><td>Tự động, 60–120s</td><td>Promote thủ công</td></tr>
+            <tr><td>Cross-Region</td><td>Không</td><td>Có</td></tr>
+            <tr><td>Số lượng</td><td>1 standby</td><td>15 (MySQL/MariaDB/PG) hoặc 5 (Oracle/SQL Server)</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Bật Multi-AZ cho mọi DB production (HA). Dùng read replica khi ứng dụng đọc nhiều, báo cáo/analytics cần tách khỏi primary.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng bật Multi-AZ để tăng năng lực đọc — standby không phục vụ read. Đừng coi read replica là HA: nó async, promote thủ công và có thể mất vài giây dữ liệu gần nhất.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Ứng dụng nối tới read replica phải <em>đổi connection string</em> vì replica có endpoint DNS riêng. Read replica chỉ nhận read-only; muốn ghi thì phải <code>promote-read-replica</code> (sau đó không còn tự đồng bộ).</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html">AWS Docs — Working with read replicas</a> · <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html">AWS Docs — Multi-AZ deployments</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS3</span> Backup, snapshot &amp; point-in-time restore (PITR)</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>RDS có hai cơ chế sao lưu: <strong>automated backup</strong> (snapshot hằng ngày + transaction logs) có <strong>retention 1–35 ngày, mặc định 7 ngày</strong>, và <strong>manual snapshot</strong> giữ mãi cho tới khi bạn xoá. Automated backup cho phép <strong>point-in-time restore</strong> tới bất kỳ giây nào trong cửa sổ retention.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Automated backup chạy trong <em>backup window</em> bạn chọn, snapshot + transaction logs được lưu trên S3 (bạn không thấy trực tiếp, chỉ khôi phục qua PITR). Khi restore, RDS tạo một <strong>instance MỚI với endpoint mới</strong> rồi áp logs tới thời điểm mong muốn — đây không phải "rewind" instance cũ.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">RDS</span><span class="icon-note">snapshot + logs</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">mỗi 5 phút</span></div>
+            <div class="icon-node"><span class="aws-ico s3"></span><span class="icon-label">S3 backup</span><span class="icon-note">AWS quản lý</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">restore</span></div>
+            <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">Instance mới</span><span class="icon-note">endpoint mới</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Khoi phuc toi mot thoi diem cu the (PITR)</span>
+aws rds restore-db-instance-to-point-in-time \
+  --source-db-instance-identifier orders-prod \
+  --target-db-instance-identifier orders-restored \
+  --restore-time 2026-10-01T08:30:00Z
+
+<span class="tok-comment"># Tao manual snapshot truoc khi migration schema</span>
+aws rds create-db-snapshot \
+  --db-instance-identifier orders-prod \
+  --db-snapshot-identifier orders-pre-migration</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Automated backup</th><th>Manual snapshot</th></tr></thead>
+          <tbody>
+            <tr><td>Kích hoạt</td><td>Tự động hằng ngày + logs</td><td>Bạn chủ động chụp</td></tr>
+            <tr><td>Retention</td><td>1–35 ngày (mặc định 7)</td><td>Tới khi bạn xoá</td></tr>
+            <tr><td>PITR</td><td>Có (tới từng giây)</td><td>Không (chỉ point-in-time)</td></tr>
+            <tr><td>Lưu ở đâu</td><td>S3 (ẩn)</td><td>S3 (ẩn)</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Bật retention đủ dài cho production; chụp manual snapshot ngay trước migration/schema change hoặc trước sự kiện rủi ro.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng đặt retention = 0 nếu vẫn cần PITR — nó tắt luôn cả read replica. Đừng dựa vào automated backup sau khi xoá instance: chúng bị xoá cùng instance trừ khi bạn chọn chụp final snapshot.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Restore luôn tạo <strong>instance mới với endpoint mới</strong> — ứng dụng phải được trỏ lại. Snapshot (manual) <em>không</em> chứa transaction log nên không làm được PITR tới từng giây. Cross-Region snapshot copy là cách làm DR đơn giản.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.html">AWS Docs — Automated backups &amp; PITR</a> · <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithDBInstanceSnapshots.html">AWS Docs — DB snapshots</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="aurora">
+    <h2 class="section-title">Aurora: kiến trúc, endpoint &amp; chọn capacity</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS4</span> Aurora là gì? Storage 6 bản/3 AZ và ba loại endpoint</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Amazon Aurora</strong> là engine do AWS xây, tương thích <strong>MySQL và PostgreSQL</strong>, dùng storage phân tán. Dữ liệu được nhân <strong>6 bản copy trải trên 3 AZ</strong>; ghi cần quorum <strong>4/6</strong>, đọc cần <strong>3/6</strong>. Volume tự tăng theo bước 10 GiB tới <strong>128 TiB</strong> mà không cần provision thủ công.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Aurora có tối đa <strong>15 Aurora Replicas</strong> chia sẻ cùng storage (nên không tốn thời gian rebuild như RDS replica). Ba loại endpoint: <strong>cluster endpoint</strong> — luôn trỏ tới writer hiện tại (dùng khi failover đổi writer mà không cần đổi connection string); <strong>reader endpoint</strong> — round-robin tới các reader để cân bằng đọc; <strong>custom endpoint</strong> — chọn tập con reader. Failover thường dưới 60 giây, thường dưới 30 giây.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Ứng dụng</span><span class="icon-note">writes + reads</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cluster endpoint</span></div>
+            <div class="icon-node"><span class="aws-ico aurora"></span><span class="icon-label">Writer instance</span><span class="icon-note">1 node</span></div>
+            <div class="icon-arrow">↔<span class="arrow-note">reader endpoint</span></div>
+            <div class="icon-node"><span class="aws-ico aurora"></span><span class="icon-label">15 Aurora Replicas</span><span class="icon-note">6 copies / 3 AZ</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tao Aurora PostgreSQL cluster + 1 reader</span>
+aws rds create-db-cluster \
+  --db-cluster-identifier app-aurora \
+  --engine aurora-postgresql --engine-version 16.4 \
+  --db-subnet-group-name app-private
+
+aws rds create-db-instance \
+  --db-instance-identifier app-aurora-writer \
+  --db-cluster-identifier app-aurora \
+  --db-instance-class db.r6g.large --engine aurora-postgresql</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Endpoint</th><th>Trỏ tới</th><th>Dùng khi</th></tr></thead>
+          <tbody>
+            <tr><td>Cluster endpoint</td><td>Writer hiện tại</td><td>Read/write tổng quát</td></tr>
+            <tr><td>Reader endpoint</td><td>Round-robin reader (trừ writer)</td><td>Workload đọc nhiều</td></tr>
+            <tr><td>Custom endpoint</td><td>Tập con instance do bạn chọn</td><td>Chia tải theo shard</td></tr>
+            <tr><td>Instance endpoint</td><td>Một instance cụ thể</td><td>Debug / thao tác trực tiếp</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Khi cần MySQL/PostgreSQL hiệu năng cao hơn, storage tự mở rộng, HA mạnh và read scale lớn hơn RDS truyền thống.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không dùng khi bắt buộc engine Oracle/SQL Server/Db2 (Aurora không hỗ trợ), hay workload cực nhẹ mà RDS nhỏ rẻ hơn (Aurora ban đầu thường đắt hơn khoảng 20%).</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Cluster endpoint <em>luôn</em> trỏ writer; reader endpoint <em>loại</em> writer (trừ khi cluster chỉ có 1 node). Aurora replica dùng async replication nhưng <strong>không mất dữ liệu</strong> khi failover vì storage đã được replicate 6 bản.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html">AWS Docs — Aurora high availability</a> · <a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.Endpoints.html">AWS Docs — Aurora endpoints</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS5</span> Tình huống: traffic dao động mạnh — Aurora Serverless v2 &amp; Global Database</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Một SaaS có traffic thay đổi liên tục, ban đêm gần như rảnh nhưng mỗi lần scale DB thủ công rất tốn. Chọn <strong>Aurora Serverless v2</strong>: capacity tự co giãn theo tải tính bằng <strong>ACU</strong> (Aurora Capacity Unit), không cần provision instance cố định.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Serverless v2 tăng/giảm dung lượng mượt theo tải thời gian thực (khoảng vài giây), phù hợp cả production lẫn dev/test; v1 có thể scale <em>về 0</em> khi rảnh. Khi cần DR đa vùng, dùng <strong>Aurora Global Database</strong>: cluster trải nhiều Region, replication lag thường <strong>dưới 1 giây</strong>, RPO ~1s và RTO dưới 1 phút khi promote secondary.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico region"></span><span class="icon-label">Region A</span><span class="icon-note">writer + readers</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">replication &lt;1 giây</span></div>
+            <div class="icon-node"><span class="aws-ico region"></span><span class="icon-label">Region B</span><span class="icon-note">secondary (read-only)</span></div>
+            <div class="icon-arrow">⇒<span class="arrow-note">promote khi DR</span></div>
+            <div class="icon-node"><span class="aws-ico aurora"></span><span class="icon-label">Global Database</span><span class="icon-note">RTO &lt;1 phút</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Bat Serverless v2 cho cluster: co gian tu 2 den 64 ACU</span>
+aws rds modify-db-cluster \
+  --db-cluster-identifier app-aurora \
+  --engine-mode provisioned \
+  --serverless-v2-scaling-configuration MinCapacity=2,MaxCapacity=64 \
+  --apply-immediately</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Chế độ</th><th>Scale</th><th>Phù hợp</th></tr></thead>
+          <tbody>
+            <tr><td>Provisioned</td><td>Cố định instance</td><td>Tải ổn định, cao</td></tr>
+            <tr><td>Serverless v2</td><td>Từng phần ACU (0.5–256), nhanh</td><td>Production tải biến động</td></tr>
+            <tr><td>Serverless v1</td><td>Có thể về 0 khi rảnh</td><td>Dev/test, ít dùng</td></tr>
+            <tr><td>Global Database</td><td>Nhiều Region, lag &lt;1 giây</td><td>DR đa vùng, đọc gần người dùng</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Tải không đoán trước, dev/test bật/tắt thường xuyên, hoặc yêu cầu DR đa Region với RPO gần như bằng 0.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Tải ổn định chạy 24/7 ở mức cao thì provisioned thường rẻ hơn. Global Database phát sinh chi phí truyền dữ liệu cross-Region — chỉ dùng khi thật cần.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Secondary cluster của Global Database <strong>read-only</strong> — muốn ghi phải bật write forwarding hoặc <em>promote</em> lên primary. Serverless v2 có min ACU &gt; 0 nên&nbsp;vẫn tốn phí tối thiểu dù không có traffic.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.html">AWS Docs — Aurora Serverless v2</a> · <a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html">AWS Docs — Aurora Global Database</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="cache">
+    <h2 class="section-title">ElastiCache &amp; DAX: tăng tốc tầng đọc</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS6</span> ElastiCache: Redis vs Memcached — chọn engine nào?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p><strong>Amazon ElastiCache</strong> là in-memory cache được quản lý với hai engine chính: <strong>Redis</strong> (và bản Valkey) và <strong>Memcached</strong>. Redis hỗ trợ cấu trúc dữ liệu phong phú (hashes, lists, sets, sorted sets, streams), persistence, replication, Multi-AZ failover và pub/sub. Memcached chỉ là key-value đơn giản, multi-threaded, không persistence, không replication, không failover.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Hai chiến lược hay dùng: <strong>lazy loading (cache-aside)</strong> — đọc trúng cache thì trả ngay, trượt thì lấy từ DB rồi ghi vào cache; <strong>write-through</strong> — ghi cache và DB cùng lúc. <strong>TTL</strong> quyết định dữ liệu tươi bao lâu. Redis cluster mode shard dữ liệu tới ~500 shard, mỗi shard 1 primary + tối đa 5 replica; Memcached scale ngang bằng cách thêm node, client tự sharding.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">Ứng dụng</span><span class="icon-note">GET user:42</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">cache hit</span></div>
+            <div class="icon-node"><span class="aws-ico elasticache"></span><span class="icon-label">ElastiCache Redis</span><span class="icon-note">in-memory</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">miss: đọc + ghi cache</span></div>
+            <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">RDS</span><span class="icon-note">nguồn sự thật</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tao cache Redis co backup + Multi-AZ failover</span>
+aws elasticache create-replication-group \
+  --replication-group-id sessions \
+  --replication-group-description "session store" \
+  --engine redis --cache-node-type cache.r6g.large \
+  --num-node-groups 1 --replicas-per-node-group 2 \
+  --automatic-failover-enabled \
+  --snapshot-retention-limit 7</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Đặc điểm</th><th>Redis / Valkey</th><th>Memcached</th></tr></thead>
+          <tbody>
+            <tr><td>Cấu trúc dữ liệu</td><td>Phong phú (sorted sets, streams…)</td><td>Chỉ string/object</td></tr>
+            <tr><td>Persistence</td><td>RDB + AOF</td><td>Không (mất khi node restart)</td></tr>
+            <tr><td>Replication / failover</td><td>Có, Multi-AZ tự động</td><td>Không</td></tr>
+            <tr><td>Pub/Sub, Lua</td><td>Có</td><td>Không</td></tr>
+            <tr><td>Đa luồng</td><td>Command đơn luồng</td><td>Multi-threaded, dùng nhiều core</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Redis cho session store, leaderboard (sorted sets), rate limiting, pub/sub, cache cần bền. Memcached khi chỉ cần cache key-value đơn giản, tận dụng nhiều CPU core, chấp nhận mất cache khi node chết.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng coi cache là primary database — dù Redis có persistence, AOF replay trên dataset lớn rất chậm. Không dùng Memcached khi cần replication/failover hay cấu trúc dữ liệu phức tạp.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Memcached <strong>không</strong> có persistence/replication/failover (trừ bản Serverless). Cache-aside khiến lần đọc đầu tiên luôn chậm và dữ liệu cũ nếu quên invalidate khi ghi.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/SelectEngine.html">AWS Docs — Choosing an ElastiCache engine</a> · <a href="https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/CacheNodes.html">AWS Docs — ElastiCache nodes &amp; clusters</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS7</span> Tình huống: DynamoDB đọc lặp lại cần micro-giây — dùng DAX</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>DynamoDB thường trả lời trong <em>single-digit milliseconds</em>, nhưng có ứng dụng cần độ trễ <strong>micro-giây</strong> cho các lần đọc lặp lại cùng key. <strong>DynamoDB Accelerator (DAX)</strong> là in-memory cache <em>tương thích API DynamoDB</em>, write-through, giảm độ trễ đọc một bậc từ mili-giây xuống micro-giây.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>DAX có hai cache độc lập: <strong>item cache</strong> cho <code>GetItem</code>/<code>BatchGetItem</code> (theo primary key) và <strong>query cache</strong> cho <code>Query</code>/<code>Scan</code> (theo tham số). TTL mặc định <strong>5 phút</strong>, có LRU eviction. Ghi qua DAX là write-through: ghi vào DynamoDB rồi cập nhật cache. Đọc <em>strongly consistent</em> (<code>ConsistentRead=true</code>) được chuyển thẳng tới DynamoDB và <em>không</em> cache lại. DAX chỉ chạy trong VPC, cluster có thể Multi-AZ phục vụ triệu request/giây.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico user"></span><span class="icon-label">App + DAX client</span><span class="icon-note">SDK cache-aware</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">GetItem</span></div>
+            <div class="icon-node"><span class="aws-ico dax"></span><span class="icon-label">DAX cluster</span><span class="icon-note">item + query cache</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">miss / write-through</span></div>
+            <div class="icon-node"><span class="aws-ico dynamodb"></span><span class="icon-label">DynamoDB</span><span class="icon-note">bảng gốc</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tao DAX cluster 3 node trong VPC, TTL query cache 60 giay</span>
+aws dax create-cluster \
+  --cluster-name orders-cache \
+  --node-type dax.r5.large \
+  --replication-factor 3 \
+  --iam-role-arn arn:aws:iam::111122223333:role/dax-role \
+  --subnet-group default \
+  --parameter-group default.dax1.0</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Tiêu chí</th><th>Item cache</th><th>Query cache</th></tr></thead>
+          <tbody>
+            <tr><td>Phục vụ</td><td>GetItem, BatchGetItem</td><td>Query, Scan</td></tr>
+            <tr><td>Khóa cache</td><td>Primary key</td><td>Tham số truy vấn</td></tr>
+            <tr><td>Invalidate</td><td>Tự động khi write-through</td><td>Chỉ khi hết TTL</td></tr>
+            <tr><td>TTL mặc định</td><td>5 phút</td><td>5 phút</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Workload read-heavy, đọc lặp lại cùng key, burst lớn, cache hit rate &gt; 90% — DAX giảm nhu cầu overprovision read capacity.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không dùng cho workload ghi nhiều (replication giữa các node DAX tốn tài nguyên), cho ứng dụng cần <em>strongly consistent reads</em>, hoặc khi ít lần đọc lặp lại (hit rate thấp gây miss tốn kém).</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Query cache <strong>không</strong> tự invalidate khi một item đổi — kết quả cũ tồn tại tới khi hết TTL. Ghi qua DAX chậm hơn ghi trực tiếp DynamoDB (thêm một hop); bulk load nên <em>write around</em> (ghi thẳng DynamoDB).</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html">AWS Docs — DynamoDB Accelerator (DAX)</a> · <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.consistency.html">AWS Docs — DAX consistency models</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="scaling-fleet">
+    <h2 class="section-title">Mở rộng tải đọc, proxy &amp; bản đồ database</h2>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS8</span> Tình huống: primary RDS nghẽn vì đọc nhiều — Read Replica, ElastiCache hay DAX?</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Một ứng dụng thương mại có trang sản phẩm đọc liên tục cộng thêm job báo cáo chạy cuối ngày khiến DB primary quá tải. Có ba công cụ để giảm tải đọc, mỗi cái hợp một tình huống: <strong>Read Replica</strong>, <strong>ElastiCache</strong> và <strong>DAX</strong> (chỉ cho DynamoDB).</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Read replica nhân bản toàn bộ dataset và <em>đọc được</em> — hợp cho báo cáo/analytics SQL (async, eventual consistency). ElastiCache cache kết quả cho các truy vấn lặp lại (giảm hẳn số query tới DB) — nhanh nhất nhưng bạn phải tự lo invalidate. DAX chỉ dùng khi nguồn là DynamoDB và cần micro-giây cho đọc lặp lại.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">Read Replica</span><span class="icon-note">SQL read scale, eventual</span></div>
+            <div class="icon-node"><span class="aws-ico elasticache"></span><span class="icon-label">ElastiCache</span><span class="icon-note">cache query nóng</span></div>
+            <div class="icon-node"><span class="aws-ico dax"></span><span class="icon-label">DAX</span><span class="icon-note">chỉ cho DynamoDB</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tach bao cao sang read replica (khong dung chung primary)</span>
+aws rds create-db-instance-read-replica \
+  --db-instance-identifier orders-reporting \
+  --source-db-instance-identifier orders-prod \
+  --db-instance-class db.r6g.xlarge
+
+<span class="tok-comment"># Ung dung bao cao tro toi endpoint cua replica, khong phai primary</span></code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Nhu cầu</th><th>Chọn</th><th>Vì sao</th></tr></thead>
+          <tbody>
+            <tr><td>Báo cáo/analytics SQL</td><td>Read replica</td><td>Chạy được JOIN/aggregate, tách khỏi primary</td></tr>
+            <tr><td>Read trúng lặp đi lặp lại</td><td>ElastiCache</td><td>Micro-giây, giảm query tới DB</td></tr>
+            <tr><td>DynamoDB read-heavy</td><td>DAX</td><td>Micro-giây, API tương thích</td></tr>
+            <tr><td>Đọc cần strongly consistent</td><td>Đọc từ primary</td><td>Replica/cache đều eventual</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Kết hợp cả ba: ElastiCache cho read nóng giảm áp lực, read replica cho workload phân tích, DAX khi tầng gốc là DynamoDB.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng dùng read replica cho dữ liệu cần tươi ngay; đừng cache những query ít lặp lại (hit thấp, tốn mà vô ích); không dùng DAX cho nguồn RDS/Aurora.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Read replica chỉ giảm tải cho <em>đọc</em> — nó vẫn nhận luồng replication và có thể làm primary ghi nặng hơn nếu tạo quá nhiều replica. Cache không hiểu SQL: invalidation sai sẽ trả dữ liệu cũ cho người dùng.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html">AWS Docs — RDS read replicas</a> · <a href="https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Strategies.html">AWS Docs — ElastiCache caching strategies</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS9</span> Tình huống: Lambda mở ào ạt connection DB — RDS Proxy</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Một API serverless dùng Lambda đọc/ghi RDS; khi traffic tăng, Lambda scale ra hàng nghìn execution environment, mỗi cái mở connection riêng khiến DB chạm <code>max_connections</code> và connection churn rất cao. Giải pháp: <strong>Amazon RDS Proxy</strong> — proxy managed đứng giữa ứng dụng và DB.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>RDS Proxy <strong>pool và chia sẻ connection</strong> tới DB (multiplexing), giảm hẳn số connection thật mở tới database. Nó <em>bypass DNS cache</em> nên failover nhanh hơn <strong>tới ~66%</strong> và giữ được connection của ứng dụng qua sự cố. Hỗ trợ <strong>IAM authentication</strong> và giữ credential trong <strong>Secrets Manager</strong>. Áp dụng được cho MySQL, PostgreSQL, MariaDB, SQL Server và Aurora, thường <em>không cần sửa code</em>.</p>
+          <div class="icon-flow">
+            <div class="icon-node"><span class="aws-ico lambda"></span><span class="icon-label">Lambda fleet</span><span class="icon-note">nhiều execution env</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">nhiều connection</span></div>
+            <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">RDS Proxy</span><span class="icon-note">pool + multiplexing</span></div>
+            <div class="icon-arrow">→<span class="arrow-note">ít connection hơn</span></div>
+            <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">RDS / Aurora</span><span class="icon-note">writer + reader</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Tao RDS Proxy dung credential tu Secrets Manager + IAM auth</span>
+aws rds create-db-proxy \
+  --db-proxy-name orders-proxy \
+  --engine-family POSTGRESQL \
+  --auth '[{"AuthScheme":"SECRETS","SecretArn":"arn:aws:secretsmanager:ap-southeast-1:111122223333:secret:orders-db"}]' \
+  --role-arn arn:aws:iam::111122223333:role/rds-proxy-role \
+  --vpc-subnet-ids subnet-0aaa subnet-0bbb</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Vấn đề</th><th>RDS Proxy giải quyết</th></tr></thead>
+          <tbody>
+            <tr><td>Connection storm từ Lambda</td><td>Pool + chia sẻ connection</td></tr>
+            <tr><td>Failover chậm do DNS cache</td><td>Bypass DNS, nhanh hơn tới ~66%</td></tr>
+            <tr><td>Credential hard-code</td><td>IAM auth + Secrets Manager</td></tr>
+            <tr><td>Ứng dụng phải tự xử lý failover</td><td>Giữ connection, route sang instance mới</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Serverless/server ít kết nối ổn định, connection churn cao, muốn failover mượt và quản lý credential tập trung.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Không cần khi workload chỉ mở ít connection lâu dài (thêm một hop + chi phí). Không hỗ trợ Oracle và Db2. Một số thao tác session đặc biệt làm connection bị "pin", giảm hiệu quả multiplexing.</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>Proxy pool connection tới <em>writer</em>; muốn cân bằng đọc phải trỏ tới <em>reader endpoint</em> của cluster. Session state thay đổi (SET, temp table…) khiến connection bị pin và không dùng lại được cho client khác.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.html">AWS Docs — Amazon RDS Proxy</a> · <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy-planning.html">AWS Docs — Planning for RDS Proxy</a></small></p>
+      </div>
+    </article>
+
+    <article class="qa-card">
+      <h3 class="qa-question"><span class="badge">AWS10</span> Bản đồ database AWS: chọn service theo mô hình dữ liệu</h3>
+      <div class="qa-answer">
+        <div class="ans-block">
+          <span class="ans-label">What</span>
+          <p>Câu hỏi DVA hay gặp là "dữ liệu thế này thì dùng service nào?". Nguyên tắc: chọn theo <strong>mô hình dữ liệu và pattern truy cập</strong>, không phải theo độ quen thuộc. Bảng tổng hợp nhanh các dịch vụ database chính của AWS.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">How</span>
+          <p>Relational/OLTP → <strong>RDS</strong> hoặc <strong>Aurora</strong>. Key-value &amp; document quy mô lớn → <strong>DynamoDB</strong> (item tối đa 400 KB). Document tương thích MongoDB → <strong>DocumentDB</strong>. Graph (quan hệ mạng xã hội, recommendation) → <strong>Neptune</strong>. In-memory cache → <strong>ElastiCache</strong>. Warehouse phân tích → <strong>Redshift</strong> (columnar, MPP). Tìm kiếm/log → <strong>OpenSearch</strong>. Query trực tiếp S3 → <strong>Athena</strong>.</p>
+          <div class="service-grid">
+            <div class="icon-node"><span class="aws-ico rds"></span><span class="icon-label">RDS</span><span class="icon-note">OLTP quan hệ</span></div>
+            <div class="icon-node"><span class="aws-ico aurora"></span><span class="icon-label">Aurora</span><span class="icon-note">MySQL/PG hiệu năng cao</span></div>
+            <div class="icon-node"><span class="aws-ico dynamodb"></span><span class="icon-label">DynamoDB</span><span class="icon-note">key-value / serverless</span></div>
+            <div class="icon-node"><span class="aws-ico docdb"></span><span class="icon-label">DocumentDB</span><span class="icon-note">MongoDB-compatible</span></div>
+            <div class="icon-node"><span class="aws-ico neptune"></span><span class="icon-label">Neptune</span><span class="icon-note">graph</span></div>
+            <div class="icon-node"><span class="aws-ico redshift"></span><span class="icon-label">Redshift</span><span class="icon-note">warehouse OLAP</span></div>
+            <div class="icon-node"><span class="aws-ico opensearch"></span><span class="icon-label">OpenSearch</span><span class="icon-note">search / log analytics</span></div>
+            <div class="icon-node"><span class="aws-ico athena"></span><span class="icon-label">Athena</span><span class="icon-note">query S3</span></div>
+          </div>
+        </div>
+        <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Key-value scale lon, serverless: DynamoDB</span>
+aws dynamodb create-table \
+  --table-name orders \
+  --attribute-definitions AttributeName=pk,AttributeType=S \
+  --key-schema AttributeName=pk,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST
+
+<span class="tok-comment"># Warehouse cho bao cao: Redshift serverless</span>
+aws redshift-serverless create-namespace --namespace-name analytics</code></pre></div>
+        <table class="feature-table">
+          <thead><tr><th>Mô hình / nhu cầu</th><th>Service</th><th>Ghi chú chốt</th></tr></thead>
+          <tbody>
+            <tr><td>Quan hệ, JOIN, ACID</td><td>RDS / Aurora</td><td>Aurora = 6 bản/3 AZ, tới 128 TiB</td></tr>
+            <tr><td>Key-value, scale ngang</td><td>DynamoDB</td><td>Item tối đa 400 KB, không JOIN</td></tr>
+            <tr><td>Document (MongoDB)</td><td>DocumentDB</td><td>Không phải DynamoDB</td></tr>
+            <tr><td>Graph</td><td>Neptune</td><td>Duyệt quan hệ nhiều bước</td></tr>
+            <tr><td>Cache in-memory</td><td>ElastiCache / DAX</td><td>Redis/Memcached, DAX cho DynamoDB</td></tr>
+            <tr><td>Warehouse phân tích</td><td>Redshift</td><td>Columnar, MPP, không phải OLTP</td></tr>
+            <tr><td>Search / log</td><td>OpenSearch</td><td>Full-text, dashboards</td></tr>
+            <tr><td>Query S3 không cần load</td><td>Athena</td><td>Trả tiền theo dữ liệu quét</td></tr>
+          </tbody>
+        </table>
+        <div class="ans-block">
+          <span class="ans-label">When</span>
+          <p>Dùng bảng này để loại trừ nhanh trong câu hỏi tình huống: xác định mô hình dữ liệu (relational/key-value/document/graph) và pattern (OLTP/OLAP/cache/search) trước khi chọn service.</p>
+        </div>
+        <div class="ans-block">
+          <span class="ans-label">When NOT</span>
+          <p>Đừng nhồi quan hệ phức tạp vào DynamoDB hay dùng Redshift cho giao dịch OLTP. Đừng dùng DocumentDB khi thực ra cần key-value thuần (DynamoDB rẻ và scale hơn). Không dùng RDS cho workload cần query S3 trực tiếp (Athena hợp hơn).</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">Bẫy thi / Pitfall</div>
+          <p>DynamoDB giới hạn <strong>400 KB/item</strong> và không có JOIN; DocumentDB là MongoDB-compatible chứ <em>không</em> phải DynamoDB. Redshift là OLAP (columnar), không thay thế RDS cho transaction. Neptune là graph, không phải key-value.</p>
+        </div>
+        <p><small>Nguồn: <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html">AWS Docs — Amazon DynamoDB</a> · <a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html">AWS Docs — Aurora overview</a> · <a href="https://docs.aws.amazon.com/redshift/latest/mgmt/welcome.html">AWS Docs — Amazon Redshift</a></small></p>
+      </div>
+    </article>
+  </section>
+
+  <div class="nav-pager"><a class="prev" href="24-aws-dynamodb.html">← Trước</a><a class="next" href="26-aws-vpc-networking.html">Tiếp →</a></div>
+</main>
+</body>
+</html>

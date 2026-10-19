@@ -1,0 +1,197 @@
+[
+  {
+    "module": "09-cloud-cicd",
+    "before": 14,
+    "after": 14
+  },
+  {
+    "module": "07-microservices",
+    "before": 26,
+    "after": 26
+  },
+  {
+    "module": "08-system-design",
+    "before": 21,
+    "after": 22
+  },
+  {
+    "module": "41-sql-performance-tuning",
+    "before": 11,
+    "after": 11
+  },
+  {
+    "module": "26-aws-vpc-networking",
+    "before": 9,
+    "after": 9
+  },
+  {
+    "module": "28-aws-messaging",
+    "before": 10,
+    "after": 10
+  },
+  {
+    "module": "06-rest-api",
+    "before": 26,
+    "after": 26
+  },
+  {
+    "module": "37-react-architecture-testing",
+    "before": 10,
+    "after": 10
+  },
+  {
+    "module": "24-aws-dynamodb",
+    "before": 10,
+    "after": 10
+  },
+  {
+    "module": "22-aws-s3",
+    "before": 10,
+    "after": 10
+  },
+  {
+    "module": "31-aws-security-encryption",
+    "before": 9,
+    "after": 9
+  },
+  {
+    "module": "38-elasticsearch",
+    "before": 11,
+    "after": 11
+  },
+  {
+    "module": "13-design-patterns",
+    "before": 22,
+    "after": 22
+  },
+  {
+    "module": "12-software-design",
+    "before": 13,
+    "after": 13
+  },
+  {
+    "module": "20-aws-lambda",
+    "before": 9,
+    "after": 9
+  },
+  {
+    "module": "02-multithreading",
+    "before": 20,
+    "after": 21
+  },
+  {
+    "module": "21-aws-containers-ec2",
+    "before": 9,
+    "after": 9
+  },
+  {
+    "module": "03-spring-boot",
+    "before": 27,
+    "after": 27
+  },
+  {
+    "module": "05-database",
+    "before": 47,
+    "after": 47
+  },
+  {
+    "module": "25-aws-databases",
+    "before": 10,
+    "after": 10
+  },
+  {
+    "module": "15-auth-rbac-oauth",
+    "before": 15,
+    "after": 15
+  },
+  {
+    "module": "42-ecommerce-iot-domain",
+    "before": 9,
+    "after": 9
+  },
+  {
+    "module": "39-modular-architecture-osgi",
+    "before": 9,
+    "after": 10
+  },
+  {
+    "module": "01-java-core",
+    "before": 23,
+    "after": 24
+  },
+  {
+    "module": "40-build-tools-gradle-maven",
+    "before": 9,
+    "after": 9
+  },
+  {
+    "module": "30-aws-iam-identity",
+    "before": 10,
+    "after": 10
+  },
+  {
+    "module": "27-aws-edge-apigw",
+    "before": 10,
+    "after": 10
+  },
+  {
+    "module": "32-aws-cicd-iac",
+    "before": 10,
+    "after": 10
+  },
+  {
+    "module": "33-aws-observability-troubleshooting",
+    "before": 10,
+    "after": 10
+  },
+  {
+    "module": "29-aws-orchestration-streaming",
+    "before": 9,
+    "after": 9
+  },
+  {
+    "module": "index",
+    "before": 0,
+    "after": 0
+  },
+  {
+    "module": "23-aws-storage",
+    "before": 10,
+    "after": 10
+  },
+  {
+    "module": "35-react-fundamentals",
+    "before": 11,
+    "after": 11
+  },
+  {
+    "module": "16-ai-assisted-engineering",
+    "before": 16,
+    "after": 16
+  },
+  {
+    "module": "34-fe-javascript-typescript",
+    "before": 11,
+    "after": 11
+  },
+  {
+    "module": "04-jpa-hibernate",
+    "before": 10,
+    "after": 11
+  },
+  {
+    "module": "11-dsa",
+    "before": 20,
+    "after": 20
+  },
+  {
+    "module": "14-study-plan",
+    "before": 13,
+    "after": 13
+  },
+  {
+    "module": "36-react-hooks-data",
+    "before": 10,
+    "after": 10
+  }
+]

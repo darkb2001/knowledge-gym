@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>12. Software Design &amp; UML — Java Interview Bank</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Java Interview<br><span>Bank</span></h1>
+        <p>Interview Prep Notes</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>12. Software Design &amp; UML</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 12</div>
+          <h1 class="module-title">Software Design Documents &amp; UML</h1>
+          <p class="module-subtitle">SRS, SDD, HLD/LLD, Interface Design, FDS, TDS — kèm UML diagrams và PlantUML examples cho hệ thống WCS/WMS warehouse automation.</p>
+        </div>
+
+        <!-- DESIGN DOCUMENTS -->
+        <section class="section" id="documents">
+          <h2 class="section-title">Tài liệu thiết kế phần mềm</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q1</span> SRS — Software Requirements Specification</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>SRS</strong> (Software Requirements Specification) mô tả WHAT hệ thống phải làm — functional, non-functional, constraints, assumptions — không HOW implement.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Contract giữa stakeholder và dev team; base test case acceptance criteria UAT. Enterprise WCS project cần SRS signed trước design.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Sections: Functional (allocate bin, release pick), Non-functional (p99&lt;200ms, 99.9% uptime), Constraints (integrate SAP EDI), Assumptions (PLC latency&lt;50ms). Traceability matrix req ID → test case.</p>
+              </div>
+<table class="feature-table">
+                <thead>
+                  <tr><th>Phần</th><th>Nội dung</th><th>Ví dụ WMS</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Functional Requirements</td><td>Chức năng hệ thống phải thực hiện</td><td>Allocate bin, release pick task, confirm putaway</td></tr>
+                  <tr><td>Non-functional Requirements</td><td>Performance, availability, security</td><td>API response &lt; 200ms, uptime 99.9%, RBAC</td></tr>
+                  <tr><td>Constraints</td><td>Giới hạn kỹ thuật / nghiệp vụ</td><td>Phải tích hợp SAP ERP qua EDI</td></tr>
+                  <tr><td>Assumptions</td><td>Giả định khi viết SRS</td><td>Network latency PLC &lt; 50ms</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Enterprise fixed bid, compliance audit, multi-vendor integration WMS customer.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không SRS chi tiết HOW code class — thuộc LLD/TDS. Không Agile spike thay SRS contract project — dùng epic+AC thay thế.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>WMS WCS SRS: FR-012 allocate bin &lt;500ms, NFR-003 uptime 99.9%, constraint SAP IDoc.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>SRS vs User Story khi nào; ambiguous requirement không measurable.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>SRS = WHAT not HOW.</li>
+                  <li>Functional + non-functional + constraints.</li>
+                  <li>Base acceptance test UAT.</li>
+                  <li>Enterprise contract WCS customer.</li>
+                  <li>Agile user story khi team nhỏ thay đổi nhanh.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q2</span> SDD — HLD vs LLD</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>HLD</strong> high-level architecture component data flow tech stack vs <strong>LLD</strong> class sequence ERD API detail algorithm.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Separation audience: architect/PM vs developer/QA. SRS→HLD→LLD→Code traceability.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>HLD: component diagram WMS↔WCS↔PLC deployment topology. LLD: class diagram, sequence allocate bin, Flyway schema, error handling state machine.</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>HLD (High-Level Design)</h4>
+                  <ul>
+                    <li><strong>Audience:</strong> Architect, Tech Lead, PM</li>
+                    <li>Component diagram, data flow</li>
+                    <li>Technology stack selection</li>
+                    <li>Integration points (WMS ↔ WCS ↔ PLC)</li>
+                    <li>Deployment topology</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>LLD (Low-Level Design)</h4>
+                  <ul>
+                    <li><strong>Audience:</strong> Developer, QA</li>
+                    <li>Class diagram, sequence diagram</li>
+                    <li>Database schema (ERD)</li>
+                    <li>API contract chi tiết</li>
+                    <li>Algorithm, error handling</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">SRS (Requirements)</div>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-row">
+                  <div class="flow-node secondary">HLD (Architecture)</div>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-row">
+                  <div class="flow-node success">LLD (Implementation Detail)</div>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-row">
+                  <div class="flow-node">Code + Unit Test</div>
+                </div>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>HLD sprint 0 architecture review. LLD per feature sprint before coding.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không LLD trước HLD approved — rework. Không HLD quá chi tiết class level — blur boundary.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>HLD choose MQTT vs OPC-UA; LLD PlcGateway interface sequence diagram.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>HLD/LLD outdated living doc; who maintains.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>HLD architecture component data flow.</li>
+                  <li>LLD class sequence ERD API.</li>
+                  <li>Flow SRS → HLD → LLD → Code.</li>
+                  <li>HLD audience architect PM.</li>
+                  <li>LLD audience developer QA implement.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q3</span> Interface Design Document</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Interface Design Document</strong> API contract giữa systems: endpoint protocol, request/response schema, error codes, idempotency, timeout retry, versioning.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>WCS↔Host↔Equipment integration fail nếu contract ambiguous — field name type mismatch production incident.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Document REST/MQTT topic/OPC-UA node path. JSON schema example. Error HTTP+business code table. Idempotency-Key commandId PLC. Retry max 3 exponential backoff. v1/v2 backward compatible.</p>
+              </div>
+<table class="feature-table">
+                <thead>
+                  <tr><th>Thành phần</th><th>Mô tả</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Endpoint / Protocol</td><td>REST, MQTT topic, OPC-UA node path</td></tr>
+                  <tr><td>Request/Response Format</td><td>JSON schema, XML, binary protocol</td></tr>
+                  <tr><td>Error Codes</td><td>HTTP status, business error code, retry policy</td></tr>
+                  <tr><td>Idempotency</td><td>Idempotency key cho command gửi PLC</td></tr>
+                  <tr><td>Timeout &amp; Retry</td><td>Max retry 3 lần, exponential backoff</td></tr>
+                  <tr><td>Versioning</td><td>API v1/v2, backward compatibility</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Mọi cross-team cross-system boundary WMS WCS PLC ERP.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không interface doc internal private method — public boundary only. Không doc không version strategy breaking change.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>WCS TransportOrder REST POST schema taskId UUID required idempotent 409 duplicate.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Optional field null vs missing JSON; timeout unit ms vs s.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>API contract endpoint protocol schema.</li>
+                  <li>Error code retry timeout idempotency.</li>
+                  <li>Version v1 v2 backward compatible.</li>
+                  <li>WCS Host PLC boundary critical.</li>
+                  <li>JSON schema example request response.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q4</span> FDS &amp; TDS</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>FDS</strong> functional design business view Input→Process→Output rules vs <strong>TDS</strong> technical class algorithm DB schema message format performance target.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Bridge BA business language và dev technical. FDS sign-off business TDS sign-off tech lead.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>FDS: putaway flow ASN receive assign bin confirm business validation. TDS: PutawayService class slotting algorithm index strategy Kafka payload JSON load test 500 TPS.</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>FDS (Functional Design Specification)</h4>
+                  <ul>
+                    <li>Bridge giữa BA và Developer</li>
+                    <li>Mô tả chức năng từ góc nhìn <strong>business</strong></li>
+                    <li>Input → Process → Output</li>
+                    <li>Business rules, validation logic</li>
+                    <li>Ví dụ: Putaway flow — nhận ASN, assign bin, confirm</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>TDS (Technical Design Specification)</h4>
+                  <ul>
+                    <li>Chi tiết kỹ thuật triển khai</li>
+                    <li>Class design, algorithm</li>
+                    <li>DB schema, index strategy</li>
+                    <li>Message format (Kafka, MQTT payload)</li>
+                    <li>Performance target, load test plan</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>FDS UAT scenario BA review. TDS implementation sprint dev reference.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không TDS without FDS approved scope creep. Không FDS code pseudo quá chi tiết — blur LLD.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>FDS putaway rule hazmat SKU special zone; TDS Redis lock bin implementation.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>FDS/TDS duplicate content maintain sync.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>FDS business Input Process Output.</li>
+                  <li>TDS technical class DB algorithm.</li>
+                  <li>Bridge BA and developer.</li>
+                  <li>FDS business sign-off first.</li>
+                  <li>TDS performance load test plan.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- UML DIAGRAMS -->
+        <section class="section" id="uml">
+          <h2 class="section-title">UML Diagrams</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q5</span> Class Diagram</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>UML Class Diagram</strong> structure class attribute method visibility +/−/# relationship association aggregation composition inheritance dependency.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Static structure WMS domain model communicate Order Location Task relationship new team member.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>PlantUML class WmsService WcsController TransportTask PlcGateway interface. Multiplicity 1 * 0..1. Composition filled diamond TransportTask part-of WcsController.</p>
+              </div>
+<table class="feature-table">
+                <thead>
+                  <tr><th>Visibility</th><th>Ký hiệu</th><th>Relationship</th><th>Ý nghĩa</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>public</td><td><code>+</code></td><td>Association</td><td>Liên kết yếu, có thể tồn tại độc lập</td></tr>
+                  <tr><td>private</td><td><code>-</code></td><td>Aggregation</td><td>Whole-part, part có thể tách rời</td></tr>
+                  <tr><td>protected</td><td><code>#</code></td><td>Composition</td><td>Whole-part, part không tồn tại ngoài whole</td></tr>
+                  <tr><td>package</td><td><code>~</code></td><td>Inheritance</td><td>IS-A relationship</td></tr>
+                  <tr><td colspan="2">Multiplicity: <code>1</code>, <code>0..*</code>, <code>1..*</code></td><td>Dependency</td><td>Sử dụng tạm thời (dashed arrow)</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="plantuml"><pre><code>@startuml WCS_WMS_Class_Diagram
+skinparam classAttributeIconSize 0
+
+class WmsService {
+  +createOutboundOrder(order: OutboundOrder): OrderId
+  +allocateInventory(orderId: OrderId): AllocationResult
+  +releaseToWcs(orderId: OrderId): void
+}
+
+class WcsController {
+  +receiveCommand(command: WcsCommand): CommandAck
+  +dispatchToEquipment(task: TransportTask): void
+  +handleStatusUpdate(status: EquipmentStatus): void
+}
+
+class TransportTask {
+  -taskId: String
+  -sourceLocation: Location
+  -destinationLocation: Location
+  -priority: int
+  +execute(): TaskResult
+}
+
+class ConveyorController {
+  -plcGateway: PlcGateway
+  +startConveyor(segmentId: String): void
+  +stopConveyor(segmentId: String): void
+}
+
+interface PlcGateway {
+  +sendCommand(cmd: PlcCommand): PlcResponse
+  +subscribeStatus(callback: StatusCallback): void
+}
+
+class OpcUaPlcGateway implements PlcGateway {
+  -endpoint: String
+  +sendCommand(cmd: PlcCommand): PlcResponse
+  +subscribeStatus(callback: StatusCallback): void
+}
+
+class Location {
+  -zoneId: String
+  -aisle: String
+  -bin: String
+  +isAvailable(): boolean
+}
+
+WmsService --> WcsController : release task
+WcsController "1" *-- "0..*" TransportTask : manages
+WcsController --> ConveyorController : dispatches
+ConveyorController --> PlcGateway : uses
+OpcUaPlcGateway ..|> PlcGateway
+TransportTask --> Location : source/dest
+@enduml</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>LLD document domain model WCS WMS. Code review new module structure.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không class diagram every trivial CRUD — focus core domain. Không outdated not match code — living doc.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>PlantUML WCS_WMS diagram WmsService release task WcsController manages TransportTask.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Aggregation vs composition semantics; dependency vs association.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Class attribute method visibility + - #.</li>
+                  <li>Association aggregation composition inheritance.</li>
+                  <li>PlantUML text version control Git.</li>
+                  <li>WMS WCS domain class example.</li>
+                  <li>Multiplicity 1 star zero dot star.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q6</span> Sequence Diagram</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Sequence diagram</strong> interaction time order objects messages — fragments alt opt loop activate deactivate lifeline.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Dynamic behavior one use case flow WMS→WCS→PLC→Conveyor debug integration timing async.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>PlantUML Operator WMS WCS PLC CV. ReleaseTransportTask SendMoveCommand loop status poll alt fault reroute. activate/deactivate show focus control.</p>
+              </div>
+<div class="code-block" data-lang="plantuml"><pre><code>@startuml WCS_Command_Sequence
+actor Operator
+participant "WMS Service" as WMS
+participant "WCS Controller" as WCS
+participant "PLC Gateway" as PLC
+participant "Conveyor" as CV
+
+Operator -> WMS: Create Pick Order
+activate WMS -> WMS: Allocate Bin & Inventory
+WMS -> WCS: ReleaseTransportTask(task)
+activate WCS
+WCS -> WCS: Validate task & route plan
+WCS -> PLC: SendMoveCommand(segmentId, direction)
+activate PLC
+PLC -> CV: Activate motor
+activate CV
+CV --> PLC: Running status
+PLC --> WCS: CommandAck(OK)
+deactivate PLC
+
+loop Status polling every 500ms
+  WCS -> PLC: GetSegmentStatus(segmentId)
+  PLC --> WCS: PositionUpdate
+end
+
+CV --> PLC: Item arrived at destination
+PLC --> WCS: TransportComplete
+deactivate CV
+WCS --> WMS: TaskCompleted(taskId)
+deactivate WCS
+WMS --> Operator: Pick confirmed
+deactivate WMS
+
+alt Equipment fault
+  PLC --> WCS: FaultAlarm(errorCode)
+  WCS -> WCS: Reroute or hold task
+  WCS --> WMS: TaskException(taskId, reason)
+end
+@enduml</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>LLD complex multi-system flow allocate pick convey. Incident debug message order.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không sequence entire system all use cases — one scenario per diagram. Không without alt error path incomplete.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Sequence pick order WMS release WCS PLC conveyor complete alt fault alarm.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Synchronous vs async message arrow type; loop condition clear.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Sequence time order message between objects.</li>
+                  <li>Fragments alt opt loop.</li>
+                  <li>PlantUML WMS WCS PLC flow.</li>
+                  <li>Include error alt path fault.</li>
+                  <li>activate deactivate lifeline focus.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q7</span> State Diagram</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>State diagram</strong> stable states transitions events guard conditions — order transport unit CREATED through DISPATCHED composite states.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>WMS order/task lifecycle core domain — invalid transition bug inventory wrong. State vs activity: state stable activity action flow.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>States rounded rect transitions arrow event label guard [inventory available]. Composite Conveying sub Moving Waiting Fault.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Created</div>
+              <ul>
+                <li><strong>State:</strong> trạng thái ổn định của object</li>
+                <li><strong>Transition:</strong> sự kiện gây chuyển trạng thái</li>
+                <li><strong>Guard condition:</strong> điều kiện bảo vệ (e.g. inventory available)</li>
+                <li><strong>Composite state:</strong> state lồng nhau (e.g. Conveying chứa Moving, Waiting, Fault)</li>
+              </ul>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Entity lifecycle order transport unit equipment status. NOT linear business process with fork join — use activity.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không state diagram algorithm loop — use activity flowchart. Không too many states one diagram — composite submachine.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Order state Created Allocated Released Picking Conveying Dispatched guard inventory.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>State vs status enum code mismatch; forget terminal state.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>State stable object lifecycle.</li>
+                  <li>Transition event trigger guard condition.</li>
+                  <li>WMS order Created to Dispatched.</li>
+                  <li>Composite state nested sub states.</li>
+                  <li>Vs activity diagram process flow.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q8</span> Activity, Component, Use Case, Deployment</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Activity</strong> business flow swimlane decision fork join. <strong>Component</strong> architecture layer. <strong>Use case</strong> actor requirement. <strong>Deployment</strong> node artifact physical.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Different UML views answer different questions — pick right diagram phỏng vấn và doc.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Activity: putaway swimlane Operator WMS WCS PLC. Component: UI API Service DAO MQ. Use case: Operator picks System allocates. Deployment: App Server DB PLC Gateway Redis.</p>
+              </div>
+<table class="feature-table">
+                <thead>
+                  <tr><th>Diagram</th><th>Mục đích</th><th>Ứng dụng WCS/WMS</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Activity Diagram</strong></td>
+                    <td>Business flow với decision, fork/join, swimlane</td>
+                    <td>Putaway flow, Picking flow — swimlane: Operator, WMS, WCS, PLC</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Component Diagram</strong></td>
+                    <td>Kiến trúc layer, interface, dependency</td>
+                    <td>Web UI → Service Layer → DAO → Integration Layer (MQTT/OPC-UA)</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Use Case Diagram</strong></td>
+                    <td>Actor, use case, include/extend</td>
+                    <td>Requirement phase: Operator picks, System allocates, AGV transports</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Deployment Diagram</strong></td>
+                    <td>Node, artifact, communication path</td>
+                    <td>App Server, DB Server, PLC Gateway, Scanner terminal, Redis cache</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="mermaid"><pre><code>graph TB
+  UI[Web UI] --> API[REST API Gateway]
+  API --> WMS[WMS Service]
+  API --> WCS[WCS Controller]
+  WMS --> DB[(Oracle DB)]
+  WCS --> MQ[MQTT Broker]
+  MQ --> PLC[PLC Gateway]
+  WCS --> Redis[(Redis Cache)]</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Activity business process BA. Component HLD architecture. Use case SRS requirements. Deployment ops infra.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không use case show message sequence order — sequence diagram. Không deployment without node artifact stereotype.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Activity putaway fork QC pass fail paths. Deployment diagram K8s pod Oracle Redis MQTT broker.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Activity vs flowchart UML semantics fork join bar; component vs package diagram.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Activity business flow swimlane decision.</li>
+                  <li>Component architecture layer interface.</li>
+                  <li>Use case actor SRS phase requirement.</li>
+                  <li>Deployment physical node artifact.</li>
+                  <li>Mermaid lightweight component alternative.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- TOOLS -->
+        <section class="section" id="tools">
+          <h2 class="section-title">Diagram Tools</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q9</span> Công cụ vẽ diagram</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Diagram tools: <strong>PlantUML</strong> text Git, <strong>draw.io</strong> drag workshop, <strong>DBeaver/dbdiagram</strong> ERD, <strong>Mermaid</strong> markdown, <strong>Enterprise Architect</strong> enterprise.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Diagram-as-code version PR review vs visual workshop speed. Team choose fit workflow.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>PlantUML @startuml in repo CI generate PNG. draw.io export SVG workshop BA. dbdiagram.io schema from SQL. Mermaid GitHub README render.</p>
+              </div>
+<table class="feature-table">
+                <thead>
+                  <tr><th>Tool</th><th>Ưu điểm</th><th>Phù hợp khi</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>PlantUML</strong></td>
+                    <td>Text syntax, version control friendly, tích hợp IDE</td>
+                    <td>Team dev muốn diagram trong Git, CI generate PNG</td>
+                  </tr>
+                  <tr>
+                    <td><strong>draw.io / diagrams.net</strong></td>
+                    <td>Miễn phí, export nhiều format, drag-and-drop</td>
+                    <td>Workshop nhanh với BA/PM, presentation</td>
+                  </tr>
+                  <tr>
+                    <td><strong>DBeaver / dbdiagram.io</strong></td>
+                    <td>Auto-generate ERD từ database</td>
+                    <td>Document DB schema warehouse (bin, location, inventory)</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Mermaid</strong></td>
+                    <td>Markdown syntax, tích hợp GitHub/Notion</td>
+                    <td>README, wiki, lightweight docs</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Enterprise Architect / Visual Paradigm</strong></td>
+                    <td>UML chuyên nghiệp, reverse engineering</td>
+                    <td>Dự án enterprise lớn, compliance audit</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>PlantUML/Mermaid dev team Git. draw.io BA PM workshop. EA compliance large enterprise.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không only GUI diagram no Git — drift outdated. Không wrong tool ERD manual when auto-generate schema.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>PlantUML sequence in docs/ LLD PR review diff diagram change.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>PlantUML layout manual skinparam; Mermaid limited UML subset.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>PlantUML text Git version control.</li>
+                  <li>draw.io quick workshop BA PM.</li>
+                  <li>DBeaver dbdiagram auto ERD schema.</li>
+                  <li>Mermaid markdown GitHub wiki.</li>
+                  <li>Choose team workflow fit.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- BEST PRACTICES -->
+        <section class="section" id="best-practices">
+          <h2 class="section-title">Best Practices viết Design Document</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q10</span> Nguyên tắc vàng</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Nguyên tắc vàng design doc: version-controlled Git, diagram-first, living document update, design review before code, assumptions constraints trade-offs explicit.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Outdated doc worse than none — mislead implement wrong. PR review code+doc together consistency.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>docs/ folder same repo. Mermaid/PlantUML in markdown. Design review meeting HLD sign-off gate. Changelog section trade-off MQTT vs OPC-UA latency vs model.</p>
+              </div>
+<ol>
+                  <li>Giải thích được sự khác biệt SRS vs SDD vs TDS</li>
+                  <li>Vẽ được Class Diagram cho domain WMS (Order, Location, Task)</li>
+                  <li>Vẽ được Sequence Diagram cho luồng WMS → WCS → PLC</li>
+                  <li>Biết khi nào dùng State Diagram vs Activity Diagram</li>
+                  <li>Demo được 1 đoạn PlantUML trong IDE hoặc online editor</li>
+                </ol>
+              <ul>
+                <li><strong>Version-controlled:</strong> Document nằm cùng repo source code (Git) — PR review cả code lẫn design.</li>
+                <li><strong>Diagram-first:</strong> Một picture = 1000 words — luôn kèm ít nhất 1 diagram mỗi section.</li>
+                <li><strong>Living document:</strong> Cập nhật khi thiết kế thay đổi — outdated doc nguy hiểm hơn không có doc.</li>
+                <li><strong>Design review trước coding:</strong> Team review HLD/LLD trước sprint — tránh refactor tốn kém.</li>
+                <li><strong>Ghi rõ assumptions, constraints, trade-offs:</strong> Ví dụ: "Chọn MQTT thay OPC-UA vì AGV cần lightweight protocol, trade-off: ít data model hơn."</li>
+              </ul>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Every feature epic ≥3 day. WCS integration external contract.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không over-document spike throwaway prototype. Không doc without owner maintain update.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>PR change PlcGateway + update sequence diagram same PR reviewer verify match.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Doc after code retro only; no trade-off recorded repeat debate.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Doc in Git version control PR review.</li>
+                  <li>Diagram-first picture 1000 words.</li>
+                  <li>Living document update or delete.</li>
+                  <li>Design review before sprint code.</li>
+                  <li>Record assumptions constraints trade-offs.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+<section class="section" id="deep-dive-design">
+          <h2 class="section-title">Deep Dive — Thiết kế thực chiến: SOLID, Coupling &amp; Hexagonal</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D1</span> SOLID thực chiến — nhận diện vi phạm và cách sửa</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>SOLID</strong> là 5 nguyên tắc hướng đối tượng: <strong>SRP</strong> (một lý do để thay đổi), <strong>OCP</strong> (mở để mở rộng, đóng để sửa), <strong>LSP</strong> (subtype thay được supertype), <strong>ISP</strong> (không ép client phụ thuộc method nó không dùng), <strong>DIP</strong> (phụ thuộc abstraction). Đây là <em>guideline</em>, không phải luật cứng — mục tiêu cuối là giảm coupling, tăng cohesion.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Interviewer senior không hỏi "kể tên 5 nguyên tắc" mà hỏi "cho ví dụ vi phạm và cách sửa". SOLID giúp code dễ test, dễ thay đổi; vi phạm nó chính là nguồn gốc của "software rot" (mục nát phần mềm).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <p>Với mỗi nguyên tắc, nhận diện <em>code smell</em> rồi refactor:</p>
+                <table class="feature-table">
+                  <thead>
+                    <tr><th>Nguyên tắc</th><th>Dấu hiệu vi phạm (smell)</th><th>Cách sửa</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><strong>SRP</strong></td><td>1 class vừa tính toán, vừa gửi email, vừa format report</td><td>Tách theo trục thay đổi, không theo "tầng"</td></tr>
+                    <tr><td><strong>OCP</strong></td><td>Thêm loại mới phải sửa <code>switch</code>/<code>if-else</code> dài</td><td>Đa hình + Strategy/Factory</td></tr>
+                    <tr><td><strong>LSP</strong></td><td>Subclass throw exception "not supported" cho method của cha</td><td>Subtype phải tôn trọng contract (pre/post-condition)</td></tr>
+                    <tr><td><strong>ISP</strong></td><td>Interface "fat" 20 method, client chỉ dùng 2</td><td>Tách interface nhỏ theo nhu cầu client</td></tr>
+                    <tr><td><strong>DIP</strong></td><td>Service <code>new</code> trực tiếp concrete repository</td><td>Inject interface qua constructor</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// VI PHẠM OCP + DIP: thêm kênh mới phải sửa if-else, new trực tiếp</span>
+<span class="tok-keyword">class</span> <span class="tok-class">Notifier</span> {
+  <span class="tok-keyword">void</span> <span class="tok-function">send</span>(<span class="tok-class">String</span> type, <span class="tok-class">String</span> msg) {
+    <span class="tok-keyword">if</span> (type.<span class="tok-function">equals</span>(<span class="tok-string">"email"</span>)) <span class="tok-keyword">new</span> <span class="tok-class">SmtpEmailSender</span>().<span class="tok-function">send</span>(msg);
+    <span class="tok-keyword">else if</span> (type.<span class="tok-function">equals</span>(<span class="tok-string">"sms"</span>)) <span class="tok-keyword">new</span> <span class="tok-class">TwilioSender</span>().<span class="tok-function">send</span>(msg);
+  }
+}
+
+<span class="tok-comment">// SỬA: abstraction + inject (OCP + DIP)</span>
+<span class="tok-keyword">interface</span> <span class="tok-class">MessageSender</span> { <span class="tok-keyword">void</span> <span class="tok-function">send</span>(<span class="tok-class">String</span> msg); }
+<span class="tok-keyword">class</span> <span class="tok-class">Notifier</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">MessageSender</span> sender;     <span class="tok-comment">// phụ thuộc abstraction</span>
+  <span class="tok-class">Notifier</span>(<span class="tok-class">MessageSender</span> sender) { <span class="tok-keyword">this</span>.sender = sender; }
+  <span class="tok-keyword">void</span> <span class="tok-function">send</span>(<span class="tok-class">String</span> msg) { sender.<span class="tok-function">send</span>(msg); }   <span class="tok-comment">// thêm kênh = thêm impl, không sửa class này</span>
+}</code></pre></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Áp dụng khi biết trước trục thay đổi: nhiều implementation, nhiều kênh, nhiều tenant. Dùng khi review code hoặc trước khi thêm một feature lặp lại lần thứ 3.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>SRP/ISP cực đoan sinh "class 3 dòng + 200 interface" — over-engineering. DIP không có nghĩa mọi class phải có interface — chỉ ở biên (boundary) nơi implementation thực sự có thể đổi. Đừng tách interface cho class chưa từng có >1 implementation.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Nhầm <strong>SRP</strong> với "class chỉ được làm 1 việc nhỏ". SRP thực ra là "một lý do để thay đổi" — một class có thể có nhiều method nếu chúng cùng phục vụ một actor/trục thay đổi. Interviewer hay hỏi: "class 10 method có vi phạm SRP không?" — câu trả lời: tùy, hãy xét lý do thay đổi chứ không đếm method.</p></div>
+              <p><small>Nguồn: <a href="https://en.wikipedia.org/wiki/SOLID">Wikipedia — SOLID</a> · <a href="https://martinfowler.com/articles/dipInTheWild.html">Martin Fowler — DIP in the Wild</a></small></p>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D2</span> Coupling vs Cohesion — Layering vs Hexagonal (Ports &amp; Adapters)</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Cohesion</strong> = mức độ các phần trong một module thuộc về nhau (cao là tốt). <strong>Coupling</strong> = mức độ phụ thuộc giữa các module (thấp là tốt). <strong>Layered architecture</strong> xếp tầng UI → Service → Domain → Persistence (dependency hướng xuống). <strong>Hexagonal (Ports &amp; Adapters)</strong> đặt domain ở giữa, mọi thứ bên ngoài (DB, HTTP, queue) giao tiếp chỉ qua <em>port</em> — interface do domain định nghĩa.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Layering dễ hiểu nhưng khi service phụ thuộc trực tiếp Repository/JPA thì domain coupling chặt với hạ tầng — khó test, khó đổi DB. Hexagonal <strong>đảo chiều phụ thuộc (DIP)</strong>: adapter phụ thuộc vào port của domain, không ngược lại. Kết quả: test domain thuần bằng in-memory adapter, đổi công nghệ không đụng business logic.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <p>Chuyển từ layered sang hexagonal theo 2 bước: (1) đảo chiều dependency, (2) định nghĩa port nằm <em>trong</em> domain.</p>
+                <div class="compare-grid">
+                  <div class="compare-col">
+                    <h4>Layered (3-tier)</h4>
+                    <ul>
+                      <li>Dependency hướng xuống theo tầng</li>
+                      <li>Domain thường biết DB/SQL</li>
+                      <li>Test tích hợp phải dựng DB</li>
+                      <li>Nhanh gọn cho CRUD đơn giản</li>
+                    </ul>
+                  </div>
+                  <div class="compare-col">
+                    <h4>Hexagonal (Ports &amp; Adapters)</h4>
+                    <ul>
+                      <li>Domain ở giữa, adapter ở ngoài</li>
+                      <li>Adapter phụ thuộc port của domain</li>
+                      <li>Test domain bằng in-memory adapter</li>
+                      <li>Linh hoạt hơn, đổi lại nhiều code hơn</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node">HTTP Controller (adapter)</div><div class="flow-node">Kafka Listener (adapter)</div></div>
+                  <div class="flow-arrow">↓ gọi driving port</div>
+                  <div class="flow-row"><div class="flow-node primary">Domain + Application Services</div></div>
+                  <div class="flow-arrow">↓ gọi driven port</div>
+                  <div class="flow-row"><div class="flow-node success">Repository Port</div><div class="flow-node success">Payment Port</div></div>
+                  <div class="flow-arrow">được hiện thực bởi</div>
+                  <div class="flow-row"><div class="flow-node secondary">JPA Adapter</div><div class="flow-node secondary">Stripe Adapter</div></div>
+                </div>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Port do DOMAIN định nghĩa (nằm trong domain package)</span>
+<span class="tok-keyword">interface</span> <span class="tok-class">OrderRepository</span> {
+  <span class="tok-class">Optional</span>&lt;<span class="tok-class">Order</span>&gt; <span class="tok-function">findById</span>(<span class="tok-class">OrderId</span> id);
+  <span class="tok-keyword">void</span> <span class="tok-function">save</span>(<span class="tok-class">Order</span> order);
+}
+
+<span class="tok-comment">// Application service chỉ biết port, không biết JPA/Hibernate</span>
+<span class="tok-keyword">class</span> <span class="tok-class">PlaceOrderService</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">OrderRepository</span> repo;     <span class="tok-comment">// abstraction, không phải JpaRepository</span>
+  <span class="tok-class">PlaceOrderService</span>(<span class="tok-class">OrderRepository</span> repo) { <span class="tok-keyword">this</span>.repo = repo; }
+  <span class="tok-keyword">void</span> <span class="tok-function">place</span>(<span class="tok-class">Order</span> order) { repo.<span class="tok-function">save</span>(order); }
+}
+
+<span class="tok-comment">// Adapter (hạ tầng) hiện thực port — nơi DUY NHẤT chạm JPA</span>
+<span class="tok-keyword">class</span> <span class="tok-class">JpaOrderRepository</span> <span class="tok-keyword">implements</span> <span class="tok-class">OrderRepository</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">EntityManager</span> em;
+  <span class="tok-keyword">public</span> <span class="tok-class">Optional</span>&lt;<span class="tok-class">Order</span>&gt; <span class="tok-function">findById</span>(<span class="tok-class">OrderId</span> id) { <span class="tok-keyword">return</span> <span class="tok-class">Optional</span>.<span class="tok-function">ofNullable</span>(em.<span class="tok-function">find</span>(<span class="tok-class">Order</span>.<span class="tok-keyword">class</span>, id.<span class="tok-function">value</span>())); }
+  <span class="tok-keyword">public void</span> <span class="tok-function">save</span>(<span class="tok-class">Order</span> order) { em.<span class="tok-function">persist</span>(order); }
+}</code></pre></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Domain logic phức tạp, nhiều loại I/O (HTTP, queue, batch), cần test nhanh không phụ thuộc DB, hoặc chuẩn bị tách service/microservice.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>CRUD/backoffice đơn giản — hexagonal thêm port/adapter/mapper chỉ tăng boilerplate. Không biến mọi repository thành interface nếu chưa từng có >1 implementation hoặc test double (YAGNI).</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Hexagonal KHÔNG phải "chia 6 package". Nó là <em>dependency rule</em>: domain không được compile-time phụ thuộc hạ tầng. Nếu domain import <code>jakarta.persistence.Entity</code> hay <code>javax.sql.DataSource</code> là đã rò rỉ (leak). Cũng đừng nhầm Hexagonal = Onion = Clean: cùng dependency rule, nhưng Ports &amp; Adapters chỉ có 2 tầng inside/outside và bắt buộc định nghĩa port.</p></div>
+              <p><small>Nguồn: <a href="https://alistair.cockburn.us/hexagonal-architecture">Alistair Cockburn — Hexagonal Architecture</a> · <a href="https://martinfowler.com/articles/dipInTheWild.html">Martin Fowler — DIP in the Wild</a></small></p>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">D3</span> DDD-lite: Aggregate, Bounded Context + ADR &amp; trade-off analysis</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>DDD-lite</strong> = dùng chọn lọc building block của Domain-Driven Design mà không áp full strategic DDD. <strong>Aggregate</strong> là một cụm entity/value object đảm bảo invariant trong một transaction; chỉ <strong>Aggregate Root</strong> được truy cập từ ngoài. <strong>Bounded Context</strong> là biên ngôn ngữ: cùng từ "Order" nhưng mang nghĩa khác ở từng context. <strong>ADR</strong> (Architecture Decision Record) là bản ghi ngắn một quyết định kiến trúc kèm bối cảnh và hệ quả.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Aggregate định hình transaction boundary: boundary sai → lock quá rộng (giảm throughput) hoặc mất nhất quán. Bounded Context giải thích khi nào nên tách service. ADR + trade-off analysis giúp team không tranh luận lại mãi và giữ được lý do quyết định khi người cũ rời đi.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <p>Bốn building block chính của DDD-lite:</p>
+                <table class="feature-table">
+                  <thead>
+                    <tr><th>Khái niệm</th><th>Ý nghĩa</th><th>Câu hỏi kiểm tra</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><strong>Entity</strong></td><td>Có identity, đổi attribute vẫn là chính nó</td><td>Có cần ID bền vững không?</td></tr>
+                    <tr><td><strong>Value Object</strong></td><td>Bất biến, so sánh theo giá trị (Money, DateRange)</td><td>Nếu không cần identity riêng → VO</td></tr>
+                    <tr><td><strong>Aggregate</strong></td><td>Cụm đảm bảo invariant trong 1 transaction</td><td>Invariant nào phải đúng ngay khi commit?</td></tr>
+                    <tr><td><strong>Bounded Context</strong></td><td>Biên ngôn ngữ + model</td><td>Từ này ở context này nghĩa là gì?</td></tr>
+                  </tbody>
+                </table>
+                <div class="erd-table">
+                  <div class="erd-name">Order (Aggregate Root)</div>
+                  <div class="erd-cols">id <span class="pk">PK</span> · customerId · status · total · version <span class="idx">IDX</span></div>
+                  <div class="erd-name">OrderLine (entity con — chỉ truy cập qua root)</div>
+                  <div class="erd-cols">id <span class="pk">PK</span> · productId · qty · price</div>
+                </div>
+              </div>
+              <div class="code-block" data-lang="plantuml"><pre><code>@startuml BoundedContextMap
+package "Sales Context" {
+  class Order { +addLine() +submit() }
+}
+package "Inventory Context" {
+  class StockItem { +reserve() +release() }
+}
+Order ..&gt; StockItem : OrderPlaced event (async)
+note right of Order : Aggregate Root - invariant: total = sum(lines)
+@enduml</code></pre></div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Domain nghiệp vụ phức tạp, nhiều team dùng ngôn ngữ khác nhau, invariant gắn chặt với dữ liệu (giỏ hàng, đơn hàng, ví tiền), hoặc cần cơ sở để chia service.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>CRUD đọc-ghi đơn giản → Anemic model + Active Record chấp nhận được (đừng ép DDD). Đừng làm aggregate to "cho đủ" — aggregate lớn tăng lock contention và load thừa. Bounded Context ≠ microservice: 1 service có thể chứa nhiều context, và 1 context có thể gồm nhiều service.</p></div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>ADR — bản ghi quyết định</h4>
+                  <ul>
+                    <li>1 file markdown / 1 quyết định</li>
+                    <li>Trạng thái: proposed / accepted / superseded</li>
+                    <li>Cấu trúc: Bối cảnh · Quyết định · Hệ quả</li>
+                    <li>Lưu trong repo (docs/adr/) để review cùng code</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>Trade-off analysis</h4>
+                  <ul>
+                    <li>Nêu 2–3 phương án thay vì 1</li>
+                    <li>Tiêu chí: latency, cost, complexity, team skill</li>
+                    <li>Chọn + ghi rõ điều đánh đổi</li>
+                    <li>Ghi điều kiện khiến quyết định nên xem lại</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Anemic Domain Model: entity chỉ getter/setter, logic dồn vào service — với JPA đôi khi chấp nhận được, nhưng nếu invariant phức tạp thì logic ở ngoài dễ bị vi phạm. Ngược lại nhồi quá nhiều vào entity lớn cũng tạo God Object. Interviewer hay hỏi: "Vì sao OrderLine không nên có repository riêng?" — vì nó không phải aggregate root; truy cập trực tiếp sẽ phá vỡ invariant của Order.</p></div>
+              <p><small>Nguồn: <a href="https://martinfowler.com/bliki/DDD_Aggregate.html">Martin Fowler — DDD Aggregate</a> · <a href="https://adr.github.io/">adr.github.io — Architecture Decision Records</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <div class="nav-pager">
+          <a class="prev" href="11-dsa.html">
+            <span class="label">Trước</span>
+            <span class="title">11. Coding &amp; DSA</span>
+          </a>
+          <a class="next" href="13-design-patterns.html">
+            <span class="label">Tiếp</span>
+            <span class="title">13. Design Patterns</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Module 12 / 14</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

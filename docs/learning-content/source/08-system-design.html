@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8. System Design &amp; Scalability — Java Interview Bank</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Java Interview<br><span>Bank</span></h1>
+        <p>Interview Prep Notes</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>8. System Design &amp; Scalability</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 08</div>
+          <h1 class="module-title">System Design, Scalability &amp; Production Scenarios</h1>
+          <p class="module-subtitle">Thiết kế hệ thống phân tán, caching Redis, HA/Failover, observability và xử lý sự cố production — kỹ năng Senior/Lead bắt buộc.</p>
+        </div>
+
+        <!-- SECTION: System Design Problems -->
+        <section class="section" id="design-problems">
+          <h2 class="section-title">Bài toán thiết kế hệ thống</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q1</span> Thiết kế URL Shortener Service</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>URL Shortener</strong> nhận URL dài, sinh short code unique (vd <code>go/abc12X</code>), redirect HTTP 301/302 tới URL gốc, ghi analytics click async. Read-heavy (~100:1), scale hàng trăm triệu URL/tháng, redirect p99 &lt;50ms.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Bài toán kinh điển phỏng vấn system design: đo khả năng capacity estimation, ID generation, caching read path, analytics không block redirect. Pattern áp dụng cho mọi read-heavy lookup service.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Write path: validate URL → generate ID (Snowflake/counter) → Base62 encode → persist PostgreSQL + warm Redis. Read path: Redis cache-aside → miss thì DB → populate cache. Analytics: Kafka async. Custom alias: unique index, 409 nếu trùng.</p>
+              </div>
+              <div class="stat-row">
+                <div class="stat-card"><div class="stat-value">100:1</div><div class="stat-label">Read : Write</div></div>
+                <div class="stat-card"><div class="stat-value">100M</div><div class="stat-label">URLs / tháng</div></div>
+                <div class="stat-card"><div class="stat-value">&lt;50ms</div><div class="stat-label">Redirect p99</div></div>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Client</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-node secondary">API Gateway / LB</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-node">Shortener Service</div>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-row">
+                  <div class="flow-node success">Redis Cache</div>
+                  <div class="flow-node">PostgreSQL / Cassandra</div>
+                  <div class="flow-node">Analytics Queue (Kafka)</div>
+                </div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Thành phần</th><th>Lựa chọn</th><th>Lý do</th></tr></thead>
+                <tbody>
+                  <tr><td>ID generation</td><td>Base62 encode của Snowflake ID hoặc auto-increment</td><td>Unique, sortable, ngắn (7 ký tự ≈ 3.5 tỷ URL)</td></tr>
+                  <tr><td>Hash collision</td><td>MD5/SHA256 lấy 7 ký tự + retry hoặc dùng counter</td><td>Counter an toàn hơn; hash cần check DB</td></tr>
+                  <tr><td>Database</td><td>PostgreSQL (write) + Redis (read hot path)</td><td>Read-heavy → cache 80%+ redirect</td></tr>
+                  <tr><td>Custom alias</td><td>Unique index trên <code>short_code</code></td><td>409 Conflict nếu trùng</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Base62 encoding — 0-9, a-z, A-Z</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">Base62Encoder</span> {
+  <span class="tok-keyword">private static final</span> <span class="tok-class">String</span> ALPHABET =
+      <span class="tok-string">"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"</span>;
+
+  <span class="tok-keyword">public static</span> <span class="tok-class">String</span> <span class="tok-function">encode</span>(<span class="tok-keyword">long</span> id) {
+    <span class="tok-class">StringBuilder</span> sb = <span class="tok-keyword">new</span> <span class="tok-class">StringBuilder</span>();
+    <span class="tok-keyword">while</span> (id &gt; <span class="tok-number">0</span>) {
+      sb.append(ALPHABET.charAt((<span class="tok-keyword">int</span>) (id % <span class="tok-number">62</span>)));
+      id /= <span class="tok-number">62</span>;
+    }
+    <span class="tok-keyword">return</span> sb.reverse().toString();
+  }
+}
+
+<span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">UrlShortenerService</span> {
+  <span class="tok-keyword">public</span> <span class="tok-class">String</span> <span class="tok-function">createShortUrl</span>(<span class="tok-class">String</span> longUrl) {
+    <span class="tok-keyword">long</span> id = snowflake.nextId();
+    <span class="tok-class">String</span> code = Base62Encoder.encode(id);
+    urlRepo.save(<span class="tok-keyword">new</span> <span class="tok-class">UrlMapping</span>(code, longUrl));
+    redis.set(<span class="tok-string">"url:"</span> + code, longUrl, Duration.ofDays(<span class="tok-number">30</span>));
+    <span class="tok-keyword">return</span> baseUrl + <span class="tok-string">"/"</span> + code;
+  }
+
+  <span class="tok-keyword">public</span> <span class="tok-class">String</span> <span class="tok-function">resolve</span>(<span class="tok-class">String</span> code) {
+    <span class="tok-class">String</span> cached = redis.get(<span class="tok-string">"url:"</span> + code);
+    <span class="tok-keyword">if</span> (cached != <span class="tok-keyword">null</span>) <span class="tok-keyword">return</span> cached;
+    <span class="tok-keyword">return</span> urlRepo.findByCode(code)
+        .map(u -&gt; { redis.set(<span class="tok-string">"url:"</span> + code, u.getLongUrl()); <span class="tok-keyword">return</span> u.getLongUrl(); })
+        .orElseThrow(() -&gt; <span class="tok-keyword">new</span> <span class="tok-class">NotFoundException</span>(code));
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Prototype bit.ly nội bộ, marketing link tracking, deep link mobile app. Dùng 301 nếu SEO permanent; 302 nếu cần track mọi click.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không hash MD5 7 ký tự không check collision — risk trùng. Không sync analytics trong redirect path — latency spike. Không lưu URL không validate (open redirect XSS). Không dùng auto-increment sequential expose business volume.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Campaign email 10M link: 95% redirect hit Redis, 5% miss DB; Kafka ghi click geo/device không block user.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>301 vs 302 trade-off; hash collision retry; TTL cache vs custom alias permanent; estimate storage 100M URL × 500B ≈ 50GB.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>URL shortener = read-heavy lookup + async analytics.</li>
+                  <li>ID: Snowflake + Base62 hoặc counter an toàn.</li>
+                  <li>Redis cache redirect hot path; PostgreSQL source of truth.</li>
+                  <li>301 SEO vs 302 track click.</li>
+                  <li>Analytics qua Kafka, không block redirect.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q2</span> Thiết kế Payment System</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Payment System</strong> xử lý authorize/capture/refund với ACID ledger, idempotency key chống double-charge, double-entry bookkeeping (debit = credit), audit trail bất biến.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Tiền không tha lỗi: retry network, duplicate webhook, race condition order status → double charge mất trust + pháp lý. Ledger bất biến là compliance bắt buộc fintech.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Idempotency-Key unique index → return cached result nếu retry. State machine order PENDING→AUTHORIZED→CAPTURED. <code>SELECT FOR UPDATE</code> lock order. Double-entry journal trong cùng TX. Outbox publish PaymentCaptured event. Reconciliation batch vs gateway settlement.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Payment API</div>
+              <table class="feature-table">
+                <thead><tr><th>Khái niệm</th><th>Implementation</th></tr></thead>
+                <tbody>
+                  <tr><td>Double-entry</td><td>Mỗi giao dịch: Debit account A + Credit account B, tổng = 0</td></tr>
+                  <tr><td>Idempotency</td><td><code>Idempotency-Key</code> header → unique index, trả lại kết quả cũ nếu retry</td></tr>
+                  <tr><td>Chống double-charge</td><td>Optimistic lock trên order status + state machine PENDING→CAPTURED</td></tr>
+                  <tr><td>Reconciliation</td><td>Batch job so sánh ledger nội bộ vs gateway settlement hàng ngày</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Transactional</span>
+<span class="tok-keyword">public</span> <span class="tok-class">PaymentResult</span> <span class="tok-function">capturePayment</span>(<span class="tok-class">CaptureRequest</span> req) {
+  <span class="tok-comment">// 1. Idempotency check</span>
+  <span class="tok-class">Optional</span>&lt;<span class="tok-class">Payment</span>&gt; existing = paymentRepo.findByIdempotencyKey(req.getKey());
+  <span class="tok-keyword">if</span> (existing.isPresent()) <span class="tok-keyword">return</span> existing.get().toResult();
+
+  <span class="tok-comment">// 2. Lock order — chỉ CAPTURE nếu AUTHORIZED</span>
+  <span class="tok-class">Order</span> order = orderRepo.findByIdForUpdate(req.getOrderId())
+      .orElseThrow(() -&gt; <span class="tok-keyword">new</span> <span class="tok-class">OrderNotFoundException</span>());
+  <span class="tok-keyword">if</span> (order.getStatus() != <span class="tok-class">OrderStatus</span>.AUTHORIZED)
+    <span class="tok-keyword">throw new</span> <span class="tok-class">InvalidStateException</span>(order.getStatus());
+
+  <span class="tok-comment">// 3. Double-entry ledger</span>
+  ledgerService.post(<span class="tok-class">JournalEntry</span>.builder()
+      .debit(<span class="tok-class">Account</span>.CUSTOMER_WALLET, req.getAmount())
+      .credit(<span class="tok-class">Account</span>.MERCHANT_RECEIVABLE, req.getAmount())
+      .reference(req.getOrderId())
+      .build());
+
+  <span class="tok-class">Payment</span> payment = paymentRepo.save(<span class="tok-keyword">new</span> <span class="tok-class">Payment</span>(req));
+  order.transitionTo(<span class="tok-class">OrderStatus</span>.CAPTURED);
+  outboxPublisher.publish(<span class="tok-keyword">new</span> <span class="tok-class">PaymentCapturedEvent</span>(payment));
+  <span class="tok-keyword">return</span> payment.toResult();
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>E-commerce checkout, subscription billing, wallet transfer nội bộ. Mọi endpoint mutate balance.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không float/double cho tiền — dùng BigDecimal/cents long. Không DELETE ledger — chỉ reversal entry. Không capture không idempotency khi client retry. Không 2PC cross payment gateway + DB — dùng saga/outbox.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>User double-click Pay: cùng Idempotency-Key → server trả paymentId cũ, không charge 2 lần.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Optimistic lock order status; reconciliation phát hiện gateway captured nhưng ledger miss.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Payment = ACID + idempotency + double-entry ledger.</li>
+                  <li>Idempotency-Key chống retry double-charge.</li>
+                  <li>State machine + FOR UPDATE lock order.</li>
+                  <li>BigDecimal/cents, không float.</li>
+                  <li>Reconciliation hàng ngày vs gateway.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q3</span> Thiết kế Order Management System (OMS)</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>OMS</strong> quản lý vòng đời đơn hàng CREATED→PAID→ALLOCATED→PICKING→SHIPPED, tích hợp inventory lock, payment, WMS fulfillment qua state machine + saga.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Order cross nhiều bounded context — không global TX. State machine enforce valid transition, prevent skip PAID→SHIPPED. Inventory lock tránh oversell peak sale.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Enum OrderStatus + transition map. Saga orchestration: reserve stock → charge → create shipment; compensate ngược nếu fail. Optimistic <code>UPDATE qty WHERE qty>=n</code> hoặc pessimistic FOR UPDATE bin WMS. Outbox OrderCreated event.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node">CREATED</div>
+              <table class="feature-table">
+                <thead><tr><th>Pattern</th><th>Mục đích trong OMS</th></tr></thead>
+                <tbody>
+                  <tr><td>Saga (Orchestration)</td><td>Điều phối: reserve inventory → charge → create shipment → compensate nếu fail</td></tr>
+                  <tr><td>Optimistic inventory lock</td><td><code>UPDATE stock SET qty=qty-1 WHERE sku=? AND qty>=1</code></td></tr>
+                  <tr><td>Pessimistic lock</td><td><code>SELECT FOR UPDATE</code> khi allocate bin trong WMS</td></tr>
+                  <tr><td>Outbox pattern</td><td>Publish OrderCreated event cùng transaction DB</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public enum</span> <span class="tok-class">OrderStatus</span> {
+  CREATED, PENDING_PAYMENT, PAID, ALLOCATED, PICKING, SHIPPED, DELIVERED, CANCELLED;
+
+  <span class="tok-keyword">private static final</span> <span class="tok-class">Map</span>&lt;<span class="tok-class">OrderStatus</span>, <span class="tok-class">Set</span>&lt;<span class="tok-class">OrderStatus</span>&gt;&gt; TRANSITIONS = <span class="tok-class">Map</span>.of(
+      CREATED, <span class="tok-class">Set</span>.of(PENDING_PAYMENT, CANCELLED),
+      PENDING_PAYMENT, <span class="tok-class">Set</span>.of(PAID, CANCELLED),
+      PAID, <span class="tok-class">Set</span>.of(ALLOCATED, CANCELLED),
+      ALLOCATED, <span class="tok-class">Set</span>.of(PICKING, CANCELLED),
+      PICKING, <span class="tok-class">Set</span>.of(SHIPPED),
+      SHIPPED, <span class="tok-class">Set</span>.of(DELIVERED)
+  );
+
+  <span class="tok-keyword">public boolean</span> <span class="tok-function">canTransitionTo</span>(<span class="tok-class">OrderStatus</span> next) {
+    <span class="tok-keyword">return</span> TRANSITIONS.getOrDefault(<span class="tok-keyword">this</span>, <span class="tok-class">Set</span>.of()).contains(next);
+  }
+}
+
+<span class="tok-annotation">@Transactional</span>
+<span class="tok-keyword">public void</span> <span class="tok-function">allocateInventory</span>(<span class="tok-class">Long</span> orderId) {
+  <span class="tok-class">Order</span> order = orderRepo.findByIdForUpdate(orderId).orElseThrow();
+  <span class="tok-keyword">if</span> (!order.getStatus().canTransitionTo(<span class="tok-class">OrderStatus</span>.ALLOCATED))
+    <span class="tok-keyword">throw new</span> <span class="tok-class">InvalidTransitionException</span>();
+
+  <span class="tok-keyword">for</span> (<span class="tok-class">OrderLine</span> line : order.getLines()) {
+    <span class="tok-keyword">int</span> updated = inventoryRepo.decrementIfAvailable(line.getSku(), line.getQty());
+    <span class="tok-keyword">if</span> (updated == <span class="tok-number">0</span>) <span class="tok-keyword">throw new</span> <span class="tok-class">InsufficientStockException</span>(line.getSku());
+  }
+  order.setStatus(<span class="tok-class">OrderStatus</span>.ALLOCATED);
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>E-commerce, B2B wholesale, WMS wave release. Flow ≥3 bước, eventual consistency chấp nhận được vài giây.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không cho transition tùy ý (PAID→SHIPPED skip ALLOCATED). Không lock inventory vô thời hạn — timeout release. Không sync call chain 5 service không timeout/CB.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Flash sale 10K order/phút: optimistic inventory decrement; fail → cancel order + notify user.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Saga compensate idempotent; invalid transition exception; inventory insufficient mid-saga.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>OMS = state machine + inventory lock + saga.</li>
+                  <li>Transition map strict — không skip bước.</li>
+                  <li>Optimistic stock decrement hoặc FOR UPDATE bin.</li>
+                  <li>Outbox event cùng TX DB.</li>
+                  <li>Compensate khi payment/inventory fail.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q4</span> Thiết kế hệ thống 100K RPS / 1M active users</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Thiết kế hệ thống chịu <strong>100K RPS</strong>, <strong>1M active users</strong>: stateless app tier, horizontal scale, multi-layer cache, read replica DB, async write path.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Capacity planning phỏng vấn Senior: chứng minh math (pods × RPS/pod), identify bottleneck (DB, cache, network), trade-off consistency vs scale.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>CDN edge static → L7 LB → API Gateway → N stateless pods (HPA 10-200). L1 Caffeine + L2 Redis 90% hit. DB primary + read replicas, HikariCP pool 20-50/pod. Write-heavy → Kafka queue. Math: 100K ÷ 1K RPS/pod = 100 pods + 2× headroom.</p>
+              </div>
+              <div class="stat-row">
+                <div class="stat-card"><div class="stat-value">100K</div><div class="stat-label">Requests/sec</div></div>
+                <div class="stat-card"><div class="stat-value">Stateless</div><div class="stat-label">App tier</div></div>
+                <div class="stat-card"><div class="stat-value">N×</div><div class="stat-label">Horizontal scale</div></div>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">CDN / Edge</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-node secondary">L7 Load Balancer</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-node">API Gateway</div>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-row">
+                  <div class="flow-node">App Pod × N (HPA)</div>
+                  <div class="flow-node success">Redis Cluster</div>
+                  <div class="flow-node">DB Primary + Read Replicas</div>
+                </div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Chiến lược</th><th>Chi tiết</th></tr></thead>
+                <tbody>
+                  <tr><td>Stateless services</td><td>Session → Redis/JWT; không sticky state trên pod</td></tr>
+                  <tr><td>Horizontal scaling</td><td>K8s HPA theo CPU/RPS; ~500-2000 RPS/pod tùy workload</td></tr>
+                  <tr><td>Caching</td><td>L1 local (Caffeine) + L2 Redis; cache hit 90%+ cho read-heavy</td></tr>
+                  <tr><td>Database</td><td>Read replicas, connection pooling (HikariCP max 20-50/pod), sharding nếu cần</td></tr>
+                  <tr><td>Async</td><td>Write-heavy ops → Kafka queue; eventual consistency cho non-critical</td></tr>
+                  <tr><td>Capacity math</td><td>100K RPS ÷ 1K RPS/pod = ~100 pods + 2× headroom = 200 pods</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># Kubernetes HPA example</span>
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-service
+  minReplicas: 10
+  maxReplicas: 200
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Consumer app peak (sale event), social feed, API platform public. Read >> write.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không scale vertical vô hạn — DB connection limit. Không sticky session trên pod — dùng Redis/JWT. Không cache mọi thứ — strong consistency path bypass cache. Không 100K RPS single monolith DB writer.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>11.11 sale: HPA scale 10→180 pods; Redis absorb 90% product catalog read; order write async Kafka.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Connection pool exhaustion; cache stampede; forgot CDN for static.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>100K RPS = stateless pods + HPA + cache + read replica.</li>
+                  <li>Capacity math: RPS ÷ per-pod throughput.</li>
+                  <li>L1 local + L2 Redis; async write Kafka.</li>
+                  <li>Session Redis/JWT, không sticky pod.</li>
+                  <li>CDN + LB + API Gateway edge.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Caching -->
+        <section class="section" id="caching">
+          <h2 class="section-title">Caching &amp; High Availability</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q5</span> Redis Caching — Cache-Aside, Write-Through, Write-Behind</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Ba pattern Redis caching: <strong>Cache-Aside</strong> (app quản lý), <strong>Write-Through</strong> (write DB+cache đồng thời), <strong>Write-Behind</strong> (write cache trước, flush DB async), plus Read-Through.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Read-heavy service (catalog, user profile) giảm DB load 80-95%. Chọn pattern sai → stale data hoặc mất write khi cache crash.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Cache-Aside: read miss → DB → set cache; write → DB → invalidate cache. Write-Through: cache layer write cả hai. Write-Behind: accept write cache, queue persist — fastest write, risk loss.</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>Cache-Aside (Lazy Loading)</h4>
+                  <ul>
+                    <li>App tự quản lý cache</li>
+                    <li>Read: check cache → miss → DB → set cache</li>
+                    <li>Write: update DB → invalidate/delete cache</li>
+                    <li>Phổ biến nhất, linh hoạt</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>Write-Through</h4>
+                  <ul>
+                    <li>Write đồng thời DB + cache</li>
+                    <li>Cache luôn fresh sau write</li>
+                    <li>Write latency cao hơn</li>
+                    <li>Phù hợp read-heavy, consistency quan trọng</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>Write-Behind (Write-Back)</h4>
+                  <ul>
+                    <li>Write cache trước, flush DB async</li>
+                    <li>Write cực nhanh</li>
+                    <li>Risk mất data nếu cache crash</li>
+                    <li>Analytics, metrics, non-critical</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>Read-Through</h4>
+                  <ul>
+                    <li>Cache layer tự load từ DB khi miss</li>
+                    <li>App chỉ talk to cache</li>
+                    <li>Logic tập trung ở cache provider</li>
+                    <li>Redis không native — cần wrapper/lib</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Cache-Aside pattern</span>
+<span class="tok-keyword">public</span> <span class="tok-class">Product</span> <span class="tok-function">getProduct</span>(<span class="tok-class">String</span> id) {
+  <span class="tok-class">String</span> key = <span class="tok-string">"product:"</span> + id;
+  <span class="tok-class">Product</span> cached = redis.get(key, <span class="tok-class">Product</span>.<span class="tok-keyword">class</span>);
+  <span class="tok-keyword">if</span> (cached != <span class="tok-keyword">null</span>) <span class="tok-keyword">return</span> cached;
+
+  <span class="tok-class">Product</span> product = productRepo.findById(id).orElseThrow();
+  redis.set(key, product, Duration.ofMinutes(<span class="tok-number">10</span>));
+  <span class="tok-keyword">return</span> product;
+}
+
+<span class="tok-keyword">public void</span> <span class="tok-function">updateProduct</span>(<span class="tok-class">Product</span> product) {
+  productRepo.save(product);
+  redis.delete(<span class="tok-string">"product:"</span> + product.getId()); <span class="tok-comment">// invalidate</span>
+}</code></pre></div>
+              <ul>
+                    <li>App tự quản lý cache</li>
+                    <li>Read: check cache → miss → DB → set cache</li>
+                    <li>Write: update DB → invalidate/delete cache</li>
+                    <li>Phổ biến nhất, linh hoạt</li>
+                  </ul>
+              <ul>
+                    <li>Write đồng thời DB + cache</li>
+                    <li>Cache luôn fresh sau write</li>
+                    <li>Write latency cao hơn</li>
+                    <li>Phù hợp read-heavy, consistency quan trọng</li>
+                  </ul>
+              <ul>
+                    <li>Write cache trước, flush DB async</li>
+                    <li>Write cực nhanh</li>
+                    <li>Risk mất data nếu cache crash</li>
+                    <li>Analytics, metrics, non-critical</li>
+                  </ul>
+              <ul>
+                    <li>Cache layer tự load từ DB khi miss</li>
+                    <li>App chỉ talk to cache</li>
+                    <li>Logic tập trung ở cache provider</li>
+                    <li>Redis không native — cần wrapper/lib</li>
+                  </ul>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Cache-Aside: default linh hoạt. Write-Through: read-after-write consistency critical. Write-Behind: metrics, analytics, non-critical counters.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không Write-Behind cho payment balance. Không cache-aside quên invalidate → stale forever. Không TTL=0 hot key — breakdown risk. Không cache object mutable — serialize immutable DTO.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Product catalog 1M SKU: cache-aside 10min TTL; admin update → explicit cache delete.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Cache invalidation hard problem; thundering herd on expire.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Cache-Aside phổ biến nhất — app control read/write cache.</li>
+                  <li>Write-Through: cache luôn fresh sau write.</li>
+                  <li>Write-Behind: nhanh nhưng risk mất data.</li>
+                  <li>Invalidate on update, không quên.</li>
+                  <li>Chọn pattern theo consistency requirement.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q6</span> Cache Penetration, Breakdown, Avalanche</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Ba failure mode cache: <strong>Penetration</strong> (key không tồn tại → DB flood), <strong>Breakdown</strong> (hot key expire → thundering herd), <strong>Avalanche</strong> (nhiều key expire cùng lúc).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Cache không magic — miss storm có thể sụp DB dù có Redis. Production incident thường gặp khi launch hot product.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Penetration: cache null TTL ngắn + Bloom filter. Breakdown: single-flight mutex lock + logical TTL/async refresh. Avalanche: TTL jitter ±random, stagger refresh, multi-level cache.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th>Vấn đề</th><th>Mô tả</th><th>Giải pháp</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Cache Penetration</strong></td>
+                    <td>Query key không tồn tại → miss liên tục → DB overload</td>
+                    <td>Cache null với TTL ngắn; Bloom Filter trước DB; validate input</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Cache Breakdown</strong></td>
+                    <td>Hot key expire → hàng nghìn request cùng hit DB</td>
+                    <td>Mutex lock (single flight); never expire + async refresh; logical TTL</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Cache Avalanche</strong></td>
+                    <td>Nhiều key expire cùng lúc → DB spike</td>
+                    <td>TTL jitter (base ± random); stagger refresh; multi-level cache</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Single-flight lock chống Cache Breakdown</span>
+<span class="tok-keyword">public</span> <span class="tok-class">Product</span> <span class="tok-function">getHotProduct</span>(<span class="tok-class">String</span> id) {
+  <span class="tok-class">String</span> key = <span class="tok-string">"product:"</span> + id;
+  <span class="tok-class">Product</span> cached = redis.get(key, <span class="tok-class">Product</span>.<span class="tok-keyword">class</span>);
+  <span class="tok-keyword">if</span> (cached != <span class="tok-keyword">null</span>) <span class="tok-keyword">return</span> cached;
+
+  <span class="tok-class">String</span> lockKey = <span class="tok-string">"lock:"</span> + key;
+  <span class="tok-keyword">if</span> (redis.setIfAbsent(lockKey, <span class="tok-string">"1"</span>, Duration.ofSeconds(<span class="tok-number">5</span>))) {
+    <span class="tok-keyword">try</span> {
+      <span class="tok-class">Product</span> product = productRepo.findById(id).orElse(<span class="tok-keyword">null</span>);
+      <span class="tok-keyword">if</span> (product == <span class="tok-keyword">null</span>) {
+        redis.set(key, <span class="tok-string">"NULL"</span>, Duration.ofSeconds(<span class="tok-number">60</span>)); <span class="tok-comment">// anti-penetration</span>
+      } <span class="tok-keyword">else</span> {
+        <span class="tok-keyword">int</span> jitter = ThreadLocalRandom.current().nextInt(<span class="tok-number">60</span>);
+        redis.set(key, product, Duration.ofMinutes(<span class="tok-number">10</span>).plusSeconds(jitter));
+      }
+      <span class="tok-keyword">return</span> product;
+    } <span class="tok-keyword">finally</span> { redis.delete(lockKey); }
+  }
+  Thread.sleep(<span class="tok-number">50</span>); <span class="tok-comment">// wait for other thread</span>
+  <span class="tok-keyword">return</span> getHotProduct(id);
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Mọi production Redis cache layer. Đặc biệt hot SKU, celebrity profile, config flag.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không cache null với TTL dài — attacker enumerate ID. Không single-flight lock vô hạn — deadlock. Không Bloom filter quá nhỏ — false negative vẫn hit DB.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Product ID không tồn tại bị scan: Bloom filter reject 99%; cache NULL 60s cho remainder.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Thread.sleep retry trong single-flight — dùng spin/retry limit.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Penetration: null cache + Bloom filter.</li>
+                  <li>Breakdown: mutex single-flight rebuild hot key.</li>
+                  <li>Avalanche: TTL jitter tránh expire đồng loạt.</li>
+                  <li>Hot key: never expire + async refresh.</li>
+                  <li>Monitor cache hit rate + DB spike correlation.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q7</span> High Availability &amp; Failover</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>High Availability (HA)</strong> = hệ thống tiếp tục phục vụ khi component fail. <strong>Failover</strong> = chuyển traffic sang standby tự động (VIP/DNS promotion, K8s reschedule).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>SLA 99.9% = 8.7h downtime/năm max. Single point of failure (1 DB, 1 AZ, 1 Redis node) vi phạm enterprise contract.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>App: multi-instance + LB + pod anti-affinity cross AZ. DB: primary-replica sync/async, Patroni/RDS Multi-AZ auto failover RPO&lt;1min. Redis: Sentinel/Cluster 3+ nodes. Region: active-active hoặc active-passive DR.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Active (Primary)</div>
+              <table class="feature-table">
+                <thead><tr><th>Layer</th><th>HA Strategy</th><th>SLA target</th></tr></thead>
+                <tbody>
+                  <tr><td>App</td><td>Multi-instance + LB, anti-affinity K8s nodes/AZ</td><td>99.9%+</td></tr>
+                  <tr><td>Database</td><td>Primary-Replica sync/async, automatic failover (Patroni, RDS Multi-AZ)</td><td>RPO &lt; 1min, RTO &lt; 5min</td></tr>
+                  <tr><td>Redis</td><td>Redis Sentinel hoặc Cluster mode, 3+ nodes</td><td>Sub-second failover</td></tr>
+                  <tr><td>Region</td><td>Active-Active hoặc Active-Passive cross-region</td><td>99.99% multi-region</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Production customer-facing, payment, WCS không thể dừng line. RTO/RPO defined trong SLA.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không HA cho dev/staging — cost. Không sync replica cross-region mọi write nếu latency critical — async replica chấp nhận lag. Không failover manual-only khi SEV1 — cần automation.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>RDS Multi-AZ: primary AZ-a fail → auto promote replica AZ-b trong ~60-120s.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Split-brain nếu quorum sai; test failover bằng chaos engineering.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>HA = no single point of failure mọi layer.</li>
+                  <li>App multi-pod cross AZ; DB Multi-AZ; Redis Cluster.</li>
+                  <li>Failover auto: VIP/DNS/K8s reschedule.</li>
+                  <li>Define RPO/RTO; chaos test thực tế.</li>
+                  <li>Design for failure: timeout+retry+CB mọi external call.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q8</span> Traffic Spikes — Rate Limiting (Token Bucket / Leaky Bucket)</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Rate limiting</strong> kiểm soát request rate: <strong>Token Bucket</strong> (cho phép burst, refill theo rate) vs <strong>Leaky Bucket</strong> (output rate cố định, smooth traffic).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Traffic spike (sale, DDoS) bảo vệ downstream DB và fair quota per user/API key. Không rate limit → cascade overload.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Token Bucket: bucket refill tokens/sec, mỗi request consume 1. Distributed: Redis Lua script atomic decrement. Leaky Bucket: queue request, process fixed rate. K8s + HPA scale trước khi hit hard limit.</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>Token Bucket</h4>
+                  <ul>
+                    <li>Bucket chứa tokens, refill theo rate</li>
+                    <li>Mỗi request consume 1 token</li>
+                    <li>Cho phép <strong>burst</strong> (dùng token tích lũy)</li>
+                    <li>Phổ biến: API Gateway, Guava RateLimiter</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>Leaky Bucket</h4>
+                  <ul>
+                    <li>Request vào bucket, xử lý đều đặn (leak)</li>
+                    <li>Output rate <strong>cố định</strong></li>
+                    <li>Bucket full → reject/queue</li>
+                    <li>Smooth traffic, không burst</li>
+                  </ul>
+                </div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Technique</th><th>Use case</th></tr></thead>
+                <tbody>
+                  <tr><td>Rate limiting</td><td>Per-user/API key quota (100 req/min)</td></tr>
+                  <tr><td>Request throttling</td><td>Queue excess requests, process gradually</td></tr>
+                  <tr><td>Load shedding</td><td>Drop low-priority requests khi overload</td></tr>
+                  <tr><td>Auto-scaling</td><td>HPA scale out trước khi rate limit hit</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Redis-based Token Bucket (distributed rate limit)</span>
+<span class="tok-keyword">public boolean</span> <span class="tok-function">allowRequest</span>(<span class="tok-class">String</span> userId, <span class="tok-keyword">int</span> maxTokens, <span class="tok-keyword">int</span> refillRate) {
+  <span class="tok-class">String</span> key = <span class="tok-string">"rate:"</span> + userId;
+  <span class="tok-class">String</span> lua = <span class="tok-string">"""
+    local tokens = tonumber(redis.call('get', KEYS[1]) or ARGV[1])
+    local last = tonumber(redis.call('get', KEYS[2]) or ARGV[3])
+    local now = tonumber(ARGV[3])
+    local elapsed = now - last
+    tokens = math.min(tonumber(ARGV[1]), tokens + elapsed * tonumber(ARGV[2]))
+    if tokens >= 1 then
+      redis.call('set', KEYS[1], tokens - 1)
+      redis.call('set', KEYS[2], now)
+      return 1
+    end
+    return 0
+    """</span>;
+  <span class="tok-keyword">return</span> redis.eval(lua, List.of(key, key+<span class="tok-string">":ts"</span>),
+      List.of(String.valueOf(maxTokens), String.valueOf(refillRate),
+              String.valueOf(System.currentTimeMillis()))) == <span class="tok-number">1</span>;
+}</code></pre></div>
+              <ul>
+                    <li>Bucket chứa tokens, refill theo rate</li>
+                    <li>Mỗi request consume 1 token</li>
+                    <li>Cho phép <strong>burst</strong> (dùng token tích lũy)</li>
+                    <li>Phổ biến: API Gateway, Guava RateLimiter</li>
+                  </ul>
+              <ul>
+                    <li>Request vào bucket, xử lý đều đặn (leak)</li>
+                    <li>Output rate <strong>cố định</strong></li>
+                    <li>Bucket full → reject/queue</li>
+                    <li>Smooth traffic, không burst</li>
+                  </ul>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Public API per-key quota, login brute-force protection, third-party API budget. Burst-friendly: Token Bucket.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không rate limit internal service-to-service tin cậy — dùng bulkhead. Không leaky bucket khi cần burst hợp lệ (batch upload). Không 429 không Retry-After header — client retry storm.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Free tier 100 req/min: Token Bucket cho burst 20 request đầu giây, sau đó steady 100/min.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Distributed rate limit clock skew; per-IP vs per-user key choice.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Token Bucket: burst OK, refill steady rate.</li>
+                  <li>Leaky Bucket: output smooth, no burst.</li>
+                  <li>Distributed: Redis + Lua atomic.</li>
+                  <li>429 + Retry-After; HPA scale proactive.</li>
+                  <li>Per API key / user / IP tùy use case.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Health & Shutdown -->
+        <section class="section" id="health">
+          <h2 class="section-title">Health Check &amp; Graceful Shutdown</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q9</span> Liveness Probe vs Readiness Probe</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>K8s <strong>Liveness</strong> probe: process còn sống? Fail → restart pod. <strong>Readiness</strong>: sẵn sàng nhận traffic? Fail → remove khỏi Service/LB, không restart. <strong>Startup</strong>: chờ app boot xong trước liveness.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Rolling deploy: pod mới chưa ready không nhận traffic. Liveness sai → restart loop kill pod healthy. Readiness check dependency → flapping remove/add LB.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Spring Boot 3: <code>/actuator/health/liveness</code>, <code>/readiness</code>. Liveness chỉ JVM/process. Readiness include db, redis optional. K8s yaml: initialDelaySeconds, periodSeconds, failureThreshold.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th>Probe</th><th>Câu hỏi trả lời</th><th>Fail →</th><th>Endpoint</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Liveness</strong></td><td>Process còn sống không?</td><td>K8s restart pod</td><td><code>/actuator/health/liveness</code></td></tr>
+                  <tr><td><strong>Readiness</strong></td><td>Sẵn sàng nhận traffic?</td><td>Remove khỏi LB, không restart</td><td><code>/actuator/health/readiness</code></td></tr>
+                  <tr><td><strong>Startup</strong></td><td>App đã khởi động xong?</td><td>Chờ trước khi check liveness</td><td><code>/actuator/health/readiness</code></td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># application.yml — Spring Boot 3.x</span>
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: <span class="tok-keyword">true</span>
+      group:
+        readiness:
+          include: readinessState, db, redis
+        liveness:
+          include: livenessState
+  health:
+    livenessstate:
+      enabled: <span class="tok-keyword">true</span>
+    readinessstate:
+      enabled: <span class="tok-keyword">true</span>
+
+<span class="tok-comment"># Kubernetes probes</span>
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: <span class="tok-number">8080</span>
+  initialDelaySeconds: <span class="tok-number">30</span>
+  periodSeconds: <span class="tok-number">10</span>
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: <span class="tok-number">8080</span>
+  initialDelaySeconds: <span class="tok-number">10</span>
+  periodSeconds: <span class="tok-number">5</span></code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Mọi K8s Deployment production. Startup probe cho app boot &gt;30s (large cache warmup).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không liveness check external DB — restart loop. Không readiness = liveness — khác hành vi. Không probe endpoint nặng (full DB scan) — lightweight ping.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Deploy v3: new pod readiness DOWN 15s warmup → LB chỉ route pod cũ; ready → traffic shift.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Readiness fail flapping; missing preStop + grace period → 502 during deploy.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Liveness fail → K8s restart pod.</li>
+                  <li>Readiness fail → remove LB, không restart.</li>
+                  <li>Liveness chỉ process health, không check DB.</li>
+                  <li>Startup probe cho slow boot app.</li>
+                  <li>Spring Actuator /liveness /readiness endpoints.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q10</span> Graceful Shutdown trong Spring Boot</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Graceful shutdown</strong>: pod nhận SIGTERM → stop nhận request mới → drain in-flight → shutdown JVM. Spring <code>server.shutdown=graceful</code> + K8s preStop + terminationGracePeriodSeconds.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Rolling deploy kill pod đột ngột → 502 user request đang xử lý, Kafka consumer rebalance storm, DB connection leak.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>SIGTERM → readiness DOWN → LB deregister (preStop sleep 5s) → complete in-flight (timeout 30s) → stop Kafka consumer finish batch → shutdown executor. K8s terminationGracePeriodSeconds &gt; drain timeout.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node">SIGTERM received</div>
+              <div class="code-block" data-lang="yaml"><pre><code>server:
+  shutdown: graceful
+
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+<span class="tok-comment"># K8s: preStop hook + terminationGracePeriodSeconds</span>
+lifecycle:
+  preStop:
+    exec:
+      command: [<span class="tok-string">"sh"</span>, <span class="tok-string">"-c"</span>, <span class="tok-string">"sleep 5"</span>]  <span class="tok-comment"># wait LB deregister</span>
+terminationGracePeriodSeconds: <span class="tok-number">45</span></code></pre></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Component</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">GracefulShutdownHook</span> <span class="tok-keyword">implements</span> <span class="tok-class">SmartLifecycle</span> {
+  <span class="tok-annotation">@Override</span>
+  <span class="tok-keyword">public void</span> <span class="tok-function">stop</span>() {
+    log.info(<span class="tok-string">"Stopping message consumer..."</span>);
+    kafkaListener.stop(); <span class="tok-comment">// finish current batch</span>
+    executorService.shutdown();
+    executorService.awaitTermination(<span class="tok-number">25</span>, TimeUnit.SECONDS);
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Mọi stateful-in-request service: REST API, Kafka consumer, WebSocket. Zero-downtime deploy.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không grace period &lt; longest request SLA. Không ignore SIGTERM — register shutdown hook. Không drain vô hạn — hard kill sau grace period.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Order API request 8s processing: grace 30s đủ complete; consumer finish current Kafka batch trước close.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>preStop missing → LB vẫn route trong khi pod dying; SmartLifecycle stop order.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>SIGTERM → readiness DOWN → drain in-flight.</li>
+                  <li>Spring graceful shutdown + lifecycle timeout.</li>
+                  <li>preStop sleep cho LB deregister.</li>
+                  <li>Stop Kafka consumer graceful.</li>
+                  <li>terminationGracePeriodSeconds > drain time.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q11</span> Circuit Breaker Health Indicator (Resilience4j)</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Resilience4j <strong>Circuit Breaker HealthIndicator</strong> export CB state (OPEN/CLOSED/HALF-OPEN) vào Spring Actuator readiness — pod không nhận traffic khi dependency critical đã OPEN.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Pod healthy JVM nhưng payment CB OPEN → mọi request fail 503. Better remove pod khỏi LB hoặc alert ops thay vì waste user retry.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>CircuitBreakerRegistry bean → custom HealthIndicator check state. OPEN → Health.down(). Wire vào readiness group. Metrics Micrometer <code>resilience4j.circuitbreaker.state</code> alert.</p>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Configuration</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">ResilienceConfig</span> {
+  <span class="tok-annotation">@Bean</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">CircuitBreaker</span> <span class="tok-function">paymentCircuitBreaker</span>() {
+    <span class="tok-keyword">return</span> <span class="tok-class">CircuitBreaker</span>.of(<span class="tok-string">"payment"</span>, <span class="tok-class">CircuitBreakerConfig</span>.custom()
+        .failureRateThreshold(<span class="tok-number">50</span>)
+        .waitDurationInOpenState(Duration.ofSeconds(<span class="tok-number">30</span>))
+        .slidingWindowSize(<span class="tok-number">10</span>)
+        .build());
+  }
+
+  <span class="tok-annotation">@Bean</span>
+  <span class="tok-keyword">public</span> <span class="tok-class">HealthIndicator</span> <span class="tok-function">circuitBreakerHealth</span>(<span class="tok-class">CircuitBreakerRegistry</span> registry) {
+    <span class="tok-keyword">return</span> () -&gt; {
+      <span class="tok-class">CircuitBreaker</span> cb = registry.circuitBreaker(<span class="tok-string">"payment"</span>);
+      <span class="tok-class">CircuitBreaker</span>.<span class="tok-class">State</span> state = cb.getState();
+      <span class="tok-keyword">if</span> (state == <span class="tok-class">CircuitBreaker</span>.<span class="tok-class">State</span>.OPEN)
+        <span class="tok-keyword">return</span> <span class="tok-class">Health</span>.down().withDetail(<span class="tok-string">"payment-cb"</span>, <span class="tok-string">"OPEN"</span>).build();
+      <span class="tok-keyword">return</span> <span class="tok-class">Health</span>.up().withDetail(<span class="tok-string">"payment-cb"</span>, state.name()).build();
+    };
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Service phụ thuộc critical downstream (payment, inventory). K8s readiness reflect dependency health.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không đưa mọi CB vào readiness — optional dependency CB OPEN vẫn serve degraded. Không OPEN permanent không alert — stuck OPEN = incident.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Payment gateway down: CB OPEN → readiness DOWN → no new checkout traffic to pod; fallback queue async.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Readiness DOWN all pods simultaneously if shared dependency — need fallback not full drain.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>CB HealthIndicator expose OPEN state to Actuator.</li>
+                  <li>OPEN → readiness DOWN optional strategy.</li>
+                  <li>Metrics alert state=OPEN prolonged.</li>
+                  <li>Config failureRateThreshold, waitDurationInOpenState.</li>
+                  <li>Balance fail-fast vs drain all pods.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Observability -->
+        <section class="section" id="observability">
+          <h2 class="section-title">Logging &amp; Observability</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q12</span> Structured Logging &amp; ELK Stack</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Structured logging</strong> JSON với traceId/spanId xuyên microservices. <strong>ELK</strong> stack: Logstash/Fluentd → Elasticsearch → Kibana search/dashboard.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Plain text log grep không scale 100 pods. Correlation ID trace 1 request qua 5 service — debug latency spike production.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Logback JSON encoder (logstash-logback-encoder). MDC Filter inject X-Trace-Id header hoặc generate UUID. Fluentd DaemonSet K8s collect stdout → ES. Kibana dashboard error rate by service.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Java App (Logback JSON)</div>
+              <table class="feature-table">
+                <thead><tr><th>Stack</th><th>Component</th><th>Vai trò</th></tr></thead>
+                <tbody>
+                  <tr><td>ELK</td><td>Elasticsearch</td><td>Store &amp; search logs</td></tr>
+                  <tr><td>ELK</td><td>Logstash</td><td>Parse, transform, enrich</td></tr>
+                  <tr><td>ELK</td><td>Kibana</td><td>Visualize, dashboard, alert</td></tr>
+                  <tr><td>EFK</td><td>Fluentd</td><td>Lightweight collector (K8s DaemonSet)</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// logback-spring.xml — JSON encoder</span>
+<span class="tok-comment">// dependency: logstash-logback-encoder</span>
+
+<span class="tok-comment">// MDC propagation</span>
+<span class="tok-annotation">@Component</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">TraceFilter</span> <span class="tok-keyword">implements</span> <span class="tok-class">Filter</span> {
+  <span class="tok-annotation">@Override</span>
+  <span class="tok-keyword">public void</span> <span class="tok-function">doFilter</span>(...) {
+    <span class="tok-class">String</span> traceId = request.getHeader(<span class="tok-string">"X-Trace-Id"</span>);
+    <span class="tok-keyword">if</span> (traceId == <span class="tok-keyword">null</span>) traceId = UUID.randomUUID().toString();
+    <span class="tok-class">MDC</span>.put(<span class="tok-string">"traceId"</span>, traceId);
+    <span class="tok-class">MDC</span>.put(<span class="tok-string">"spanId"</span>, UUID.randomUUID().toString().substring(<span class="tok-number">0</span>, <span class="tok-number">8</span>));
+    <span class="tok-keyword">try</span> { chain.doFilter(request, response); }
+    <span class="tok-keyword">finally</span> { <span class="tok-class">MDC</span>.clear(); }
+  }
+}
+
+<span class="tok-comment">// Log output: {"timestamp":"...","level":"INFO","traceId":"abc","message":"Order created","orderId":123}</span></code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Microservices ≥3 services, production debug, compliance audit trail.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không log PII/password/card (GDPR/PCI). Không sync log ES trong request path. Không traceId không propagate qua async — MDC lost.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Order 502: Kibana traceId=abc → 4 services log chain → find inventory timeout 4.2s.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>MDC not propagated @Async thread; log volume cost ES storage.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>JSON log + traceId MDC correlation.</li>
+                  <li>ELK: collect → Elasticsearch → Kibana.</li>
+                  <li>Fluentd DaemonSet trên K8s.</li>
+                  <li>Propagate X-Trace-Id header cross service.</li>
+                  <li>Không log sensitive data.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q13</span> Metrics — Micrometer + Prometheus + Grafana</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Micrometer</strong> instrument app metrics → <strong>Prometheus</strong> scrape → <strong>Grafana</strong> dashboard + alert. Metrics: latency histogram, JVM heap, GC, connection pool, business counters.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Logs tell what happened; metrics tell trend và fire alert proactive. SRE: p99 latency, error rate, saturation (USE method).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Spring Boot Actuator <code>/actuator/prometheus</code>. Custom Counter/Timer business metrics. Prometheus scrape config K8s ServiceMonitor. Grafana alert p99&gt;2s, heap&gt;85%, HikariCP active=max.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th>Metric</th><th>Loại</th><th>Ý nghĩa</th><th>Alert threshold</th></tr></thead>
+                <tbody>
+                  <tr><td><code>http_server_requests_seconds</code></td><td>Histogram</td><td>Latency p50/p95/p99</td><td>p99 &gt; 2s</td></tr>
+                  <tr><td><code>jvm_memory_used_bytes</code></td><td>Gauge</td><td>Heap usage</td><td>&gt; 85% heap</td></tr>
+                  <tr><td><code>jvm_gc_pause_seconds</code></td><td>Timer</td><td>GC stop-the-world</td><td>&gt; 500ms</td></tr>
+                  <tr><td><code>hikaricp_connections_active</code></td><td>Gauge</td><td>DB pool in-use</td><td>= max pool size</td></tr>
+                  <tr><td><code>resilience4j_circuitbreaker_state</code></td><td>Gauge</td><td>CB open/closed</td><td>state=OPEN</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Custom business metric</span>
+<span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderService</span> {
+  <span class="tok-keyword">private final</span> <span class="tok-class">Counter</span> ordersCreated;
+  <span class="tok-keyword">private final</span> <span class="tok-class">Timer</span> orderProcessingTime;
+
+  <span class="tok-keyword">public</span> <span class="tok-class">OrderService</span>(<span class="tok-class">MeterRegistry</span> registry) {
+    ordersCreated = registry.counter(<span class="tok-string">"orders.created.total"</span>);
+    orderProcessingTime = registry.timer(<span class="tok-string">"orders.processing.time"</span>);
+  }
+
+  <span class="tok-keyword">public</span> <span class="tok-class">Order</span> <span class="tok-function">createOrder</span>(...) {
+    <span class="tok-keyword">return</span> orderProcessingTime.record(() -&gt; {
+      <span class="tok-class">Order</span> order = ...;
+      ordersCreated.increment();
+      <span class="tok-keyword">return</span> order;
+    });
+  }
+}
+
+<span class="tok-comment"># Prometheus scrape — management.endpoints.web.exposure.include=prometheus</span>
+<span class="tok-comment"># Grafana dashboard: JVM Micrometer, Spring Boot 2.1 Statistics</span></code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Production SLO/SLA monitoring. Capacity planning, incident detect before user report.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không cardinality explosion — label high-cardinality userId. Không alert quá nhiều → fatigue. Không chỉ metrics không logs — cần cả hai.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Alert HikariCP active=20/20 → investigate slow query trước khi pool timeout cascade.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Histogram bucket config wrong p99; RED method vs USE method.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Micrometer → Prometheus → Grafana pipeline.</li>
+                  <li>Key metrics: latency p99, heap, GC, pool, CB state.</li>
+                  <li>USE: Utilization, Saturation, Errors.</li>
+                  <li>Custom business counter orders.created.</li>
+                  <li>Alert threshold trước user impact.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Troubleshooting -->
+        <section class="section" id="troubleshooting">
+          <h2 class="section-title">Production Troubleshooting Scenarios</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q14</span> Tình huống 1: Latency tăng 100ms → 5s không có deployment</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Runbook: latency p99 tăng 100ms→5s <strong>không có deployment</strong> — checklist điều tra ordered: metrics → pool → DB → external → GC → network → saturation.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Phỏng vấn Senior ops + thực tế on-call. Mitigate trước investigate — restore SLA rồi RCA.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Dashboard correlate spike time với traffic/GC. HikariCP active=max? pg_stat_activity slow query? External API timeout cascade? jcmd Thread.print BLOCKED? kubectl top pods CPU throttle?</p>
+              </div>
+<div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Quick diagnostics</span>
+kubectl top pods -n production
+curl localhost:8080/actuator/metrics/hikaricp.connections.active
+curl localhost:8080/actuator/metrics/jvm.gc.pause
+
+<span class="tok-comment"># Thread dump</span>
+jcmd &lt;pid&gt; Thread.print &gt; threads.txt
+<span class="tok-comment"># Look for: BLOCKED on pool, waiting on socket read</span></code></pre></div>
+              <ol>
+                <li><strong>Metrics dashboard</strong> — p99 latency spike timing, correlate với traffic/GC/DB</li>
+                <li><strong>DB connection pool</strong> — HikariCP active= max? Thread waiting for connection?</li>
+                <li><strong>Slow queries / locks</strong> — <code>pg_stat_activity</code>, <code>SHOW ENGINE INNODB STATUS</code>, missing index</li>
+                <li><strong>External dependencies</strong> — payment gateway, third-party API timeout cascade</li>
+                <li><strong>GC pauses</strong> — G1 long pause, heap near limit → Full GC</li>
+                <li><strong>Network</strong> — DNS resolution slow, cross-AZ latency, packet loss</li>
+                <li><strong>Resource saturation</strong> — CPU throttling (K8s limits), disk I/O wait</li>
+              </ol>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>On-call incident latency SEV2+. Pattern: no deploy = infra/data/external/GC.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không restart random pod trước khi check pool/GC — có thể worsen. Không debug prod without mitigation plan.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>14:32 p99 spike: HikariCP saturated + missing index on orders — add index + scale pods mitigate.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Assume deploy cause; forget cross-AZ network; connection leak gradual.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Check metrics dashboard correlate timing.</li>
+                  <li>DB pool exhausted? Slow query? Lock?</li>
+                  <li>External dependency timeout cascade.</li>
+                  <li>GC pause + thread dump BLOCKED.</li>
+                  <li>Mitigate first: scale, kill query, CB fallback.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q15</span> Tình huống 2: Staging OK, Production fail</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Staging OK, Production fail</strong> — diff environment: secrets, config, data volume, network/IAM, resource limits, TLS, external endpoint sandbox vs prod.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Classic release incident — code identical nhưng env khác. Phỏng vấn test systematic debugging mindset.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Diff ConfigMap/Secret staging vs prod. Verify migration applied prod. Test curl từ prod pod tới dependency. Check IAM role S3/SQS permission. Resource limits OOMKill. TLS cert expiry.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th>#</th><th>Kiểm tra</th><th>Công cụ / Cách</th></tr></thead>
+                <tbody>
+                  <tr><td>1</td><td>Environment variables / secrets</td><td>Diff staging vs prod config; Vault/Parameter Store</td></tr>
+                  <tr><td>2</td><td>Database schema &amp; data</td><td>Migration applied? Prod data edge cases (null, large volume)</td></tr>
+                  <tr><td>3</td><td>Network / Firewall</td><td>Security group, VPC peering, prod-only IP whitelist</td></tr>
+                  <tr><td>4</td><td>IAM permissions</td><td>Prod role thiếu S3/SQS/KMS permission</td></tr>
+                  <tr><td>5</td><td>External service URLs</td><td>Staging sandbox vs prod endpoint</td></tr>
+                  <tr><td>6</td><td>Resource limits</td><td>Prod memory/CPU lower → OOMKill</td></tr>
+                  <tr><td>7</td><td>TLS certificates</td><td>Expired cert, wrong CA bundle</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Compare configs</span>
+diff &lt;(kubectl get configmap app-config -n staging -o yaml) \
+     &lt;(kubectl get configmap app-config -n prod -o yaml)
+
+<span class="tok-comment"># Test connectivity from prod pod</span>
+kubectl exec -it api-pod -n prod -- curl -v https://payment-gateway.prod/api/health</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Post-release prod-only failure. Pre-release checklist prevent.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không assume staging data represent prod edge cases (null, volume). Không hardcode prod URL in code — config driven.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Payment works staging: prod IAM thiếu kms:Decrypt → fix role binding.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Feature flag off staging on prod; timezone/locale prod only.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Diff config/secrets staging vs prod.</li>
+                  <li>Prod data edge case volume/null.</li>
+                  <li>Network SG, IAM, VPC peering.</li>
+                  <li>Resource limits OOMKill prod.</li>
+                  <li>TLS cert + external sandbox vs prod URL.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q16</span> Tình huống 3: High CPU / High Memory / OOM</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Diagnose <strong>High CPU</strong> (thread hot loop, regex catastrophic), <strong>High Memory/OOM</strong> (heap dump, leak static collection, unclosed stream). Tools: async-profiler, jcmd, MAT.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>JVM production performance interview + on-call. OOMKill K8s restart loop — need heap dump before pod die.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>CPU: top -H, thread dump, async-profiler flame graph. Memory: -XX:+HeapDumpOnOutOfMemoryError, jcmd GC.class_histogram, Eclipse MAT dominator tree.</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>High CPU</h4>
+                  <ul>
+                    <li><code>top -H -p &lt;pid&gt;</code> — thread nào ăn CPU</li>
+                    <li>Thread dump → infinite loop, regex catastrophic backtracking</li>
+                    <li>Profiler: async-profiler, JFR</li>
+                    <li>Fix: optimize hot path, cache, async offload</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>High Memory / OOM</h4>
+                  <ul>
+                    <li><code>-XX:+HeapDumpOnOutOfMemoryError</code></li>
+                    <li>Eclipse MAT / VisualVM analyze heap dump</li>
+                    <li>Leak: unclosed streams, static collections grow</li>
+                    <li>Fix: increase heap tạm, fix leak, tune GC</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Live profiling</span>
+async-profiler -d 30 -f flame.html &lt;pid&gt;
+
+<span class="tok-comment"># Heap histogram</span>
+jcmd &lt;pid&gt; GC.class_histogram | head -30
+<span class="tok-comment"># Look for: char[], byte[], HashMap$Node[] dominating</span>
+
+<span class="tok-comment"># JVM flags for OOM diagnosis</span>
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:HeapDumpPath=/tmp/heapdump.hprof
+-Xlog:gc*:file=gc.log</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Pod CPU 100% sustained, OOMKilled, GC pause &gt;500ms alert.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không tăng heap vô hạn che leak — fix root cause. Không profiler production peak without approval — overhead.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Heap dump: HashMap$Node[] + char[] dominate → cache key leak unbounded growth.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Metaspace OOM vs heap OOM; native memory DirectByteBuffer.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>CPU: thread dump + async-profiler flame.</li>
+                  <li>OOM: HeapDumpOnOutOfMemoryError + MAT.</li>
+                  <li>Look char[], byte[], HashMap dominate.</li>
+                  <li>Fix leak not just increase -Xmx.</li>
+                  <li>K8s OOMKill check limits vs request.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q17</span> Tình huống 4: Quy trình xử lý Critical Incident</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Critical incident process: <strong>DETECT → TRIAGE → MITIGATE → RESOLVE → RCA Postmortem</strong>. Incident Commander, severity SEV1-4, blameless postmortem 48h.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Lead/Senior interview — process matter hơn hero debug. Mitigate restore service trước root cause — giảm MTTR và customer impact.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>PagerDuty ack 5min. IC assign roles (commms, ops, eng). Mitigate: rollback, scale, feature flag off, failover. Status page update. Timeline ghi mọi action. Postmortem action items tracked.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">DETECT</div>
+              <table class="feature-table">
+                <thead><tr><th>Phase</th><th>Action</th><th>Owner</th></tr></thead>
+                <tbody>
+                  <tr><td>Detect</td><td>Alert fires (PagerDuty/Opsgenie), on-call ack trong 5 phút</td><td>Monitoring</td></tr>
+                  <tr><td>Triage</td><td>Xác định severity (SEV1-4), assign Incident Commander</td><td>IC</td></tr>
+                  <tr><td>Mitigate</td><td>Rollback, scale up, disable feature flag, failover — <strong>restore service first</strong></td><td>Engineering</td></tr>
+                  <tr><td>Communicate</td><td>Status page update, stakeholder Slack channel, ETA</td><td>IC / Comms</td></tr>
+                  <tr><td>Resolve</td><td>Root fix deploy, verify metrics back to normal</td><td>Engineering</td></tr>
+                  <tr><td>Postmortem</td><td>Blameless RCA within 48h, action items tracked</td><td>Team</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>SEV1 payment down, data breach, full region outage.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không blame individual postmortem. Không deep RCA trong SEV1 active — mitigate first. Không deploy fix untested trong panic.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Checkout 500 SEV1: rollback release 8min MTTR; postmortem find config typo prod only.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>No IC → chaos; forget comms stakeholder; skip postmortem.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Detect → Triage → Mitigate → Resolve → Postmortem.</li>
+                  <li>Mitigate trước investigate — rollback nhanh.</li>
+                  <li>IC + comms + timeline mọi action.</li>
+                  <li>Blameless RCA 48h action items.</li>
+                  <li>Severity SEV1-4 define response.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+<section class="section" id="scale-consistency">
+          <h2 class="section-title">Ước lượng dung lượng &amp; Nhất quán phân tán</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q18</span> Capacity estimation (back-of-envelope): QPS, storage, latency?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Capacity estimation</strong> là ước lượng nhanh bằng giấy nháp (back-of-envelope): từ vài giả định (DAU, requests/user/ngày, kích thước payload, thời gian lưu, replication factor) suy ra <em>QPS trung bình &amp; đỉnh</em>, <em>storage</em>, <em>bandwidth</em>, <em>memory cache</em> và <em>latency budget</em>.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Đây là bước đầu tiên của mọi buổi system design: nó quyết định số shard, số replica, kích thước cache, số instance. Bỏ qua dễ dẫn tới over-provision (tốn tiền) hoặc under-provision (sập khi peak).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>B1: avg QPS = (DAU &times; request/user/ngày) / 86.400. B2: peak QPS &asymp; 2-5&times; avg. B3: storage = (rows/ngày &times; bytes/row) &times; retention &times; replication factor. B4: bandwidth = QPS &times; payload (chỉ tính egress). B5: chia latency budget p99 cho số hop (client &rarr; LB &rarr; service &rarr; DB). Dùng lũy thừa 10/2 để tính nhẩm nhanh.</p>
+              </div>
+              <div class="stat-row">
+                <div class="stat-card"><div class="stat-value">11.6K</div><div class="stat-label">avg QPS (100M DAU &times; 10 req)</div></div>
+                <div class="stat-card"><div class="stat-value">35K</div><div class="stat-label">peak QPS (&times;3)</div></div>
+                <div class="stat-card"><div class="stat-value">86.400</div><div class="stat-label">giây / ngày</div></div>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Giả định (DAU, req, bytes)</div>
+                  <div class="flow-arrow">&rarr;</div>
+                  <div class="flow-node secondary">avg &amp; peak QPS</div>
+                  <div class="flow-arrow">&rarr;</div>
+                  <div class="flow-node">Storage</div>
+                </div>
+                <div class="flow-arrow">&darr;</div>
+                <div class="flow-row">
+                  <div class="flow-node success">Số shard / replica</div>
+                  <div class="flow-node">Kích thước cache</div>
+                  <div class="flow-node">Số instance</div>
+                </div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Thao tác</th><th>Độ trễ tham khảo</th></tr></thead>
+                <tbody>
+                  <tr><td>L1 cache</td><td>~1 ns</td></tr>
+                  <tr><td>RAM</td><td>~100 ns</td></tr>
+                  <tr><td>SSD random read</td><td>~100 &micro;s</td></tr>
+                  <tr><td>Cùng datacenter RTT</td><td>~0.5 ms</td></tr>
+                  <tr><td>Liên vùng (cross-region) RTT</td><td>~150 ms</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="python"><pre><code>dau = <span class="tok-number">100_000_000</span>          <span class="tok-comment"># daily active users</span>
+rpd = <span class="tok-number">10</span>                   <span class="tok-comment"># requests / user / ngay</span>
+avg_qps = dau * rpd / <span class="tok-number">86_400</span>      <span class="tok-comment"># ~ 11574</span>
+peak_qps = avg_qps * <span class="tok-number">3</span>            <span class="tok-comment"># peak factor 2-5x</span>
+bytes_per_row = <span class="tok-number">500</span>
+storage = dau * rpd * bytes_per_row * <span class="tok-number">365</span> * <span class="tok-number">3</span>  <span class="tok-comment"># 3 nam, RF=3</span>
+<span class="tok-keyword">if</span> peak_qps &gt; <span class="tok-number">10_000</span>:
+    shards = <span class="tok-number">8</span>               <span class="tok-comment"># headroom cho peak</span></code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Đầu mọi bài system design; khi chọn instance/shard/replica; khi review chi phí hạ tầng trước khi release tính năng lớn.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không dùng con số trung bình để provision — phải dùng đỉnh. Không tính storage mà bỏ replication factor. Không cộng latency như thể các hop chạy song song khi chúng tuần tự.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Ước lượng feed 100M DAU: 11.6K avg QPS, peak 35K, cần khoảng 8 shard với headroom và cache cho 20% dữ liệu nóng.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Lẫn avg với peak; quên replication/backup nhân đôi storage; bỏ qua bandwidth egress; con số thiếu đơn vị.</p>
+              </div>
+              <p class="source-line">Nguồn: <a href="https://sre.google/workbook/implementing-slos/" title="Google SRE Workbook - Implementing SLOs">Google SRE Workbook - Implementing SLOs</a>; <a href="https://colin-scott.github.io/personal_website/research/interactive_latency.html" title="Colin Scott - Interactive Latency Numbers">Interactive Latency Numbers Every Programmer Should Know</a></p>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>DAU &times; req / 86400 = avg QPS.</li>
+                  <li>Peak gấp 2-5 lần avg.</li>
+                  <li>Storage nhân retention + replication.</li>
+                  <li>Latency budget chia theo hop.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q19</span> Consistent Hashing &amp; Sharding / Rebalancing?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Chia dữ liệu ra N node (shard). Cách ngây thơ <code>hash(key) % N</code> khiến gần <em>toàn bộ</em> key phải remap mỗi khi N thay đổi. <strong>Consistent hashing</strong> hash cả key lẫn node lên một vòng tròn; key thuộc node kế tiếp theo chiều kim đồng hồ, nên chỉ khoảng <em>K/N</em> key phải di chuyển khi thêm/bớt node. <strong>Virtual nodes</strong> khắc phục phân bố lệch.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Khi scale hoặc có node chết, ta cần thêm/bớt node mà không "cache miss toàn tập" hay shuffle lại toàn bộ dữ liệu. Đây là nền tảng của Redis Cluster, Cassandra, DynamoDB, và phân vùng của Kafka.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Vòng hash + tìm successor bằng binary search (TreeMap). Mỗi node vật lý đặt nhiều vnode (Cassandra mặc định 256 vnodes/node) để chia đều cung tròn. Replication factor nhân bản sang N-1 successor kế tiếp. Khi thêm node, chỉ chuyển phân đoạn bị ảnh hưởng. Chống hot partition bằng key salting, key splitting hoặc tăng số vnode.</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>Modulo hash</h4>
+                  <ul>
+                    <li>hash(key) % N, đơn giản</li>
+                    <li>Đổi N remap gần như 100% key</li>
+                    <li>Không có khái niệm vnode</li>
+                    <li>Chỉ hợp khi N cố định</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>Consistent hashing</h4>
+                  <ul>
+                    <li>Key &amp; node cùng lên vòng tròn</li>
+                    <li>Chỉ ~K/N key đổi vị trí</li>
+                    <li>Virtual nodes giảm lệch tải</li>
+                    <li>Chuẩn cho cache/DB phân tán</li>
+                  </ul>
+                </div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Hệ thống</th><th>Cách phân vùng</th></tr></thead>
+                <tbody>
+                  <tr><td>Redis Cluster</td><td>16.384 hash slots chia cho các node</td></tr>
+                  <tr><td>Apache Kafka</td><td>Số partition cố định theo topic, gán cho broker</td></tr>
+                  <tr><td>Apache Cassandra</td><td>Consistent hashing + virtual nodes</td></tr>
+                  <tr><td>Amazon DynamoDB</td><td>Partition theo key, tự rebalance</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Vong hash trien khai bang TreeMap (ceilingEntry = successor)</span>
+TreeMap&lt;Integer, String&gt; ring = <span class="tok-keyword">new</span> TreeMap&lt;&gt;();
+<span class="tok-keyword">for</span> (String node : nodes) {
+  <span class="tok-keyword">for</span> (<span class="tok-keyword">int</span> v = <span class="tok-number">0</span>; v &lt; VNODES; v++) {
+    ring.put(hash(node + <span class="tok-string">"#"</span> + v), node); <span class="tok-comment">// virtual node</span>
+  }
+}
+String owner = ring.ceilingEntry(hash(key)) != <span class="tok-keyword">null</span>
+    ? ring.ceilingEntry(hash(key)).getValue()
+    : ring.firstEntry().getValue(); <span class="tok-comment">// wrap-around</span></code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Cache phân tán, DB NoSQL, message queue cần scale ngang theo partition; bất kỳ hệ nào phải thêm/bớt node thường xuyên mà vẫn giữ tải cân bằng.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Dữ liệu nhỏ, một node là đủ. Không cần consistent hashing khi số node cố định và ít đổi. Không thay thế range sharding khi cần truy vấn theo khoảng (range scan).</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Cache phiên người dùng trên 10 node: node chết chỉ ảnh hưởng ~1/10 key; thêm node mới chỉ di chuyển ~1/11 dữ liệu.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Quên virtual nodes gây lệch tải; hot key không rải được; sai lầm khi nói "chỉ 1 key đổi vị trí" (thực ra là K/N, không phải 1).</p>
+              </div>
+              <p class="source-line">Nguồn: <a href="https://en.wikipedia.org/wiki/Consistent_hashing" title="Wikipedia - Consistent hashing">Wikipedia - Consistent hashing</a>; <a href="https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf" title="Amazon Dynamo paper">Amazon Dynamo: Highly Available Key-value Store (SOSP 2007)</a>; <a href="https://cassandra.apache.org/doc/latest/cassandra/architecture/dynamo.html" title="Apache Cassandra - Dynamo architecture">Apache Cassandra - Dynamo architecture</a></p>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>%N remap gần hết key khi đổi N.</li>
+                  <li>Ring: chỉ ~K/N key di chuyển.</li>
+                  <li>Virtual nodes giảm lệch tải.</li>
+                  <li>Redis slots / Kafka partitions.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q20</span> Quorum (R + W &gt; N) &amp; PACELC?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Với N replica: một ghi cần <em>W</em> replica xác nhận, một đọc cần <em>R</em> replica trả lời. Nếu <strong>R + W &gt; N</strong> thì tập đọc và tập ghi luôn giao nhau &rArr; đọc thấy được ghi mới nhất. Nếu R + W &le; N &rArr; eventual consistency. <strong>PACELC</strong> mở rộng CAP: khi có <em>P</em>artition chọn Availability hay Consistency, <em>E</em>lse chọn Latency hay Consistency.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Cho phép chỉnh nhất quán theo từng thao tác thay vì chọn cứng: ghi nhanh (W nhỏ) hay đọc nhanh (R nhỏ); hiểu tradeoff latency vs consistency ngay cả khi mạng bình thường — điều CAP không nói tới.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Chọn N/W/R theo nhu cầu. Quorum phổ biến: W = R = floor(N/2)+1. Muốn đọc/ghi nhanh có thể W=1, R=N (đọc phải hỏi mọi replica). Với eventual cần read repair, hinted handoff, anti-entropy (Merkle tree). Raft và Kafka dùng majority cho bầu leader/commit. Kafka: <code>acks=all</code> + <code>min.insync.replicas=2</code> đảm bảo durability.</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>CAP</h4>
+                  <ul>
+                    <li>Chỉ nói khi có partition</li>
+                    <li>Chọn Consistency hay Availability</li>
+                    <li>Bỏ qua lúc mạng bình thường</li>
+                    <li>CP (HBase) vs AP (Cassandra)</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>PACELC</h4>
+                  <ul>
+                    <li>If Partition: A hay C</li>
+                    <li>Else: Latency hay Consistency</li>
+                    <li>Ví dụ: PA/EL chỉnh per-operation</li>
+                    <li>Mô tả đúng hơn hệ thực tế</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="stat-row">
+                <div class="stat-card"><div class="stat-value">2+2&gt;3</div><div class="stat-label">N=3, W=2, R=2 &rarr; mạnh</div></div>
+                <div class="stat-card"><div class="stat-value">1+1&le;3</div><div class="stat-label">W=1, R=1 &rarr; eventual</div></div>
+                <div class="stat-card"><div class="stat-value">majority</div><div class="stat-label">quorum = floor(N/2)+1</div></div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Hệ thống</th><th>Mức nhất quán mặc định</th></tr></thead>
+                <tbody>
+                  <tr><td>Apache Cassandra</td><td>QUORUM = floor(N/2)+1 mỗi thao tác</td></tr>
+                  <tr><td>Apache Kafka</td><td>acks=all, min.insync.replicas=2</td></tr>
+                  <tr><td>MongoDB</td><td>writeConcern majority, readConcern majority</td></tr>
+                  <tr><td>Amazon DynamoDB</td><td>Eventually consistent / strongly consistent read</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- Cassandra CQL: N=3, W=2, R=2 -&gt; R + W &gt; N = doc nhat quan manh</span>
+CONSISTENCY QUORUM;
+INSERT INTO orders (id, status) VALUES (<span class="tok-string">'o-1'</span>, <span class="tok-string">'NEW'</span>);
+CONSISTENCY QUORUM;
+SELECT * FROM orders WHERE id = <span class="tok-string">'o-1'</span>;</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Khi cần tune nhất quán theo use case: ví dụ ghi số dư dùng quorum mạnh, hiển thị lượt xem dùng eventual read cho nhanh. Khi đọc/ghi phải đảm bảo thấy dữ liệu đã ghi.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không dùng quorum khi latency cực nhạy và chấp nhận eventual. Không tăng R,W vô ích khi độ sẵn sàng quan trọng hơn (partition xảy ra sẽ mất quorum). Không áp quorum cho hệ single-node.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Giỏ hàng cần đọc-thấy-ghi của chính user: ghi QUORUM (W=2), đọc QUORUM (R=2) trên N=3; feed xem số like dùng R=1 cho nhanh.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Nhầm "R+W&gt;N thì luôn nhất quán tuyệt đối" (chỉ đúng cho single key, không đúng cho multi-key/transaction). Quên read repair khi để eventual. Không phân biệt N (số replica) với số node.</p>
+              </div>
+              <p class="source-line">Nguồn: <a href="https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf" title="Abadi - Consistency Tradeoffs in Modern Distributed Database System Design (PACELC)">Abadi - PACELC (IEEE Computer, 2012)</a>; <a href="https://cassandra.apache.org/doc/latest/cassandra/architecture/dynamo.html" title="Apache Cassandra - Dynamo architecture">Apache Cassandra - Dynamo architecture</a>; <a href="https://kafka.apache.org/documentation/" title="Apache Kafka documentation">Apache Kafka documentation</a></p>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>N replica, W ghi, R đọc.</li>
+                  <li>R + W &gt; N &rarr; đọc thấy ghi mới.</li>
+                  <li>Ngược lại &rarr; eventual.</li>
+                  <li>PACELC: cả lúc mạng bình thường, L vs C.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        
+<section class="section" id="interview-redis-hash-zset"><h2 class="section-title">Bổ sung chiều sâu phỏng vấn</h2><article class="qa-card" id="deep-redis-hash-zset"><h3 class="qa-question">Redis Hash vs ZSET và rate limit sliding window atomic</h3><div class="qa-answer"><div class="ans-block"><span class="ans-label">What</span><p>Hash lưu các field của một object còn ZSET lưu member duy nhất kèm score để truy vấn theo thứ tự. Rate limit sliding window có thể dùng timestamp làm score và request ID làm member, nhưng prune/count/add/expire phải atomic để tránh vượt hạn mức.</p></div><div class="ans-block"><span class="ans-label">Chọn cấu trúc</span><p>Hash: profile/session metadata, HSET/HGET/HINCRBY theo field, tránh HGETALL trên object lớn. TTL của key là baseline portable; field expiration phụ thuộc Redis version và client. ZSET: leaderboard, delayed queue, sliding window; ZADD thường O(log N), range trả thêm chi phí theo số phần tử. Không dùng Hash nếu cần query top/range theo score.</p></div><div class="ans-block"><span class="ans-label">Thuật toán và ví dụ giả định</span><p>Ví dụ giới hạn 100 request trong 60 giây mỗi user: key rl:{userId}; loại score cũ hơn cutoff theo định nghĩa cửa sổ, ZCARD, nếu dưới 100 thì ZADD timestamp/requestId và PEXPIRE. Chạy trong Lua script hoặc server-side function để một thao tác atomic. Nếu dùng millisecond làm cả member, hai request cùng ms đè nhau khiến đếm thiếu; member phải unique.</p></div><div class="ans-block"><span class="ans-label">Clock, TTL và cluster</span><p>Dùng clock thống nhất/server TIME theo triển khai, xác định biên cửa sổ chính xác và test. TTL ít nhất đủ cleanup sau window; reject có thể trả retry-after tính theo oldest member. Redis Cluster: script nhiều key cần cùng hash slot; giới hạn global qua nhiều slot/region không còn một atomic counter chung.</p></div><div class="ans-block"><span class="ans-label">Trade-off vận hành</span><p>Sliding log chính xác theo các request được admit nhưng memory tăng theo số user và số entry/window, cần cap và TTL. Fixed window INCR rẻ hơn nhưng burst ở ranh giới; token bucket phù hợp burst allowance. Redis down: fail-open hay fail-closed phải do nghiệp vụ quyết định. Replica lag/failover có thể làm mất state gần nhất, đừng hứa giới hạn tuyệt đối hay dùng rate limiter thay sổ cái tiền.</p></div><div class="flow-diagram">request → atomic prune → count → admit/add hoặc reject → TTL cleanup</div><pre class="code-block"><code>-- Lua minh họa: KEYS[1], ARGV = nowMs, windowMs, limit, uniqueRequestId
+local now = tonumber(ARGV[1])
+local win = tonumber(ARGV[2])
+redis.call(&quot;ZREMRANGEBYSCORE&quot;, KEYS[1], &quot;-inf&quot;, now-win)
+local n = redis.call(&quot;ZCARD&quot;, KEYS[1])
+if n &gt;= tonumber(ARGV[3]) then return 0 end
+redis.call(&quot;ZADD&quot;, KEYS[1], now, ARGV[4])
+redis.call(&quot;PEXPIRE&quot;, KEYS[1], win)
+return 1
+-- Cửa sổ (now-window, now]; uniqueRequestId phải unique mỗi attempt.</code></pre><div class="ans-block"><span class="ans-label">Nguồn chính thức / tài liệu dự án</span><ul><li><a href="https://redis.io/docs/latest/develop/data-types/sorted-sets/">redis — tài liệu tham khảo</a></li><li><a href="https://redis.io/docs/latest/develop/data-types/hashes/">hash — tài liệu tham khảo</a></li><li><a href="https://docs.spring.io/spring-security/reference/servlet/architecture.html">security — tài liệu tham khảo</a></li></ul></div></div></article></section>
+<section class="section" id="audit-deepening"><h2 class="section-title">Đào sâu và đính chính phỏng vấn</h2><article class="qa-card" id="deepening-22"><h3 class="qa-question">Redis token bucket dùng Hash: đơn vị thời gian, lease owner và giới hạn atomicity</h3><div class="qa-answer"><div class="ans-block"><span class="ans-label">What</span><p>Hash lưu tokens và lastRefill cho token bucket với state hữu hạn; tốc độ token/second phải đổi đơn vị nếu đồng hồ dùng millisecond. Atomicity trong Redis không biến rate limit hay cache lock thành bảo đảm ledger hoặc consistency xuyên DB.</p></div><div class="ans-block"><span class="ans-label">How / Trade-offs / Pitfalls</span><ul><li>Hash token bucket: script lấy tokens/last, refill min(capacity, tokens + elapsed×rate), tiêu thụ nếu đủ, ghi lại state và TTL trong một lần atomic. Nếu now là millisecond thì rate token/second phải chia 1000. Đính chính ví dụ rate limiter cũ: không nhân trực tiếp millisecond với rate theo giây.</li><li>ZSET sliding log: remove scores ngoài cửa sổ, ZCARD, nếu dưới limit thì ZADD với member request ID duy nhất và score now, EXPIRE. Các bước phải cùng Lua/function để tránh race. Tốn O(request trong window) state, ZADD O(log n), cleanup tốn theo số member xóa; giới hạn số key/member và cardinality caller.</li><li>Redis script atomic trên shard nhưng không transaction với DB và không rollback mọi command đã chạy nếu script lỗi giữa chừng. Redis Cluster multi-key cần cùng hash slot, ví dụ rate:{user}:state; Hash single key dễ kiểm soát hơn. Dùng một nguồn clock có kiểm soát, clamp elapsed âm và xử lý TTL/reset có chủ đích.</li><li>Ghi 429 và Retry-After phù hợp, không lộ token. Chọn fail-open/closed theo endpoint: auth/payment khác telemetry. Internal trusted caller vẫn cần quota/bulkhead khi lỗi hoặc bị chiếm quyền. Redis còn dùng cache/session/counter/queue/ranking nhưng không thay ledger ACID.</li><li>An toàn cache bổ sung: Bloom filter chuẩn không false negative đối với phần tử đã insert nhưng có false positive; filter lỗi thời do missed update có thể bỏ sót key mới. Lock single-flight phải có owner token, release compare-and-delete atomic, TTL/deadline và retry hữu hạn; không delete lock vô điều kiện sau khi lease hết rồi owner khác đã lấy. Avalanche còn gồm Redis outage, cần load shedding và DB concurrency budget.</li></ul></div><div class="flow-diagram">Evidence → bounded resource / transaction boundary → failure test → verify recovery</div><pre class="code-block"><code>-- Lua token refill dùng milliseconds và rate per second:
+local elapsed = math.max(0, nowMs - lastMs)
+local available = math.min(capacity, tokens + elapsed * ratePerSecond / 1000)
+-- Read, check, consume, HSET, PEXPIRE nằm trong cùng script.
+-- Sliding log ZSET dùng unique member; không chỉ timestamp làm member.</code></pre><div class="ans-block"><span class="ans-label">Nguồn chính thức</span><ul><li><a href="https://redis.io/docs/latest/develop/data-types/sorted-sets/">redis — tài liệu chính thức</a></li><li><a href="https://redis.io/docs/latest/develop/programmability/eval-intro/">lua — tài liệu chính thức</a></li><li><a href="https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing">hikari — tài liệu chính thức</a></li></ul></div></div></article></section>
+<div class="nav-pager">
+          <a class="prev" href="07-microservices.html">
+            <span class="label">Trước</span>
+            <span class="title">7. Microservices &amp; Distributed</span>
+          </a>
+          <a class="next" href="09-cloud-cicd.html">
+            <span class="label">Tiếp</span>
+            <span class="title">9. Cloud, CI/CD &amp; Testing</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Module 08 / 14</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

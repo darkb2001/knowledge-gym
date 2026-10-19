@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>36. React Hooks, Quản lý State &amp; Data Fetching — Knowledge Gym</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Knowledge<br><span>Gym</span></h1>
+        <p>Java, AWS DVA-C02 &amp; Frontend</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>36. React Hooks, Quản lý State &amp; Data Fetching</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 36</div>
+          <h1 class="module-title">React Hooks, Quản lý State &amp; Data Fetching</h1>
+          <p class="module-subtitle">Hooks và quản lý dữ liệu ở FE: dependency array, cleanup chống race, memo hoá, custom hook, Context, thư viện state và server-state cache.</p>
+        </div>
+
+        <section class="section" id="hook-c-b-n-state-effect-memo-ho">
+          <h2 class="section-title">Hook cơ bản — state, effect, memo hoá</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q1</span> useState — khi nào bắt buộc dùng updater function, và bẫy stale closure là gì?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><code>useState</code> trả về cặp <code>[value, setValue]</code>; <code>setValue</code> nhận giá trị mới hoặc một <strong>updater function</strong> dạng <code>(prev) =&gt; next</code>. React gom nhiều lần set state trong cùng một lượt xử lý thành <strong>một</strong> lần re-render (automatic batching), nên update nào phụ thuộc giá trị cũ thì buộc phải dùng updater function.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Mỗi lần render tạo ra một closure mới đóng gói giá trị state <em>tại thời điểm render đó</em>. Nếu bạn cập nhật bằng <code>setCount(count + 1)</code> hai lần liên tiếp, cả hai đều đọc cùng một <code>count</code> cũ nên kết quả chỉ tăng 1 — đây là <strong>stale closure</strong>. Vấn đề nặng hơn khi closure sống lâu: callback trong <code>setTimeout</code>, <code>setInterval</code>, subscription hay promise resolve sau nhiều giây vẫn giữ giá trị state cũ; ghi state từ đó sẽ ghi đè kết quả của những update mới hơn. Updater function không đọc biến từ closure mà nhận <code>prev</code> do React truyền vào, nên luôn đúng với state mới nhất.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Event handler gọi setCount 2 lần</div></div>
+        <div class="flow-arrow">↓ React gom vào cùng một batch</div>
+        <div class="flow-row"><div class="flow-node warning">setCount(count + 1) — cả hai đọc count = 0</div><div class="flow-node success">setCount(c =&gt; c + 1) — nhận prev tuần tự</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node">Kết quả: 1 (mất update)</div><div class="flow-node success">Kết quả: 2, re-render 1 lần</div></div>
+      </div>
+      <p>Cùng cơ chế đó áp dụng cho object/array: <code>setUser(u =&gt; ({ ...u, name }))</code> để không mất các field khác, vì React thay thế toàn bộ giá trị chứ không merge như <code>this.setState</code>.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Bắt buộc dùng updater function khi giá trị mới phụ thuộc giá trị cũ: counter, toggle, thêm/xoá item trong list, accumulate kết quả từ nhiều nguồn. Cũng dùng khi hàm set state được gọi từ <code>useEffect</code>, <code>setInterval</code> hoặc callback async — nơi closure có thể đã lỗi thời.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không cần updater khi set giá trị độc lập (<code>setOpen(true)</code>, <code>setName(e.target.value)</code>). Đừng biến mọi state thành một object khổng lồ rồi set từng field bằng spread — đó là dấu hiệu nên dùng <code>useReducer</code>. Và đừng lưu giá trị dẫn xuất (derived) vào state: nếu tính được từ state/props thì tính ngay khi render, lưu vào state sẽ gây lệch dữ liệu.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// LỖI: stale closure — chỉ tăng 1 dù gọi 2 lần</span>
+<span class="tok-keyword">const</span> [count, setCount] = <span class="tok-function">useState</span>(<span class="tok-number">0</span>);
+setCount(count + <span class="tok-number">1</span>);
+setCount(count + <span class="tok-number">1</span>);
+
+<span class="tok-comment">// ĐÚNG: updater function + batching</span>
+setCount(c =&gt; c + <span class="tok-number">1</span>);
+setCount(c =&gt; c + <span class="tok-number">1</span>); <span class="tok-comment">// = 2, chỉ 1 lần re-render</span>
+
+<span class="tok-comment">// ĐÚNG: object state — spread giữ field cũ</span>
+<span class="tok-keyword">const</span> [form, setForm] = <span class="tok-function">useState</span>({ name: <span class="tok-string">''</span>, city: <span class="tok-string">''</span> });
+setForm(prev =&gt; ({ ...prev, name: <span class="tok-string">'An'</span> }));
+
+<span class="tok-comment">// LỖI: closure trong interval giữ count cũ mãi mãi</span>
+<span class="tok-function">useEffect</span>(() =&gt; {
+  <span class="tok-keyword">const</span> id = <span class="tok-function">setInterval</span>(() =&gt; setCount(count + <span class="tok-number">1</span>), <span class="tok-number">1000</span>);
+  <span class="tok-keyword">return</span> () =&gt; <span class="tok-function">clearInterval</span>(id);
+}, []); <span class="tok-comment">// thiếu dep -&gt; count bị "đóng băng" ở 0</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Nút "Thêm vào giỏ": <code>setCart(prev =&gt; [...prev, item])</code> đúng ngay cả khi user bấm nhanh nhiều lần trong 50ms — mọi lần bấm đều được nối tiếp thay vì ghi đè lên nhau.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Hai bẫy hay bị hỏi: (1) mutate trực tiếp — <code>items.push(x); setItems(items)</code> không tạo reference mới nên React bail out và UI không đổi; phải tạo mảng mới. (2) <code>useState(prop)</code> chỉ dùng prop làm <strong>giá trị khởi tạo</strong>, các lần render sau prop đổi sẽ không cập nhật state — cần reset bằng cách đổi <code>key</code> của component.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>useState trả cặp value/setter; setter nhận giá trị hoặc updater function.</li>
+      <li>Stale closure: closure giữ state của lần render cũ — set dựa giá trị cũ thì mất update.</li>
+      <li>Updater <code>(prev) =&gt; next</code> luôn nhận state mới nhất, an toàn trong interval/async.</li>
+      <li>React 18 batch mọi lần set trong cùng lượt xử lý thành 1 re-render.</li>
+      <li>Object/array phải spread tạo reference mới, không mutate tại chỗ.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q2</span> useEffect — dependency array đúng cách, cleanup, và chống race condition khi fetch?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><code>useEffect</code> chạy <strong>sau</strong> khi React commit DOM. Dependency array quyết định vòng đời: <code>[]</code> chạy một lần sau mount, <code>[a, b]</code> chạy lại khi a hoặc b đổi (so sánh bằng <code>Object.is</code>), bỏ trống thì chạy sau <em>mọi</em> render. Hàm <code>cleanup</code> được trả về sẽ chạy trước lần effect kế tiếp và khi component unmount.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Effect dùng để đồng bộ với hệ thống ngoài React (network, timer, DOM, subscription). Với fetch, hai lỗi kinh điển: <strong>thiếu dependency</strong> khiến effect đóng băng giá trị cũ (stale closure), và <strong>race condition</strong> — user đổi filter nhanh, request cũ về <em>sau</em> request mới rồi ghi đè state, UI hiển thị dữ liệu của filter đã bị bỏ. Cleanup là cơ chế chuẩn để huỷ request cũ hoặc unsubscribe, và đảm bảo không set state sau khi component đã unmount.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">userId = 1 → effect chạy, gọi fetch A</div></div>
+        <div class="flow-arrow">↓ user đổi userId = 2 (A chưa xong)</div>
+        <div class="flow-row"><div class="flow-node warning">cleanup: controller.abort() cho A</div><div class="flow-node secondary">effect mới: fetch B</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Chỉ B ghi state — không còn ghi đè</div></div>
+      </div>
+      <p>Thêm một lớp bảo vệ nữa là cờ <code>active</code> (hoặc bỏ qua kết quả nếu <code>signal.aborted</code>): abort không phải lúc nào cũng chặn kịp callback đã resolve.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng effect khi cần đồng bộ với thứ nằm ngoài React: gọi API, subscribe store/websocket, gắn event listener trên <code>window</code>, khởi tạo timer, đo DOM, gửi analytics khi prop đổi. Nguyên tắc: mỗi giá trị dùng trong effect mà đến từ props/state phải có mặt trong dependency array.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng effect để: (1) tính giá trị dẫn xuất — tính ngay trong render; (2) xử lý sự kiện — viết trong event handler; (3) reset state khi prop đổi — dùng <code>key</code>; (4) chain các effect với nhau để truyền dữ liệu — set state ngay trong event handler. Ngoài ra, nếu dữ liệu là server state, <code>useEffect</code> + fetch thủ công là tự làm lại những gì TanStack Query đã làm tốt hơn.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-function">useEffect</span>(() =&gt; {
+  <span class="tok-keyword">const</span> controller = <span class="tok-keyword">new</span> <span class="tok-class">AbortController</span>();
+  <span class="tok-keyword">let</span> active = <span class="tok-keyword">true</span>;
+
+  <span class="tok-function">fetch</span>(<span class="tok-string">`/api/orders?status=${status}`</span>, { signal: controller.signal })
+    .<span class="tok-function">then</span>(r =&gt; r.<span class="tok-function">json</span>())
+    .<span class="tok-function">then</span>(data =&gt; { <span class="tok-keyword">if</span> (active) <span class="tok-function">setOrders</span>(data); })
+    .<span class="tok-function">catch</span>(err =&gt; {
+      <span class="tok-keyword">if</span> (err.name !== <span class="tok-string">'AbortError'</span>) <span class="tok-function">setError</span>(err);
+    });
+
+  <span class="tok-keyword">return</span> () =&gt; { active = <span class="tok-keyword">false</span>; controller.<span class="tok-function">abort</span>(); };
+}, [status]);</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Ô search đổi theo từng ký tự: gõ "abc" rồi "abcd" trong 200ms — abort khiến request của "abc" bị huỷ, tránh hiển thị kết quả của từ khoá ngắn hơn lên màn hình.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Trong <strong>React StrictMode</strong> ở môi trường dev, mỗi effect chạy 2 lần (mount → unmount → mount) để phát hiện effect thiếu cleanup. Đây là hành vi cố ý, không phải bug — cách xử lý là viết cleanup đầy đủ, tuyệt đối không "chữa" bằng cách bỏ dependency array hay thêm cờ ref chống chạy hai lần. Cũng lưu ý <code>linter exhaustive-deps</code> cảnh báo khi bạn dùng object/function literal trong deps — chúng đổi reference mỗi render và gây vòng lặp vô hạn.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Effect chạy sau commit; deps quyết định chạy lại, cleanup chạy trước lần sau và khi unmount.</li>
+      <li>Race condition khi fetch: AbortController + cờ active để request cũ không ghi state.</li>
+      <li>Effect chỉ để đồng bộ với hệ ngoài React — không dùng cho derived state hay event handling.</li>
+      <li>StrictMode dev chạy effect 2 lần để bạn viết cleanup tử tế.</li>
+      <li>Object/function literal trong deps là nguyên nhân loop phổ biến nhất.</li>
+    </ul></div>
+  </div>
+</article>
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q3</span> useMemo / useCallback — khi nào thật sự cần và cái giá của việc lạm dụng?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><code>useMemo</code> cache <strong>kết quả</strong> của một phép tính giữa các lần render; <code>useCallback</code> cache <strong>chính function reference</strong> đó (<code>useCallback(fn, deps)</code> tương đương <code>useMemo(() =&gt; fn, deps)</code>). Cả hai chỉ có hiệu lực khi dependency array không đổi — dependency đổi thì giá trị được tính lại.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Mỗi lần render, mọi biến và function literal trong component được tạo mới. Điều đó chỉ gây hại trong ba trường hợp: (1) phép tính thực sự đắt (sort/filter mảng vài nghìn phần tử, xử lý ảnh) bị chạy lại vô ích; (2) function/object truyền xuống component bọc <code>React.memo</code> làm prop đổi reference mỗi render khiến memo vô hiệu; (3) function làm dependency của effect khác gây chạy lại liên tục. Chỉ khi rơi vào các trường hợp này thì memo hoá mới có lợi.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Parent re-render</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node warning">Không memo: prop mới → React.memo child re-render</div><div class="flow-node success">useCallback/useMemo: reference giữ nguyên → child bail out</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Chi phí: cấp phát cache + so sánh deps mỗi render</div></div>
+      </div>
+      <p>Chi phí của memo hoá không bằng 0: React phải giữ closure và mảng deps qua các render, đồng thời so sánh từng phần tử deps bằng <code>Object.is</code>. Với phép tính rẻ, chi phí này còn lớn hơn việc tính lại.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng <code>useMemo</code> khi phép tính rõ ràng đắt: lọc/sắp xếp danh sách lớn, build cây dữ liệu, parse chuỗi lớn; hoặc khi tạo object/array làm dependency cho effect. Dùng <code>useCallback</code> khi truyền handler xuống component đã bọc <code>React.memo</code>, hoặc khi handler là dep của một effect, hoặc khi handler được truyền vào custom hook cần ổn định reference.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không memo hoá mặc định mọi thứ: <code>useCallback</code> cho một child <em>không</em> bọc <code>React.memo</code> là vô nghĩa vì child vẫn re-render cùng parent. Không dùng <code>useMemo</code> cho phép so sánh vài phần tử, cho chuỗi format ngắn, hay để "tránh tính lại" một biểu thức rẻ — code khó đọc hơn mà không nhanh hơn. Khi đã bật React Compiler, phần lớn memo hoá thủ công trở nên dư thừa.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-keyword">function</span> <span class="tok-class">OrderTable</span>({ orders, keyword }: Props) {
+  <span class="tok-comment">// ĐẮT: chạy lại mỗi render nếu không memo -&gt; cần useMemo</span>
+  <span class="tok-keyword">const</span> filtered = <span class="tok-function">useMemo</span>(
+    () =&gt; orders.<span class="tok-function">filter</span>(o =&gt; o.sku.<span class="tok-function">includes</span>(keyword)),
+    [orders, keyword],
+  );
+
+  <span class="tok-comment">// cần useCallback vì RowRow được React.memo và nhận prop này</span>
+  <span class="tok-keyword">const</span> handleSelect = <span class="tok-function">useCallback</span>((id: <span class="tok-class">string</span>) =&gt; {
+    <span class="tok-function">onSelect</span>(id);
+  }, [onSelect]);
+
+  <span class="tok-keyword">return</span> filtered.<span class="tok-function">map</span>(o =&gt; <span class="tok-annotation">&lt;RowRow</span> <span class="tok-class">key</span>={o.id} <span class="tok-class">row</span>={o} <span class="tok-class">onSelect</span>={handleSelect} <span class="tok-annotation">/&gt;</span>);
+}
+
+<span class="tok-keyword">const</span> RowRow = <span class="tok-class">React</span>.<span class="tok-function">memo</span>(<span class="tok-keyword">function</span> <span class="tok-class">RowRow</span>({ row, onSelect }: RowProps) { <span class="tok-comment">/* ... */</span> });</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Bảng 5.000 dòng có ô tìm kiếm: <code>useMemo</code> cho bước filter sắp xếp giúp mỗi lần user mở dropdown (state khác đổi) không phải lọc lại toàn bộ mảng.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Câu hỏi bẫy: "<code>useMemo</code> có đảm bảo giá trị được cache không?" — Không. React có quyền "quên" cache trong một số điều kiện (ví dụ unmount, hoặc trong tương lai với các tính năng như offscreen) nên <code>useMemo</code> <strong>không phải</strong> nơi lưu side effect hay dữ liệu cần đảm bảo tồn tại; đừng phụ thuộc nó để tránh chạy side effect. Một bẫy khác: memo hoá nhưng truyền deps thiếu — giá trị cache vĩnh viễn sai và cực khó debug.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>useMemo cache giá trị, useCallback cache function reference — cùng bản chất.</li>
+      <li>Chỉ cần khi: tính toán đắt, prop cho React.memo, hoặc làm dep cho effect.</li>
+      <li>useCallback vô nghĩa nếu child không memo — parent re-render vẫn kéo child theo.</li>
+      <li>Memo hoá tốn bộ nhớ và so sánh deps — lạm dụng làm code rối mà chậm hơn.</li>
+      <li>Cache của useMemo không được đảm bảo — không dùng để chứa side effect.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q4</span> useRef — giữ giá trị qua các render vs truy cập DOM, và vì sao nó không gây re-render?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><code>useRef(initial)</code> trả về một object bền vững có đúng một field <code>current</code>. Gán ref vào JSX (<code>ref=&#123;myRef&#125;</code>) thì React ghi element DOM vào <code>current</code> sau khi mount. Ref tồn tại xuyên suốt vòng đời component và <strong>thay đổi <code>current</code> không kích hoạt re-render</strong>.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>State là dữ liệu <em>thuộc về output render</em>: đổi state thì phải render lại để UI khớp. Nhưng nhiều dữ liệu không xuất hiện trên UI — id của <code>setInterval</code>, cờ <code>isFirstRender</code>, giá trị previous của prop, thời điểm render cuối, đối tượng WebSocket. Nếu đặt chúng vào state, mỗi thay đổi gây một vòng render thừa. Ngược lại, vì ref là object ổn định, bạn có thể đọc nó trong closure async mà luôn nhận giá trị mới nhất — đây là điểm khác biệt cốt lõi với closure của state.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">render #1 — useRef tạo &#123; current: 0 &#125;</div></div>
+        <div class="flow-arrow">↓ gán lại cùng object, không cấp phát mới</div>
+        <div class="flow-row"><div class="flow-node">render #2 — vẫn cùng object ref</div><div class="flow-node warning">ref.current++ → không re-render</div></div>
+        <div class="flow-arrow">↓ khi cần UI khớp thì mới gọi setState</div>
+        <div class="flow-row"><div class="flow-node success">render #N — đọc được mọi thay đổi trước đó</div></div>
+      </div>
+      <p>Với DOM: React gán <code>ref.current = node</code> sau commit và đặt về <code>null</code> khi unmount — vì vậy đọc <code>ref.current</code> lúc render lần đầu sẽ là <code>null</code>.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Truy cập DOM imperative: <code>input.focus()</code>, <code>scrollIntoView</code>, <code>video.play()</code>, lấy kích thước phần tử. Giữ giá trị mutable không đổi UI: timer id, cờ chống double-submit, counter số lần render, giữ giá trị trước đó (<code>usePrevious</code>), giữ instance của thư viện bên thứ ba (chart, map, editor).</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng ref <em>thay</em> state cho dữ liệu hiển thị: đổi <code>ref.current</code> không làm UI cập nhật, component sẽ lệch với dữ liệu. Không đọc/ghi ref trong thân render (ngoại lệ duy nhất là lazy init <code>if (ref.current === null)</code>) vì render phải là pure và có thể bị React gọi nhiều lần hoặc bỏ dở trong concurrent rendering. Với DOM, ưu tiên cách khai báo (state, conditional render) trước khi chuyển sang thao tác imperative.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// 1) DOM ref</span>
+<span class="tok-keyword">const</span> inputRef = <span class="tok-function">useRef</span>&lt;<span class="tok-class">HTMLInputElement</span>&gt;(<span class="tok-keyword">null</span>);
+<span class="tok-function">useEffect</span>(() =&gt; { inputRef.current?.<span class="tok-function">focus</span>(); }, []);
+
+<span class="tok-comment">// 2) giá trị mutable, không gây re-render</span>
+<span class="tok-keyword">const</span> rendered = <span class="tok-function">useRef</span>(<span class="tok-number">0</span>);
+rendered.current += <span class="tok-number">1</span>;
+
+<span class="tok-comment">// 3) giữ giá trị trước đó của prop</span>
+<span class="tok-keyword">function</span> <span class="tok-function">usePrevious</span>&lt;T&gt;(value: T) {
+  <span class="tok-keyword">const</span> ref = <span class="tok-function">useRef</span>&lt;T | <span class="tok-keyword">undefined</span>&gt;(<span class="tok-keyword">undefined</span>);
+  <span class="tok-function">useEffect</span>(() =&gt; { ref.current = value; }, [value]);
+  <span class="tok-keyword">return</span> ref.current;
+}
+
+<span class="tok-comment">// 4) timer id — sống qua mọi render, không cần state</span>
+<span class="tok-keyword">const</span> timerId = <span class="tok-function">useRef</span>&lt;<span class="tok-class">number</span> | <span class="tok-keyword">null</span>&gt;(<span class="tok-keyword">null</span>);</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Cờ chống gửi trùng: <code>if (submitting.current) return;</code> ngay đầu handler. So với state <code>isSubmitting</code>, cờ ref chặn được lần bấm thứ hai <em>ngay lập tức</em>, trước khi React kịp render lại và cập nhật giá trị state.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Đừng nói "ref là biến instance của class" — điểm khác biệt là ref không tham gia vào luồng dữ liệu một chiều: React không theo dõi nó, nên đọc nó trong render phá vỡ tính pure. Bẫy tinh tế: gán <code>ref=&#123;(node) =&gt; ...&#125;</code> callback chạy lại mỗi lần element đổi, còn object ref thì ổn định. Và <code>useRef()</code> khác <code>createRef()</code> (tạo object mới mỗi render) lẫn <code>useState</code> (đổi thì re-render).</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>useRef trả object ổn định với field current, sống qua mọi render.</li>
+      <li>Đổi current không re-render — dùng cho dữ liệu không thuộc UI.</li>
+      <li>Gắn vào JSX để lấy DOM node, gán sau commit, null khi unmount.</li>
+      <li>Dùng cho timer id, cờ chống double-submit, giá trị previous, instance lib.</li>
+      <li>Không dùng thay state cho dữ liệu hiển thị; không đọc/ghi ref trong render.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="qu-n-l-state-ph-c-t-p-t-i-s-d-ng-logic">
+          <h2 class="section-title">Quản lý state phức tạp & tái sử dụng logic</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q5</span> useReducer — khi nào tốt hơn useState, và dùng làm state machine cho form/flow?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><code>useReducer(reducer, initialArg)</code> trả về <code>[state, dispatch]</code>. Mọi thay đổi state đi qua một hàm <strong>thuần</strong> <code>reducer(state, action) =&gt; newState</code>, được gọi bằng <code>dispatch(&#123; type: 'ADD_ITEM', payload &#125;)</code>. Thay vì nhiều setter rải rác, toàn bộ luật chuyển trạng thái nằm trong một chỗ.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p><code>useReducer</code> thắng <code>useState</code> khi: state là nhiều field <strong>liên quan</strong> và một action phải cập nhật nhiều field cùng lúc (set 5 state riêng lẻ dễ rơi vào trạng thái trung gian không hợp lệ); transition tiếp theo phụ thuộc cả state hiện tại lẫn action; cần chặn transition sai (ví dụ không cho submit khi chưa validate); hoặc muốn test logic mà không cần render component. Vì reducer là pure function, bạn test được toàn bộ luật nghiệp vụ bằng unit test thuần tuý.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">dispatch(&#123; type: 'NEXT_STEP' &#125;)</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">reducer(state, action) — switch theo type</div><div class="flow-node warning">transition không hợp lệ bị bỏ qua / throw</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">state mới (step 2, touched = true) → re-render</div></div>
+      </div>
+      <p>Reducer phải trả về object <strong>mới</strong>, không mutate state cũ — React so sánh reference để quyết định re-render, và mutating state phá vỡ mọi giả định của concurrent rendering.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Form wizard nhiều bước: state gồm <code>step</code>, <code>values</code>, <code>errors</code>, <code>touched</code>, <code>isSubmitting</code>. Flow có state machine: upload (idle → uploading → success → error), checkout, editor undo/redo. Cũng dùng khi cần truyền <code>dispatch</code> xuống component con thay vì nhiều callback setState khác nhau.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Với 1–2 giá trị độc lập (<code>isOpen</code>, <code>keyword</code>) thì <code>useReducer</code> chỉ thêm boilerplate. Không dùng reducer nội bộ component để giả làm global store — nếu state cần chia sẻ giữa nhiều nhánh cây, đó là bài toán Context hoặc thư viện state. Cũng đừng gọi API hay đọc localStorage bên trong reducer: reducer phải pure, mọi side effect đặt ở ngoài (event handler hoặc effect).</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-keyword">type</span> <span class="tok-class">State</span> = { step: <span class="tok-class">number</span>; values: <span class="tok-class">Record</span>&lt;<span class="tok-class">string</span>, <span class="tok-class">string</span>&gt;; errors: <span class="tok-class">string</span>[]; submitting: <span class="tok-class">boolean</span> };
+<span class="tok-keyword">type</span> <span class="tok-class">Action</span> =
+  | { type: <span class="tok-string">'SET_FIELD'</span>; name: <span class="tok-class">string</span>; value: <span class="tok-class">string</span> }
+  | { type: <span class="tok-string">'NEXT_STEP'</span> }
+  | { type: <span class="tok-string">'SUBMIT_START'</span> }
+  | { type: <span class="tok-string">'SUBMIT_FAILED'</span>; errors: <span class="tok-class">string</span>[] };
+
+<span class="tok-keyword">function</span> <span class="tok-function">reducer</span>(state: <span class="tok-class">State</span>, action: <span class="tok-class">Action</span>): <span class="tok-class">State</span> {
+  <span class="tok-keyword">switch</span> (action.type) {
+    <span class="tok-keyword">case</span> <span class="tok-string">'SET_FIELD'</span>:
+      <span class="tok-keyword">return</span> { ...state, values: { ...state.values, [action.name]: action.value } };
+    <span class="tok-keyword">case</span> <span class="tok-string">'NEXT_STEP'</span>: {
+      <span class="tok-keyword">const</span> errors = <span class="tok-function">validateStep</span>(state.step, state.values);
+      <span class="tok-keyword">if</span> (errors.length) <span class="tok-keyword">return</span> { ...state, errors };
+      <span class="tok-keyword">return</span> { ...state, step: state.step + <span class="tok-number">1</span>, errors: [] };
+    }
+    <span class="tok-keyword">case</span> <span class="tok-string">'SUBMIT_START'</span>: <span class="tok-keyword">return</span> { ...state, submitting: <span class="tok-keyword">true</span> };
+    <span class="tok-keyword">case</span> <span class="tok-string">'SUBMIT_FAILED'</span>: <span class="tok-keyword">return</span> { ...state, submitting: <span class="tok-keyword">false</span>, errors: action.errors };
+  }
+}
+
+<span class="tok-keyword">const</span> [state, dispatch] = <span class="tok-function">useReducer</span>(reducer, { step: <span class="tok-number">0</span>, values: {}, errors: [], submitting: <span class="tok-keyword">false</span> });</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Form tạo đơn 3 bước: <code>NEXT_STEP</code> chỉ tăng <code>step</code> khi <code>validateStep</code> không có lỗi — nhờ vậy không bao giờ tồn tại trạng thái "đang ở bước 3 nhưng dữ liệu bước 1 chưa hợp lệ", thứ rất dễ xảy ra khi dùng 5 state riêng.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy hay bị hỏi: hàm <code>reducer</code> chạy <strong>hai lần</strong> trong StrictMode dev — nếu bạn viết side effect (log, gọi API, mutate biến ngoài) trong reducer thì nó chạy trùng. Một bẫy khác: mutate <code>state.values</code> rồi trả <code>state</code> cũ khiến React bail out, UI đứng im dù logic "chạy đúng". Lưu ý cuối: <code>useReducer</code> không thay thế Redux — nó chỉ gom logic state của <em>một component</em> (hoặc một subtree qua Context).</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>useReducer = state + dispatch + pure reducer; transition tập trung một chỗ.</li>
+      <li>Tốt hơn useState khi nhiều field liên quan, một action đổi nhiều field, cần chặn transition sai.</li>
+      <li>Reducer pure và testable — unit test không cần render.</li>
+      <li>Luôn trả object mới; side effect để ngoài reducer.</li>
+      <li>1–2 giá trị độc lập thì useState vẫn gọn hơn.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q6</span> Custom hook — nguyên tắc tách logic, chia sẻ logic khác chia sẻ state thế nào?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Custom hook là một function tên bắt đầu bằng <code>use</code> và có thể gọi các hook khác bên trong. Nó đóng gói <strong>logic</strong> (state + effect + cách phối hợp) thành đơn vị tái sử dụng. Điểm cần nhớ: mỗi lần gọi custom hook tạo ra một <strong>instance state riêng biệt</strong> — hai component cùng gọi <code>useCounter()</code> sẽ có hai biến đếm độc lập.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Custom hook giải quyết vấn đề tái sử dụng <em>hành vi có trạng thái</em> — thứ mà HOC và render props làm được nhưng rườm rà (wrapper hell, prop name collision). Vì logic tách khỏi UI, bạn test được bằng <code>renderHook</code> mà không cần dựng giao diện, và component trở về đúng vai trò: mô tả giao diện. Cái được chia sẻ là <em>cách xử lý</em>, không phải chính dữ liệu.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">useDebounce(value, 300ms)</div></div>
+        <div class="flow-arrow">↓ mỗi component gọi hook = instance state riêng</div>
+        <div class="flow-row"><div class="flow-node secondary">SearchBox: timer + debounced riêng</div><div class="flow-node secondary">FilterBar: timer + debounced riêng</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Cùng đoạn logic, không chia sẻ state</div></div>
+      </div>
+      <p>Muốn <em>chia sẻ state</em> giữa nhiều component thì phải nâng state lên component cha, đưa vào Context, hoặc dùng store — custom hook chỉ là lớp đóng gói logic tái dùng.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Khi một cụm logic có state/effect bị lặp ở 2–3 nơi trở lên: debounce ô search, phân trang, fetch dữ liệu có loading/error, form field validation, theo dõi kích thước cửa sổ, đồng bộ state với localStorage. Cũng nên tách khi logic làm component phình quá dài và trộn nhiều mối quan tâm.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không cần custom hook nếu đó chỉ là hàm thuần không dùng hook nào — viết util function bình thường (<code>formatCurrency</code>, <code>groupBy</code>) sẽ dễ test và không bị ràng buộc quy tắc hook. Cũng đừng tạo hook chỉ để bọc một <code>useState</code> đơn lẻ — abstraction không mang lại giá trị, chỉ thêm một tầng gián tiếp phải nhảy file khi đọc code.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-keyword">function</span> <span class="tok-function">useDebounce</span>&lt;T&gt;(value: T, delay = <span class="tok-number">300</span>): T {
+  <span class="tok-keyword">const</span> [debounced, setDebounced] = <span class="tok-function">useState</span>(value);
+
+  <span class="tok-function">useEffect</span>(() =&gt; {
+    <span class="tok-keyword">const</span> id = <span class="tok-function">setTimeout</span>(() =&gt; <span class="tok-function">setDebounced</span>(value), delay);
+    <span class="tok-keyword">return</span> () =&gt; <span class="tok-function">clearTimeout</span>(id); <span class="tok-comment">// cleanup: huỷ timer mỗi lần value đổi</span>
+  }, [value, delay]);
+
+  <span class="tok-keyword">return</span> debounced;
+}
+
+<span class="tok-keyword">function</span> <span class="tok-function">usePagination</span>(total: <span class="tok-class">number</span>, pageSize = <span class="tok-number">20</span>) {
+  <span class="tok-keyword">const</span> [page, setPage] = <span class="tok-function">useState</span>(<span class="tok-number">1</span>);
+  <span class="tok-keyword">const</span> pageCount = <span class="tok-function">useMemo</span>(() =&gt; <span class="tok-class">Math</span>.<span class="tok-function">ceil</span>(total / pageSize), [total, pageSize]);
+
+  <span class="tok-keyword">const</span> next = <span class="tok-function">useCallback</span>(() =&gt; <span class="tok-function">setPage</span>(p =&gt; <span class="tok-class">Math</span>.<span class="tok-function">min</span>(p + <span class="tok-number">1</span>, pageCount)), [pageCount]);
+
+  <span class="tok-keyword">return</span> { page, pageCount, next, setPage };
+}
+
+<span class="tok-comment">// dùng trong component — state của hook là riêng cho component này</span>
+<span class="tok-keyword">const</span> debouncedKeyword = <span class="tok-function">useDebounce</span>(keyword, <span class="tok-number">400</span>);
+<span class="tok-keyword">const</span> { page, pageCount, next } = <span class="tok-function">usePagination</span>(orders.length);</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p><code>useDebounce(keyword, 400)</code> cắm thẳng vào query key của TanStack Query: user gõ liên tục nhưng chỉ có một request cho giá trị đã ổn định — kết hợp debounce với cache cho trải nghiệm search mượt.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Ba câu trả lời sai thường gặp: (1) "custom hook chia sẻ state giữa các component" — sai, nó chia sẻ <em>logic</em>; (2) gọi custom hook có điều kiện trong if/loop — vi phạm Rules of Hooks; (3) dùng custom hook để che một <code>useEffect</code> phức tạp nhưng không đặt tên rõ — hook nên có tên mô tả đúng việc nó làm. Thêm nữa: mọi hook bên trong custom hook cũng phải tuân thủ deps đầy đủ, và state trong hook bị reset khi component cha đổi <code>key</code>.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Custom hook = function tên use..., gọi hook khác; chia sẻ logic, không chia sẻ state.</li>
+      <li>Mỗi lần gọi là một instance state riêng — như useState đặt cạnh nhau.</li>
+      <li>Lợi ích: tái sử dụng hành vi có state, tách UI khỏi logic, test bằng renderHook.</li>
+      <li>Hàm thuần không dùng hook thì viết util, đừng bọc thành hook.</li>
+      <li>Vẫn phải tuân Rules of Hooks và deps đầy đủ bên trong.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="chia-s-state-to-n-c-c-server-state">
+          <h2 class="section-title">Chia sẻ state toàn cục & server state</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q7</span> Context — khi nào thay thế props drilling, vì sao re-render cả cây và cách giảm?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Context cho phép truyền dữ liệu xuống bất kỳ độ sâu nào trong cây mà không phải đẩy prop qua từng tầng trung gian. <code>createContext(defaultValue)</code> tạo context; <code>Provider value=&#123;...&#125;</code> cung cấp giá trị; <code>useContext(Ctx)</code> ở component con đọc giá trị mới nhất từ Provider gần nhất phía trên.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Vấn đề của props drilling không phải là gõ nhiều mà là <strong>coupling</strong>: component tầng giữa buộc phải biết và chuyển tiếp prop mà nó không dùng, nên mọi thay đổi chữ ký prop lan khắp cây. Context cắt bỏ tầng trung gian đó. Nhưng cái giá là: khi <code>value</code> của Provider đổi, <strong>mọi</strong> component gọi <code>useContext</code> trên context đó đều re-render, kể cả khi chúng chỉ cần một phần nhỏ của value — React không làm so sánh từng phần như selector của store.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Provider value đổi (object mới)</div></div>
+        <div class="flow-arrow">↓ không có selector — so sánh bằng reference</div>
+        <div class="flow-row"><div class="flow-node warning">Mọi useContext(Ctx) re-render</div><div class="flow-node success">Provider tách nhỏ: chỉ consumer của context đó re-render</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">Memo component con + useMemo cho value → giảm tải</div></div>
+      </div>
+      <p>Bốn cách giảm: (1) <strong>tách context</strong> theo tần suất thay đổi — ví dụ <code>ThemeContext</code> (ít đổi) tách khỏi <code>UserContext</code>; (2) <strong>tách state và dispatch</strong> thành hai context để component chỉ dispatch không bị re-render khi state đổi; (3) <strong>memo hoá value</strong> bằng <code>useMemo</code>/<code>useCallback</code> để object không đổi reference mỗi render; (4) <strong>chia nhỏ component</strong> — bọc phần con trong <code>React.memo</code>, hoặc dùng thư viện có selector (ví dụ use-context-selector) hay store ngoài React.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dữ liệu mang tính "môi trường", ít thay đổi và được nhiều nơi đọc: theme (light/dark), locale/i18n, user đang đăng nhập, quyền hạn, feature flag, instance của thư viện (router, query client, toast). Cũng phù hợp khi giá trị đổi rất ít (gần như một lần lúc mount).</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng Context làm state manager cho dữ liệu thay đổi nhanh theo từng ký tự gõ phím hoặc cập nhật liên tục: mỗi lần value đổi, toàn bộ consumer re-render, và trong cây lớn điều này đắt hơn props drilling. Khi chỉ có 1–2 tầng trung gian thì truyền prop trực tiếp rõ ràng hơn. Và dữ liệu đến từ server thì thuộc về query cache, không phải Context.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// Tách 2 context: state đổi thường xuyên, dispatch ổn định</span>
+<span class="tok-keyword">const</span> StateCtx = <span class="tok-function">createContext</span>&lt;<span class="tok-class">CartState</span> | <span class="tok-keyword">null</span>&gt;(<span class="tok-keyword">null</span>);
+<span class="tok-keyword">const</span> DispatchCtx = <span class="tok-function">createContext</span>&lt;<span class="tok-class">Dispatch</span>&lt;<span class="tok-class">CartAction</span>&gt; | <span class="tok-keyword">null</span>&gt;(<span class="tok-keyword">null</span>);
+
+<span class="tok-keyword">export function</span> <span class="tok-class">CartProvider</span>({ children }: { children: <span class="tok-class">ReactNode</span> }) {
+  <span class="tok-keyword">const</span> [state, dispatch] = <span class="tok-function">useReducer</span>(cartReducer, initialCart);
+
+  <span class="tok-keyword">return</span> (
+    <span class="tok-annotation">&lt;DispatchCtx.Provider</span> <span class="tok-class">value</span>={dispatch}<span class="tok-annotation">&gt;</span>
+      <span class="tok-annotation">&lt;StateCtx.Provider</span> <span class="tok-class">value</span>={state}<span class="tok-annotation">&gt;</span>
+        {children}
+      <span class="tok-annotation">&lt;/StateCtx.Provider&gt;</span>
+    <span class="tok-annotation">&lt;/DispatchCtx.Provider&gt;</span>
+  );
+}
+
+<span class="tok-comment">// Component chỉ gửi action -&gt; không re-render khi cart đổi</span>
+<span class="tok-keyword">export function</span> <span class="tok-class">AddToCartButton</span>({ id }: { id: <span class="tok-class">string</span> }) {
+  <span class="tok-keyword">const</span> dispatch = <span class="tok-function">useContext</span>(DispatchCtx)!;
+  <span class="tok-keyword">return</span> <span class="tok-annotation">&lt;button</span> <span class="tok-class">onClick</span>={() =&gt; <span class="tok-function">dispatch</span>({ type: <span class="tok-string">'ADD'</span>, id })}<span class="tok-annotation">&gt;</span>Thêm<span class="tok-annotation">&lt;/button&gt;</span>;
+}
+
+<span class="tok-keyword">export function</span> <span class="tok-function">useCartState</span>() {
+  <span class="tok-keyword">const</span> ctx = <span class="tok-function">useContext</span>(StateCtx);
+  <span class="tok-keyword">if</span> (!ctx) <span class="tok-keyword">throw new</span> <span class="tok-class">Error</span>(<span class="tok-string">'useCartState must be used inside CartProvider'</span>);
+  <span class="tok-keyword">return</span> ctx;
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>App có dark mode, i18n và user session: gộp ba thứ vào một Provider chung sẽ khiến đổi theme làm re-render cả những component chỉ đọc user. Tách ba context riêng giới hạn phạm vi re-render đúng bằng số component thật sự quan tâm đến theme.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy phổ biến nhất: <code>&lt;Ctx.Provider value=&#123;&#123; user, setUser &#125;&#125;&gt;</code> — object literal mới mỗi render khiến <em>mọi</em> consumer re-render kể cả khi <code>user</code> không đổi. Phải memo: <code>const value = useMemo(() =&gt; (&#123; user, setUser &#125;), [user])</code>. Bẫy khác: bọc Provider <em>quá cao</em> trong cây khiến phạm vi re-render rộng không cần thiết; và lưu ý <code>defaultValue</code> của <code>createContext</code> chỉ dùng khi không có Provider — nó không phải giá trị khởi tạo state.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Context giải bài toán props drilling và coupling ở tầng trung gian.</li>
+      <li>value đổi → mọi consumer re-render, không có selector như store.</li>
+      <li>Giảm tải: tách context theo tần suất đổi, tách state/dispatch, useMemo cho value, memo component con.</li>
+      <li>Hợp cho theme, locale, auth, feature flag, instance thư viện.</li>
+      <li>Dữ liệu đổi nhanh hoặc server state thì không dùng Context.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q8</span> State toàn cục — Redux Toolkit hay Zustand hay Context, và khi nào KHÔNG cần thư viện?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Ba lựa chọn phổ biến khác nhau về bản chất: <strong>Redux Toolkit</strong> là store tập trung với action/reducer, middleware, devtools và time-travel; <strong>Zustand</strong> là store nhỏ gọn dạng hook, component subscribe theo selector nên chỉ re-render khi phần state được chọn thay đổi; <strong>Context</strong> là cơ chế built-in của React, không có selector nên re-render toàn bộ consumer.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Tiêu chí chọn nên bám vào ba câu hỏi: state có được nhiều vùng xa nhau trong cây dùng chung không? tần suất cập nhật cao hay thấp? nhóm cần gì ở công cụ (devtools, middleware, persist, testability)? Redux Toolkit đáng dùng khi logic state phức tạp, có nhiều luồng async đan xen, đội ngũ đông cần quy ước thống nhất và cần debug lịch sử action. Zustand phù hợp khi cần store gọn, ít boilerplate, cập nhật tần suất cao và muốn tránh re-render thừa. Context chỉ nên dùng cho dữ liệu ít đổi.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <p>So sánh nhanh trước khi chọn:</p>
+      <table class="feature-table">
+        <thead><tr><th>Tiêu chí</th><th>Redux Toolkit</th><th>Zustand</th><th>Context</th></tr></thead>
+        <tbody>
+          <tr><td>Boilerplate</td><td>Trung bình (slice, store, provider)</td><td>Thấp (một hàm create)</td><td>Thấp nhưng phải tự tối ưu</td></tr>
+          <tr><td>Re-render</td><td>Selector, tối ưu tốt</td><td>Selector theo từng hook</td><td>Toàn bộ consumer re-render</td></tr>
+          <tr><td>DevTools / time-travel</td><td>Có sẵn, mạnh</td><td>Qua middleware devtools</td><td>Không có</td></tr>
+          <tr><td>Async / middleware</td><td>Thunk, listener, RTK Query</td><td>Tự viết trong action</td><td>Không</td></tr>
+          <tr><td>Persist / ngoài React</td><td>redux-persist, đọc store ngoài React dễ</td><td>Có helper persist, đọc ngoài React dễ</td><td>Khó, phải qua hook</td></tr>
+          <tr><td>Khi nào chọn</td><td>App lớn, nhiều luồng, đội đông</td><td>App vừa, cần gọn và nhanh</td><td>Dữ liệu ít đổi, phạm vi nhỏ</td></tr>
+        </tbody>
+      </table>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">State này thuộc về ai?</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node success">Server data → query library (cache, retry, invalidation)</div></div>
+        <div class="flow-row"><div class="flow-node secondary">UI state 1 component → useState/useReducer</div><div class="flow-node secondary">Chia sẻ nhưng ít đổi → Context</div></div>
+        <div class="flow-row"><div class="flow-node warning">Client state phức tạp, cập nhật nhiều → Redux Toolkit / Zustand</div></div>
+      </div>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Chọn Redux Toolkit khi có nhiều feature chia sẻ state, cần undo/redo hoặc audit chuỗi action, cần middleware cho logging/analytics, hoặc cần truy cập store từ ngoài React. Chọn Zustand khi state toàn cục vừa phải (giỏ hàng, filter toàn app, trạng thái player), ưu tiên ít code và re-render tối thiểu.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không cần thư viện state khi: (1) state chỉ dùng trong một component hoặc một nhánh nhỏ — <code>useState</code>/<code>useReducer</code> là đủ; (2) dữ liệu đến từ API — dùng query library, không nhân bản server state vào store (đây là nguyên nhân số một của bug dữ liệu lệch); (3) chỉ có theme/locale/auth — Context là đủ; (4) state là URL — dùng search params của router thay vì store, để link chia sẻ được và back/forward hoạt động.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-comment">// Zustand: store gọn, subscribe theo selector</span>
+<span class="tok-keyword">import</span> { create } <span class="tok-keyword">from</span> <span class="tok-string">'zustand'</span>;
+
+<span class="tok-keyword">interface</span> <span class="tok-class">CartStore</span> { items: <span class="tok-class">Item</span>[]; add: (i: <span class="tok-class">Item</span>) =&gt; <span class="tok-class">void</span> }
+
+<span class="tok-keyword">export const</span> useCart = <span class="tok-function">create</span>&lt;<span class="tok-class">CartStore</span>&gt;((set) =&gt; ({
+  items: [],
+  add: (item) =&gt; <span class="tok-function">set</span>(s =&gt; ({ items: [...s.items, item] })),
+}));
+
+<span class="tok-comment">// component chỉ re-render khi items đổi</span>
+<span class="tok-keyword">const</span> items = <span class="tok-function">useCart</span>(s =&gt; s.items);
+
+<span class="tok-comment">// Redux Toolkit: slice + action, devtools có sẵn</span>
+<span class="tok-keyword">const</span> cartSlice = <span class="tok-function">createSlice</span>({
+  name: <span class="tok-string">'cart'</span>,
+  initialState: { items: [] <span class="tok-keyword">as</span> <span class="tok-class">Item</span>[] },
+  reducers: {
+    <span class="tok-function">added</span>(state, action: <span class="tok-class">PayloadAction</span>&lt;<span class="tok-class">Item</span>&gt;) {
+      state.items.<span class="tok-function">push</span>(action.payload); <span class="tok-comment">// Immer cho phép "mutate" an toàn</span>
+    },
+  },
+});</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Ứng dụng bán hàng: giỏ hàng + filter toàn cục + trạng thái player dùng Zustand (cập nhật nhanh, ít re-render); danh mục sản phẩm và đơn hàng dùng TanStack Query; chỉ user session dùng Context. Ba loại state, ba công cụ khác nhau, không ép tất cả vào một store.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Câu trả lời bị trừ điểm: "dự án nào cũng phải có Redux". Hãy nói rõ Context <em>không phải</em> state manager — nó là cơ chế truyền dữ liệu, không có selector nên không phù hợp cho state đổi liên tục. Trap về Zustand: chọn cả object từ store (<code>useCart(s =&gt; (&#123; items: s.items, total: s.total &#125;))</code>) trả về object mới mỗi lần nên gây re-render thừa — phải dùng selector trả về primitive hoặc <code>useShallow</code>. Và nhớ: mọi state toàn cục đều là global mutable state — càng ít càng dễ debug.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Nguyên tắc: server state → query library, UI state → useState/useReducer, ít đổi chia sẻ → Context.</li>
+      <li>Redux Toolkit: store tập trung, devtools, middleware, phù hợp app lớn nhiều luồng.</li>
+      <li>Zustand: gọn, selector theo hook, ít re-render, hợp app vừa và state cập nhật nhanh.</li>
+      <li>Context không có selector — không dùng cho state đổi liên tục.</li>
+      <li>Khi nào không cần thư viện: state cục bộ, dữ liệu API, state trên URL.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="server-state-tr-ng-th-i-ui-x-l-l-i">
+          <h2 class="section-title">Server state, trạng thái UI & xử lý lỗi</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q9</span> Server state khác client state thế nào? TanStack Query — cache key, staleTime, invalidation, retry, dedupe?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Server state</strong> là dữ liệu thuộc sở hữu của backend: bất đồng bộ, có thể lỗi thời bất cứ lúc nào, nhiều component cùng cần, và bạn không phải nguồn chân lý. <strong>Client state</strong> là trạng thái giao diện do app kiểm soát: modal đang mở, bước form hiện tại, filter đã chọn. Hai loại này cần công cụ khác nhau — query library cho loại đầu, <code>useState</code>/store cho loại sau.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Nếu tự fetch bằng <code>useEffect</code>, bạn phải tự làm: loading/error state cho từng chỗ gọi, cache để hai component không gọi trùng, chống race condition, retry, refetch khi cửa sổ được focus lại, invalidate sau khi mutate. Chép thủ công những thứ đó ở hàng chục component là nguồn bug lớn nhất của app React. Điểm cốt lõi cần nhớ khái niệm: <strong>stale</strong> — dữ liệu trong cache vẫn dùng được ngay (instant) nhưng có thể đã cũ, còn <strong>inactive</strong> là dữ liệu không còn component nào dùng và sẽ bị thu hồi sau <code>gcTime</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">useQuery(&#123; queryKey: ['orders', filters] &#125;)</div></div>
+        <div class="flow-arrow">↓ key là danh tính của dữ liệu, dạng mảng có thứ tự</div>
+        <div class="flow-row"><div class="flow-node secondary">Cache hit + còn fresh → trả ngay</div><div class="flow-node warning">Cache hit + stale → trả dữ liệu cũ rồi refetch nền</div><div class="flow-node">Miss → fetch</div></div>
+        <div class="flow-arrow">↓ hai component cùng key, cùng lúc</div>
+        <div class="flow-row"><div class="flow-node success">Dedupe thành một request, chia sẻ kết quả</div></div>
+      </div>
+      <p>Cơ chế chính: <code>queryKey</code> là danh tính dữ liệu — mọi tham số ảnh hưởng kết quả phải nằm trong key (<code>['orders', &#123; status, page &#125;]</code>). <code>staleTime</code> là khoảng thời gian dữ liệu còn được coi là mới; trong khoảng này không refetch. <code>gcTime</code> (trước đây là <code>cacheTime</code>) là thời gian giữ dữ liệu sau khi không còn ai dùng. <code>invalidateQueries</code> đánh dấu dữ liệu cũ để refetch — gọi sau mutation là cách đồng bộ phổ biến nhất. Mỗi query có một <code>queryFn</code>; nhiều query cùng key đang chạy sẽ được <strong>dedupe</strong> thành một request. <code>retry</code> mặc định 3 lần với exponential backoff, chỉ tự retry lỗi mạng/5xx (không retry 4xx).</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng query library cho mọi dữ liệu đến từ API: danh sách có phân trang, chi tiết bản ghi, autocomplete, dữ liệu dashboard. Kèm <code>useMutation</code> cho thao tác ghi, rồi invalidate các key bị ảnh hưởng. Với <code>staleTime</code>: dữ liệu ít đổi (danh mục, cấu hình) đặt cao (5–30 phút); dữ liệu cần tươi (số dư, trạng thái đơn) đặt thấp (0–30 giây).</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng query library cho client state: trạng thái modal, bước của wizard, giá trị input đang gõ — đưa chúng vào cache chỉ gây khó hiểu. Không bật <code>refetchOnWindowFocus</code> cho mọi query trong app nội bộ nặng (gây bão request) — nên tinh chỉnh theo query. Và đừng chọn <code>staleTime: 0</code> mặc định kèm refetch liên tục: mỗi lần mount, focus, reconnect lại có request, dễ trông như lỗi hiệu năng.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-keyword">function</span> <span class="tok-function">useOrders</span>(filters: <span class="tok-class">Filters</span>) {
+  <span class="tok-keyword">return</span> <span class="tok-function">useQuery</span>({
+    <span class="tok-comment">// key = danh tính dữ liệu; mọi tham số ảnh hưởng kết quả phải có mặt</span>
+    queryKey: [<span class="tok-string">'orders'</span>, filters],
+    queryFn: ({ signal }) =&gt; <span class="tok-function">fetchOrders</span>(filters, signal),
+    staleTime: <span class="tok-number">30_000</span>,
+    retry: <span class="tok-number">2</span>,
+    select: (data: <span class="tok-class">Order</span>[]) =&gt; data.<span class="tok-function">slice</span>(<span class="tok-number">0</span>, <span class="tok-number">50</span>),
+  });
+}
+
+<span class="tok-keyword">function</span> <span class="tok-function">useCreateOrder</span>() {
+  <span class="tok-keyword">const</span> qc = <span class="tok-function">useQueryClient</span>();
+  <span class="tok-keyword">return</span> <span class="tok-function">useMutation</span>({
+    mutationFn: createOrder,
+    onSuccess: () =&gt; qc.<span class="tok-function">invalidateQueries</span>({ queryKey: [<span class="tok-string">'orders'</span>] }),
+  });
+}
+
+<span class="tok-comment">// component — loading/error do lib quản lý, không tự viết useEffect</span>
+<span class="tok-keyword">const</span> { data, isPending, isError, error } = <span class="tok-function">useOrders</span>(filters);</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Trang danh sách đơn và trang chi tiết đơn cùng đọc <code>['orders', filters]</code>: khi user vào chi tiết rồi quay lại, dữ liệu nằm sẵn trong cache nên hiển thị ngay, đồng thời refetch nền để cập nhật. Sau khi tạo đơn mới, invalidate key <code>['orders']</code> làm mọi màn hình liên quan tự làm mới.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bốn trap hay gặp: (1) <strong>queryKey chứa object/array tạo mới mỗi render</strong> khiến key "đổi" liên tục và fetch lặp — dùng giá trị primitive hoặc chuẩn hoá key; (2) quên đưa tham số vào key nên hai filter khác nhau dùng chung cache; (3) nhầm <code>staleTime</code> với <code>gcTime</code> — staleTime quyết định <em>khi nào refetch</em>, gcTime quyết định <em>khi nào xoá cache</em>; (4) nói "TanStack Query thay thế Redux" — không hẳn, nó thay thế phần <em>server state</em>; client state toàn cục vẫn cần store riêng. Lưu ý cuối: <code>queryFn</code> nên nhận <code>signal</code> từ context để huỷ request khi component unmount.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Server state: bất đồng bộ, có thể stale, chia sẻ nhiều nơi, không do mình sở hữu.</li>
+      <li>queryKey là danh tính dữ liệu — mọi tham số ảnh hưởng kết quả phải nằm trong key.</li>
+      <li>staleTime: bao lâu coi là mới; gcTime: bao lâu giữ cache sau khi không ai dùng.</li>
+      <li>Dedupe request trùng key; retry cho lỗi mạng, không retry 4xx.</li>
+      <li>invalidateQueries sau mutation để đồng bộ; client state vẫn để ở useState/store.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q10</span> Loading / error / empty state, optimistic update kèm rollback, và error boundary cho lỗi render?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Mọi màn hình dữ liệu có <strong>bốn</strong> trạng thái phải xử lý: loading, error, empty (thành công nhưng không có dữ liệu) và có dữ liệu. <strong>Optimistic update</strong> là cập nhật UI ngay khi user hành động, trước khi server trả lời, và khôi phục trạng thái cũ nếu request lỗi. <strong>Error boundary</strong> là component bắt lỗi xảy ra trong lúc render cây con và hiển thị UI thay thế thay vì màn hình trắng.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Ba khái niệm này cùng phục vụ một mục tiêu: app không được rơi vào trạng thái mơ hồ. Nếu thiếu nhánh empty, user thấy màn hình trống và không biết là "không có kết quả" hay "app hỏng"; nếu thiếu error state, lỗi mạng bị nuốt im lặng; nếu không có error boundary, một exception trong render làm trắng cả app. Optimistic update giảm độ trễ cảm nhận với thao tác tần suất cao, đổi lại bạn phải trả giá bằng việc giữ và khôi phục state cũ — nên chỉ dùng khi xác suất thất bại thấp.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">User bấm "Yêu thích"</div></div>
+        <div class="flow-arrow">↓ onMutate: ghi cache ngay, lưu snapshot cũ</div>
+        <div class="flow-row"><div class="flow-node secondary">UI đổi tức thì (optimistic)</div><div class="flow-node success">Server 200 → invalidate để đồng bộ</div><div class="flow-node warning">Server lỗi → onError khôi phục snapshot</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node">onSettled: invalidate lần cuối để chốt dữ liệu thật</div></div>
+      </div>
+      <p>Với lỗi <em>render</em>, boundary là class component: <code>static getDerivedStateFromError</code> để cập nhật state, <code>componentDidCatch</code> để log. React không có hook tương đương; trong app thực tế dùng thư viện react-error-boundary cho API gọn và hỗ trợ reset. Đặt boundary ở cấp route/layout, và bọc riêng từng widget quan trọng để một widget hỏng không kéo cả trang.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Optimistic update cho thao tác tần suất cao, dễ đoán kết quả và ít khả năng fail: like/timemark, toggle trạng thái, thêm/xoá item khỏi danh sách yêu thích, sắp xếp lại thứ tự. Error boundary cho mọi route và các widget độc lập (chart, bảng dữ liệu). Empty state là bắt buộc với mọi danh sách và mọi ô tìm kiếm.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng optimistic cho thao tác quan trọng, có khả năng bị server từ chối theo luật nghiệp vụ: thanh toán, đặt hàng khi cần kiểm tra tồn kho, gửi form có validate phía server — hãy dùng trạng thái pending rõ ràng, disable nút và hiển thị tiến trình. Error boundary <strong>không</strong> bắt lỗi trong event handler, lỗi trong code async, lỗi trong <code>setTimeout</code> hay lỗi của chính nó — những chỗ đó phải try/catch hoặc để error state của mutation lo. Cũng không cần boundary cho từng component nhỏ trong cùng một danh sách.</p></div>
+    <div class="code-block" data-lang="tsx"><pre><code><span class="tok-keyword">const</span> toggle = <span class="tok-function">useMutation</span>({
+  mutationFn: toggleFavorite,
+  onMutate: <span class="tok-keyword">async</span> (id: <span class="tok-class">string</span>) =&gt; {
+    <span class="tok-keyword">await</span> qc.<span class="tok-function">cancelQueries</span>({ queryKey: [<span class="tok-string">'favorites'</span>] });
+    <span class="tok-keyword">const</span> prev = qc.<span class="tok-function">getQueryData</span>&lt;<span class="tok-class">string</span>[]&gt;([<span class="tok-string">'favorites'</span>]);
+    qc.<span class="tok-function">setQueryData</span>&lt;<span class="tok-class">string</span>[]&gt;([<span class="tok-string">'favorites'</span>], old =&gt; [...(old ?? []), id]);
+    <span class="tok-keyword">return</span> { prev }; <span class="tok-comment">// snapshot để rollback</span>
+  },
+  onError: (_err, _id, ctx) =&gt; qc.<span class="tok-function">setQueryData</span>([<span class="tok-string">'favorites'</span>], ctx?.prev),
+  onSettled: () =&gt; qc.<span class="tok-function">invalidateQueries</span>({ queryKey: [<span class="tok-string">'favorites'</span>] }),
+});
+
+<span class="tok-comment">// Error boundary: chỉ class component mới bắt được lỗi render</span>
+<span class="tok-keyword">class</span> <span class="tok-class">ErrorBoundary</span> <span class="tok-keyword">extends</span> <span class="tok-class">React</span>.<span class="tok-class">Component</span>&lt;{ children: <span class="tok-class">ReactNode</span> }, { error: <span class="tok-class">Error</span> | <span class="tok-keyword">null</span> }&gt; {
+  state = { error: <span class="tok-keyword">null</span> };
+  <span class="tok-keyword">static</span> <span class="tok-function">getDerivedStateFromError</span>(error: <span class="tok-class">Error</span>) { <span class="tok-keyword">return</span> { error }; }
+  <span class="tok-function">componentDidCatch</span>(error: <span class="tok-class">Error</span>, info: <span class="tok-class">React</span>.<span class="tok-class">ErrorInfo</span>) { <span class="tok-function">reportError</span>(error, info); }
+  <span class="tok-function">render</span>() {
+    <span class="tok-keyword">if</span> (<span class="tok-keyword">this</span>.state.error) <span class="tok-keyword">return</span> <span class="tok-annotation">&lt;FallbackUI</span> <span class="tok-class">error</span>={<span class="tok-keyword">this</span>.state.error} <span class="tok-annotation">/&gt;</span>;
+    <span class="tok-keyword">return this</span>.props.children;
+  }
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Danh sách đơn hàng: <code>isPending</code> hiển thị skeleton, <code>isError</code> hiển thị thông báo kèm nút "Thử lại" gọi <code>refetch()</code>, <code>data.length === 0</code> hiển thị hướng dẫn tạo đơn đầu tiên, có dữ liệu thì render bảng. Bốn nhánh rõ ràng, không nhánh nào là màn hình trắng.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Ba điểm bị hỏi nhiều: (1) Error boundary <strong>không</strong> bắt lỗi trong event handler hay async — phải try/catch, và lỗi của chính boundary thì boundary cha mới bắt được; (2) optimistic update mà không <code>cancelQueries</code> trước khi ghi cache có thể bị một refetch đang bay ghi đè ngược lại, làm UI nhảy về giá trị cũ; (3) rollback cần snapshot chứ không phải "tính lại từ đầu" — với cache phức tạp, khôi phục snapshot do <code>onMutate</code> trả về là cách chắc chắn nhất. Ngoài ra đừng quên trạng thái empty: "loading xong rồi không có gì" khác hoàn toàn với "chưa load xong".</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Bốn trạng thái bắt buộc: loading, error, empty, có dữ liệu — không để màn hình trắng.</li>
+      <li>Optimistic: onMutate ghi cache + snapshot, onError rollback, onSettled invalidate.</li>
+      <li>Chỉ optimistic cho thao tác nhanh, ít fail; thanh toán/đặt hàng dùng pending rõ ràng.</li>
+      <li>Error boundary là class component, bắt lỗi render cây con, đặt ở cấp route/widget.</li>
+      <li>Boundary không bắt lỗi event handler và async code.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+['        <div class="nav-pager">', '          <a class="prev" href="35-react-fundamentals.html"><span class="label">Trước</span><span class="title">35. React Fundamentals</span></a>', '          <a class="next" href="37-react-architecture-testing.html"><span class="label">Tiếp</span><span class="title">37. React Architecture &amp; Testing</span></a>', '        </div>']
+      </div>
+
+      <footer class="site-footer">
+        <p>Knowledge Gym — Module 36 / 42</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

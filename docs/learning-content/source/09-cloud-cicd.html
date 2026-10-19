@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>9. Cloud, CI/CD &amp; Testing — Java Interview Bank</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Java Interview<br><span>Bank</span></h1>
+        <p>Interview Prep Notes</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>9. Cloud, CI/CD &amp; Testing</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 09</div>
+          <h1 class="module-title">Cloud, CI/CD &amp; Testing</h1>
+          <p class="module-subtitle">Deploy Java trên Kubernetes/GKE/EKS/Cloud Run, pipeline GitLab CI/CD, chiến lược deploy an toàn và testing pyramid đầy đủ.</p>
+        </div>
+
+        <!-- SECTION: Cloud -->
+        <section class="section" id="cloud">
+          <h2 class="section-title">Cloud (GCP / AWS)</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q1</span> Deploy &amp; auto-scale Java trên K8s / GKE / EKS / Cloud Run</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Deploy Java Spring Boot lên <strong>K8s/GKE/EKS/Cloud Run/ECS Fargate</strong>: multi-stage Dockerfile JRE slim, Deployment + Service + HPA auto-scale theo CPU/RPS.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Cloud-native Java = container 12-factor, không SSH server. HPA scale pod horizontal thay vertical. Chọn platform theo ops maturity vs serverless simplicity.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Dockerfile: temurin JDK build → JRE alpine runtime, non-root user, MaxRAMPercentage 75%. K8s: requests/limits, readiness/liveness actuator, HPA min 3 max 20 CPU 70%.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Docker Image</div>
+              <table class="feature-table">
+                <thead><tr><th>Platform</th><th>Đặc điểm</th><th>Auto-scale</th><th>Phù hợp</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>GKE</strong> (GCP)</td><td>Managed K8s, Workload Identity, Cloud SQL proxy</td><td>HPA + Cluster Autoscaler + VPA</td><td>Enterprise, multi-service</td></tr>
+                  <tr><td><strong>EKS</strong> (AWS)</td><td>Managed K8s, IRSA, ALB Ingress</td><td>HPA + Karpenter / CA</td><td>AWS-native workloads</td></tr>
+                  <tr><td><strong>Cloud Run</strong></td><td>Serverless container, scale-to-zero</td><td>Request-based auto-scale</td><td>API nhẹ, traffic biến động</td></tr>
+                  <tr><td><strong>ECS Fargate</strong></td><td>Serverless container AWS</td><td>Service auto-scaling</td><td>Đơn giản hơn K8s trên AWS</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="dockerfile"><pre><code><span class="tok-comment"># Multi-stage Dockerfile cho Spring Boot</span>
+<span class="tok-keyword">FROM</span> eclipse-temurin:21-jdk-alpine AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN ./mvnw package -DskipTests
+
+<span class="tok-keyword">FROM</span> eclipse-temurin:21-jre-alpine
+RUN addgroup -S app && adduser -S app -G app
+USER app
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]</code></pre></div>
+              <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># K8s Deployment + HPA</span>
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: order-service }
+  template:
+    spec:
+      containers:
+        - name: app
+          image: gcr.io/project/order-service:v1.2.0
+          resources:
+            requests: { cpu: "500m", memory: "512Mi" }
+            limits:   { cpu: "1000m", memory: "1Gi" }
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8080 }
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8080 }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: order-service-hpa
+spec:
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: 70 }</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>GKE/EKS: enterprise multi-service, full control. Cloud Run: API traffic biến động, scale-to-zero OK cold start 1-3s.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không Cloud Run long-running batch 30min — timeout limit. Không fat JRE image 500MB khi jlink slim đủ. Không HPA không set requests — scale sai.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Order service Black Friday: HPA 3→18 pods CPU 70%; Cloud Run dev API scale zero tiết kiệm cost.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Cold start Cloud Run; missing resource requests HPA blind.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Multi-stage Docker JDK build JRE run.</li>
+                  <li>K8s Deployment + HPA CPU target.</li>
+                  <li>GKE/EKS full control; Cloud Run serverless.</li>
+                  <li>Actuator health probes readiness/liveness.</li>
+                  <li>Non-root user + MaxRAMPercentage container.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q2</span> Multi-AZ, VPC, Private Subnets, IAM Least Privilege</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Multi-AZ VPC</strong>: public subnet (LB/NAT) + private subnet (app/DB). <strong>IAM least privilege</strong>: service account per app, Security Group minimal, K8s NetworkPolicy deny-all default.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Security compliance + HA. DB không expose internet. Compromised pod không lateral move nếu NetworkPolicy strict.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>App pods 3 AZ spread. RDS Multi-AZ private subnet. SG: app inbound 8080 from LB only; DB 5432 from app SG. GKE Workload Identity bind K8s SA → GCP SA scoped role.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Public Subnet (AZ-a)</div>
+              <table class="feature-table">
+                <thead><tr><th>Component</th><th>Best Practice</th></tr></thead>
+                <tbody>
+                  <tr><td>Multi-AZ</td><td>App pods spread across ≥2 AZ; RDS Multi-AZ; ELB cross-zone</td></tr>
+                  <tr><td>VPC</td><td>Private subnets cho app/DB; public chỉ LB/Bastion/NAT</td></tr>
+                  <tr><td>Security Groups</td><td>App SG: inbound 8080 from LB only; DB SG: 5432 from App SG only</td></tr>
+                  <tr><td>IAM Least Privilege</td><td>Service account per app; chỉ permission cần thiết (S3 bucket X, SQS queue Y)</td></tr>
+                  <tr><td>Secrets</td><td>AWS Secrets Manager / GCP Secret Manager; không hardcode env</td></tr>
+                  <tr><td>Network Policy</td><td>K8s NetworkPolicy: deny all default, allow specific pod-to-pod</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># K8s ServiceAccount + GCP Workload Identity</span>
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: order-service-sa
+  annotations:
+    iam.gke.io/gcp-service-account: order-sa@project.iam.gserviceaccount.com
+
+<span class="tok-comment"># IAM binding: chỉ quyền publish Pub/Sub topic orders</span>
+<span class="tok-comment"># roles/pubsub.publisher trên projects/PROJECT/topics/orders</span></code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Production enterprise, PCI/SOC2, multi-tenant SaaS.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không public RDS endpoint. Không admin IAM *.* permission. Không flat network all pods talk all — zero trust.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Order SA chỉ pubsub.publisher topic orders — không storage.admin.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>NAT single AZ; bastion SSH anti-pattern — use SSM/IAP.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>VPC public LB + private app/DB subnets.</li>
+                  <li>Multi-AZ app + RDS failover.</li>
+                  <li>SG least privilege port source.</li>
+                  <li>IAM per service account scoped role.</li>
+                  <li>K8s NetworkPolicy deny default allow specific.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: CI/CD -->
+        <section class="section" id="cicd">
+          <h2 class="section-title">CI/CD Pipeline</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q3</span> Thiết kế pipeline GitLab CI/CD hoàn chỉnh</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Pipeline GitLab CI/CD: validate→test→SonarQube→build image→Trivy scan→deploy staging→E2E→manual prod deploy.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Shift-left quality + automated deploy giảm human error. Quality gate block bad code trước production.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Stages parallel where safe (needs:). Maven cache .m2. JUnit artifact report. Sonar qualitygate.wait=true. Docker push CI_REGISTRY. Trivy HIGH/CRITICAL exit 1. kubectl rollout status staging. E2E profile verify. deploy-prod when:manual main only.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node">Lint</div>
+              <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># .gitlab-ci.yml</span>
+stages: [validate, test, quality, build, scan, deploy-staging, e2e, deploy-prod]
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+cache:
+  paths: [.m2/repository/]
+
+lint:
+  stage: validate
+  script:
+    - ./mvnw checkstyle:check spotless:check
+
+unit-test:
+  stage: test
+  script:
+    - ./mvnw test -DfailIfNoTests=false
+  artifacts:
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
+    paths: [target/site/jacoco/]
+
+sonarqube:
+  stage: quality
+  script:
+    - ./mvnw sonar:sonar -Dsonar.qualitygate.wait=true
+  allow_failure: false
+
+build-image:
+  stage: build
+  script:
+    - docker build -t $DOCKER_IMAGE .
+    - docker push $DOCKER_IMAGE
+
+security-scan:
+  stage: scan
+  script:
+    - trivy image --severity HIGH,CRITICAL --exit-code 1 $DOCKER_IMAGE
+
+deploy-staging:
+  stage: deploy-staging
+  script:
+    - kubectl set image deployment/order-service app=$DOCKER_IMAGE -n staging
+    - kubectl rollout status deployment/order-service -n staging
+
+e2e-test:
+  stage: e2e
+  script:
+    - ./mvnw verify -Pe2e -Dstaging.url=$STAGING_URL
+
+deploy-prod:
+  stage: deploy-prod
+  when: manual
+  only: [main]
+  script:
+    - kubectl set image deployment/order-service app=$DOCKER_IMAGE -n production</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Team ≥3 dev, release weekly+. GitLab self-hosted hoặc SaaS.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không skip test stage prod deploy. Không manual deploy without audit trail. Không secrets in .gitlab-ci.yml plain text — CI variables masked.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>PR merge main: auto staging deploy + E2E pass → engineer click manual prod promote.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Flaky E2E block pipeline; Docker DinD permission CI runner.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Stages: lint, test, Sonar, build, scan, staging, E2E, prod.</li>
+                  <li>Trivy block CVE HIGH image.</li>
+                  <li>Sonar quality gate mandatory.</li>
+                  <li>Prod deploy manual approval main.</li>
+                  <li>Cache Maven + parallel needs keyword.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q4</span> Debug pipeline khi build hoặc deploy fail</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p>Debug CI/CD fail theo stage: unit test surefire report, Sonar quality gate, Docker build, Trivy CVE, K8s deploy events, E2E staging health.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>DevOps interview + daily unblock pipeline. Fail fast identify stage root cause không guess.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Unit: mvn test local + read TEST-*.xml. Sonar dashboard blocker issues. Docker: build --no-cache local. Deploy: kubectl describe pod events ImagePullBackOff. CI_DEBUG_TRACE=true verbose. gitlab-runner exec docker reproduce.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th>Stage fail</th><th>Nguyên nhân phổ biến</th><th>Cách debug</th></tr></thead>
+                <tbody>
+                  <tr><td>Unit Test</td><td>Test fail, flaky, missing dependency</td><td>Đọc surefire report; chạy local <code>mvn test</code>; check CI cache stale</td></tr>
+                  <tr><td>SonarQube</td><td>Quality gate: coverage &lt; 80%, bugs, vulnerabilities</td><td>Sonar dashboard → issues; fix blocker/critical trước</td></tr>
+                  <tr><td>Build Image</td><td>Dockerfile error, registry auth, multi-stage cache</td><td><code>docker build --no-cache</code> local; check CI_REGISTRY credentials</td></tr>
+                  <tr><td>Security Scan</td><td>CVE HIGH/CRITICAL trong base image</td><td><code>trivy image</code> local; update base image / patch</td></tr>
+                  <tr><td>Deploy</td><td>K8s manifest error, image pull, resource quota</td><td><code>kubectl describe pod</code>; check events; verify image tag exists</td></tr>
+                  <tr><td>E2E</td><td>Staging env down, test data, timeout</td><td>Check staging health; increase timeout; rerun with debug log</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Debug GitLab CI locally with gitlab-runner</span>
+gitlab-runner exec docker unit-test
+
+<span class="tok-comment"># Debug K8s deploy failure</span>
+kubectl get events -n production --sort-by='.lastTimestamp'
+kubectl describe pod order-service-xxx -n production
+kubectl logs order-service-xxx -n production --previous  <span class="tok-comment"># crashed container</span>
+
+<span class="tok-comment"># Image pull error</span>
+kubectl get pod -o jsonpath='{.items[0].status.containerStatuses[0].state}'</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Pipeline red block release. On-call CI infrastructure.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không retry deploy fail without fix root — same fail. Không disable Trivy permanently — waivers with ticket.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Deploy fail ImagePullBackOff: typo registry tag — describe pod Events show 404 manifest.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Stale CI cache wrong dependency; E2E fail staging down not code.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Map fail stage → specific debug tool.</li>
+                  <li>Unit: surefire report local reproduce.</li>
+                  <li>Deploy: kubectl describe events logs.</li>
+                  <li>CI_DEBUG_TRACE verbose GitLab.</li>
+                  <li>gitlab-runner exec docker local.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q5</span> Blue/Green Deployment &amp; Canary Release</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Blue/Green</strong>: 2 env identical, switch traffic 100% instant, rollback switch back. <strong>Canary</strong>: gradual 5→25→50→100% new version monitor metrics auto rollback.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Zero-downtime deploy + limit blast radius bad release. Canary catch error rate spike trước full rollout.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Blue/Green: 2 Deployment + Service selector flip hoặc Ingress weight. Canary: Argo Rollouts/Flagger steps setWeight + pause + analysis error-rate template.</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>Blue/Green</h4>
+                  <ul>
+                    <li>2 environment identical: Blue (live), Green (new)</li>
+                    <li>Deploy Green → test → switch traffic 100%</li>
+                    <li>Rollback = switch back to Blue</li>
+                    <li>Instant switch, cần 2× resource</li>
+                    <li>K8s: 2 Deployment + Service selector switch</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>Canary</h4>
+                  <ul>
+                    <li>Deploy new version cho % nhỏ traffic (5→25→50→100%)</li>
+                    <li>Monitor error rate, latency</li>
+                    <li>Auto rollback nếu metrics degrade</li>
+                    <li>Tiết kiệm resource hơn Blue/Green</li>
+                    <li>K8s: Argo Rollouts, Flagger, Istio</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">LB / Ingress</div>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-row">
+                  <div class="flow-node success">v1.0 (95%)</div>
+                  <div class="flow-node secondary">v1.1 Canary (5%)</div>
+                </div>
+                <div class="flow-arrow">↓ metrics OK → increase</div>
+                <div class="flow-row">
+                  <div class="flow-node success">v1.1 (100%)</div>
+                </div>
+              </div>
+              <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># Argo Rollouts Canary example</span>
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: order-service
+spec:
+  strategy:
+    canary:
+      steps:
+        - setWeight: 5
+        - pause: { duration: 5m }
+        - setWeight: 25
+        - pause: { duration: 5m }
+        - setWeight: 50
+        - pause: { duration: 5m }
+        - setWeight: 100
+      analysis:
+        templates:
+          - templateName: error-rate
+        startingStep: 1</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Blue/Green: critical instant rollback need, budget 2× resource. Canary: gradual confidence, metric-driven, save resource.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không canary without metrics observability — blind rollout. Không blue/green DB schema breaking incompatible both versions.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Payment service canary 5% 5min error rate OK → 25% → 100%; spike → auto rollback v1.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Session sticky break on switch; DB migration backward compatible required.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Blue/Green: 2 env switch 100% instant.</li>
+                  <li>Canary: gradual % + metric analysis.</li>
+                  <li>Argo Rollouts setWeight pause steps.</li>
+                  <li>Auto rollback error rate degrade.</li>
+                  <li>Schema change must both versions compatible.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Testing -->
+        <section class="section" id="testing">
+          <h2 class="section-title">Testing Pyramid</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q6</span> Unit Test / Integration Test / E2E Test</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Testing pyramid</strong>: nhiều Unit (fast mock), vừa Integration (real DB Testcontainers), ít E2E (full flow Playwright).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>E2E chậm đắt flaky — không scale 1000 tests. Unit catch logic bug ms; Integration catch SQL/schema; E2E catch wiring.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Unit: JUnit5 + Mockito @ExtendWith. Integration: @SpringBootTest + Testcontainers PostgreSQL @DynamicPropertySource. E2E: REST Assured/Playwright staging.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node" style="width:200px">E2E (ít, chậm, đắt)</div>
+              <table class="feature-table">
+                <thead><tr><th>Tầng</th><th>Scope</th><th>Tool</th><th>Speed</th><th>Ví dụ</th></tr></thead>
+                <tbody>
+                  <tr><td>Unit</td><td>1 class/method, mock dependencies</td><td>JUnit 5, Mockito, AssertJ</td><td>ms</td><td>Test OrderService.calculateTotal()</td></tr>
+                  <tr><td>Integration</td><td>Multi-component, real DB/HTTP</td><td>Spring Boot Test, Testcontainers</td><td>seconds</td><td>Test OrderController → DB</td></tr>
+                  <tr><td>E2E</td><td>Full user flow, real env</td><td>Playwright, REST Assured, Cucumber</td><td>minutes</td><td>User đặt hàng → thanh toán → confirm</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Unit test — mock repository</span>
+<span class="tok-annotation">@ExtendWith</span>(MockitoExtension.class)
+<span class="tok-keyword">class</span> <span class="tok-class">OrderServiceTest</span> {
+  <span class="tok-annotation">@Mock</span> <span class="tok-class">OrderRepository</span> orderRepo;
+  <span class="tok-annotation">@InjectMocks</span> <span class="tok-class">OrderService</span> orderService;
+
+  <span class="tok-annotation">@Test</span>
+  <span class="tok-keyword">void</span> <span class="tok-function">shouldCalculateTotal</span>() {
+    <span class="tok-keyword">var</span> order = <span class="tok-keyword">new</span> <span class="tok-class">Order</span>(List.of(<span class="tok-keyword">new</span> <span class="tok-class">Line</span>(<span class="tok-string">"SKU1"</span>, <span class="tok-number">2</span>, <span class="tok-keyword">new</span> <span class="tok-class">BigDecimal</span>(<span class="tok-string">"100"</span>))));
+    assertThat(orderService.calculateTotal(order)).isEqualByComparingTo(<span class="tok-string">"200"</span>);
+  }
+}
+
+<span class="tok-comment">// Integration test — real Spring context + Testcontainers</span>
+<span class="tok-annotation">@SpringBootTest</span>
+<span class="tok-annotation">@Testcontainers</span>
+<span class="tok-keyword">class</span> <span class="tok-class">OrderIntegrationTest</span> {
+  <span class="tok-annotation">@Container</span>
+  <span class="tok-keyword">static</span> <span class="tok-class">PostgreSQLContainer</span>&lt;?&gt; postgres = <span class="tok-keyword">new</span> <span class="tok-class">PostgreSQLContainer</span>&lt;&gt;(<span class="tok-string">"postgres:16"</span>);
+
+  <span class="tok-annotation">@Autowired</span> <span class="tok-class">TestRestTemplate</span> rest;
+
+  <span class="tok-annotation">@Test</span>
+  <span class="tok-keyword">void</span> <span class="tok-function">createOrder_endToEnd</span>() {
+    <span class="tok-keyword">var</span> response = rest.postForEntity(<span class="tok-string">"/api/orders"</span>, request, <span class="tok-class">OrderResponse</span>.<span class="tok-keyword">class</span>);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Unit mọi business logic. Integration repository/controller+DB. E2E critical user journey checkout.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không E2E cho mọi edge case — unit cover. Không mock everything integration — false confidence H2 vs PostgreSQL.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>OrderService unit mock repo; OrderIntegrationIT Testcontainers JSONB query; E2E staging create order flow.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Ice cream cone anti-pattern — nhiều E2E ít unit.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Pyramid: nhiều unit, vừa integration, ít E2E.</li>
+                  <li>Unit Mockito fast isolated.</li>
+                  <li>Integration Testcontainers real PostgreSQL.</li>
+                  <li>E2E critical path staging only.</li>
+                  <li>H2 không thay PostgreSQL production dialect.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q7</span> Xử lý Flaky Tests</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Flaky test</strong> pass/fail không deterministic cùng code — timing, shared state, order dependency, external API, Date/random.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Flaky erode CI trust → team ignore red pipeline → real bug miss. Waste engineer hours rerun.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Fix root: Awaitility thay Thread.sleep. @DirtiesContext/@Transactional rollback isolation. Inject Clock.fixed(). WireMock external. @Tag flaky quarantine + JIRA ticket. Track flaky rate metric.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th>Nguyên nhân</th><th>Ví dụ</th><th>Fix</th></tr></thead>
+                <tbody>
+                  <tr><td>Timing / async</td><td>Thread.sleep(100) không đủ</td><td>Awaitility, CountDownLatch, @Timeout</td></tr>
+                  <tr><td>Shared state</td><td>Static counter, DB không cleanup</td><td>@DirtiesContext, @Transactional rollback, @BeforeEach reset</td></tr>
+                  <tr><td>Order dependency</td><td>Test A tạo data cho Test B</td><td>Isolate: mỗi test tự setup data</td></tr>
+                  <tr><td>External dependency</td><td>Call real API, network timeout</td><td>Mock/WireMock, Testcontainers</td></tr>
+                  <tr><td>Date/time</td><td>new Date() → fail midnight</td><td>Clock.fixed(), inject Clock bean</td></tr>
+                  <tr><td>Random</td><td>UUID.random in assertion</td><td>Seed random, mock RandomGenerator</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// ❌ Flaky — hardcoded sleep</span>
+Thread.sleep(<span class="tok-number">500</span>);
+assertThat(result.isReady()).isTrue();
+
+<span class="tok-comment">// ✅ Stable — Awaitility</span>
+await().atMost(Duration.ofSeconds(<span class="tok-number">5</span>))
+    .pollInterval(Duration.ofMillis(<span class="tok-number">100</span>))
+    .until(() -&gt; result.isReady());
+
+<span class="tok-comment">// Quarantine flaky tests — tag và chạy riêng</span>
+<span class="tok-annotation">@Tag</span>(<span class="tok-string">"flaky"</span>)
+<span class="tok-annotation">@Disabled</span>(<span class="tok-string">"Flaky — ticket JIRA-1234"</span>)
+<span class="tok-annotation">@Test</span>
+<span class="tok-keyword">void</span> <span class="tok-function">flakyTest</span>() { ... }</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>CI intermittent red; test pass local fail CI.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không @Disabled flaky indefinitely — fix or delete. Không retry 3x Maven surefire hide flake — fix root.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Async test sleep 100ms flake → Awaitility atMost 5s poll 100ms stable.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Test order dependency JUnit5; static mutable state leak.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Flaky = nondeterministic pass/fail.</li>
+                  <li>Cause: timing, shared state, external.</li>
+                  <li>Fix: Awaitility, Clock inject, isolate data.</li>
+                  <li>Quarantine @Tag flaky + ticket.</li>
+                  <li>Flaky test = bug in test or code.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q8</span> Testcontainers — Integration test với DB thật</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Testcontainers</strong> spin Docker PostgreSQL/Redis/Kafka trong test — behavior giống production, không H2 dialect khác.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>H2 pass JSONB/array/window function fail PostgreSQL prod. Catch migration bug trước deploy.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>@Testcontainers @Container static PostgreSQLContainer. @DynamicPropertySource inject JDBC URL. @SpringBootTest full context. CI needs Docker DinD.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th>Testcontainers vs H2</th><th>Testcontainers</th><th>H2 In-Memory</th></tr></thead>
+                <tbody>
+                  <tr><td>SQL dialect</td><td>Giống production (PostgreSQL)</td><td>Khác — JSONB, arrays fail</td></tr>
+                  <tr><td>Speed</td><td>Chậm hơn (~5-10s startup)</td><td>Nhanh (&lt;1s)</td></tr>
+                  <tr><td>CI requirement</td><td>Cần Docker (DinD)</td><td>Không cần Docker</td></tr>
+                  <tr><td>Confidence</td><td>Cao — catch migration bugs</td><td>Thấp — false positive pass</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Testcontainers</span>
+<span class="tok-annotation">@SpringBootTest</span>
+<span class="tok-keyword">class</span> <span class="tok-class">OrderRepositoryIT</span> {
+
+  <span class="tok-annotation">@Container</span>
+  <span class="tok-keyword">static</span> <span class="tok-class">PostgreSQLContainer</span>&lt;?&gt; postgres =
+      <span class="tok-keyword">new</span> <span class="tok-class">PostgreSQLContainer</span>&lt;&gt;(<span class="tok-string">"postgres:16-alpine"</span>)
+          .withDatabaseName(<span class="tok-string">"testdb"</span>)
+          .withUsername(<span class="tok-string">"test"</span>)
+          .withPassword(<span class="tok-string">"test"</span>);
+
+  <span class="tok-annotation">@DynamicPropertySource</span>
+  <span class="tok-keyword">static void</span> <span class="tok-function">configureProperties</span>(<span class="tok-class">DynamicPropertyRegistry</span> registry) {
+    registry.add(<span class="tok-string">"spring.datasource.url"</span>, postgres::getJdbcUrl);
+    registry.add(<span class="tok-string">"spring.datasource.username"</span>, postgres::getUsername);
+    registry.add(<span class="tok-string">"spring.datasource.password"</span>, postgres::getPassword);
+  }
+
+  <span class="tok-annotation">@Autowired</span> <span class="tok-class">OrderRepository</span> orderRepo;
+
+  <span class="tok-annotation">@Test</span>
+  <span class="tok-keyword">void</span> <span class="tok-function">shouldPersistOrderWithJsonColumn</span>() {
+    <span class="tok-class">Order</span> order = orderRepo.save(<span class="tok-keyword">new</span> <span class="tok-class">Order</span>(...));
+    <span class="tok-comment">// Test PostgreSQL-specific: JSONB, array, window functions</span>
+    assertThat(orderRepo.findByStatus(<span class="tok-string">"PENDING"</span>)).hasSize(<span class="tok-number">1</span>);
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Integration test JPA repository, native query, Flyway migration verify.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không Testcontainers unit test pure logic — overkill slow. Không CI without Docker support.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>JSONB column query pass Testcontainers PostgreSQL fail H2 — catch pre-prod.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Container startup 5-10s — reuse @Container static; Ryuk cleanup.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Testcontainers = real DB Docker in test.</li>
+                  <li>Better than H2 dialect mismatch.</li>
+                  <li>@DynamicPropertySource JDBC config.</li>
+                  <li>CI need Docker DinD.</li>
+                  <li>Integration repo/controller not unit.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q9</span> Contract Testing với Pact</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Pact contract testing</strong>: Consumer define expected API → pact JSON → Provider verify implementation match — không deploy full stack.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Microservices breaking API change detect CI trước prod. Consumer-driven: provider biết client expect gì.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Consumer @Pact test mock server verify client. Publish pact broker. Provider @ProviderVerification verify against pact file. CI fail provider nếu response schema change.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Consumer Test</div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Consumer side — Order Service calls Payment Service</span>
+<span class="tok-annotation">@ExtendWith</span>(PactConsumerTestExt.class)
+<span class="tok-annotation">@PactTestFor</span>(providerName = <span class="tok-string">"payment-service"</span>)
+<span class="tok-keyword">class</span> <span class="tok-class">PaymentClientPactTest</span> {
+
+  <span class="tok-annotation">@Pact</span>(consumer = <span class="tok-string">"order-service"</span>)
+  <span class="tok-keyword">public static</span> <span class="tok-class">RequestResponsePact</span> <span class="tok-function">createPaymentPact</span>(<span class="tok-class">PactDslWithProvider</span> builder) {
+    <span class="tok-keyword">return</span> builder
+        .given(<span class="tok-string">"payment method exists"</span>)
+        .uponReceiving(<span class="tok-string">"a request to charge"</span>)
+        .path(<span class="tok-string">"/api/payments/charge"</span>)
+        .method(<span class="tok-string">"POST"</span>)
+        .body(<span class="tok-keyword">new</span> <span class="tok-class">PactDslJsonBody</span>()
+            .decimalType(<span class="tok-string">"amount"</span>, <span class="tok-number">100.00</span>)
+            .stringType(<span class="tok-string">"currency"</span>, <span class="tok-string">"VND"</span>))
+        .willRespondWith()
+        .status(<span class="tok-number">200</span>)
+        .body(<span class="tok-keyword">new</span> <span class="tok-class">PactDslJsonBody</span>()
+            .stringType(<span class="tok-string">"transactionId"</span>, <span class="tok-string">"txn-123"</span>)
+            .stringValue(<span class="tok-string">"status"</span>, <span class="tok-string">"SUCCESS"</span>))
+        .toPact();
+  }
+
+  <span class="tok-annotation">@Test</span>
+  <span class="tok-keyword">void</span> <span class="tok-function">testCharge</span>(<span class="tok-class">MockServer</span> mockServer) {
+    <span class="tok-keyword">var</span> client = <span class="tok-keyword">new</span> <span class="tok-class">PaymentClient</span>(mockServer.getUrl());
+    <span class="tok-keyword">var</span> result = client.charge(<span class="tok-keyword">new</span> <span class="tok-class">ChargeRequest</span>(<span class="tok-keyword">new</span> <span class="tok-class">BigDecimal</span>(<span class="tok-string">"100"</span>), <span class="tok-string">"VND"</span>));
+    assertThat(result.getStatus()).isEqualTo(<span class="tok-string">"SUCCESS"</span>);
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>≥2 teams own consumer/provider services. REST API stable contract.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không pact thay E2E business flow — complementary. Không pact internal private method — API boundary only.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Order service expect Payment charge response transactionId — Payment rename field → provider verification fail CI.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Pact broker versioning; provider states given clause setup.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Consumer-driven contract Pact JSON.</li>
+                  <li>Consumer test generate pact file.</li>
+                  <li>Provider verification CI gate.</li>
+                  <li>Breaking change fail before deploy.</li>
+                  <li>Complement not replace E2E.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q10</span> Performance Testing — JMeter &amp; Gatling</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Performance test</strong> JMeter (GUI XML) vs Gatling (Scala/Java DSL code-as-test). Measure RPS, p50/p95/p99 latency, error rate under load.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Functional test pass không đảm bảo scale. Baseline before/after optimization. SLA p99&lt;500ms validate.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Gatling: rampUsers + constantUsersPerSec scenario. Assertions p99&lt;500ms error&lt;1%. JMeter thread group ramp. Monitor JVM GC CPU during test. Staging env representative data volume.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th>Tool</th><th>Language</th><th>Strength</th><th>Weakness</th></tr></thead>
+                <tbody>
+                  <tr><td>JMeter</td><td>GUI + XML</td><td>Dễ bắt đầu, nhiều protocol</td><td>GUI-heavy, khó version control</td></tr>
+                  <tr><td>Gatling</td><td>Scala/Java DSL</td><td>Code-as-test, reports đẹp, high perf</td><td>Learning curve Scala DSL</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Gatling Java DSL</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderLoadSimulation</span> <span class="tok-keyword">extends</span> <span class="tok-class">Simulation</span> {
+
+  <span class="tok-class">HttpProtocolBuilder</span> httpProtocol = http
+      .baseUrl(<span class="tok-string">"https://api.staging.example.com"</span>)
+      .acceptHeader(<span class="tok-string">"application/json"</span>);
+
+  <span class="tok-class">ScenarioBuilder</span> scn = scenario(<span class="tok-string">"Create Order"</span>)
+      .exec(http(<span class="tok-string">"Create Order"</span>)
+          .post(<span class="tok-string">"/api/orders"</span>)
+          .body(StringBody(<span class="tok-string">"""{"sku":"ABC","qty":1}"""</span>))
+          .check(status().is(<span class="tok-number">201</span>)))
+      .pause(<span class="tok-number">1</span>);
+
+  {
+    setUp(
+      scn.injectOpen(
+        rampUsers(<span class="tok-number">100</span>).during(Duration.ofMinutes(<span class="tok-number">5</span>)),  <span class="tok-comment">// ramp up</span>
+        constantUsersPerSec(<span class="tok-number">50</span>).during(Duration.ofMinutes(<span class="tok-number">10</span>)) <span class="tok-comment">// steady</span>
+      )
+    ).protocols(httpProtocol)
+     .assertions(
+       global().responseTime().percentile3().lt(<span class="tok-number">500</span>),  <span class="tok-comment">// p99 &lt; 500ms</span>
+       global().successfulRequests().percent().gt(<span class="tok-number">99.0</span>)     <span class="tok-comment">// error &lt; 1%</span>
+     );
+  }
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Pre-release major feature, capacity planning, regression after perf fix.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không load test prod without approval — impact users. Không single-user test call performance test.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Gatling 100 user ramp 5min steady 50 RPS — p99 420ms pass gate deploy prod.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Staging smaller DB false positive pass; not warm JVM before measure.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>JMeter GUI vs Gatling code DSL.</li>
+                  <li>Metrics: RPS, p99 latency, error rate.</li>
+                  <li>Gatling ramp + steady state injection.</li>
+                  <li>Assert SLA threshold CI gate.</li>
+                  <li>Staging representative data volume.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q11</span> Mutation Testing (PIT) — Mutation Score</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Mutation testing PIT</strong>: inject code mutants (a+b→a-b) → test kill mutant = good test; survived = weak assertion. Mutation score = KILLED/(KILLED+SURVIVED).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>80% line coverage có thể assert yếu — mutant survived. Measure test quality not just coverage.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>pitest-maven plugin targetClasses service.* mutationThreshold 80. Run mutationCoverage. HTML report survived mutants → add test case kill.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Original Code</div>
+              <table class="feature-table">
+                <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+                <tbody>
+                  <tr><td>Mutant KILLED</td><td>Test fail khi code bị mutate → test tốt</td></tr>
+                  <tr><td>Mutant SURVIVED</td><td>Test vẫn pass dù code sai → test yếu, cần thêm assertion</td></tr>
+                  <tr><td>Mutation Score</td><td>KILLED / (KILLED + SURVIVED) × 100%. Target ≥ 80%</td></tr>
+                  <tr><td>Timeout / No Coverage</td><td>Mutant không chạy được → excluded from score</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="xml"><pre><code><span class="tok-comment">&lt;!-- pom.xml — PIT plugin --&gt;</span>
+&lt;plugin&gt;
+  &lt;groupId&gt;org.pitest&lt;/groupId&gt;
+  &lt;artifactId&gt;pitest-maven&lt;/artifactId&gt;
+  &lt;version&gt;1.15.3&lt;/version&gt;
+  &lt;configuration&gt;
+    &lt;targetClasses&gt;
+      &lt;param&gt;com.example.service.*&lt;/param&gt;
+    &lt;/targetClasses&gt;
+    &lt;targetTests&gt;
+      &lt;param&gt;com.example.service.*Test&lt;/param&gt;
+    &lt;/targetTests&gt;
+    &lt;mutationThreshold&gt;80&lt;/mutationThreshold&gt;
+    &lt;outputFormats&gt;HTML&lt;/outputFormats&gt;
+  &lt;/configuration&gt;
+&lt;/plugin&gt;
+
+<span class="tok-comment">&lt;!-- Run: mvn org.pitest:pitest-maven:mutationCoverage --&gt;</span></code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Critical domain payment/inventory logic. Improve test suite quality audit.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không PIT mọi PR — slow minutes. Không chase 100% mutation score diminishing return.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>if qty>0 mutant qty>=0 survived — add test qty=0 edge kill mutant.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Equivalent mutants false survived; PIT slow large codebase.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>PIT inject mutants test must kill.</li>
+                  <li>Survived mutant = weak test.</li>
+                  <li>Mutation score target 80%.</li>
+                  <li>Complement JaCoCo coverage.</li>
+                  <li>Add edge case kill survived.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+<section class="section" id="deep-dive-cicd">
+  <h2 class="section-title">Deep Dive — CI/CD nâng cao &amp; Zero-downtime</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">D1</span> Build once, deploy many — artifact promotion &amp; image digest pinning</h3>
+  <div class="qa-answer">
+    <div class="ans-block">
+  <span class="ans-label">What</span>
+  <p><strong>Build once, deploy many</strong>: container image được build &amp; đóng gói <strong>một lần</strong> ở CI, rồi promote nguyên bản (cùng digest <code>sha256</code>) qua dev → staging → prod. Không rebuild lại cho từng môi trường.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">Why</span>
+  <p>Rebuild ở mỗi env sinh ra artifact <strong>khác nhau</strong> (base image mới hơn, dependency trôi version) → lỗi kinh điển &quot;chạy được ở staging, chết ở prod&quot;. 12-factor tách bạch <em>build / release / run</em>; digest bất biến cho phép rollback chính xác và audit đầy đủ.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">How</span>
+  <p>CI build một lần, push registry, lấy <strong>digest</strong> bất biến. CD deploy bằng <code>image@sha256:…</code> thay vì tag mutable (<code>:latest</code>). Promote = deploy cùng digest sang env kế tiếp. Bật BuildKit <em>cache mount</em> và xếp layer hợp lý (<code>COPY pom.xml</code> trước <code>src</code>) để tái dùng layer cache, build nhanh hơn nhiều.</p>
+</div>
+    <div class="flow-diagram">
+  <div class="flow-row">
+    <div class="flow-node primary">Build 1 lần (CI)</div>
+    <div class="flow-node">Registry — digest sha256</div>
+  </div>
+  <div class="flow-arrow">↓ promote cùng artifact, KHÔNG rebuild</div>
+  <div class="flow-row">
+    <div class="flow-node">Dev</div>
+    <div class="flow-node">Staging</div>
+    <div class="flow-node success">Prod</div>
+  </div>
+  <div class="flow-arrow">rollback = deploy lại digest của bản trước</div>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">When</span>
+  <p>Microservices nhiều môi trường, yêu cầu audit/compliance, release &amp; rollback thường xuyên, nhiều team cùng deploy chung registry.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">When NOT</span>
+  <p>Không dùng tag mutable (<code>:latest</code>, <code>:prod</code>) trong production — không truy vết được. Không pin digest khi cần dev hot-reload liên tục. Prototype một môi trường duy nhất thì promote ít giá trị.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">Promote vs Rebuild</span>
+  <table class="feature-table">
+  <thead><tr><th>Tiêu chí</th><th>Rebuild mỗi env</th><th>Build once + Promote</th></tr></thead>
+  <tbody>
+    <tr><td>Số lần build</td><td>N lần (mỗi env)</td><td>1 lần</td></tr>
+    <tr><td>Artifact</td><td>Khác nhau (dependency drift)</td><td>Y hệt (cùng digest)</td></tr>
+    <tr><td>Rủi ro</td><td>Staging OK, prod fail</td><td>Gần như loại bỏ</td></tr>
+    <tr><td>Rollback</td><td>Phải rebuild lại bản cũ</td><td>Deploy lại digest cũ, tức thì</td></tr>
+    <tr><td>Audit</td><td>Khó truy vết</td><td>Digest sha256 truy vết được</td></tr>
+  </tbody>
+  </table>
+</div>
+    <div class="code-block" data-lang="dockerfile"><pre><code><span class="tok-comment"># syntax=docker/dockerfile:1</span>
+FROM eclipse-temurin:21-jdk-alpine AS build
+WORKDIR /app
+<span class="tok-comment"># Copy file khai bao dependency TRUOC -&gt; layer it doi -&gt; cache hit</span>
+COPY pom.xml .
+COPY mvnw .
+RUN --mount=type=cache,target=/root/.m2 ./mvnw -B dependency:go-offline
+COPY src ./src
+RUN --mount=type=cache,target=/root/.m2 ./mvnw -B <span class="tok-keyword">package</span> -DskipTests
+
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]</code></pre></div>
+    <div class="code-block" data-lang="bash"><pre><code>docker build -t registry.io/app:1.4.2 .
+docker push registry.io/app:1.4.2
+
+<span class="tok-comment"># Lay digest bat bien (immutable) cua image vua push</span>
+DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' registry.io/app:1.4.2)
+
+<span class="tok-comment"># CD deploy dung digest do qua moi moi truong - KHONG rebuild lai</span>
+kubectl set image deploy/order-service app=registry.io/app@sha256:9f2c...</code></pre></div>
+    <div class="callout callout-info">
+  <div class="callout-title">Use case</div>
+  <p>Release <strong>hotfix</strong> được test kỹ ở staging rồi promote y nguyên sang prod — không phải chạy lại build với rủi ro kéo base image mới.</p>
+</div>
+    <div class="callout callout-warning">
+  <div class="callout-title">Pitfall / Interview trap</div>
+  <p>Nhầm <em>retag</em> (<code>v2 → prod</code>) là promote: tag vẫn mutable và trỏ tới layer khác. Muốn bất biến phải dùng digest, hoặc bật <code>imagePullPolicy</code> + immutable tag trong registry.</p>
+</div>
+    <p><small>Nguồn: <a href="https://12factor.net/build-release-run">The Twelve-Factor App — Build, release, run</a> · <a href="https://docs.docker.com/build/cache/">Docker — Build cache</a> · <a href="https://docs.docker.com/build/building/multi-stage/">Docker — Multi-stage builds</a></small></p>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">D2</span> Zero-downtime DB migration — Expand / Contract (backward-compatible)</h3>
+  <div class="qa-answer">
+    <div class="ans-block">
+  <span class="ans-label">What</span>
+  <p>Thay đổi schema theo <strong>3 pha</strong> Expand (mở rộng) → Migrate (di trú) → Contract (thu hẹp), mỗi pha là một migration riêng deploy cùng app version. Mục tiêu: schema luôn <strong>tương thích ngược</strong> để bản app cũ và mới chạy song song được.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">Why</span>
+  <p>Rolling deploy chạy <strong>2 version app đồng thời</strong> (pod cũ + pod mới). Nếu đổi cột &quot;một phát&quot; (rename/drop/NOT NULL) thì version cũ gãy ngay → 500 errors, downtime. Expand/contract (Martin Fowler: <em>Parallel Change</em>) tách thay đổi phá vỡ thành các bước an toàn.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">How</span>
+  <p>Expand: thêm cột mới <code>NULL</code>, chưa ràng buộc. Migrate: code mới <em>dual-write</em> (ghi cả cũ lẫn mới), đọc mới + fallback cũ; backfill dữ liệu theo lô. Contract: khi 100% traffic đã dùng schema mới, mới xoá cột/đường cũ. Flyway/Liquibase quản lý versioned migration, mỗi bước idempotent.</p>
+</div>
+    <div class="flow-diagram">
+  <div class="flow-row"><div class="flow-node primary">1. Expand — thêm cột nullable + backfill theo lô</div></div>
+  <div class="flow-arrow">↓ deploy app version mới (dual-write, đọc mới fallback cũ)</div>
+  <div class="flow-row"><div class="flow-node">2. Migrate — chuyển hết consumer sang cột mới</div></div>
+  <div class="flow-arrow">↓ khi 100% traffic đã dùng schema mới</div>
+  <div class="flow-row"><div class="flow-node success">3. Contract — xoá cột / đường code cũ</div></div>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">When</span>
+  <p>Mọi thay đổi schema phá vỡ (rename/drop/đổi kiểu/thêm NOT NULL) trên hệ thống deploy zero-downtime, DB lớn, nhiều replica đọc.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">When NOT</span>
+  <p>Không cần 3 pha cho thay đổi <em>additive</em> thuần (thêm bảng/cột nullable mới). Không drop cột cũ khi vẫn còn instance bản cũ đang chạy — phải chờ rollout xong. Không chạy <code>UPDATE</code> backfill toàn bảng trong 1 transaction — sẽ giữ lock lâu.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">3 pha &amp; rủi ro</span>
+  <table class="feature-table">
+  <thead><tr><th>Pha</th><th>Thay đổi DB</th><th>Thay đổi App</th><th>Rủi ro nếu làm sai</th></tr></thead>
+  <tbody>
+    <tr><td>Expand</td><td>Thêm cột nullable, thêm index CONCURRENTLY</td><td>Version mới đọc/ghi được cả cũ + mới</td><td>NOT NULL no default → lock/rewrite cả bảng</td></tr>
+    <tr><td>Migrate</td><td>Backfill theo batch + trigger sync</td><td>Dual-write, đọc mới fallback cũ</td><td>Backfill 1 lô lớn → lock &amp; CPU spike</td></tr>
+    <tr><td>Contract</td><td>Drop cột/index cũ</td><td>Bỏ code đường cũ</td><td>Drop khi còn pod cũ → 500 errors</td></tr>
+  </tbody>
+  </table>
+</div>
+    <div class="code-block" data-lang="sql"><pre><code><span class="tok-comment">-- Expand: them cot NULL duoc, KHONG dung NOT NULL DEFAULT (co the lock/rewrite bang)</span>
+ALTER TABLE orders ADD COLUMN customer_ref UUID NULL;
+<span class="tok-comment">-- Migrate: backfill theo lo (batch) de khong giu lock/CPU qua lau</span>
+UPDATE orders SET customer_ref = legacy_customer_id WHERE customer_ref IS NULL;
+<span class="tok-comment">-- Contract (chi sau khi 100% code moi da deploy):</span>
+<span class="tok-comment">-- ALTER TABLE orders DROP COLUMN legacy_customer_id;</span></code></pre></div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-keyword">public</span> <span class="tok-keyword">class</span> OrderWriter {
+  <span class="tok-comment">// Migrate: ghi CA cot cu lan moi (dual write), doc uu tien cot moi + fallback cu</span>
+  <span class="tok-keyword">public</span> <span class="tok-keyword">void</span> save(Order o) {
+    o.setLegacyCustomerId(o.getCustomerRef()); <span class="tok-comment">// dual write</span>
+    repository.save(o);
+  }
+  <span class="tok-keyword">public</span> String readCustomerRef(Order o) {
+    <span class="tok-keyword">return</span> o.getCustomerRef() != <span class="tok-keyword">null</span> ? o.getCustomerRef() : o.getLegacyCustomerId();
+  }
+}</code></pre></div>
+    <div class="callout callout-info">
+  <div class="callout-title">Use case</div>
+  <p>Đổi tên cột <code>customer_id</code> → <code>customer_ref</code> kiểu UUID trên bảng <code>orders</code> 50M dòng mà không downtime: thêm cột mới, dual-write, backfill đêm, rồi drop cột cũ ở release sau.</p>
+</div>
+    <div class="callout callout-warning">
+  <div class="callout-title">Pitfall / Interview trap</div>
+  <p>RENAME/DROP COLUMN một phát trong cùng release = downtime. Và migration phá vỡ đi <strong>trước</strong> code (backward) chứ không phải sau. Luôn có kế hoạch rollback: giữ cột cũ tới khi chắc chắn.</p>
+</div>
+    <p><small>Nguồn: <a href="https://martinfowler.com/bliki/ParallelChange.html">Martin Fowler — Parallel Change (expand/contract)</a> · <a href="https://documentation.red-gate.com/flyway">Flyway documentation</a> · <a href="https://www.postgresql.org/docs/current/sql-altertable.html">PostgreSQL — ALTER TABLE</a></small></p>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">D3</span> Secrets &amp; supply-chain — OIDC keyless + SBOM / vulnerability scan</h3>
+  <div class="qa-answer">
+    <div class="ans-block">
+  <span class="ans-label">What</span>
+  <p>Pipeline lấy credential <strong>tạm thời</strong> qua <strong>OIDC</strong> (workflow → cloud STS) thay vì lưu secret dài hạn trong CI. Kèm bước <strong>SBOM</strong> (liệt kê thành phần), <strong>scan CVE</strong> và <strong>ký artifact</strong> để chặn supply-chain attack.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">Why</span>
+  <p>Secret dài hạn nằm trong CI = <em>blast radius</em> lớn nếu leak, lại phải rotate thủ công. OIDC đổi lấy token ngắn hạn <strong>chỉ sống trong 1 job</strong>, tự hết hạn, không nhân bản credential. SBOM + scan cho biết đang dùng thành phần nào, CVE nào; chữ ký đảm bảo artifact không bị sửa.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">How</span>
+  <p><code>permissions: id-token: write</code> để workflow xin JWT; cloud tin OIDC provider của GitHub/GitLab kèm claim repo/branch → AssumeRole. Sau build: <code>syft</code> xuất SBOM (CycloneDX/SPDX), <code>trivy</code> fail khi có HIGH/CRITICAL, <code>cosign</code> ký image; deploy từ chối image chưa ký.</p>
+</div>
+    <div class="flow-diagram">
+  <div class="flow-row">
+    <div class="flow-node primary">Workflow job</div>
+    <div class="flow-node">OIDC provider (GitHub)</div>
+  </div>
+  <div class="flow-arrow">↓ JWT mang claim repo/branch — KHÔNG có secret dài hạn</div>
+  <div class="flow-row">
+    <div class="flow-node">Cloud STS AssumeRole</div>
+    <div class="flow-node success">Token tạm thời (hết hạn cuối job)</div>
+  </div>
+  <div class="flow-arrow">↓ build → SBOM → scan → ký → deploy</div>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">When</span>
+  <p>Deploy lên cloud (AWS/GCP/Azure/Vault) từ CI, môi trường có compliance (SLSA, SOC2), cần chứng minh artifact toàn vẹn.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">When NOT</span>
+  <p>Không phải cứ nhiều secret là an toàn — OIDC cần trust policy chặt (đừng để <code>*</code> cho mọi repo). Không dùng <code>pull_request_target</code> cẩu thả rồi cấp id-token (workflow từ fork có thể lợi dụng). Với hệ thống không hỗ trợ OIDC thì vẫn cần vault + rotate định kỳ.</p>
+</div>
+    <div class="ans-block">
+  <span class="ans-label">Long-lived vs OIDC</span>
+  <table class="feature-table">
+  <thead><tr><th>Tiêu chí</th><th>Long-lived secret</th><th>OIDC keyless</th></tr></thead>
+  <tbody>
+    <tr><td>Lưu trữ</td><td>Secret CI (phải bảo vệ)</td><td>Không lưu gì</td></tr>
+    <tr><td>Vòng đời</td><td>Vô hạn tới khi rotate</td><td>Hết hạn cuối job</td></tr>
+    <tr><td>Rủi ro leak</td><td>Cao, tái sử dụng được</td><td>Thấp, không tái sử dụng</td></tr>
+    <tr><td>Rotation</td><td>Thủ công</td><td>Tự động</td></tr>
+  </tbody>
+  </table>
+</div>
+    <div class="code-block" data-lang="yaml"><pre><code>name: deploy
+on: { push: { branches: [main] } }
+permissions:
+  id-token: write      <span class="tok-comment"># bat buoc de workflow lay OIDC JWT</span>
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::111122223333:role/gh-deploy
+          aws-region: ap-southeast-1
+      - run: docker build -t app:$GITHUB_SHA . &amp;&amp; docker push app:$GITHUB_SHA
+      - run: syft app:$GITHUB_SHA -o cyclonedx-json &gt; sbom.json
+      - run: trivy image --exit-code 1 --severity HIGH,CRITICAL app:$GITHUB_SHA
+      - run: cosign sign --yes app:$GITHUB_SHA</code></pre></div>
+    <div class="callout callout-info">
+  <div class="callout-title">Use case</div>
+  <p>Pipeline deploy lên AWS không còn secret <code>AWS_ACCESS_KEY</code> nào: mỗi run xin token tạm qua OIDC, scan fail thì không cho deploy.</p>
+</div>
+    <div class="callout callout-warning">
+  <div class="callout-title">Pitfall / Interview trap</div>
+  <p>Pin action bằng SHA (<code>@&lt;sha&gt;</code>) chứ đừng chỉ <code>@v4</code> — tag có thể bị trỏ lại. Trust policy phải giới hạn <code>sub</code> theo repo + branch/environment, nếu không bất kỳ PR nào cũng assume được role.</p>
+</div>
+    <p><small>Nguồn: <a href="https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect">GitHub Actions — OpenID Connect</a> · <a href="https://slsa.dev/">SLSA — Supply-chain Levels for Software Artifacts</a> · <a href="https://cyclonedx.org/">OWASP CycloneDX — SBOM standard</a></small></p>
+  </div>
+</article>
+</section>
+
+        <div class="nav-pager">
+          <a class="prev" href="08-system-design.html">
+            <span class="label">Trước</span>
+            <span class="title">8. System Design &amp; Scalability</span>
+          </a>
+          <a class="next" href="11-dsa.html">
+            <span class="label">Tiếp</span>
+            <span class="title">11. Coding &amp; DSA</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Module 09 / 14</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>
