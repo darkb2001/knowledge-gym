@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>15. Auth, RBAC &amp; OAuth2 — Java Interview Bank</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Java Interview<br><span>Bank</span></h1>
+        <p>Interview Prep Notes</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>15. Auth, RBAC &amp; OAuth2</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 15</div>
+          <h1 class="module-title">Auth, RBAC &amp; OAuth2</h1>
+          <p class="module-subtitle">Authentication vs Authorization, RBAC/ABAC, JWT, Spring Security Filter Chain, OAuth 2.0/OIDC, service-to-service auth — deep dive phỏng vấn Backend.</p>
+        </div>
+
+        <!-- SECTION: AuthN vs AuthZ -->
+        <section class="section" id="authn-authz">
+          <h2 class="section-title">Authentication &amp; Authorization</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q1</span> Authentication vs Authorization?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Authentication (AuthN)</strong> trả lời <em>"Bạn là ai?"</em> — xác minh danh tính qua password, MFA, certificate, JWT signature. <strong>Authorization (AuthZ)</strong> trả lời <em>"Bạn được làm gì?"</em> — kiểm tra role, permission, policy trên resource cụ thể. AuthN luôn trước AuthZ: phải biết identity trước khi quyết định quyền.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Tách AuthN/AuthZ giúp scale và audit: Identity Provider (Keycloak, Auth0) lo login; Resource Server lo policy. Vi phạm thứ tự → privilege escalation (authorize trước khi verify token) hoặc confused deputy (service tin header client gửi mà không verify).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">HTTP Request</div></div>
+                  <div class="flow-arrow">↓ Security Filter Chain</div>
+                  <div class="flow-row">
+                    <div class="flow-node secondary">AuthN Filter</div>
+                    <div class="flow-node">Verify JWT / Session / mTLS cert</div>
+                  </div>
+                  <div class="flow-arrow">↓ SecurityContext.setAuthentication()</div>
+                  <div class="flow-row">
+                    <div class="flow-node">AuthZ Filter / @PreAuthorize</div>
+                    <div class="flow-node success">Controller → Service</div>
+                  </div>
+                </div>
+                <p>Spring: <code>AuthenticationManager</code> + <code>JwtAuthenticationProvider</code> (AuthN); <code>AuthorizationManager</code> + <code>@PreAuthorize("hasAuthority('order:write')")</code> (AuthZ).</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Mọi protected API. AuthN tại gateway hoặc resource server. AuthZ tại service boundary — kiểm tra permission trên từng endpoint và row-level (ownerId == principal).</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng nhầm "có JWT" = "được phép" — JWT chỉ là AuthN nếu chưa check scope/role. Đừng skip AuthN cho "internal API" — zero trust yêu cầu mọi hop đều verify. Public static assets không cần AuthZ nhưng vẫn có thể cần rate limit.</p></div>
+              <div class="compare-grid">
+                <div class="compare-col"><h4>Authentication</h4><ul><li>"Who are you?"</li><li>Login, MFA, cert verify</li><li>Output: Principal + credentials</li><li>401 Unauthorized nếu fail</li></ul></div>
+                <div class="compare-col"><h4>Authorization</h4><ul><li>"What can you do?"</li><li>RBAC, ABAC, scopes</li><li>Output: allow/deny decision</li><li>403 Forbidden nếu fail</li></ul></div>
+              </div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>WMS operator login → AuthN trả JWT với <code>sub=operator42</code>. Gọi <code>POST /pick-tasks</code> → AuthZ check <code>hasRole('PICKER')</code> + warehouse scope match. Admin gọi cùng endpoint với role ADMIN → pass.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>401 vs 403: 401 = chưa authenticate; 403 = đã authenticate nhưng thiếu quyền. Trap: return 404 thay 403 để "hide" resource — OK cho security-by-obscurity nhưng document rõ policy.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>AuthN = who; AuthZ = what — luôn AuthN trước.</li><li>401 unauthorized vs 403 forbidden.</li><li>Spring: AuthenticationManager vs @PreAuthorize.</li><li>JWT verify ≠ authorization — cần check scope/role.</li><li>Zero trust: internal call vẫn authenticate.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q2</span> RBAC vs ABAC — roles, permissions, resource scopes?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>RBAC (Role-Based Access Control)</strong>: user được gán <em>roles</em> (ADMIN, PICKER); role map tới <em>permissions</em> (order:read, bin:write). <strong>ABAC (Attribute-Based Access Control)</strong>: policy đánh giá attributes — subject (role, dept), resource (warehouseId, ownerId), action, environment (time, IP). <strong>Resource scope</strong> giới hạn role theo tenant/warehouse/region.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>RBAC đơn giản, dễ audit — phù hợp 80% enterprise. ABAC linh hoạt khi rule phức tạp: "PICKER chỉ sửa task trong warehouse được assign, giờ ca 6–22h". Scope tránh admin global vô tình thấy data tenant khác (multi-tenant WMS).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">User + JWT claims</div></div>
+                  <div class="flow-arrow">↓ RBAC: roles → permissions</div>
+                  <div class="flow-row"><div class="flow-node secondary">hasAuthority('pick:write')</div></div>
+                  <div class="flow-arrow">↓ ABAC / scope: match resource attrs</div>
+                  <div class="flow-row"><div class="flow-node success">warehouseId ∈ user.scopes → ALLOW</div></div>
+                </div>
+                <p>Spring RBAC: <code>@PreAuthorize("hasRole('ADMIN')")</code>. Fine-grained: <code>hasAuthority('order:cancel')</code>. ABAC: custom <code>PermissionEvaluator</code> hoặc OPA/Rego sidecar. Scope trong JWT: <code>"wh": ["WH-01","WH-02"]</code>.</p>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>RBAC: CRUD theo job function (operator, supervisor). ABAC: dynamic policy (credit limit, data residency). Scope: multi-tenant SaaS, multi-warehouse WMS.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng RBAC với 200 roles — role explosion. Đừng ABAC cho 3 rule đơn giản — over-engineering. Đừng tin client gửi <code>X-Warehouse-Id</code> — lấy scope từ verified token/server-side membership.</p></div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>RBAC</th><th>ABAC</th></tr></thead>
+                <tbody>
+                  <tr><td>Model</td><td>User → Role → Permission</td><td>Policy(subject, resource, action, env)</td></tr>
+                  <tr><td>Flexibility</td><td>Thấp — thêm rule = thêm role</td><td>Cao — policy engine</td></tr>
+                  <tr><td>Audit</td><td>Dễ — "user có role X"</td><td>Phức tạp — trace policy eval</td></tr>
+                  <tr><td>Spring</td><td>@PreAuthorize, GrantedAuthority</td><td>MethodSecurityExpressionRoot custom</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@PreAuthorize</span>(<span class="tok-string">"hasAuthority('pick:confirm') and @warehouseGuard.canAccess(#taskId)"</span>)
+<span class="tok-keyword">public void</span> <span class="tok-function">confirmPick</span>(Long taskId) { ... }
+
+<span class="tok-comment">// warehouseGuard — ABAC-style scope check</span>
+<span class="tok-keyword">public boolean</span> <span class="tok-function">canAccess</span>(Long taskId) {
+  <span class="tok-class">String</span> wh = taskRepo.findWarehouseId(taskId);
+  <span class="tok-keyword">return</span> currentUser().getScopes().contains(wh);
+}</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>RBAC: role SUPERVISOR có <code>report:export</code>. ABAC + scope: PICKER chỉ confirm task thuộc warehouse trong JWT claim <code>wh</code>, không thấy task warehouse khác dù biết ID.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p><strong>Privilege escalation</strong>: user tự đổi role trong JWT nếu server không verify signature/issuer. <strong>Horizontal escalation</strong>: đổi <code>taskId</code> URL — phải check resource scope server-side.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>RBAC = role → permission; ABAC = policy trên attributes.</li><li>Resource scope = giới hạn warehouse/tenant.</li><li>Role explosion → chuyển permission-based RBAC.</li><li>Luôn verify scope server-side, không tin client header.</li><li>Spring: @PreAuthorize + custom PermissionEvaluator.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Session vs JWT -->
+        <section class="section" id="session-jwt">
+          <h2 class="section-title">Session vs JWT</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q3</span> Session/Cookie Stateful vs JWT Stateless?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Stateful (Session)</strong>: server lưu session (memory/Redis) với session ID trong HttpOnly cookie. <strong>Stateless (JWT)</strong>: server không lưu session — client gửi signed JWT mỗi request; server verify signature + claims.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Session: revoke instant (delete session), CSRF cần token nếu cookie-based. JWT: scale horizontal không cần shared session store; phù hợp microservices và mobile. Trade-off: JWT revoke khó hơn (blacklist/TTL ngắn).</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Session flow</div><div class="flow-node secondary">JWT flow</div></div>
+                  <div class="flow-arrow">Session: Login → Set-Cookie JSESSIONID → Redis lookup mỗi request</div>
+                  <div class="flow-arrow">JWT: Login → access_token → Authorization: Bearer → verify local (JWKS)</div>
+                  <div class="flow-row">
+                    <div class="flow-node">Revoke: del session key</div>
+                    <div class="flow-node success">Revoke: blacklist jti / wait exp</div>
+                  </div>
+                </div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Session: server-rendered web (Thymeleaf), same-site app, cần logout instant. JWT: SPA/mobile API, microservices, cross-domain API. Hybrid: HttpOnly cookie chứa JWT (BFF pattern) — tránh XSS localStorage.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng JWT trong localStorage nếu có XSS risk. Đừng session in-memory khi scale >1 pod không sticky. Đừng JWT access token TTL 7 ngày không refresh — stolen token window quá lớn.</p></div>
+              <table class="feature-table">
+                <thead><tr><th></th><th>Session + Cookie</th><th>JWT Stateless</th></tr></thead>
+                <tbody>
+                  <tr><td>Server state</td><td>Có (Redis)</td><td>Không (verify only)</td></tr>
+                  <tr><td>Revoke</td><td>Instant</td><td>Blacklist / short TTL + refresh</td></tr>
+                  <tr><td>CSRF</td><td>Risk nếu cookie auth</td><td>Ít (Bearer header)</td></tr>
+                  <tr><td>Scale</td><td>Shared session store</td><td>Dễ horizontal</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>WMS admin portal (SSR): session Redis + SameSite cookie. Mobile picker app: JWT access 15 phút + refresh rotation. API gateway validate JWT, forward claims downstream.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Sticky session che lỗi thiếu shared store. JWT "stateless" nhưng blacklist = state lại. Cookie JWT vẫn cần CSRF protection.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Session = server state + cookie ID; JWT = self-contained signed token.</li><li>Session revoke dễ; JWT scale dễ.</li><li>Hybrid: HttpOnly cookie JWT qua BFF.</li><li>Tránh localStorage JWT — XSS steal.</li><li>Short access TTL + refresh rotation.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q4</span> JWT structure, refresh rotation, blacklist/revocation?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>JWT = <code>header.payload.signature</code>. <strong>Header</strong>: alg (RS256, ES256), typ JWT. <strong>Payload</strong>: claims — <code>sub</code>, <code>iss</code>, <code>aud</code>, <code>exp</code>, <code>iat</code>, <code>jti</code>, custom roles/scopes. <strong>Signature</strong>: HMAC(secret) hoặc RSA/ECDSA — verify integrity, không encrypt (payload Base64URL readable).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Access token ngắn (5–15 phút) giảm stolen window. Refresh token dài hơn, opaque, rotate mỗi lần dùng — detect reuse (token theft). Blacklist <code>jti</code> cho logout/revoke trước expiry.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Login</div></div>
+                  <div class="flow-arrow">↓ issue access (15m) + refresh (7d, opaque)</div>
+                  <div class="flow-row"><div class="flow-node secondary">API call với access JWT</div></div>
+                  <div class="flow-arrow">↓ 401 exp → POST /token refresh + refresh_token</div>
+                  <div class="flow-row">
+                    <div class="flow-node">Server: invalidate old refresh, issue new pair</div>
+                    <div class="flow-node danger">Reuse old refresh → revoke all sessions</div>
+                  </div>
+                  <div class="flow-arrow">↓ Logout: blacklist jti (Redis TTL = exp)</div>
+                  <div class="flow-row"><div class="flow-node success">Verify: signature + iss + aud + exp + !blacklist(jti)</div></div>
+                </div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Refresh rotation: production SPA/mobile. Blacklist: logout, compromise, admin revoke user. Validate <code>aud</code> (audience): token chỉ dùng cho API này — chống confused deputy.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng lưu password/PII trong payload. Đừng HS256 shared secret leak trong frontend. Đừng skip <code>aud</code>/<code>iss</code> validation. Đừng refresh token trong JS accessible storage.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Verify JWT — Spring Security OAuth2 Resource Server</span>
+spring.security.oauth2.resourceserver.jwt:
+  issuer-uri: https://auth.example.com/realms/wms
+  audiences: wms-api   <span class="tok-comment"># bắt buộc aud claim</span>
+
+<span class="tok-comment">// Blacklist on logout</span>
+<span class="tok-keyword">public void</span> <span class="tok-function">logout</span>(<span class="tok-class">String</span> jti, Instant exp) {
+  redis.setex(<span class="tok-string">"jwt:bl:"</span> + jti, ttl(exp), <span class="tok-string">"1"</span>);
+}</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>Operator logout → server thêm <code>jti</code> vào Redis blacklist TTL = thời gian còn lại của token. Refresh reuse detection: attacker dùng stolen refresh → legitimate user refresh fail → force re-login all devices.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p><strong>Missing audience validation</strong>: token của app A dùng gọi API B. <strong>Alg none attack</strong>: reject alg=none. Clock skew: cho phép ±60s leeway trên <code>exp</code>.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>JWT = header.payload.signature — payload không mã hóa.</li><li>Access ngắn; refresh opaque + rotate.</li><li>Reuse refresh → revoke family.</li><li>Blacklist jti cho logout; validate aud/iss/exp.</li><li>RS256 + JWKS preferred over HS256 in microservices.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Spring Security -->
+        <section class="section" id="spring-security">
+          <h2 class="section-title">Spring Security</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q5</span> Spring Security Filter Chain &amp; SecurityContext — end-to-end?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>FilterChain</strong>: chuỗi servlet filters xử lý security trước <code>DispatcherServlet</code>. <strong>SecurityContext</strong>: <code>ThreadLocal</code> chứa <code>Authentication</code> (principal, authorities) cho request hiện tại — truy cập qua <code>SecurityContextHolder</code>.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Centralize security — controller không parse JWT thủ công. Filter order quan trọng: CORS → CSRF → Logout → JWT Bearer → Authorization. Hiểu flow = debug 401/403 và async/thread pool mất context.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">HTTP Request</div></div>
+                  <div class="flow-arrow">↓ DelegatingFilterProxy ("springSecurityFilterChain")</div>
+                  <div class="flow-row">
+                    <div class="flow-node">SecurityContextPersistenceFilter</div>
+                    <div class="flow-node secondary">BearerTokenAuthenticationFilter</div>
+                  </div>
+                  <div class="flow-arrow">↓ JwtDecoder.validate → JwtAuthenticationToken</div>
+                  <div class="flow-row"><div class="flow-node">SecurityContextHolder.setAuthentication()</div></div>
+                  <div class="flow-arrow">↓ FilterSecurityInterceptor / AuthorizationFilter</div>
+                  <div class="flow-row">
+                    <div class="flow-node">@PreAuthorize / requestMatchers.hasRole</div>
+                    <div class="flow-node success">Controller method</div>
+                  </div>
+                  <div class="flow-arrow">↓ finally: SecurityContextPersistenceFilter clear context</div>
+                </div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Mọi Spring Boot REST API protected. Custom filter khi cần API key header song song JWT. <code>@EnableMethodSecurity</code> cho method-level AuthZ.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng parse JWT trong controller rồi vẫn dùng Filter — duplicate logic. Đừng assume SecurityContext trong <code>@Async</code> — propagate với <code>DelegatingSecurityContextRunnable</code>. Public endpoints phải <code>permitAll()</code> explicit.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Bean</span>
+<span class="tok-class">SecurityFilterChain</span> <span class="tok-function">api</span>(HttpSecurity http) <span class="tok-keyword">throws</span> Exception {
+  <span class="tok-keyword">return</span> http
+    .csrf(csrf -&gt; csrf.disable())
+    .sessionManagement(s -&gt; s.sessionCreationPolicy(STATELESS))
+    .authorizeHttpRequests(auth -&gt; auth
+      .requestMatchers(<span class="tok-string">"/actuator/health"</span>).permitAll()
+      .requestMatchers(HttpMethod.POST, <span class="tok-string">"/api/orders/**"</span>).hasAuthority(<span class="tok-string">"order:write"</span>)
+      .anyRequest().authenticated())
+    .oauth2ResourceServer(oauth -&gt; oauth.jwt(Customizer.withDefaults()))
+    .build();
+}</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>Request <code>GET /api/inventory</code> + Bearer JWT → BearerTokenAuthenticationFilter decode → authorities <code>inventory:read</code> → FilterSecurityInterceptor allow → Controller gọi <code>SecurityContextHolder.getContext().getAuthentication().getName()</code> lấy operatorId.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Filter order sai → JWT chưa set context mà Authorization chạy. Multiple SecurityFilterChain beans — match <code>@Order</code> và <code>securityMatcher</code>. Actuator expose không auth.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Filter chain chạy trước DispatcherServlet.</li><li>SecurityContext = ThreadLocal Authentication.</li><li>BearerTokenFilter → setAuthentication → authorize.</li><li>STATELESS = không HttpSession.</li><li>@Async cần propagate SecurityContext.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: OAuth 2.0 -->
+        <section class="section" id="oauth">
+          <h2 class="section-title">OAuth 2.0 &amp; OIDC</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q6</span> OAuth 2.0 — Authorization Code + PKCE, Client Credentials, khi NOT Implicit/ROPC?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Authorization Code</strong>: user login tại Auth Server → redirect code → client đổi code lấy token (server-side, có client_secret). <strong>PKCE</strong>: public client (SPA/mobile) thêm code_verifier/challenge — chống intercept code. <strong>Client Credentials</strong>: machine-to-machine, không user — client_id + secret → access token.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Auth Code giữ secret/token khỏi browser URL. PKCE thay thế secret cho public client. Client Credentials cho batch/cron/service account. Implicit/ROPC deprecated vì leak token và trust password qua client.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">User</div><div class="flow-node secondary">SPA/Mobile</div><div class="flow-node">Auth Server</div><div class="flow-node success">Resource API</div></div>
+                  <div class="flow-arrow">Auth Code + PKCE: generate verifier → redirect + challenge → login → code → POST token + verifier → access_token</div>
+                  <div class="flow-row"><div class="flow-node primary">Service A</div><div class="flow-node">Auth Server</div></div>
+                  <div class="flow-arrow">Client Credentials: POST /token grant_type=client_credentials → access_token (no refresh usually)</div>
+                </div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Auth Code + PKCE: SPA React, mobile native. Auth Code (confidential): server-side web app. Client Credentials: inventory-sync job, service mesh egress, internal API caller.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p><strong>Implicit flow</strong>: token trong URL fragment — deprecated, dùng Auth Code + PKCE. <strong>ROPC (Resource Owner Password)</strong>: app thu thập password — chỉ legacy migration, không app mới. Client Credentials khi cần user context — dùng Auth Code thay vì.</p></div>
+              <table class="feature-table">
+                <thead><tr><th>Flow</th><th>User?</th><th>Client type</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>Auth Code + PKCE</td><td>✅</td><td>Public (SPA/mobile)</td><td>✅ Recommended</td></tr>
+                  <tr><td>Auth Code</td><td>✅</td><td>Confidential (backend)</td><td>✅ Recommended</td></tr>
+                  <tr><td>Client Credentials</td><td>❌</td><td>Service account</td><td>✅ S2S</td></tr>
+                  <tr><td>Implicit</td><td>✅</td><td>SPA cũ</td><td>❌ Deprecated</td></tr>
+                  <tr><td>ROPC</td><td>✅</td><td>Legacy</td><td>❌ Deprecated</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Spring — OAuth2 client credentials for WebClient</span>
+spring.security.oauth2.client.registration.inventory-api:
+  provider: keycloak
+  client-id: inventory-sync
+  client-secret: ${INV_SECRET}
+  authorization-grant-type: client_credentials
+  scope: inventory.read</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>WMS dashboard (SPA): PKCE login Keycloak. Nightly ERP sync job: Client Credentials scope <code>erp:pull</code>, không refresh token user.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Redirect URI mismatch open redirect. PKCE optional = insecure public client. Client secret trong mobile binary — extract được, bắt buộc PKCE + no secret.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Auth Code + PKCE cho SPA/mobile — không Implicit.</li><li>Client Credentials cho S2S — không user context.</li><li>ROPC deprecated — không thu password ở client.</li><li>Confidential client giữ secret server-side only.</li><li>Token endpoint luôn HTTPS.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q7</span> OIDC vs OAuth — ID token vs access token?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>OAuth 2.0</strong> = authorization framework — access token để gọi Resource Server API. <strong>OIDC (OpenID Connect)</strong> = identity layer trên OAuth — thêm <strong>ID Token</strong> (JWT) chứa identity claims (<code>sub</code>, email, name) cho Client App, không gửi tới API.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Access token = permission delegate ("access API on my behalf"). ID token = proof of authentication event cho client UI (hiển thị tên, session). Dùng ID token gọi API = sai — thiếu audience/intended use; API cần access token với scope.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Auth Code flow + scope openid</div></div>
+                  <div class="flow-arrow">↓ token response</div>
+                  <div class="flow-row">
+                    <div class="flow-node secondary">ID Token (JWT) → Client parse identity</div>
+                    <div class="flow-node">Access Token → Resource Server API</div>
+                    <div class="flow-node">Refresh Token → secure storage</div>
+                  </div>
+                  <div class="flow-arrow">↓ OIDC discovery /.well-known/openid-configuration</div>
+                  <div class="flow-row"><div class="flow-node success">Validate ID token: iss, aud, nonce, exp</div></div>
+                </div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>OIDC khi cần SSO + user profile (Keycloak, Auth0, Azure AD). OAuth thuần khi chỉ delegate API access (GitHub API scope) không cần standard identity claims.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng gửi ID token tới backend API thay access token. Đừng tin ID token từ client không verify signature/nonce. Access token opaque — introspect thay decode nếu không phải JWT.</p></div>
+              <table class="feature-table">
+                <thead><tr><th>Token</th><th>Audience</th><th>Mục đích</th></tr></thead>
+                <tbody>
+                  <tr><td>ID Token</td><td>Client App (aud = client_id)</td><td>Identity — sub, email, auth_time</td></tr>
+                  <tr><td>Access Token</td><td>Resource Server (aud = api)</td><td>Authorization — scopes, gọi API</td></tr>
+                  <tr><td>Refresh Token</td><td>Auth Server only</td><td>Lấy access token mới</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>SPA login OIDC: ID token hiển thị "Xin chào, operator42"; access token gọi <code>/api/pick-tasks</code> với scope <code>pick:read</code>. Backend chỉ validate access token.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Nhầm OAuth = login protocol — OAuth là delegation; OIDC mới standardize login. Missing nonce validation → replay ID token.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>OAuth = access resource; OIDC = who is user.</li><li>ID token cho client; access token cho API.</li><li>Validate ID token: iss, aud, nonce, exp.</li><li>scope openid bật OIDC layer.</li><li>Không dùng ID token làm API bearer.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: S2S Auth -->
+        <section class="section" id="s2s">
+          <h2 class="section-title">Service-to-Service Authentication</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q8</span> S2S auth — mTLS, JWT pass-through, Client Credentials, Gateway token exchange, service mesh?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Các pattern xác thực call giữa microservices: <strong>mTLS</strong> (cert mỗi service), <strong>JWT pass-through</strong> (forward user token), <strong>OAuth Client Credentials</strong> (service lấy token riêng), <strong>Gateway token exchange</strong> (RFC 8693 — đổi user token → downstream token), <strong>Service mesh identity</strong> (Istio SPIFFE/SPIRE — cert tự động mỗi pod).</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Zero trust: internal network không đáng tin. Mỗi pattern trade-off giữa user context propagation, ops complexity, và blast radius khi token leak.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Client JWT</div><div class="flow-node secondary">Gateway</div><div class="flow-node">Svc A</div><div class="flow-node success">Svc B</div></div>
+                  <div class="flow-arrow">Pass-through: Gateway validate → forward Authorization header → B validates same JWT</div>
+                  <div class="flow-arrow">Token exchange: Gateway/subject_token → Auth Server → audience-restricted token for B</div>
+                  <div class="flow-arrow">Client Credentials: A ignores user JWT → A gets own token scoped for B</div>
+                  <div class="flow-arrow">mTLS / Mesh: Envoy sidecar present client cert — identity = SPIFFE ID</div>
+                </div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>
+                <strong>JWT pass-through</strong>: cần user audit trail end-to-end, ít service hop.<br>
+                <strong>Client Credentials</strong>: background job, không user context, B chỉ tin service A.<br>
+                <strong>Token exchange</strong>: downstream cần token audience/scope khác, không tin gateway header.<br>
+                <strong>mTLS / mesh</strong>: infra-level identity, encrypt transit, policy L4/L7 (Istio AuthorizationPolicy).<br>
+                <strong>Kết hợp</strong>: mesh mTLS + JWT user context = defense in depth.
+              </p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Pass-through user JWT tới mọi service — token quá rộng, confused deputy. Client Credentials khi B cần biết user nào thực hiện — mất attribution. mTLS alone không thay AuthZ — cert chỉ prove service identity. Tin <code>X-User-Id</code> header không signed.</p></div>
+              <table class="feature-table">
+                <thead><tr><th>Pattern</th><th>User context</th><th>Complexity</th><th>Best for</th></tr></thead>
+                <tbody>
+                  <tr><td>JWT pass-through</td><td>✅ Full</td><td>Thấp</td><td>2–3 services, same IdP</td></tr>
+                  <tr><td>Client Credentials</td><td>❌ Service only</td><td>Thấp</td><td>Batch, internal sync</td></tr>
+                  <tr><td>Token exchange</td><td>✅ Mapped</td><td>Trung bình</td><td>Multi-audience, zero trust</td></tr>
+                  <tr><td>mTLS / mesh</td><td>❌ Transport</td><td>Cao (ops)</td><td>K8s, regulated, encrypt all hops</td></tr>
+                </tbody>
+              </table>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>OrderService → InventoryService: pass-through user JWT để audit "operator42 reserved bin". Nightly sync OrderService → ERP: Client Credentials. Bank-grade: Istio mTLS + token exchange per downstream API audience.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p><strong>Confused deputy</strong>: Service A nhận user token, gọi B với token đó — B phải validate aud= B, không chỉ signature. Gateway set X-User-Id không verify → spoof.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>Pass-through giữ user context; Client Credentials cho machine.</li><li>Token exchange đổi audience — RFC 8693.</li><li>mTLS/mesh = transport identity, không thay JWT AuthZ.</li><li>Zero trust: mTLS + scoped token.</li><li>Không tin unsigned internal headers.</li></ul></div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q9</span> API Key vs OAuth vs mTLS cho internal APIs?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>API Key</strong>: static secret trong header (<code>X-API-Key</code>) identify caller. <strong>OAuth</strong>: dynamic token với scope, expiry, rotation (Client Credentials / token exchange). <strong>mTLS</strong>: client certificate xác thực TLS layer — không phải HTTP header.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>API Key đơn giản cho partner ít, low-risk internal webhook. OAuth chuẩn hóa lifecycle, scope, audit. mTLS mạnh nhất về transport identity — key không traverse application layer.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="compare-grid">
+                  <div class="compare-col"><h4>API Key</h4><ul><li>Static, long-lived</li><li>Header/query</li><li>Rotate manual</li><li>No standard scope</li></ul></div>
+                  <div class="compare-col"><h4>OAuth CC</h4><ul><li>Short-lived JWT</li><li>Bearer token</li><li>Auto refresh/issue</li><li>Scope-based AuthZ</li></ul></div>
+                  <div class="compare-col"><h4>mTLS</h4><ul><li>Cert per service</li><li>TLS handshake</li><li>Auto rotate (mesh)</li><li>Network + app policy</li></ul></div>
+                </div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>API Key: dev sandbox, single partner webhook, cron nội bộ isolated VLAN (vẫn nên rotate). OAuth: production microservices, multi-tenant, cần scope/revoke. mTLS: service mesh, PCI/HIPAA, east-west traffic encrypt + identity.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>API Key trong browser/mobile — leak dễ. OAuth cho script 1 lần — overkill dùng Key. mTLS cho public internet client — không issue cert cho user. Chỉ API Key không HTTPS — sniff plaintext.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>PLC webhook nội bộ VLAN: API Key + IP allowlist. Microservice inventory: OAuth Client Credentials. K8s cluster east-west: Istio STRICT mTLS + AuthorizationPolicy.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>API Key trong git repo. Shared key mọi service — không audit được caller. mTLS terminate tại gateway rồi plain HTTP internal — mất protection hop cuối.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>API Key = simple static — rotate khó.</li><li>OAuth = scoped, expiring tokens.</li><li>mTLS = cert identity at TLS layer.</li><li>Production internal → OAuth or mTLS.</li><li>Defense in depth: mTLS + OAuth.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Spring WebClient -->
+        <section class="section" id="spring-oauth-client">
+          <h2 class="section-title">Spring Microservice Calls</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q10</span> Securing microservice calls — WebClient + OAuth2 client?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Spring Security OAuth2 Client tự lấy và cache access token (Client Credentials hoặc on-behalf-of). <code>ServletOAuth2AuthorizedClientExchangeFilterFunction</code> / reactive equivalent attach Bearer token vào <code>WebClient</code> outbound calls. <code>@RegisteredOAuth2AuthorizedClient</code> inject authorized client vào controller/service method.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Tránh hardcode token, tự refresh trước expiry, centralize client registration trong YAML. Pass-through user token: dùng <code>OAuth2AuthorizedClientManager</code> với <code>authorization_code</code> context hoặc forward <code>SecurityContext</code> JWT.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">OrderService</div></div>
+                  <div class="flow-arrow">↓ WebClient + OAuth2AuthorizedClientManager</div>
+                  <div class="flow-row"><div class="flow-node secondary">Token endpoint (client_credentials)</div></div>
+                  <div class="flow-arrow">↓ cache token → Authorization: Bearer</div>
+                  <div class="flow-row"><div class="flow-node success">InventoryService API</div></div>
+                </div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Client Credentials cho S2S không user. Custom filter để forward incoming JWT khi cần user context. <code>@RegisteredOAuth2AuthorizedClient("inventory-api")</code> trong method cần explicit client.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng new WebClient mỗi request không share filter — mất cache token. Đừng log full access token. Blocking RestTemplate without OAuth2 support — prefer WebClient + oauth2 client starter.</p></div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Configuration</span>
+<span class="tok-keyword">class</span> <span class="tok-class">WebClientConfig</span> {
+  <span class="tok-annotation">@Bean</span>
+  <span class="tok-class">WebClient</span> <span class="tok-function">inventoryClient</span>(
+      <span class="tok-class">OAuth2AuthorizedClientManager</span> manager) {
+    <span class="tok-class">ServletOAuth2AuthorizedClientExchangeFilterFunction</span> oauth2 =
+        <span class="tok-keyword">new</span> <span class="tok-class">ServletOAuth2AuthorizedClientExchangeFilterFunction</span>(manager);
+    oauth2.setDefaultClientRegistrationId(<span class="tok-string">"inventory-api"</span>);
+    <span class="tok-keyword">return</span> <span class="tok-class">WebClient</span>.builder()
+        .baseUrl(<span class="tok-string">"https://inventory.internal"</span>)
+        .apply(oauth2.oauth2Configuration())
+        .build();
+  }
+}
+
+<span class="tok-comment">// Pass-through user JWT (alternative)</span>
+<span class="tok-class">WebClient</span>.builder()
+  .filter((req, next) -&gt; {
+    <span class="tok-class">Authentication</span> auth = <span class="tok-class">SecurityContextHolder</span>.getContext().getAuthentication();
+    <span class="tok-keyword">if</span> (auth <span class="tok-keyword">instanceof</span> <span class="tok-class">JwtAuthenticationToken</span> jwt) {
+      <span class="tok-keyword">return</span> next.exchange(
+        <span class="tok-class">ClientRequest</span>.from(req).header(<span class="tok-string">"Authorization"</span>, <span class="tok-string">"Bearer "</span> + jwt.getToken().getTokenValue()).build());
+    }
+    <span class="tok-keyword">return</span> next.exchange(req);
+  }).build();</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>OrderService gọi InventoryService: WebClient với client_credentials registration <code>inventory-api</code>, scope <code>inventory:reserve</code>. Token cache trong AuthorizedClientService — auto refresh.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall</div><p>Quên <code>@EnableWebSecurity</code> + oauth2 client config → 401 loop. Blocking call trong reactive chain — block() trên WebClient cẩn thận thread. Client secret trong config map không Vault.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>WebClient + OAuth2AuthorizedClientExchangeFilterFunction.</li><li>Client Credentials auto cache/refresh token.</li><li>Pass-through: copy JWT từ SecurityContext.</li><li>@RegisteredOAuth2AuthorizedClient inject client.</li><li>Không hardcode Bearer token.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Pitfalls -->
+        <section class="section" id="pitfalls">
+          <h2 class="section-title">Common Pitfalls</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q11</span> Pitfalls — JWT localStorage XSS, missing aud, confused deputy, privilege escalation?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Bốn lỗi security phổ biến: (1) JWT trong <code>localStorage</code> → XSS steal token; (2) không validate <code>aud</code> (audience) → token reuse cross-service; (3) <strong>confused deputy</strong> — service A dùng user token gọi B, B không check audience; (4) <strong>privilege escalation</strong> — user sửa claims/role hoặc IDOR bypass AuthZ.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Interviewers test thực chiến — biết flow OAuth chưa đủ nếu mắc các lỗi implementation. OWASP API Security Top 10: BOLA (Broken Object Level Authorization) = privilege escalation phổ biến nhất.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node danger">XSS → document.cookie/localStorage → steal JWT</div></div>
+                  <div class="flow-arrow">↓ Mitigate: HttpOnly cookie + CSP + sanitize input</div>
+                  <div class="flow-row"><div class="flow-node danger">Token aud=api-a used on api-b</div></div>
+                  <div class="flow-arrow">↓ Mitigate: resource server validate aud claim</div>
+                  <div class="flow-row"><div class="flow-node danger">Svc A forwards any Bearer to Svc B</div></div>
+                  <div class="flow-arrow">↓ Mitigate: token exchange OR B validates aud + scope</div>
+                  <div class="flow-row"><div class="flow-node danger">GET /orders/999 as user owning order 1</div></div>
+                  <div class="flow-arrow">↓ Mitigate: server check resource.ownerId == principal</div>
+                </div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Audit mọi design trước production: storage token, JWT validation config, S2S pattern, mọi endpoint có object-level check.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng "fix" XSS bằng move token sessionStorage — vẫn JS-readable. Đừng chỉ check role global mà bỏ row-level. Đừng tin JWT claims roles nếu không map từ server-side DB mỗi request (prefer short token + server lookup for sensitive ops).</p></div>
+              <table class="feature-table">
+                <thead><tr><th>Pitfall</th><th>Attack</th><th>Fix</th></tr></thead>
+                <tbody>
+                  <tr><td>localStorage JWT</td><td>XSS exfiltrate</td><td>HttpOnly Secure cookie, CSP, sanitize</td></tr>
+                  <tr><td>Missing aud</td><td>Cross-API token replay</td><td>spring.security.oauth2.resourceserver.jwt.audiences</td></tr>
+                  <tr><td>Confused deputy</td><td>Service abuse user token</td><td>Token exchange, aud scope per service</td></tr>
+                  <tr><td>Privilege escalation</td><td>IDOR, role tampering</td><td>Server-side AuthZ, verify signature, BOLA check</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// BOLA prevention — always verify ownership</span>
+<span class="tok-annotation">@GetMapping</span>(<span class="tok-string">"/orders/{id}"</span>)
+<span class="tok-keyword">public</span> <span class="tok-class">OrderDto</span> <span class="tok-function">get</span>(<span class="tok-annotation">@PathVariable</span> Long id) {
+  <span class="tok-class">Order</span> order = orderRepo.findById(id).orElseThrow();
+  <span class="tok-keyword">if</span> (!order.getOwnerId().equals(currentUserId()))
+    <span class="tok-keyword">throw new</span> <span class="tok-class">AccessDeniedException</span>();
+  <span class="tok-keyword">return</span> mapper.toDto(order);
+}</code></pre></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>BFF pattern: frontend không giữ access token — BFF set HttpOnly session cookie, XSS không đọc được token. Inventory API validate <code>aud=inventory-api</code> — order service token không dùng được.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>"JWT an toàn vì signed" — payload vẫn readable, signature không chống XSS. "Internal API không cần auth" — lateral movement sau breach. Luôn mention BOLA khi nói AuthZ.</p></div>
+              <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul><li>localStorage + XSS = stolen JWT — dùng HttpOnly cookie.</li><li>Validate aud, iss, exp mọi resource server.</li><li>Confused deputy: service forward token — B phải check aud.</li><li>BOLA/IDOR = privilege escalation #1 API.</li><li>Zero trust — internal cũng authenticate + authorize.</li></ul></div>
+            </div>
+          </article>
+        </section>
+
+<section class="section" id="deep-dive-oauth-pkce">
+          <h2 class="section-title">Deep Dive — OAuth 2.0 Authorization Code + PKCE</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q12</span> Authorization Code + PKCE — luồng đầy đủ, code_verifier/challenge, khi nào bắt buộc?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>Authorization Code</strong>: client redirect user tới Authorization Endpoint; user login + consent; server redirect <code>code</code> ngắn hạn về <code>redirect_uri</code>; client đổi code ở Token Endpoint lấy access/refresh token. <strong>PKCE</strong> (RFC 7636) thêm <code>code_verifier</code> (chuỗi ngẫu nhiên 43–128 ký tự) và <code>code_challenge = BASE64URL(SHA256(code_verifier))</code> gửi kèm authorization request; khi đổi token client gửi lại verifier để server đối chiếu.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Authorization code đi qua <em>front channel</em> (redirect browser hoặc custom URI scheme) nên có thể bị app độc hại intercept. PKCE <em>bind</em> code với phiên của client gốc — kẻ chỉ có code mà không có verifier thì không đổi được token. RFC 9700: public client <strong>MUST</strong> dùng PKCE, authorization server <strong>MUST</strong> hỗ trợ; confidential client <em>RECOMMENDED</em> dùng để defense-in-depth. Method <code>plain</code> lộ verifier nên phải dùng <code>S256</code>.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">Client: tạo code_verifier → tính code_challenge</div></div>
+                  <div class="flow-arrow">↓ GET /authorize?response_type=code&amp;code_challenge=...&amp;code_challenge_method=S256&amp;state=...</div>
+                  <div class="flow-row"><div class="flow-node secondary">Auth Server: user login + consent, bind challenge vào code</div></div>
+                  <div class="flow-arrow">↓ 302 redirect_uri?code=...&amp;state=...</div>
+                  <div class="flow-row"><div class="flow-node">Client: POST /token grant_type=authorization_code&amp;code=...&amp;code_verifier=...</div></div>
+                  <div class="flow-arrow">↓ server verify S256(verifier) == challenge</div>
+                  <div class="flow-row"><div class="flow-node success">Trả access_token (ngắn hạn) + refresh_token (xoay vòng)</div></div>
+                </div>
+                <table class="feature-table">
+                  <thead><tr><th>Tham số</th><th>Gửi ở đâu</th><th>Giá trị</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>code_verifier</code></td><td>Token request</td><td>43–128 ký tự ngẫu nhiên, entropy ≥ 256-bit</td></tr>
+                    <tr><td><code>code_challenge</code></td><td>Authorization request</td><td><code>BASE64URL(SHA256(verifier))</code>, bỏ padding</td></tr>
+                    <tr><td><code>code_challenge_method</code></td><td>Authorization request</td><td><code>S256</code> (bắt buộc dùng, không dùng <code>plain</code>)</td></tr>
+                    <tr><td><code>state</code></td><td>Cả hai</td><td>Chống CSRF — đối chiếu khi redirect về</td></tr>
+                  </tbody>
+                </table>
+                <div class="code-block" data-lang="http"><pre><code><span class="tok-comment"># 1) Authorization request (front channel)</span>
+GET /authorize?response_type=code
+  &amp;client_id=spa_abc
+  &amp;redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback
+  &amp;scope=openid%20pick:read
+  &amp;state=xY7
+  &amp;code_challenge=OfYa...S256Hash
+  &amp;code_challenge_method=S256 HTTP/1.1
+
+<span class="tok-comment"># 2) Token request (back channel) — public client không cần client_secret</span>
+POST /token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&amp;code=AUTH_CODE
+  &amp;redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback
+  &amp;code_verifier=original-43-to-128-char-verifier</code></pre></div>
+                <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// PKCE helper</span>
+<span class="tok-class">String</span> verifier = Base64.getUrlEncoder().withoutPadding()
+    .encodeToString(randomBytes(32));            <span class="tok-comment">// 43 ký tự</span>
+<span class="tok-class">String</span> challenge = Base64.getUrlEncoder().withoutPadding()
+    .encodeToString(sha256(verifier.getBytes(UTF_8)));</code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>SPA, mobile native, desktop/CLI app (public client). Confidential client (backend có secret) vẫn nên thêm PKCE. Kèm cả <code>state</code> và <code>nonce</code> (với OIDC) để chống CSRF và replay ID token.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Client Credentials (machine-to-machine) không có code để bind nên <em>không</em> dùng PKCE. Không dùng Implicit (<code>response_type=token</code>) hay ROPC — RFC 9700/OAuth 2.1 đã bỏ các flow này. Không nhúng <code>client_secret</code> vào public client (extractable).</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>SPA dashboard login qua Keycloak/OIDC: sinh verifier trong storage phiên, redirect authorize, callback đổi code + verifier lấy access token — kẻ cài app trùng custom scheme cũng không đổi được code.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p><code>redirect_uri</code> phải khớp chính xác (không wildcard mở → open redirect). Server hỗ trợ PKCE nhưng không <em>enforce</em> → kẻ tấn công strip <code>code_challenge</code> tạo downgrade. Không fallback từ S256 sang plain khi S256 lỗi.</p></div>
+              <p><small>Nguồn: <a href="https://www.rfc-editor.org/rfc/rfc7636">RFC 7636 — PKCE</a> · <a href="https://www.rfc-editor.org/rfc/rfc9700">RFC 9700 — OAuth 2.0 Security BCP</a> · <a href="https://auth0.com/docs/get-started/authentication-and-authorization-flow/authorization-code-flow-with-pkce">Auth0 — Authorization Code Flow with PKCE</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="section" id="deep-dive-jwks-rotation">
+          <h2 class="section-title">Deep Dive — JWKS &amp; Xoay khoá ký JWT</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q13</span> JWKS, kid và xoay khoá ký JWT không downtime — resource server verify thế nào?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p><strong>JWKS</strong> (JSON Web Key Set, RFC 7517) là tài liệu JSON công bố public key(s) của authorization server, thường ở <code>/.well-known/jwks.json</code>. Mỗi JWT có header <code>kid</code> (key id) chỉ định key nào dùng để verify chữ ký. Resource server <em>không</em> giữ private key — chỉ tải public key qua JWKS và chọn đúng key theo <code>kid</code>.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>Xoay khoá định kỳ thu hẹp cửa sổ nếu private key bị lộ (kẻ có private key ký được token giả mạo). Nhưng xoay sai cách gây "sóng 401": key mới ký trước khi mọi verifier biết, hoặc gỡ key cũ khi token cũ còn hạn. JWKS cho phép <em>nhiều key cùng tồn tại</em> nên rotation diễn ra êm.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="flow-diagram">
+                  <div class="flow-row"><div class="flow-node primary">1. Sinh cặp khoá mới (kid mới)</div></div>
+                  <div class="flow-arrow">↓ 2. Công bố public key mới vào JWKS (chờ ≥ 1 cache TTL)</div>
+                  <div class="flow-row"><div class="flow-node secondary">3. Chuyển signing sang khoá mới — token cũ vẫn verify bằng khoá cũ</div></div>
+                  <div class="flow-arrow">↓ 4. Chờ overlap = token TTL + JWKS cache TTL + clock skew</div>
+                  <div class="flow-row"><div class="flow-node success">5. Gỡ public key cũ khỏi JWKS</div></div>
+                </div>
+                <table class="feature-table">
+                  <thead><tr><th>Bước verifier</th><th>Hành vi đúng</th></tr></thead>
+                  <tbody>
+                    <tr><td>Cache JWKS</td><td>Bounded theo <code>Cache-Control</code>, thường 5–15 phút — không vô hạn</td></tr>
+                    <tr><td>Chọn key</td><td>Theo <code>kid</code> trong header — không thử lần lượt mọi key</td></tr>
+                    <tr><td>Gặp <code>kid</code> lạ</td><td>Refetch JWKS <em>một lần</em>, rate-limited (cooldown) rồi mới từ chối</td></tr>
+                    <tr><td>Algorithm</td><td>Whitelist RS256/ES256; từ chối <code>alg=none</code>, confusion RS→HS</td></tr>
+                  </tbody>
+                </table>
+                <div class="code-block" data-lang="json"><pre><code>{
+  "keys": [
+    { "kid": "key-2026-01", "kty": "RSA", "use": "sig", "alg": "RS256", "n": "...", "e": "AQAB" },
+    { "kid": "key-2025-09", "kty": "RSA", "use": "sig", "alg": "RS256", "n": "...", "e": "AQAB" }
+  ]
+}</code></pre></div>
+                <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Spring Resource Server — verify JWT qua JWKS, có iss/aud</span>
+spring.security.oauth2.resourceserver.jwt:
+  issuer-uri: https://auth.example.com
+  audiences: inventory-api
+<span class="tok-comment">// thư viện tự cache JWKS và refetch khi gặp kid mới (rate-limited)</span></code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Mọi hệ dùng asymmetric signing (RS256/ES256) với OIDC provider (Keycloak, Auth0, Entra ID, Cognito). Emergency rotation khi nghi private key lộ: gỡ key compromised <em>ngay</em>, chấp nhận buộc mọi phiên re-authenticate.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>HS256 dùng chung secret <em>không</em> phù hợp JWKS — mọi verifier giữ secret đều ký được token. Không hardcode một public key đơn lẻ (không xoay được). Không đặt <code>max-age</code> JWKS quá dài — kéo dài overlap và làm chậm phản ứng khi gỡ key.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>Inventory API validate JWT từ Keycloak: cache JWKS 10 phút; khi Keycloak xoay khoá, token mới mang <code>kid</code> lạ → refetch một lần, verify thành công — không cần restart service, không có 401 hàng loạt.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p><strong>Algorithm confusion</strong>: verifier nhận HS256 rồi dùng public key RSA làm HMAC secret → kẻ tấn công tự ký token giả. <code>kid</code> phải duy nhất trên <em>toàn bộ lịch sử</em> key. Refetch không rate-limit → bị tấn công làm ngập JWKS endpoint.</p></div>
+              <p><small>Nguồn: <a href="https://www.rfc-editor.org/rfc/rfc7517">RFC 7517 — JSON Web Key (JWK)</a> · <a href="https://learn.microsoft.com/en-us/entra/identity-platform/signing-key-rollover">Microsoft Entra — Signing key rollover</a> · <a href="https://workos.com/blog/developers-guide-jwks">WorkOS — Developer's guide to JWKS</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="section" id="deep-dive-cookies-csrf">
+          <h2 class="section-title">Deep Dive — Cookie bảo mật &amp; CSRF</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q14</span> HttpOnly / Secure / SameSite — đặt cờ cookie thế nào và lưu token ở đâu cho an toàn?</h3>
+            <div class="qa-answer">
+              <div class="ans-block"><div class="ans-label">What</div><p>Cờ cookie bảo mật: <strong>HttpOnly</strong> — JavaScript không đọc được (chống XSS đánh cắp); <strong>Secure</strong> — chỉ gửi qua HTTPS; <strong>SameSite=Strict|Lax|None</strong> — giới hạn gửi cookie trong request cross-site (chống CSRF); prefix <strong><code>__Host-</code></strong> — bắt buộc Secure, <code>Path=/</code>, không Domain. Nơi lưu token: HttpOnly cookie vs <code>localStorage</code> vs in-memory/BFF.</p></div>
+              <div class="ans-block"><div class="ans-label">Why</div><p>JWT trong <code>localStorage</code> bị mọi XSS đọc được → token bị đánh cắp. Chuyển sang HttpOnly cookie chặn XSS đọc token nhưng mở lại nguy cơ CSRF (browser tự gửi cookie). Lựa chọn storage là trade-off giữa XSS và CSRF; <code>SameSite</code> + CSRF token giải quyết lớp CSRF.</p></div>
+              <div class="ans-block"><div class="ans-label">How</div>
+                <div class="compare-grid">
+                  <div class="compare-col"><h4>HttpOnly cookie (BFF)</h4><ul><li>JS không đọc — chống XSS steal</li><li>Cần chống CSRF (SameSite + token)</li><li>Logout/revoke tập trung</li></ul></div>
+                  <div class="compare-col"><h4>localStorage</h4><ul><li>XSS đọc được token</li><li>Không tự gửi — ít CSRF</li><li>Không revoke được phía server</li></ul></div>
+                  <div class="compare-col"><h4>In-memory (SPA)</h4><ul><li>Mất khi refresh tab</li><li>Vẫn dính XSS nếu script chạy</li><li>Ghép refresh cookie HttpOnly</li></ul></div>
+                </div>
+                <table class="feature-table">
+                  <thead><tr><th>Cờ</th><th>Chống</th><th>Lưu ý</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>HttpOnly</code></td><td>XSS đọc cookie</td><td>Không thay thế output encoding</td></tr>
+                    <tr><td><code>Secure</code></td><td>Sniff trên HTTP</td><td>Trang HTTPS mới set được</td></tr>
+                    <tr><td><code>SameSite=Lax</code></td><td>Nhiều CSRF</td><td>Mặc định trình duyệt hiện đại</td></tr>
+                    <tr><td><code>SameSite=Strict</code></td><td>CSRF triệt để</td><td>Có thể hỏng luồng SSO/deep link</td></tr>
+                    <tr><td><code>SameSite=None</code></td><td>—</td><td>Bắt buộc kèm <code>Secure</code></td></tr>
+                  </tbody>
+                </table>
+                <div class="code-block" data-lang="http"><pre><code><span class="tok-comment"># Session cookie an toàn</span>
+Set-Cookie: __Host-session=abc123; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=900
+
+<span class="tok-comment"># CSRF token (double-submit) cho form cookie-based</span>
+&lt;form method="post" action="/transfer"&gt;
+  &lt;input type="hidden" name="_csrf" value="csrf-token"&gt;
+&lt;/form&gt;</code></pre></div>
+              </div>
+              <div class="ans-block"><div class="ans-label">When</div><p>Web app dùng cookie session/JWT → BFF pattern: HttpOnly + Secure + SameSite=Lax, kèm CSRF token cho form POST. Access token ngắn hạn + refresh rotation. SPA gọi API cùng site có thể để token in-memory, refresh cookie HttpOnly.</p></div>
+              <div class="ans-block"><div class="ans-label">When NOT</div><p>Không đặt <code>SameSite=None</code> mà thiếu <code>Secure</code> (bị browser từ chối). Không lưu token dài hạn trong <code>localStorage</code> khi có bề mặt XSS. Bearer token trong header thuần (không cookie) thì CSRF ít liên quan — không cần CSRF token nhưng vẫn phải chống XSS.</p></div>
+              <div class="callout callout-info"><div class="callout-title">Use case</div><p>Admin console server-rendered: session Redis qua cookie <code>__Host-session</code> HttpOnly + SameSite=Lax; mỗi form POST kèm CSRF token; logout xoá session server-side là revoke tức thời.</p></div>
+              <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p><code>SameSite=Lax</code> mặc định vẫn gửi cookie ở top-level navigation GET → không đủ chặn mọi CSRF; cần CSRF token cho thao tác thay đổi trạng thái. <code>Secure</code> không bảo vệ khỏi XSS đọc giá trị cookie nếu thiếu <code>HttpOnly</code>. Đừng "fix" XSS bằng cách đổi sang <code>sessionStorage</code> — vẫn JS-readable.</p></div>
+              <p><small>Nguồn: <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie">MDN — Set-Cookie</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Cookies">MDN — Using HTTP cookies</a> · <a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html">OWASP — CSRF Prevention Cheat Sheet</a></small></p>
+            </div>
+          </article>
+        </section>
+
+        
+<section class="section" id="interview-filter-interceptor"><h2 class="section-title">Bổ sung chiều sâu phỏng vấn</h2><article class="qa-card" id="deep-filter-interceptor"><h3 class="qa-question">Filter vs HandlerInterceptor: JWT nằm ở đâu trong request chain?</h3><div class="qa-answer"><div class="ans-block"><span class="ans-label">What</span><p>Servlet Filter chạy quanh servlet chain trước Spring MVC; HandlerInterceptor chạy quanh handler đã được MVC chọn. Xác thực JWT nên ở Spring Security filter chain, không dựa vào MVC interceptor như hàng rào bảo mật duy nhất.</p></div><div class="ans-block"><span class="ans-label">Boundary và thứ tự</span><p>Container filters → DelegatingFilterProxy → FilterChainProxy → SecurityFilterChain phù hợp → DispatcherServlet → HandlerMapping → interceptor.preHandle → controller → postHandle/afterCompletion. Chỉ SecurityFilterChain đầu tiên match request được dùng; filter order phải dựa vào authentication/authorization flow, không đoán theo tên class.</p></div><div class="ans-block"><span class="ans-label">JWT</span><p>Ưu tiên OAuth2 Resource Server với BearerTokenAuthenticationFilter/JwtDecoder; validate signature, thuật toán cho phép, expiry, issuer và audience theo policy. Authentication phải được dựng trước AuthorizationFilter. Invalid/missing credential xử lý 401 khi tài nguyên cần auth; đã auth nhưng thiếu quyền thường là 403. Không chỉ decode Base64 rồi tin claim.</p></div><div class="ans-block"><span class="ans-label">Dùng đúng công cụ</span><p>Filter phù hợp CORS, correlation ID, wrapper request/response và security. Interceptor biết HandlerMethod và annotation, phù hợp timing hoặc context MVC; không bao phủ mọi servlet/static/dispatch theo cùng cách nên không dùng thay security. Method security bổ sung kiểm tra quyền ở service boundary.</p></div><div class="ans-block"><span class="ans-label">Async/error và cleanup</span><p>OncePerRequestFilter có semantics theo dispatch/thread và hook cho async/error, không phải bảo đảm duy nhất một lần toàn vòng đời request. Kiểm tra registration để custom filter không chạy hai lần qua container và security. ThreadLocal/MDC phải clear finally; async handoff không tự mang security/context. Kiểm thử preflight CORS, expired token, public route, async/error route và endpoint ngoài MVC.</p></div><div class="flow-diagram">HTTP → Servlet Filter / Spring Security JWT → authorization → DispatcherServlet → MVC interceptor → controller</div><pre class="code-block"><code>// Resource Server cấu hình chuẩn; issuer/audience phải được cấu hình và kiểm thử.
+http.authorizeHttpRequests(a -&gt; a
+    .requestMatchers(&quot;/public/**&quot;).permitAll()
+    .anyRequest().authenticated())
+    .oauth2ResourceServer(o -&gt; o.jwt(Customizer.withDefaults()));
+// Không thay thế bằng interceptor chỉ đọc claim JWT.</code></pre><div class="ans-block"><span class="ans-label">Nguồn chính thức / tài liệu dự án</span><ul><li><a href="https://docs.spring.io/spring-security/reference/servlet/architecture.html">security — tài liệu tham khảo</a></li><li><a href="https://docs.spring.io/spring-framework/reference/core/aop/proxying.html">aop — tài liệu tham khảo</a></li><li><a href="https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html">scope — tài liệu tham khảo</a></li></ul></div></div></article></section>
+<div class="nav-pager">
+          <a class="prev" href="06-rest-api.html">
+            <span class="label">Trước</span>
+            <span class="title">6. REST API &amp; Security</span>
+          </a>
+          <a class="next" href="14-study-plan.html">
+            <span class="label">Tiếp</span>
+            <span class="title">📅 Kế hoạch ôn tập</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Module 15 / 14</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

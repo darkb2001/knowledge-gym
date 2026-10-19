@@ -1,0 +1,402 @@
+[
+  {
+    "module": "01-java-core",
+    "key": "oom-runbook",
+    "title": "OOM dù máy còn RAM: G1/ZGC và runbook production",
+    "summary": "RAM trống của host không bảo đảm JVM còn bộ nhớ: heap bị giới hạn bởi Xmx, native memory và cgroup có ngân sách riêng. Phải phân biệt Java OOME với kernel OOMKilled trước khi chọn cách xử lý.",
+    "sections": [
+      [
+        "Phân loại trước khi sửa",
+        "Ghi nguyên thông báo: Java heap space, GC overhead limit exceeded, Metaspace, Direct buffer memory hoặc unable to create native thread. Exit 137 chỉ cho biết SIGKILL, chưa đủ kết luận OOM; đối chiếu container state, kernel log và memory.events của cgroup. OOMKilled có thể không sinh heap dump vì JVM bị kill từ ngoài."
+      ],
+      [
+        "Vì sao còn RAM vẫn chết",
+        "Xmx là trần heap riêng, không tự tăng theo RAM host. Tổng RSS còn gồm metaspace, code cache, stack mỗi thread, direct buffer, thư viện native và overhead GC. Limit container có thể thấp hơn RAM host; nhiều container chia sẻ host. Heap còn khoảng trống nhưng không đáp ứng allocation cụ thể cũng cần kiểm tra GC log và loại allocation."
+      ],
+      [
+        "G1 và ZGC",
+        "G1 có humongous object từ nửa region trở lên: cần chuỗi region liên tiếp; fragmentation và evacuation failure có thể dẫn đến Full GC hay allocation failure. ZGC cần headroom để concurrent relocation và tốc độ GC đuổi kịp allocation; low pause không đồng nghĩa không bao giờ OOM. Không đổi collector để chữa reference leak."
+      ],
+      [
+        "Runbook an toàn",
+        "1. Lưu timestamp, version, traffic, limit/RSS/heap và GC log. 2. Kiểm tra GC.heap_info, Thread.print; NMT chỉ có ích nếu bật NativeMemoryTracking trước đó. 3. So histogram/dominator retained size và đường tới GC roots. 4. Giảm tải/giới hạn queue/cache hoặc scale có kiểm soát. 5. Reproduce với tải đại diện và so live set sau GC. Histogram/heap dump có thể gây pause và I/O lớn: cần quyền vận hành, dung lượng và redaction; dump có thể chứa token/PII, không upload công khai."
+      ],
+      [
+        "Phỏng vấn và giới hạn",
+        "Cache Map tăng mãi: tìm GC root giữ entry và đặt eviction, không chỉ tăng Xmx. RSS tăng nhưng heap ổn: kiểm tra thread/direct/native. Chỉ nâng heap sau khi dành ngân sách native dưới cgroup limit. Không force Full GC trên production như bước đầu."
+      ]
+    ],
+    "code": "jcmd {pid} GC.heap_info\njcmd {pid} Thread.print\njcmd {pid} VM.native_memory summary\n# NMT cần -XX:NativeMemoryTracking=summary từ lúc khởi động\n# Chuẩn bị trước: -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath={secure-volume}\n# GC log: -Xlog:gc*:file={secure-volume}/gc.log:time,uptime,level,tags",
+    "flow": "Alert → phân biệt OOME / OOMKilled → heap / native / cgroup → bằng chứng → giảm tải → sửa nguyên nhân",
+    "refs": [
+      "jvm"
+    ],
+    "options": [
+      "Phân loại OOME, heap/native và cgroup trước khi thay đổi giới hạn bộ nhớ.",
+      "RAM host còn trống chứng minh container không thể bị OOMKilled.",
+      "Chuyển từ G1 sang ZGC sẽ loại bỏ mọi reference leak trong cache.",
+      "Mọi trường hợp SIGKILL đều tạo được heap dump nhờ JVM OOM flag."
+    ],
+    "html": "<article class=\"qa-card\" id=\"deep-oom-runbook\"><h3 class=\"qa-question\">OOM dù máy còn RAM: G1/ZGC và runbook production</h3><div class=\"qa-answer\"><div class=\"ans-block\"><span class=\"ans-label\">What</span><p>RAM trống của host không bảo đảm JVM còn bộ nhớ: heap bị giới hạn bởi Xmx, native memory và cgroup có ngân sách riêng. Phải phân biệt Java OOME với kernel OOMKilled trước khi chọn cách xử lý.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Phân loại trước khi sửa</span><p>Ghi nguyên thông báo: Java heap space, GC overhead limit exceeded, Metaspace, Direct buffer memory hoặc unable to create native thread. Exit 137 chỉ cho biết SIGKILL, chưa đủ kết luận OOM; đối chiếu container state, kernel log và memory.events của cgroup. OOMKilled có thể không sinh heap dump vì JVM bị kill từ ngoài.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Vì sao còn RAM vẫn chết</span><p>Xmx là trần heap riêng, không tự tăng theo RAM host. Tổng RSS còn gồm metaspace, code cache, stack mỗi thread, direct buffer, thư viện native và overhead GC. Limit container có thể thấp hơn RAM host; nhiều container chia sẻ host. Heap còn khoảng trống nhưng không đáp ứng allocation cụ thể cũng cần kiểm tra GC log và loại allocation.</p></div><div class=\"ans-block\"><span class=\"ans-label\">G1 và ZGC</span><p>G1 có humongous object từ nửa region trở lên: cần chuỗi region liên tiếp; fragmentation và evacuation failure có thể dẫn đến Full GC hay allocation failure. ZGC cần headroom để concurrent relocation và tốc độ GC đuổi kịp allocation; low pause không đồng nghĩa không bao giờ OOM. Không đổi collector để chữa reference leak.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Runbook an toàn</span><p>1. Lưu timestamp, version, traffic, limit/RSS/heap và GC log. 2. Kiểm tra GC.heap_info, Thread.print; NMT chỉ có ích nếu bật NativeMemoryTracking trước đó. 3. So histogram/dominator retained size và đường tới GC roots. 4. Giảm tải/giới hạn queue/cache hoặc scale có kiểm soát. 5. Reproduce với tải đại diện và so live set sau GC. Histogram/heap dump có thể gây pause và I/O lớn: cần quyền vận hành, dung lượng và redaction; dump có thể chứa token/PII, không upload công khai.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Phỏng vấn và giới hạn</span><p>Cache Map tăng mãi: tìm GC root giữ entry và đặt eviction, không chỉ tăng Xmx. RSS tăng nhưng heap ổn: kiểm tra thread/direct/native. Chỉ nâng heap sau khi dành ngân sách native dưới cgroup limit. Không force Full GC trên production như bước đầu.</p></div><div class=\"flow-diagram\">Alert → phân biệt OOME / OOMKilled → heap / native / cgroup → bằng chứng → giảm tải → sửa nguyên nhân</div><pre class=\"code-block\"><code>jcmd {pid} GC.heap_info\njcmd {pid} Thread.print\njcmd {pid} VM.native_memory summary\n# NMT cần -XX:NativeMemoryTracking=summary từ lúc khởi động\n# Chuẩn bị trước: -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath={secure-volume}\n# GC log: -Xlog:gc*:file={secure-volume}/gc.log:time,uptime,level,tags</code></pre><div class=\"ans-block\"><span class=\"ans-label\">Nguồn chính thức / tài liệu dự án</span><ul><li><a href=\"https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshoot-memory-leaks.html\">jvm — tài liệu tham khảo</a></li></ul></div></div></article>"
+  },
+  {
+    "module": "02-multithreading",
+    "key": "bounded-db-batch",
+    "title": "Batch DB hữu hạn: sizing CPU, Hikari và backpressure bằng số cụ thể",
+    "summary": "Pool xử lý batch DB phải giới hạn cả worker lẫn số task đang chờ; concurrency bị chặn bởi ngân sách connection và sức chịu tải DB, không chỉ số CPU. Chia chunk hữu hạn và đo throughput, p95, lock wait trước khi tăng song song.",
+    "sections": [
+      [
+        "Ví dụ giả định, không phải benchmark",
+        "Ví dụ thiết kế: 4 vCPU, Hikari maximumPoolSize=12; dành khoảng 8 connection cho API, 4 cho batch theo ngân sách vận hành. Pool batch cố định 4 worker, queue 8 chunk, mỗi chunk tối đa 200 bản ghi. Đây là số khởi điểm để load test, không phải công thức tối ưu. Chung một Hikari pool không cưỡng chế được phần dự trữ: muốn bảo đảm API có quota cần admission control chung hoặc datasource tách với tổng connection không vượt ngân sách DB."
+      ],
+      [
+        "CPU và DB là hai trần khác nhau",
+        "CPU-bound transform bắt đầu gần số core khả dụng; JDBC blocking có thể dùng nhiều hơn nhưng phải cap bằng connection và năng lực DB. Mỗi task một transaction/connection; không giữ connection khi gọi API ngoài. Nếu 3 replica cùng Hikari 12 thì phải tính tổng 36 connection cộng job/admin, không tune từng pod cô lập."
+      ],
+      [
+        "Backpressure ở producer",
+        "Chỉ page/keyset một chunk sau khi còn permit; không đọc triệu row vào List trước. AbortPolicy phải được bắt ở job admission để trả 429/503 hoặc retry có giới hạn, không mất task. CallerRunsPolicy chỉ phù hợp producer chuyên dụng, tránh request/event-loop thread và tránh producer giữ transaction khi chờ worker. Đừng tạo Future cho toàn bộ dataset."
+      ],
+      [
+        "Chunk và transaction",
+        "200 là ví dụ; row rộng/lock lâu thì giảm, không đồng nhất với JDBC batch_size. Một chunk một transaction giúp retry/checkpoint có giới hạn; flush/clear persistence context sau chunk, dùng idempotency hoặc unique key để retry không ghi trùng. Nếu input đổi trong lúc quét cần snapshot/high-water mark và quy tắc checkpoint rõ."
+      ],
+      [
+        "Kiểm chứng",
+        "Theo dõi active/idle/pending Hikari, queue depth, rejected count, CPU, rows/s, p95 và DB lock/WAL/I/O. Tăng worker từng bước; throughput không tăng mà wait tăng thì dừng. Đóng executor sau job; timeout/cancel không bảo đảm JDBC query đã dừng, cần query timeout và transaction timeout riêng."
+      ]
+    ],
+    "code": "ExecutorService pool = new ThreadPoolExecutor(4, 4, 0L, TimeUnit.MILLISECONDS,\n    new ArrayBlockingQueue<>(8), new ThreadPoolExecutor.AbortPolicy());\n// Producer phải xử lý RejectedExecutionException và giữ checkpoint chưa nhận.\n// Không submit toàn bộ dataset; mỗi task chỉ giữ một chunk hữu hạn.",
+    "flow": "page hữu hạn → admission/permit → queue 8 → worker 4 → TX/chunk → checkpoint sau commit",
+    "refs": [
+      "pool",
+      "jvm"
+    ],
+    "options": [
+      "Giới hạn worker, queue và số chunk giữ trong RAM theo ngân sách DB rồi đo tải.",
+      "Cứ tăng worker đến bằng số bản ghi để JDBC sử dụng hết CPU.",
+      "Hikari 12 tự động bảo đảm 8 connection luôn chỉ dành cho API.",
+      "CompletableFuture cho từng row khiến đầu vào tự có backpressure hữu hạn."
+    ],
+    "html": "<article class=\"qa-card\" id=\"deep-bounded-db-batch\"><h3 class=\"qa-question\">Batch DB hữu hạn: sizing CPU, Hikari và backpressure bằng số cụ thể</h3><div class=\"qa-answer\"><div class=\"ans-block\"><span class=\"ans-label\">What</span><p>Pool xử lý batch DB phải giới hạn cả worker lẫn số task đang chờ; concurrency bị chặn bởi ngân sách connection và sức chịu tải DB, không chỉ số CPU. Chia chunk hữu hạn và đo throughput, p95, lock wait trước khi tăng song song.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Ví dụ giả định, không phải benchmark</span><p>Ví dụ thiết kế: 4 vCPU, Hikari maximumPoolSize=12; dành khoảng 8 connection cho API, 4 cho batch theo ngân sách vận hành. Pool batch cố định 4 worker, queue 8 chunk, mỗi chunk tối đa 200 bản ghi. Đây là số khởi điểm để load test, không phải công thức tối ưu. Chung một Hikari pool không cưỡng chế được phần dự trữ: muốn bảo đảm API có quota cần admission control chung hoặc datasource tách với tổng connection không vượt ngân sách DB.</p></div><div class=\"ans-block\"><span class=\"ans-label\">CPU và DB là hai trần khác nhau</span><p>CPU-bound transform bắt đầu gần số core khả dụng; JDBC blocking có thể dùng nhiều hơn nhưng phải cap bằng connection và năng lực DB. Mỗi task một transaction/connection; không giữ connection khi gọi API ngoài. Nếu 3 replica cùng Hikari 12 thì phải tính tổng 36 connection cộng job/admin, không tune từng pod cô lập.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Backpressure ở producer</span><p>Chỉ page/keyset một chunk sau khi còn permit; không đọc triệu row vào List trước. AbortPolicy phải được bắt ở job admission để trả 429/503 hoặc retry có giới hạn, không mất task. CallerRunsPolicy chỉ phù hợp producer chuyên dụng, tránh request/event-loop thread và tránh producer giữ transaction khi chờ worker. Đừng tạo Future cho toàn bộ dataset.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Chunk và transaction</span><p>200 là ví dụ; row rộng/lock lâu thì giảm, không đồng nhất với JDBC batch_size. Một chunk một transaction giúp retry/checkpoint có giới hạn; flush/clear persistence context sau chunk, dùng idempotency hoặc unique key để retry không ghi trùng. Nếu input đổi trong lúc quét cần snapshot/high-water mark và quy tắc checkpoint rõ.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Kiểm chứng</span><p>Theo dõi active/idle/pending Hikari, queue depth, rejected count, CPU, rows/s, p95 và DB lock/WAL/I/O. Tăng worker từng bước; throughput không tăng mà wait tăng thì dừng. Đóng executor sau job; timeout/cancel không bảo đảm JDBC query đã dừng, cần query timeout và transaction timeout riêng.</p></div><div class=\"flow-diagram\">page hữu hạn → admission/permit → queue 8 → worker 4 → TX/chunk → checkpoint sau commit</div><pre class=\"code-block\"><code>ExecutorService pool = new ThreadPoolExecutor(4, 4, 0L, TimeUnit.MILLISECONDS,\n    new ArrayBlockingQueue&lt;&gt;(8), new ThreadPoolExecutor.AbortPolicy());\n// Producer phải xử lý RejectedExecutionException và giữ checkpoint chưa nhận.\n// Không submit toàn bộ dataset; mỗi task chỉ giữ một chunk hữu hạn.</code></pre><div class=\"ans-block\"><span class=\"ans-label\">Nguồn chính thức / tài liệu dự án</span><ul><li><a href=\"https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing\">pool — tài liệu tham khảo</a></li><li><a href=\"https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshoot-memory-leaks.html\">jvm — tài liệu tham khảo</a></li></ul></div></div></article>"
+  },
+  {
+    "module": "03-spring-boot",
+    "key": "prototype-provider",
+    "title": "Bean scopes: prototype trong singleton và ObjectProvider",
+    "summary": "Prototype được tạo mỗi lần container resolve bean, không phải mỗi lần gọi method. Inject trực tiếp prototype vào singleton chỉ resolve một lần; dùng ObjectProvider.getObject() trong từng thao tác để lấy instance mới và tự quản lý cleanup.",
+    "sections": [
+      [
+        "Scope và lifecycle",
+        "singleton mặc định là một instance mỗi bean definition trong ApplicationContext, không phải một object toàn JVM. prototype tạo mới mỗi lần lookup; request/session gắn vòng đời web scope. Container inject và gọi initialization callback cho prototype nhưng không tự gọi destruction callback lúc context đóng."
+      ],
+      [
+        "Bẫy injection",
+        "Singleton ReportService nhận Worker prototype qua constructor: Worker được tạo lúc singleton khởi tạo rồi bị giữ dùng lại. Nếu Worker chứa mutable buffer, request đồng thời có thể tranh chấp. Scope prototype không tự làm object thread-safe."
+      ],
+      [
+        "ObjectProvider",
+        "Inject ObjectProvider<Worker>, gọi getObject một lần ở đầu use case, giữ instance đó cho toàn bộ thao tác. Gọi nhiều lần trong cùng use case tạo nhiều worker khác nhau. Scoped proxy hay @Lookup là lựa chọn khác nhưng phải hiểu target resolution; ObjectProvider biểu lộ rõ nơi cần object mới."
+      ],
+      [
+        "Cleanup và kiểm thử",
+        "Worker giữ resource phải có close rõ ràng và caller gọi try/finally; @PreDestroy của prototype không tự chạy. Test hai lời gọi nhận hai Worker khác nhau; constructor injection trực tiếp thì cùng Worker. Với stateless service hãy dùng singleton đơn giản, đừng prototype mọi bean."
+      ]
+    ],
+    "code": "@Component\n@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)\nclass Worker implements AutoCloseable {\n  public void run() { /* buffer riêng */ }\n  public void close() { /* giải phóng resource */ }\n}\n@Service\nclass ReportService {\n  private final ObjectProvider<Worker> workers;\n  ReportService(ObjectProvider<Worker> workers) { this.workers = workers; }\n  void execute() { try (Worker w = workers.getObject()) { w.run(); } }\n}",
+    "flow": "Singleton service → ObjectProvider.getObject mỗi use case → prototype mới → init → run → caller close",
+    "refs": [
+      "scope",
+      "aop"
+    ],
+    "options": [
+      "ObjectProvider.getObject mỗi use case tạo prototype mới và caller tự cleanup resource.",
+      "Inject prototype trực tiếp vào singleton sẽ tự tạo instance mới mỗi method call.",
+      "Spring tự gọi PreDestroy cho mọi prototype khi ApplicationContext đóng.",
+      "Prototype scope làm mọi mutable field tự trở thành thread-safe."
+    ],
+    "html": "<article class=\"qa-card\" id=\"deep-prototype-provider\"><h3 class=\"qa-question\">Bean scopes: prototype trong singleton và ObjectProvider</h3><div class=\"qa-answer\"><div class=\"ans-block\"><span class=\"ans-label\">What</span><p>Prototype được tạo mỗi lần container resolve bean, không phải mỗi lần gọi method. Inject trực tiếp prototype vào singleton chỉ resolve một lần; dùng ObjectProvider.getObject() trong từng thao tác để lấy instance mới và tự quản lý cleanup.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Scope và lifecycle</span><p>singleton mặc định là một instance mỗi bean definition trong ApplicationContext, không phải một object toàn JVM. prototype tạo mới mỗi lần lookup; request/session gắn vòng đời web scope. Container inject và gọi initialization callback cho prototype nhưng không tự gọi destruction callback lúc context đóng.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Bẫy injection</span><p>Singleton ReportService nhận Worker prototype qua constructor: Worker được tạo lúc singleton khởi tạo rồi bị giữ dùng lại. Nếu Worker chứa mutable buffer, request đồng thời có thể tranh chấp. Scope prototype không tự làm object thread-safe.</p></div><div class=\"ans-block\"><span class=\"ans-label\">ObjectProvider</span><p>Inject ObjectProvider&lt;Worker&gt;, gọi getObject một lần ở đầu use case, giữ instance đó cho toàn bộ thao tác. Gọi nhiều lần trong cùng use case tạo nhiều worker khác nhau. Scoped proxy hay @Lookup là lựa chọn khác nhưng phải hiểu target resolution; ObjectProvider biểu lộ rõ nơi cần object mới.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Cleanup và kiểm thử</span><p>Worker giữ resource phải có close rõ ràng và caller gọi try/finally; @PreDestroy của prototype không tự chạy. Test hai lời gọi nhận hai Worker khác nhau; constructor injection trực tiếp thì cùng Worker. Với stateless service hãy dùng singleton đơn giản, đừng prototype mọi bean.</p></div><div class=\"flow-diagram\">Singleton service → ObjectProvider.getObject mỗi use case → prototype mới → init → run → caller close</div><pre class=\"code-block\"><code>@Component\n@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)\nclass Worker implements AutoCloseable {\n  public void run() { /* buffer riêng */ }\n  public void close() { /* giải phóng resource */ }\n}\n@Service\nclass ReportService {\n  private final ObjectProvider&lt;Worker&gt; workers;\n  ReportService(ObjectProvider&lt;Worker&gt; workers) { this.workers = workers; }\n  void execute() { try (Worker w = workers.getObject()) { w.run(); } }\n}</code></pre><div class=\"ans-block\"><span class=\"ans-label\">Nguồn chính thức / tài liệu dự án</span><ul><li><a href=\"https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html\">scope — tài liệu tham khảo</a></li><li><a href=\"https://docs.spring.io/spring-framework/reference/core/aop/proxying.html\">aop — tài liệu tham khảo</a></li></ul></div></div></article>"
+  },
+  {
+    "module": "03-spring-boot",
+    "key": "audit-safe",
+    "title": "AOP audit an toàn: allowlist log và phân biệt attempt với committed event",
+    "summary": "Audit aspect chỉ nên ghi trường allowlist như actor ID, operation, resource ID, trace ID và kết quả; không dump arguments, JWT hay response. Method return thành công chưa chứng minh transaction đã commit, nên audit nghiệp vụ cần gắn đúng transaction boundary.",
+    "sections": [
+      [
+        "Giữ kiến thức proxy hiện có",
+        "JDK proxy intercept qua interface, CGLIB dùng subclass; self-invocation bỏ qua cả hai. Điểm cần làm sâu là log có kiểm soát, không phải thêm aspect ghi toàn object. Method final trên target vẫn có thể được gọi qua JDK interface proxy; giới hạn override final chủ yếu thuộc CGLIB, còn private không phải interface method."
+      ],
+      [
+        "Schema allowlist",
+        "Ghi timestamp, actor nội bộ/pseudonym, operation enum, resource ID được kiểm soát, outcome và trace ID. Không ghi Authorization, Cookie, password, OTP, số thẻ, toàn request DTO hay exception message chứa dữ liệu. Giới hạn chiều dài và loại CR/LF để chống log injection; log backend phải có access control và retention."
+      ],
+      [
+        "Commit khác return",
+        "@AfterReturning chỉ biết method trả bình thường. Thứ tự transaction advice có thể khiến commit xảy ra sau advice audit. Audit attempt độc lập có thể dùng REQUIRES_NEW và phải ghi ATTEMPT/FAILED thật; business event thành công nên được ghi outbox trong cùng REQUIRED transaction với business data. Không đặt outbox độc lập REQUIRES_NEW vì sẽ phát ghost event nếu business rollback."
+      ],
+      [
+        "Độ bền và lỗi",
+        "AFTER_COMMIT listener in-process không bảo đảm delivery sau crash. Relay outbox cần retry/idempotency. Audit bắt buộc vì compliance phải xác định fail-closed/fail-open với nghiệp vụ, không nuốt lỗi tùy tiện. Ví dụ này là thiết kế minh họa, không phải tuyên bố hệ thống đã đạt chứng nhận."
+      ]
+    ],
+    "code": "// Minh họa schema allowlist, không serialize pjp.getArgs()\naudit.record(actorId, Operation.UPDATE_LIMIT, resourceId, traceId, Outcome.ATTEMPT);\n// Business event: INSERT business + outbox cùng transaction REQUIRED.\n// Không log bearer token hay entity.toString().",
+    "flow": "Proxy → allowlisted attempt → business TX + outbox → commit → relay → immutable audit sink",
+    "refs": [
+      "aop",
+      "outbox",
+      "scope"
+    ],
+    "options": [
+      "Ghi allowlist và lưu business event cùng transaction nghiệp vụ để tránh ghost event.",
+      "AfterReturning luôn chứng minh transaction nghiệp vụ đã commit thành công.",
+      "Ghi toàn bộ arguments và JWT giúp audit đầy đủ mà không gây rủi ro.",
+      "Outbox bắt buộc dùng REQUIRES_NEW độc lập để luôn khớp business rollback."
+    ],
+    "html": "<article class=\"qa-card\" id=\"deep-audit-safe\"><h3 class=\"qa-question\">AOP audit an toàn: allowlist log và phân biệt attempt với committed event</h3><div class=\"qa-answer\"><div class=\"ans-block\"><span class=\"ans-label\">What</span><p>Audit aspect chỉ nên ghi trường allowlist như actor ID, operation, resource ID, trace ID và kết quả; không dump arguments, JWT hay response. Method return thành công chưa chứng minh transaction đã commit, nên audit nghiệp vụ cần gắn đúng transaction boundary.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Giữ kiến thức proxy hiện có</span><p>JDK proxy intercept qua interface, CGLIB dùng subclass; self-invocation bỏ qua cả hai. Điểm cần làm sâu là log có kiểm soát, không phải thêm aspect ghi toàn object. Method final trên target vẫn có thể được gọi qua JDK interface proxy; giới hạn override final chủ yếu thuộc CGLIB, còn private không phải interface method.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Schema allowlist</span><p>Ghi timestamp, actor nội bộ/pseudonym, operation enum, resource ID được kiểm soát, outcome và trace ID. Không ghi Authorization, Cookie, password, OTP, số thẻ, toàn request DTO hay exception message chứa dữ liệu. Giới hạn chiều dài và loại CR/LF để chống log injection; log backend phải có access control và retention.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Commit khác return</span><p>@AfterReturning chỉ biết method trả bình thường. Thứ tự transaction advice có thể khiến commit xảy ra sau advice audit. Audit attempt độc lập có thể dùng REQUIRES_NEW và phải ghi ATTEMPT/FAILED thật; business event thành công nên được ghi outbox trong cùng REQUIRED transaction với business data. Không đặt outbox độc lập REQUIRES_NEW vì sẽ phát ghost event nếu business rollback.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Độ bền và lỗi</span><p>AFTER_COMMIT listener in-process không bảo đảm delivery sau crash. Relay outbox cần retry/idempotency. Audit bắt buộc vì compliance phải xác định fail-closed/fail-open với nghiệp vụ, không nuốt lỗi tùy tiện. Ví dụ này là thiết kế minh họa, không phải tuyên bố hệ thống đã đạt chứng nhận.</p></div><div class=\"flow-diagram\">Proxy → allowlisted attempt → business TX + outbox → commit → relay → immutable audit sink</div><pre class=\"code-block\"><code>// Minh họa schema allowlist, không serialize pjp.getArgs()\naudit.record(actorId, Operation.UPDATE_LIMIT, resourceId, traceId, Outcome.ATTEMPT);\n// Business event: INSERT business + outbox cùng transaction REQUIRED.\n// Không log bearer token hay entity.toString().</code></pre><div class=\"ans-block\"><span class=\"ans-label\">Nguồn chính thức / tài liệu dự án</span><ul><li><a href=\"https://docs.spring.io/spring-framework/reference/core/aop/proxying.html\">aop — tài liệu tham khảo</a></li><li><a href=\"https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html\">outbox — tài liệu tham khảo</a></li><li><a href=\"https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html\">scope — tài liệu tham khảo</a></li></ul></div></div></article>"
+  },
+  {
+    "module": "15-auth-rbac-oauth",
+    "key": "filter-interceptor",
+    "title": "Filter vs HandlerInterceptor: JWT nằm ở đâu trong request chain?",
+    "summary": "Servlet Filter chạy quanh servlet chain trước Spring MVC; HandlerInterceptor chạy quanh handler đã được MVC chọn. Xác thực JWT nên ở Spring Security filter chain, không dựa vào MVC interceptor như hàng rào bảo mật duy nhất.",
+    "sections": [
+      [
+        "Boundary và thứ tự",
+        "Container filters → DelegatingFilterProxy → FilterChainProxy → SecurityFilterChain phù hợp → DispatcherServlet → HandlerMapping → interceptor.preHandle → controller → postHandle/afterCompletion. Chỉ SecurityFilterChain đầu tiên match request được dùng; filter order phải dựa vào authentication/authorization flow, không đoán theo tên class."
+      ],
+      [
+        "JWT",
+        "Ưu tiên OAuth2 Resource Server với BearerTokenAuthenticationFilter/JwtDecoder; validate signature, thuật toán cho phép, expiry, issuer và audience theo policy. Authentication phải được dựng trước AuthorizationFilter. Invalid/missing credential xử lý 401 khi tài nguyên cần auth; đã auth nhưng thiếu quyền thường là 403. Không chỉ decode Base64 rồi tin claim."
+      ],
+      [
+        "Dùng đúng công cụ",
+        "Filter phù hợp CORS, correlation ID, wrapper request/response và security. Interceptor biết HandlerMethod và annotation, phù hợp timing hoặc context MVC; không bao phủ mọi servlet/static/dispatch theo cùng cách nên không dùng thay security. Method security bổ sung kiểm tra quyền ở service boundary."
+      ],
+      [
+        "Async/error và cleanup",
+        "OncePerRequestFilter có semantics theo dispatch/thread và hook cho async/error, không phải bảo đảm duy nhất một lần toàn vòng đời request. Kiểm tra registration để custom filter không chạy hai lần qua container và security. ThreadLocal/MDC phải clear finally; async handoff không tự mang security/context. Kiểm thử preflight CORS, expired token, public route, async/error route và endpoint ngoài MVC."
+      ]
+    ],
+    "code": "// Resource Server cấu hình chuẩn; issuer/audience phải được cấu hình và kiểm thử.\nhttp.authorizeHttpRequests(a -> a\n    .requestMatchers(\"/public/**\").permitAll()\n    .anyRequest().authenticated())\n    .oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()));\n// Không thay thế bằng interceptor chỉ đọc claim JWT.",
+    "flow": "HTTP → Servlet Filter / Spring Security JWT → authorization → DispatcherServlet → MVC interceptor → controller",
+    "refs": [
+      "security",
+      "aop",
+      "scope"
+    ],
+    "options": [
+      "Xác thực JWT trong security filter chain trước authorization, interceptor chỉ bổ sung concern MVC.",
+      "HandlerInterceptor là hàng rào duy nhất bao phủ mọi servlet và mọi resource.",
+      "JWT chỉ cần Base64 decode là có thể tin actor và quyền trong payload.",
+      "Mọi request thiếu quyền dù đã xác thực luôn phải trả HTTP 401."
+    ],
+    "html": "<article class=\"qa-card\" id=\"deep-filter-interceptor\"><h3 class=\"qa-question\">Filter vs HandlerInterceptor: JWT nằm ở đâu trong request chain?</h3><div class=\"qa-answer\"><div class=\"ans-block\"><span class=\"ans-label\">What</span><p>Servlet Filter chạy quanh servlet chain trước Spring MVC; HandlerInterceptor chạy quanh handler đã được MVC chọn. Xác thực JWT nên ở Spring Security filter chain, không dựa vào MVC interceptor như hàng rào bảo mật duy nhất.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Boundary và thứ tự</span><p>Container filters → DelegatingFilterProxy → FilterChainProxy → SecurityFilterChain phù hợp → DispatcherServlet → HandlerMapping → interceptor.preHandle → controller → postHandle/afterCompletion. Chỉ SecurityFilterChain đầu tiên match request được dùng; filter order phải dựa vào authentication/authorization flow, không đoán theo tên class.</p></div><div class=\"ans-block\"><span class=\"ans-label\">JWT</span><p>Ưu tiên OAuth2 Resource Server với BearerTokenAuthenticationFilter/JwtDecoder; validate signature, thuật toán cho phép, expiry, issuer và audience theo policy. Authentication phải được dựng trước AuthorizationFilter. Invalid/missing credential xử lý 401 khi tài nguyên cần auth; đã auth nhưng thiếu quyền thường là 403. Không chỉ decode Base64 rồi tin claim.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Dùng đúng công cụ</span><p>Filter phù hợp CORS, correlation ID, wrapper request/response và security. Interceptor biết HandlerMethod và annotation, phù hợp timing hoặc context MVC; không bao phủ mọi servlet/static/dispatch theo cùng cách nên không dùng thay security. Method security bổ sung kiểm tra quyền ở service boundary.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Async/error và cleanup</span><p>OncePerRequestFilter có semantics theo dispatch/thread và hook cho async/error, không phải bảo đảm duy nhất một lần toàn vòng đời request. Kiểm tra registration để custom filter không chạy hai lần qua container và security. ThreadLocal/MDC phải clear finally; async handoff không tự mang security/context. Kiểm thử preflight CORS, expired token, public route, async/error route và endpoint ngoài MVC.</p></div><div class=\"flow-diagram\">HTTP → Servlet Filter / Spring Security JWT → authorization → DispatcherServlet → MVC interceptor → controller</div><pre class=\"code-block\"><code>// Resource Server cấu hình chuẩn; issuer/audience phải được cấu hình và kiểm thử.\nhttp.authorizeHttpRequests(a -&gt; a\n    .requestMatchers(&quot;/public/**&quot;).permitAll()\n    .anyRequest().authenticated())\n    .oauth2ResourceServer(o -&gt; o.jwt(Customizer.withDefaults()));\n// Không thay thế bằng interceptor chỉ đọc claim JWT.</code></pre><div class=\"ans-block\"><span class=\"ans-label\">Nguồn chính thức / tài liệu dự án</span><ul><li><a href=\"https://docs.spring.io/spring-security/reference/servlet/architecture.html\">security — tài liệu tham khảo</a></li><li><a href=\"https://docs.spring.io/spring-framework/reference/core/aop/proxying.html\">aop — tài liệu tham khảo</a></li><li><a href=\"https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html\">scope — tài liệu tham khảo</a></li></ul></div></div></article>"
+  },
+  {
+    "module": "08-system-design",
+    "key": "redis-hash-zset",
+    "title": "Redis Hash vs ZSET và rate limit sliding window atomic",
+    "summary": "Hash lưu các field của một object còn ZSET lưu member duy nhất kèm score để truy vấn theo thứ tự. Rate limit sliding window có thể dùng timestamp làm score và request ID làm member, nhưng prune/count/add/expire phải atomic để tránh vượt hạn mức.",
+    "sections": [
+      [
+        "Chọn cấu trúc",
+        "Hash: profile/session metadata, HSET/HGET/HINCRBY theo field, tránh HGETALL trên object lớn. TTL của key là baseline portable; field expiration phụ thuộc Redis version và client. ZSET: leaderboard, delayed queue, sliding window; ZADD thường O(log N), range trả thêm chi phí theo số phần tử. Không dùng Hash nếu cần query top/range theo score."
+      ],
+      [
+        "Thuật toán và ví dụ giả định",
+        "Ví dụ giới hạn 100 request trong 60 giây mỗi user: key rl:{userId}; loại score cũ hơn cutoff theo định nghĩa cửa sổ, ZCARD, nếu dưới 100 thì ZADD timestamp/requestId và PEXPIRE. Chạy trong Lua script hoặc server-side function để một thao tác atomic. Nếu dùng millisecond làm cả member, hai request cùng ms đè nhau khiến đếm thiếu; member phải unique."
+      ],
+      [
+        "Clock, TTL và cluster",
+        "Dùng clock thống nhất/server TIME theo triển khai, xác định biên cửa sổ chính xác và test. TTL ít nhất đủ cleanup sau window; reject có thể trả retry-after tính theo oldest member. Redis Cluster: script nhiều key cần cùng hash slot; giới hạn global qua nhiều slot/region không còn một atomic counter chung."
+      ],
+      [
+        "Trade-off vận hành",
+        "Sliding log chính xác theo các request được admit nhưng memory tăng theo số user và số entry/window, cần cap và TTL. Fixed window INCR rẻ hơn nhưng burst ở ranh giới; token bucket phù hợp burst allowance. Redis down: fail-open hay fail-closed phải do nghiệp vụ quyết định. Replica lag/failover có thể làm mất state gần nhất, đừng hứa giới hạn tuyệt đối hay dùng rate limiter thay sổ cái tiền."
+      ]
+    ],
+    "code": "-- Lua minh họa: KEYS[1], ARGV = nowMs, windowMs, limit, uniqueRequestId\nlocal now = tonumber(ARGV[1])\nlocal win = tonumber(ARGV[2])\nredis.call(\"ZREMRANGEBYSCORE\", KEYS[1], \"-inf\", now-win)\nlocal n = redis.call(\"ZCARD\", KEYS[1])\nif n >= tonumber(ARGV[3]) then return 0 end\nredis.call(\"ZADD\", KEYS[1], now, ARGV[4])\nredis.call(\"PEXPIRE\", KEYS[1], win)\nreturn 1\n-- Cửa sổ (now-window, now]; uniqueRequestId phải unique mỗi attempt.",
+    "flow": "request → atomic prune → count → admit/add hoặc reject → TTL cleanup",
+    "refs": [
+      "redis",
+      "hash",
+      "security"
+    ],
+    "options": [
+      "ZSET dùng score thời gian và member unique; prune/count/add phải atomic để limiter không race.",
+      "Hash tự sắp field theo score nên phù hợp truy vấn sliding window theo thời gian.",
+      "Timestamp millisecond luôn unique nên có thể làm member cho mọi request song song.",
+      "Chạy bốn Redis command riêng lẻ luôn tương đương một Lua script atomic."
+    ],
+    "html": "<article class=\"qa-card\" id=\"deep-redis-hash-zset\"><h3 class=\"qa-question\">Redis Hash vs ZSET và rate limit sliding window atomic</h3><div class=\"qa-answer\"><div class=\"ans-block\"><span class=\"ans-label\">What</span><p>Hash lưu các field của một object còn ZSET lưu member duy nhất kèm score để truy vấn theo thứ tự. Rate limit sliding window có thể dùng timestamp làm score và request ID làm member, nhưng prune/count/add/expire phải atomic để tránh vượt hạn mức.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Chọn cấu trúc</span><p>Hash: profile/session metadata, HSET/HGET/HINCRBY theo field, tránh HGETALL trên object lớn. TTL của key là baseline portable; field expiration phụ thuộc Redis version và client. ZSET: leaderboard, delayed queue, sliding window; ZADD thường O(log N), range trả thêm chi phí theo số phần tử. Không dùng Hash nếu cần query top/range theo score.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Thuật toán và ví dụ giả định</span><p>Ví dụ giới hạn 100 request trong 60 giây mỗi user: key rl:{userId}; loại score cũ hơn cutoff theo định nghĩa cửa sổ, ZCARD, nếu dưới 100 thì ZADD timestamp/requestId và PEXPIRE. Chạy trong Lua script hoặc server-side function để một thao tác atomic. Nếu dùng millisecond làm cả member, hai request cùng ms đè nhau khiến đếm thiếu; member phải unique.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Clock, TTL và cluster</span><p>Dùng clock thống nhất/server TIME theo triển khai, xác định biên cửa sổ chính xác và test. TTL ít nhất đủ cleanup sau window; reject có thể trả retry-after tính theo oldest member. Redis Cluster: script nhiều key cần cùng hash slot; giới hạn global qua nhiều slot/region không còn một atomic counter chung.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Trade-off vận hành</span><p>Sliding log chính xác theo các request được admit nhưng memory tăng theo số user và số entry/window, cần cap và TTL. Fixed window INCR rẻ hơn nhưng burst ở ranh giới; token bucket phù hợp burst allowance. Redis down: fail-open hay fail-closed phải do nghiệp vụ quyết định. Replica lag/failover có thể làm mất state gần nhất, đừng hứa giới hạn tuyệt đối hay dùng rate limiter thay sổ cái tiền.</p></div><div class=\"flow-diagram\">request → atomic prune → count → admit/add hoặc reject → TTL cleanup</div><pre class=\"code-block\"><code>-- Lua minh họa: KEYS[1], ARGV = nowMs, windowMs, limit, uniqueRequestId\nlocal now = tonumber(ARGV[1])\nlocal win = tonumber(ARGV[2])\nredis.call(&quot;ZREMRANGEBYSCORE&quot;, KEYS[1], &quot;-inf&quot;, now-win)\nlocal n = redis.call(&quot;ZCARD&quot;, KEYS[1])\nif n &gt;= tonumber(ARGV[3]) then return 0 end\nredis.call(&quot;ZADD&quot;, KEYS[1], now, ARGV[4])\nredis.call(&quot;PEXPIRE&quot;, KEYS[1], win)\nreturn 1\n-- Cửa sổ (now-window, now]; uniqueRequestId phải unique mỗi attempt.</code></pre><div class=\"ans-block\"><span class=\"ans-label\">Nguồn chính thức / tài liệu dự án</span><ul><li><a href=\"https://redis.io/docs/latest/develop/data-types/sorted-sets/\">redis — tài liệu tham khảo</a></li><li><a href=\"https://redis.io/docs/latest/develop/data-types/hashes/\">hash — tài liệu tham khảo</a></li><li><a href=\"https://docs.spring.io/spring-security/reference/servlet/architecture.html\">security — tài liệu tham khảo</a></li></ul></div></div></article>"
+  },
+  {
+    "module": "05-database",
+    "key": "isolation-engine",
+    "title": "Phantom: PostgreSQL REPEATABLE READ khác bảng SQL chuẩn và Oracle",
+    "summary": "Bảng isolation chuẩn chỉ là mức bảo đảm tối thiểu: PostgreSQL REPEATABLE READ dùng snapshot transaction và không thấy phantom của transaction khác, nhưng vẫn có write skew. Oracle không có mức REPEATABLE READ; phải phân biệt READ COMMITTED và SERIALIZABLE của chính engine.",
+    "sections": [
+      [
+        "Đính chính khi học bảng cũ",
+        "Không áp dòng “RR cho phantom” của bảng SQL tối thiểu lên PostgreSQL. PostgreSQL READ UNCOMMITTED hoạt động như READ COMMITTED; READ COMMITTED lấy snapshot mỗi statement, nên query predicate lần sau có thể thấy row mới. RR lấy snapshot ổn định từ statement dữ liệu đầu tiên trong transaction."
+      ],
+      [
+        "Lịch thử nghiệm",
+        "T1 RR SELECT COUNT(*) WHERE status=OPEN; T2 insert OPEN rồi COMMIT; T1 SELECT lại không thấy row mới. Đổi T1 sang RC có thể thấy count tăng. T1 vẫn thấy write của chính mình; DDL, sequence và locking có semantics riêng, đừng hiểu snapshot là đóng băng toàn hệ thống."
+      ],
+      [
+        "Write skew và SSI",
+        "Hai bác sĩ cùng đọc còn người trực rồi mỗi người tự bỏ ca: snapshot RR có thể cho cả hai commit vì sửa row khác nhau. PostgreSQL SERIALIZABLE dùng SSI và có thể abort SQLSTATE 40001; retry toàn transaction với bounded backoff, không retry một statement mù quáng. Constraint hoặc explicit lock vẫn hữu ích để biểu lộ invariant."
+      ],
+      [
+        "Oracle",
+        "Oracle READ COMMITTED có statement-level read consistency; SERIALIZABLE có transaction snapshot và có thể báo ORA-08177 khi xung đột. Không suy ra Oracle triển khai SSI như PostgreSQL hay coi tên SERIALIZABLE là thuật toán giống nhau. Chọn lock/constraint/transaction phù hợp invariant và retry theo engine."
+      ],
+      [
+        "Kiểm thử",
+        "Chạy test hai session trên đúng engine/version với commit rõ ràng; kiểm tra cả phantom và write skew, không chỉ đọc bảng định nghĩa. Trong Spring, isolation khai báo ở inner REQUIRED không tự nâng isolation của transaction đã tồn tại."
+      ]
+    ],
+    "code": "-- Session T1 (PostgreSQL)\nBEGIN ISOLATION LEVEL REPEATABLE READ;\nSELECT count(*) FROM tasks WHERE status = 'OPEN';\n-- T2: INSERT một OPEN row; COMMIT;\nSELECT count(*) FROM tasks WHERE status = 'OPEN'; -- snapshot không thấy insert T2\nROLLBACK;\n-- Đổi T1 sang READ COMMITTED để quan sát snapshot theo statement.",
+    "flow": "Chọn engine → chọn isolation thật → test lịch 2 session → kiểm invariant → retry/lock/constraint",
+    "refs": [
+      "pg",
+      "oracle",
+      "scope"
+    ],
+    "options": [
+      "PostgreSQL RR không thấy phantom từ transaction khác nhưng vẫn có thể write skew.",
+      "PostgreSQL RR bắt buộc thấy phantom vì SQL chuẩn chỉ quy định mức tối thiểu.",
+      "Oracle hỗ trợ REPEATABLE READ với SSI hoàn toàn giống PostgreSQL.",
+      "Retry một statement bất kỳ luôn đủ khắc phục serialization failure của transaction."
+    ],
+    "html": "<article class=\"qa-card\" id=\"deep-isolation-engine\"><h3 class=\"qa-question\">Phantom: PostgreSQL REPEATABLE READ khác bảng SQL chuẩn và Oracle</h3><div class=\"qa-answer\"><div class=\"ans-block\"><span class=\"ans-label\">What</span><p>Bảng isolation chuẩn chỉ là mức bảo đảm tối thiểu: PostgreSQL REPEATABLE READ dùng snapshot transaction và không thấy phantom của transaction khác, nhưng vẫn có write skew. Oracle không có mức REPEATABLE READ; phải phân biệt READ COMMITTED và SERIALIZABLE của chính engine.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Đính chính khi học bảng cũ</span><p>Không áp dòng “RR cho phantom” của bảng SQL tối thiểu lên PostgreSQL. PostgreSQL READ UNCOMMITTED hoạt động như READ COMMITTED; READ COMMITTED lấy snapshot mỗi statement, nên query predicate lần sau có thể thấy row mới. RR lấy snapshot ổn định từ statement dữ liệu đầu tiên trong transaction.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Lịch thử nghiệm</span><p>T1 RR SELECT COUNT(*) WHERE status=OPEN; T2 insert OPEN rồi COMMIT; T1 SELECT lại không thấy row mới. Đổi T1 sang RC có thể thấy count tăng. T1 vẫn thấy write của chính mình; DDL, sequence và locking có semantics riêng, đừng hiểu snapshot là đóng băng toàn hệ thống.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Write skew và SSI</span><p>Hai bác sĩ cùng đọc còn người trực rồi mỗi người tự bỏ ca: snapshot RR có thể cho cả hai commit vì sửa row khác nhau. PostgreSQL SERIALIZABLE dùng SSI và có thể abort SQLSTATE 40001; retry toàn transaction với bounded backoff, không retry một statement mù quáng. Constraint hoặc explicit lock vẫn hữu ích để biểu lộ invariant.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Oracle</span><p>Oracle READ COMMITTED có statement-level read consistency; SERIALIZABLE có transaction snapshot và có thể báo ORA-08177 khi xung đột. Không suy ra Oracle triển khai SSI như PostgreSQL hay coi tên SERIALIZABLE là thuật toán giống nhau. Chọn lock/constraint/transaction phù hợp invariant và retry theo engine.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Kiểm thử</span><p>Chạy test hai session trên đúng engine/version với commit rõ ràng; kiểm tra cả phantom và write skew, không chỉ đọc bảng định nghĩa. Trong Spring, isolation khai báo ở inner REQUIRED không tự nâng isolation của transaction đã tồn tại.</p></div><div class=\"flow-diagram\">Chọn engine → chọn isolation thật → test lịch 2 session → kiểm invariant → retry/lock/constraint</div><pre class=\"code-block\"><code>-- Session T1 (PostgreSQL)\nBEGIN ISOLATION LEVEL REPEATABLE READ;\nSELECT count(*) FROM tasks WHERE status = &#x27;OPEN&#x27;;\n-- T2: INSERT một OPEN row; COMMIT;\nSELECT count(*) FROM tasks WHERE status = &#x27;OPEN&#x27;; -- snapshot không thấy insert T2\nROLLBACK;\n-- Đổi T1 sang READ COMMITTED để quan sát snapshot theo statement.</code></pre><div class=\"ans-block\"><span class=\"ans-label\">Nguồn chính thức / tài liệu dự án</span><ul><li><a href=\"https://www.postgresql.org/docs/current/transaction-iso.html\">pg — tài liệu tham khảo</a></li><li><a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/generating-and-displaying-execution-plans.html\">oracle — tài liệu tham khảo</a></li><li><a href=\"https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html\">scope — tài liệu tham khảo</a></li></ul></div></div></article>"
+  },
+  {
+    "module": "41-sql-performance-tuning",
+    "key": "sql-engine-details",
+    "title": "SQL DEM/DET: actual plan Oracle, bitmap và kiểm chứng tối ưu",
+    "summary": "Tối ưu query phải dựa trên dữ liệu và execution plan thật: PostgreSQL bitmap scan là cách truy cập tạm từ index, không phải persistent bitmap index của Oracle. DEM/DET nếu là tên bảng nghiệp vụ phải được làm rõ schema, cardinality và query trước khi đề xuất index.",
+    "sections": [
+      [
+        "Không bịa schema DEM/DET",
+        "DEM/DET không phải cặp keyword SQL chuẩn phổ quát. Nếu interviewer dùng làm tên bảng master/detail, yêu cầu PK/FK, số dòng, phân bố và query thực tế; ví dụ minh họa bên dưới giả định DEM(id,created_at) và DET(dem_id,status,amount), không tuyên bố đây là schema hệ thống người dùng."
+      ],
+      [
+        "Actual và estimated",
+        "Oracle EXPLAIN PLAN chỉ estimate. Sau execution thu runtime statistics bằng gather_plan_statistics hoặc statistics_level phù hợp, đọc DBMS_XPLAN.DISPLAY_CURSOR(sql_id, child_number, ALLSTATS LAST); so E-Rows/A-Rows và Starts trên đúng child cursor. Không bật collect toàn app tùy tiện; cần quyền và cân nhắc overhead. PG actual rows là trung bình mỗi loop, đọc cả loops, buffers và spills; shared read không chứng minh physical disk vì OS cache có thể phục vụ."
+      ],
+      [
+        "Bitmap khác nhau",
+        "Oracle bitmap index lưu bitmap persistent, hữu ích data warehouse/ít concurrent DML; update có thể khóa phạm vi nhiều row nên không chọn chỉ vì status ít giá trị trong OLTP. PostgreSQL Bitmap Index Scan dựng bitmap TID từ B-tree/khác, BitmapAnd/Or kết hợp và Bitmap Heap Scan đọc heap theo block; lossy bitmap phải recheck. Nó không có nghĩa CREATE BITMAP INDEX tương đương Oracle."
+      ],
+      [
+        "Quy trình với DEM/DET giả định",
+        "Lọc khoảng ngày bằng >= và < thay vì bọc function lên cột khi chưa có expression index phù hợp. Xem selectivity trước khi chọn DEM(created_at,id), DET(dem_id,status) hay DET(status,dem_id). Không tạo cả ba mù quáng: thứ tự join, độ chọn lọc, write overhead và partition pruning quyết định. EXPLAIN ANALYZE chạy thật, rollback không hoàn tác mọi side effect như sequence hay external function; dùng read-only replica/staging khi thích hợp."
+      ],
+      [
+        "Nghiệm thu",
+        "So latency p95 và rows/buffers/temp I/O cùng dataset và bind params đại diện, warm/cold cache rõ ràng. Estimate lệch có thể do skew/correlation/parameter-sensitive plan, không chỉ thiếu index; cập nhật stats và kiểm dữ liệu trước. Partition chỉ có lợi khi pruning hoặc maintenance khớp use case, không phải luôn nhanh hơn."
+      ]
+    ],
+    "code": "-- Schema DEM/DET chỉ là giả định minh họa\nSELECT d.id, sum(t.amount)\nFROM dem d JOIN det t ON t.dem_id = d.id\nWHERE d.created_at >= :from_time AND d.created_at < :to_time\n  AND t.status = :status\nGROUP BY d.id;\n-- Oracle sau khi chạy statement có thu statistics:\nSELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(:sql_id, :child_no, 'ALLSTATS LAST'));",
+    "flow": "Query + schema thật → bind/data distribution → actual plan → hypothesis → một thay đổi → đo trước/sau",
+    "refs": [
+      "oracle",
+      "bitmap",
+      "pg"
+    ],
+    "options": [
+      "PG bitmap scan là access strategy tạm, khác persistent Oracle bitmap index.",
+      "PostgreSQL Bitmap Heap Scan chứng minh bảng đã có persistent bitmap index.",
+      "Oracle EXPLAIN PLAN luôn cung cấp A-Rows thật mà không cần chạy query.",
+      "DEM và DET là keyword SQL chuẩn nên không cần hỏi schema hay cardinality."
+    ],
+    "html": "<article class=\"qa-card\" id=\"deep-sql-engine-details\"><h3 class=\"qa-question\">SQL DEM/DET: actual plan Oracle, bitmap và kiểm chứng tối ưu</h3><div class=\"qa-answer\"><div class=\"ans-block\"><span class=\"ans-label\">What</span><p>Tối ưu query phải dựa trên dữ liệu và execution plan thật: PostgreSQL bitmap scan là cách truy cập tạm từ index, không phải persistent bitmap index của Oracle. DEM/DET nếu là tên bảng nghiệp vụ phải được làm rõ schema, cardinality và query trước khi đề xuất index.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Không bịa schema DEM/DET</span><p>DEM/DET không phải cặp keyword SQL chuẩn phổ quát. Nếu interviewer dùng làm tên bảng master/detail, yêu cầu PK/FK, số dòng, phân bố và query thực tế; ví dụ minh họa bên dưới giả định DEM(id,created_at) và DET(dem_id,status,amount), không tuyên bố đây là schema hệ thống người dùng.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Actual và estimated</span><p>Oracle EXPLAIN PLAN chỉ estimate. Sau execution thu runtime statistics bằng gather_plan_statistics hoặc statistics_level phù hợp, đọc DBMS_XPLAN.DISPLAY_CURSOR(sql_id, child_number, ALLSTATS LAST); so E-Rows/A-Rows và Starts trên đúng child cursor. Không bật collect toàn app tùy tiện; cần quyền và cân nhắc overhead. PG actual rows là trung bình mỗi loop, đọc cả loops, buffers và spills; shared read không chứng minh physical disk vì OS cache có thể phục vụ.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Bitmap khác nhau</span><p>Oracle bitmap index lưu bitmap persistent, hữu ích data warehouse/ít concurrent DML; update có thể khóa phạm vi nhiều row nên không chọn chỉ vì status ít giá trị trong OLTP. PostgreSQL Bitmap Index Scan dựng bitmap TID từ B-tree/khác, BitmapAnd/Or kết hợp và Bitmap Heap Scan đọc heap theo block; lossy bitmap phải recheck. Nó không có nghĩa CREATE BITMAP INDEX tương đương Oracle.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Quy trình với DEM/DET giả định</span><p>Lọc khoảng ngày bằng &gt;= và &lt; thay vì bọc function lên cột khi chưa có expression index phù hợp. Xem selectivity trước khi chọn DEM(created_at,id), DET(dem_id,status) hay DET(status,dem_id). Không tạo cả ba mù quáng: thứ tự join, độ chọn lọc, write overhead và partition pruning quyết định. EXPLAIN ANALYZE chạy thật, rollback không hoàn tác mọi side effect như sequence hay external function; dùng read-only replica/staging khi thích hợp.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Nghiệm thu</span><p>So latency p95 và rows/buffers/temp I/O cùng dataset và bind params đại diện, warm/cold cache rõ ràng. Estimate lệch có thể do skew/correlation/parameter-sensitive plan, không chỉ thiếu index; cập nhật stats và kiểm dữ liệu trước. Partition chỉ có lợi khi pruning hoặc maintenance khớp use case, không phải luôn nhanh hơn.</p></div><div class=\"flow-diagram\">Query + schema thật → bind/data distribution → actual plan → hypothesis → một thay đổi → đo trước/sau</div><pre class=\"code-block\"><code>-- Schema DEM/DET chỉ là giả định minh họa\nSELECT d.id, sum(t.amount)\nFROM dem d JOIN det t ON t.dem_id = d.id\nWHERE d.created_at &gt;= :from_time AND d.created_at &lt; :to_time\n  AND t.status = :status\nGROUP BY d.id;\n-- Oracle sau khi chạy statement có thu statistics:\nSELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(:sql_id, :child_no, &#x27;ALLSTATS LAST&#x27;));</code></pre><div class=\"ans-block\"><span class=\"ans-label\">Nguồn chính thức / tài liệu dự án</span><ul><li><a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/generating-and-displaying-execution-plans.html\">oracle — tài liệu tham khảo</a></li><li><a href=\"https://www.postgresql.org/docs/current/indexes-bitmap-scans.html\">bitmap — tài liệu tham khảo</a></li><li><a href=\"https://www.postgresql.org/docs/current/transaction-iso.html\">pg — tài liệu tham khảo</a></li></ul></div></div></article>"
+  },
+  {
+    "module": "38-elasticsearch",
+    "key": "redis-es-consistency",
+    "title": "DB → ES/Redis: giới hạn consistency, version và chống stale resurrection",
+    "summary": "Outbox/CDC khép lỗ hổng mất event sau DB commit nhưng không tạo atomic transaction xuyên DB, Elasticsearch và Redis. Read model vẫn có lag; consumer phải idempotent, xử lý version/tombstone và có quy trình rebuild, reconciliation.",
+    "sections": [
+      [
+        "Một nguồn sự thật",
+        "Business row và outbox cùng local transaction REQUIRED; relay at-least-once sau commit. Không ghi outbox bằng REQUIRES_NEW độc lập. CDC có thể đọc transaction log thay polling nhưng vẫn phải vận hành offset, retention, schema và bootstrap; exactly-once end-to-end không tự xuất hiện."
+      ],
+      [
+        "ES",
+        "Dùng aggregate version tăng đơn điệu, document ID ổn định; xử lý event out-of-order và delete tombstone. Wall-clock timestamp đơn thuần có clock skew/tie nên không là version đáng tin nếu không có tie-break. External version strategy phải phù hợp API được dùng và test duplicate/retry. Reindex cần snapshot + catch-up offset hoặc cơ chế replay, không chỉ copy index rồi swap alias và bỏ concurrent writes."
+      ],
+      [
+        "Redis",
+        "Cache-aside DB commit rồi DEL cache vẫn có race: reader đọc DB cũ trước commit và SET cache sau invalidation, hồi sinh stale value. TTL chỉ giới hạn thời gian stale, không chứng minh strong consistency. Dùng generation/version và atomic compare-and-set phù hợp, CDC invalidation có quan sát lag, hoặc bypass cache cho read-your-writes quan trọng. Delayed double delete chỉ giảm xác suất race, không bảo đảm tuyệt đối."
+      ],
+      [
+        "Read-your-writes và phục hồi",
+        "Response write trả dữ liệu/version DB; client có thể đọc DB cho thao tác kế tiếp hoặc chờ read-model đạt version với timeout. Nếu event tới ES thành công nhưng Redis fail, retry từng sink theo checkpoint/idempotency; không đánh dấu toàn event hoàn tất quá sớm. Theo dõi oldest outbox age, consumer lag, DLQ, mismatch count và tombstone retention."
+      ],
+      [
+        "Khi không phù hợp",
+        "Không đọc search/cache làm căn cứ final debit hoặc kiểm invariant số dư. Eventual consistency cần UX pending và SLA lag, không chỉ nói “sẽ đồng bộ”. Ví dụ ở đây là thiết kế, không phải số đo production hay lời hứa zero-loss khi mọi storage mất dữ liệu."
+      ]
+    ],
+    "code": "BEGIN;\nUPDATE products SET version = version + 1 WHERE id = :id;\nINSERT INTO outbox_events (...) VALUES (...);\nCOMMIT;\n-- relay -> ES versioned upsert/tombstone + Redis invalidate/version policy\n-- retry từng sink; checkpoint chỉ sau khi sink đã nhận theo hợp đồng.",
+    "flow": "DB + outbox commit → relay/CDC → ES versioned read model + Redis invalidation → lag/reconcile",
+    "refs": [
+      "outbox",
+      "redis",
+      "pg"
+    ],
+    "options": [
+      "Outbox bảo đảm event cùng DB commit nhưng ES/Redis vẫn eventual và cần idempotency/version.",
+      "Outbox tự tạo một atomic transaction mạnh xuyên PostgreSQL, ES và Redis.",
+      "DB commit rồi DEL cache luôn loại bỏ mọi race stale resurrection.",
+      "Timestamp từ hai host luôn cho thứ tự tổng duy nhất nên không cần version."
+    ],
+    "html": "<article class=\"qa-card\" id=\"deep-redis-es-consistency\"><h3 class=\"qa-question\">DB → ES/Redis: giới hạn consistency, version và chống stale resurrection</h3><div class=\"qa-answer\"><div class=\"ans-block\"><span class=\"ans-label\">What</span><p>Outbox/CDC khép lỗ hổng mất event sau DB commit nhưng không tạo atomic transaction xuyên DB, Elasticsearch và Redis. Read model vẫn có lag; consumer phải idempotent, xử lý version/tombstone và có quy trình rebuild, reconciliation.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Một nguồn sự thật</span><p>Business row và outbox cùng local transaction REQUIRED; relay at-least-once sau commit. Không ghi outbox bằng REQUIRES_NEW độc lập. CDC có thể đọc transaction log thay polling nhưng vẫn phải vận hành offset, retention, schema và bootstrap; exactly-once end-to-end không tự xuất hiện.</p></div><div class=\"ans-block\"><span class=\"ans-label\">ES</span><p>Dùng aggregate version tăng đơn điệu, document ID ổn định; xử lý event out-of-order và delete tombstone. Wall-clock timestamp đơn thuần có clock skew/tie nên không là version đáng tin nếu không có tie-break. External version strategy phải phù hợp API được dùng và test duplicate/retry. Reindex cần snapshot + catch-up offset hoặc cơ chế replay, không chỉ copy index rồi swap alias và bỏ concurrent writes.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Redis</span><p>Cache-aside DB commit rồi DEL cache vẫn có race: reader đọc DB cũ trước commit và SET cache sau invalidation, hồi sinh stale value. TTL chỉ giới hạn thời gian stale, không chứng minh strong consistency. Dùng generation/version và atomic compare-and-set phù hợp, CDC invalidation có quan sát lag, hoặc bypass cache cho read-your-writes quan trọng. Delayed double delete chỉ giảm xác suất race, không bảo đảm tuyệt đối.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Read-your-writes và phục hồi</span><p>Response write trả dữ liệu/version DB; client có thể đọc DB cho thao tác kế tiếp hoặc chờ read-model đạt version với timeout. Nếu event tới ES thành công nhưng Redis fail, retry từng sink theo checkpoint/idempotency; không đánh dấu toàn event hoàn tất quá sớm. Theo dõi oldest outbox age, consumer lag, DLQ, mismatch count và tombstone retention.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Khi không phù hợp</span><p>Không đọc search/cache làm căn cứ final debit hoặc kiểm invariant số dư. Eventual consistency cần UX pending và SLA lag, không chỉ nói “sẽ đồng bộ”. Ví dụ ở đây là thiết kế, không phải số đo production hay lời hứa zero-loss khi mọi storage mất dữ liệu.</p></div><div class=\"flow-diagram\">DB + outbox commit → relay/CDC → ES versioned read model + Redis invalidation → lag/reconcile</div><pre class=\"code-block\"><code>BEGIN;\nUPDATE products SET version = version + 1 WHERE id = :id;\nINSERT INTO outbox_events (...) VALUES (...);\nCOMMIT;\n-- relay -&gt; ES versioned upsert/tombstone + Redis invalidate/version policy\n-- retry từng sink; checkpoint chỉ sau khi sink đã nhận theo hợp đồng.</code></pre><div class=\"ans-block\"><span class=\"ans-label\">Nguồn chính thức / tài liệu dự án</span><ul><li><a href=\"https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html\">outbox — tài liệu tham khảo</a></li><li><a href=\"https://redis.io/docs/latest/develop/data-types/sorted-sets/\">redis — tài liệu tham khảo</a></li><li><a href=\"https://www.postgresql.org/docs/current/transaction-iso.html\">pg — tài liệu tham khảo</a></li></ul></div></div></article>"
+  },
+  {
+    "module": "07-microservices",
+    "key": "banking-extraction",
+    "title": "Ví dụ thiết kế ngân hàng: tách monolith và saga không giả mạo kinh nghiệm",
+    "summary": "Ví dụ giả định: tách Notification khỏi banking monolith trước, giữ debit/credit và double-entry ledger trong một transaction có invariant rõ. Saga phù hợp workflow liên dịch vụ có trạng thái pending và compensation, không thay atomic ledger posting bằng hai API độc lập.",
+    "sections": [
+      [
+        "Phạm vi và cách trình bày",
+        "Đây là bài tập thiết kế minh họa, không phải dự án cá nhân đã triển khai. Khi phỏng vấn, nói “Tôi đề xuất với giả định…”; chỉ nêu kinh nghiệm thực nếu thực sự có. Liệt kê constraint: audit, idempotency, reconciliation, latency, giới hạn mất dữ liệu và quyền sở hữu ledger."
+      ],
+      [
+        "Strangler từng bước",
+        "Đo baseline và vẽ bounded context; bắt đầu Notification hoặc Reporting read model có coupling thấp. Giữ contract ổn định qua facade/anti-corruption layer, phát event bằng outbox, shadow compare trước cutover, rollback routing được. Tránh cùng lúc tách service, đổi DB và đổi domain rule. Mỗi dữ liệu chỉ có một writer authority trong giai đoạn chuyển."
+      ],
+      [
+        "Ledger boundary",
+        "Chuyển khoản nội bộ cùng ledger: một local transaction ghi bút toán debit và credit cân bằng, unique transfer/idempotency key, kiểm soát số dư bằng locking hoặc constraint phù hợp. Timeout response không có nghĩa transfer thất bại: tra trạng thái theo idempotency key trước retry. Không dùng saga “trừ tài khoản A rồi cộng B” nếu yêu cầu atomic ngay trong một ledger."
+      ],
+      [
+        "Saga ngoài boundary",
+        "Chuyển liên ngân hàng giả định: CreateTransfer(PENDING) → reserve funds → submit external rail → settlement confirmation → post/finalize theo policy ledger. Timeout external rail là UNKNOWN, không tự refund khi có thể đã settle. Query/reconcile hoặc xử lý manual; compensation là release reservation/reversal posting có audit, không xóa bút toán lịch sử. State machine cần durable state, idempotent command, bounded retry, timeout và operator queue."
+      ],
+      [
+        "Đánh giá trade-off",
+        "XA/2PC có thể dùng khi resource manager và yêu cầu cho phép, nhưng khóa lâu/coordinator failure có chi phí. Saga cho availability và long-running workflow nhưng có cửa sổ bất nhất và compensation failure. Không khẳng định mọi banking flow dùng saga hoặc microservices luôn tốt hơn modular monolith. Test duplicate, out-of-order, crash sau commit, timeout không rõ kết quả và reconciliation."
+      ]
+    ],
+    "code": "// Minh họa trạng thái, không phải code chuyển tiền production\nPENDING -> RESERVED -> SUBMITTED -> SETTLED\n                     -> UNKNOWN -> RECONCILING\nRESERVED -> REJECTED -> RELEASED\n// UNIQUE(transfer_id), ledger entries immutable, reversal có reference bút toán gốc.",
+    "flow": "Monolith ledger atomic → outbox → notification mới; external transfer → durable saga → reconciliation",
+    "refs": [
+      "saga",
+      "outbox",
+      "pg"
+    ],
+    "options": [
+      "Giữ ledger posting atomic, dùng saga cho workflow ngoài boundary có pending và reconciliation.",
+      "Tách debit và credit thành hai REST call sẽ giữ nguyên atomicity của local transaction.",
+      "External timeout chứng minh tiền chưa chuyển nên luôn refund ngay lập tức.",
+      "Ví dụ thiết kế giả định có thể kể như dự án thật để câu trả lời thuyết phục hơn."
+    ],
+    "html": "<article class=\"qa-card\" id=\"deep-banking-extraction\"><h3 class=\"qa-question\">Ví dụ thiết kế ngân hàng: tách monolith và saga không giả mạo kinh nghiệm</h3><div class=\"qa-answer\"><div class=\"ans-block\"><span class=\"ans-label\">What</span><p>Ví dụ giả định: tách Notification khỏi banking monolith trước, giữ debit/credit và double-entry ledger trong một transaction có invariant rõ. Saga phù hợp workflow liên dịch vụ có trạng thái pending và compensation, không thay atomic ledger posting bằng hai API độc lập.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Phạm vi và cách trình bày</span><p>Đây là bài tập thiết kế minh họa, không phải dự án cá nhân đã triển khai. Khi phỏng vấn, nói “Tôi đề xuất với giả định…”; chỉ nêu kinh nghiệm thực nếu thực sự có. Liệt kê constraint: audit, idempotency, reconciliation, latency, giới hạn mất dữ liệu và quyền sở hữu ledger.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Strangler từng bước</span><p>Đo baseline và vẽ bounded context; bắt đầu Notification hoặc Reporting read model có coupling thấp. Giữ contract ổn định qua facade/anti-corruption layer, phát event bằng outbox, shadow compare trước cutover, rollback routing được. Tránh cùng lúc tách service, đổi DB và đổi domain rule. Mỗi dữ liệu chỉ có một writer authority trong giai đoạn chuyển.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Ledger boundary</span><p>Chuyển khoản nội bộ cùng ledger: một local transaction ghi bút toán debit và credit cân bằng, unique transfer/idempotency key, kiểm soát số dư bằng locking hoặc constraint phù hợp. Timeout response không có nghĩa transfer thất bại: tra trạng thái theo idempotency key trước retry. Không dùng saga “trừ tài khoản A rồi cộng B” nếu yêu cầu atomic ngay trong một ledger.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Saga ngoài boundary</span><p>Chuyển liên ngân hàng giả định: CreateTransfer(PENDING) → reserve funds → submit external rail → settlement confirmation → post/finalize theo policy ledger. Timeout external rail là UNKNOWN, không tự refund khi có thể đã settle. Query/reconcile hoặc xử lý manual; compensation là release reservation/reversal posting có audit, không xóa bút toán lịch sử. State machine cần durable state, idempotent command, bounded retry, timeout và operator queue.</p></div><div class=\"ans-block\"><span class=\"ans-label\">Đánh giá trade-off</span><p>XA/2PC có thể dùng khi resource manager và yêu cầu cho phép, nhưng khóa lâu/coordinator failure có chi phí. Saga cho availability và long-running workflow nhưng có cửa sổ bất nhất và compensation failure. Không khẳng định mọi banking flow dùng saga hoặc microservices luôn tốt hơn modular monolith. Test duplicate, out-of-order, crash sau commit, timeout không rõ kết quả và reconciliation.</p></div><div class=\"flow-diagram\">Monolith ledger atomic → outbox → notification mới; external transfer → durable saga → reconciliation</div><pre class=\"code-block\"><code>// Minh họa trạng thái, không phải code chuyển tiền production\nPENDING -&gt; RESERVED -&gt; SUBMITTED -&gt; SETTLED\n                     -&gt; UNKNOWN -&gt; RECONCILING\nRESERVED -&gt; REJECTED -&gt; RELEASED\n// UNIQUE(transfer_id), ledger entries immutable, reversal có reference bút toán gốc.</code></pre><div class=\"ans-block\"><span class=\"ans-label\">Nguồn chính thức / tài liệu dự án</span><ul><li><a href=\"https://microservices.io/patterns/data/saga.html\">saga — tài liệu tham khảo</a></li><li><a href=\"https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html\">outbox — tài liệu tham khảo</a></li><li><a href=\"https://www.postgresql.org/docs/current/transaction-iso.html\">pg — tài liệu tham khảo</a></li></ul></div></div></article>"
+  }
+]

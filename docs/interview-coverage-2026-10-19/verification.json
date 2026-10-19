@@ -1,0 +1,93 @@
+{
+  "before_counts": {
+    "topics": 15,
+    "modules": 38,
+    "questions": 529,
+    "options": 2116
+  },
+  "after_counts": {
+    "topics": 15,
+    "modules": 38,
+    "questions": 539,
+    "options": 2156
+  },
+  "old_ids_orders_preserved": 529,
+  "notes_unchanged": true,
+  "notes_count": 0,
+  "checks": {
+    "bad_options": 0,
+    "new_manual": 10
+  },
+  "new_questions": [
+    {
+      "module": "01-java-core",
+      "title": "OOM dù máy còn RAM: G1/ZGC và runbook production",
+      "id": "bc1e4062-0ca1-4691-b348-93024aaf3eca",
+      "sort": 23,
+      "api_status": 200
+    },
+    {
+      "module": "02-multithreading",
+      "title": "Batch DB hữu hạn: sizing CPU, Hikari và backpressure bằng số cụ thể",
+      "id": "445def36-6ceb-44c1-98db-1b907bb377c4",
+      "sort": 20,
+      "api_status": 200
+    },
+    {
+      "module": "03-spring-boot",
+      "title": "Bean scopes: prototype trong singleton và ObjectProvider",
+      "id": "f21218f1-3a95-4603-9df4-5a9a360673f1",
+      "sort": 26,
+      "api_status": 200
+    },
+    {
+      "module": "03-spring-boot",
+      "title": "AOP audit an toàn: allowlist log và phân biệt attempt với committed event",
+      "id": "ddfc74e6-312e-4b09-b6ff-3e7ab2126292",
+      "sort": 27,
+      "api_status": 200
+    },
+    {
+      "module": "15-auth-rbac-oauth",
+      "title": "Filter vs HandlerInterceptor: JWT nằm ở đâu trong request chain?",
+      "id": "1728c2c4-ae8b-4a30-aea9-d354583d268c",
+      "sort": 15,
+      "api_status": 200
+    },
+    {
+      "module": "08-system-design",
+      "title": "Redis Hash vs ZSET và rate limit sliding window atomic",
+      "id": "b80341f2-7170-414d-a15f-aed95c6d4447",
+      "sort": 21,
+      "api_status": 200
+    },
+    {
+      "module": "05-database",
+      "title": "Phantom: PostgreSQL REPEATABLE READ khác bảng SQL chuẩn và Oracle",
+      "id": "1feab997-29d6-4685-9414-095e2c787b7c",
+      "sort": 47,
+      "api_status": 200
+    },
+    {
+      "module": "41-sql-performance-tuning",
+      "title": "SQL DEM/DET: actual plan Oracle, bitmap và kiểm chứng tối ưu",
+      "id": "4bab7f73-393d-43a3-b3ad-4ad37422a69b",
+      "sort": 11,
+      "api_status": 200
+    },
+    {
+      "module": "38-elasticsearch",
+      "title": "DB → ES/Redis: giới hạn consistency, version và chống stale resurrection",
+      "id": "a82cd1bb-6f2a-4e9f-8b7b-d02f83bb0bf1",
+      "sort": 11,
+      "api_status": 200
+    },
+    {
+      "module": "07-microservices",
+      "title": "Ví dụ thiết kế ngân hàng: tách monolith và saga không giả mạo kinh nghiệm",
+      "id": "4a52a7cc-fe68-4e23-9ea8-3027a8be23eb",
+      "sort": 26,
+      "api_status": 200
+    }
+  ]
+}

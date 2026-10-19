@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>38. Elasticsearch cho Backend Developer — Knowledge Gym</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Knowledge<br><span>Gym</span></h1>
+        <p>Java, AWS DVA-C02 &amp; Frontend</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>38. Elasticsearch cho Backend Developer</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 38</div>
+          <h1 class="module-title">Elasticsearch cho Backend Developer</h1>
+          <p class="module-subtitle">Search engine ở góc nhìn backend: mapping, analyzer, query DSL, relevance, phân trang sâu, tích hợp Spring, đồng bộ dữ liệu và vận hành cluster.</p>
+        </div>
+
+        <section class="section" id="n-n-t-ng-indexing-analysis">
+          <h2 class="section-title">Nền tảng Indexing & Analysis</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q1</span> Inverted index là gì, vì sao ES tìm text nhanh hơn LIKE của SQL?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Inverted index</strong> (chỉ mục nghịch đảo) ánh xạ mỗi term đã phân tích sang danh sách document chứa nó (<em>posting list</em>). Thay vì lưu document rồi quét nội dung mỗi lần query, ES tra thẳng posting list của term, nên tìm text nhanh hơn nhiều so với <code>LIKE '%kw%'</code> phải full scan từng row.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p><code>LIKE '%kw%'</code> có wildcard ở đầu nên không dùng được B-tree index → engine phải đọc mọi row và so chuỗi con, chi phí O(n) theo số row và tăng tuyến tính. Inverted index tra theo term (đã chuẩn hóa) nên gần như không phụ thuộc số document, lại ghép được nhiều term bằng boolean và có sẵn relevance score mà SQL không có.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Document gốc (text)</div><div class="flow-node secondary">Analyzer: tokenizer + filter</div></div>
+        <div class="flow-arrow">↓ phân tích thành các term đã chuẩn hóa (lowercase, bỏ dấu, bỏ stopword)</div>
+        <div class="flow-row"><div class="flow-node">Inverted index: term → posting list (doc id, vị trí)</div></div>
+        <div class="flow-arrow">↓ query được phân tích cùng analyzer</div>
+        <div class="flow-row"><div class="flow-node success">Tra posting list, giao/ hợp các tập doc, chấm BM25</div><div class="flow-node">Rank &amp; trả kết quả</div></div>
+      </div>
+      <p>Chi phí nằm ở phía ghi: mỗi document mới phải analyze, cập nhật posting list, tạo segment (immutable) và merge segment về sau. Đây là <em>write amplification</em> — ghi vào ES luôn đắt hơn ghi một row SQL, còn đọc full-text thì rẻ hơn nhiều.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Full-text search sản phẩm (tên + mô tả), tìm log theo message, search-as-you-type, autocomplete, và các màn hình vừa filter vừa sort trên tập dữ liệu lớn mà SQL <code>LIKE</code> chậm.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng ES thay lookup theo khoá chính của OLTP (một SELECT theo PK đã nhanh sẵn). Không dùng khi cần join, FK, transaction nhiều bảng. Cũng đừng kỳ vọng match chuỗi con giữa từ (<code>%abc%</code>) vì inverted index tách theo token — muốn vậy phải dùng wildcard, regexp hoặc n-gram tốn kém.</p></div>
+    <div class="code-block" data-lang="json"><pre><code>{
+  "document": { "title": "Ao thun nam cotton" },
+  "inverted_index": {
+    "ao":     [1, 7, 12],
+    "thun":   [1, 7],
+    "nam":    [1, 3, 9],
+    "cotton": [1, 12]
+  },
+  "query": { "match": { "title": "ao" } },
+  "tra_cuu": "terminverted_index['ao'] → [1, 7, 12]"
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Ô tìm kiếm sản phẩm: người dùng gõ "ao thun" và cần match cả "Áo Thun", "áo polo" theo từ, sắp xếp theo relevance — thứ mà một câu <code>LIKE '%ao thun%'</code> không làm nổi khi bảng lên hàng triệu row.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Câu "ES nhanh hơn SQL mọi query" là SAI: ES nhanh hơn cho full-text/scan-filter theo term, nhưng ghi và update đắt hơn, gần như không hỗ trợ transaction. Bẫy nữa: inverted index không index chuỗi con giữa từ. Và ES là <em>near real-time</em> — document vừa ghi chưa <em>refresh</em> thì chưa tìm thấy ngay.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Inverted index = term → posting list, tra theo token.</li>
+      <li>SQL <code>LIKE '%kw%'</code> full scan vì wildcard đầu khoá.</li>
+      <li>Đọc rẻ, ghi đắt: analyze + segment + merge.</li>
+      <li>Có boolean + relevance scoring, SQL không có.</li>
+      <li>Không phải chỗ thay OLTP lookup theo PK.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q2</span> Mapping &amp; dynamic mapping: text vs keyword, vì sao khai mapping tường minh?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Mapping</strong> là schema của index: khai báo từng field và kiểu dữ liệu (<code>text</code>, <code>keyword</code>, <code>long</code>, <code>date</code>, <code>boolean</code>, <code>object</code>, <code>nested</code>, <code>geo_point</code>...). <strong>Dynamic mapping</strong> là cơ chế ES tự suy kiểu khi gặp field mới ở document đầu tiên; muốn kiểm soát chặt thì khai mapping tường minh và đặt <code>dynamic: strict</code> để từ chối document chứa field lạ.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Kiểu đoán sai thì query, sort và aggregation đều sai: số điện thoại hay mã bưu chính bị đoán thành <code>long</code> (mất số 0 đầu), chuỗi ngày thành <code>text</code> (không range được), và mỗi field lạ thêm vào lại làm nở mapping (<em>mapping explosion</em> — thường vì dữ liệu kiểu key động). Khai tường minh giữ schema ổn định, còn <code>text</code> vs <code>keyword</code> quyết định field đó có được phân tích để full-text hay chỉ dùng filter/sort/aggregate.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Index document lần đầu</div></div>
+        <div class="flow-arrow">↓ field đã có trong mapping?</div>
+        <div class="flow-row"><div class="flow-node success">Có → dùng kiểu đã khai</div><div class="flow-node warning">Chưa có → dynamic mapping suy kiểu</div></div>
+        <div class="flow-arrow">↓ kiểm soát bằng dynamic</div>
+        <div class="flow-row"><div class="flow-node">true: tự thêm field</div><div class="flow-node">false: bỏ qua field lạ</div><div class="flow-node warning">strict: reject document</div></div>
+      </div>
+      <table class="feature-table">
+        <thead><tr><th>Kiểu</th><th>Phân tích?</th><th>Dùng cho</th></tr></thead>
+        <tbody>
+          <tr><td><code>text</code></td><td>Có (analyzer cắt thành token)</td><td>Full-text search: tên, mô tả, nội dung</td></tr>
+          <tr><td><code>keyword</code></td><td>Không (nguyên giá trị)</td><td>Filter, sort, aggregation: status, category, id, tag</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Mọi index production nên khai mapping tường minh trong template hoặc file cấu hình. Field vừa cần search vừa cần sort/agg thì khai <code>text</code> kèm sub-field <code>keyword</code> (multi-field) để phục vụ cả hai.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Dynamic mapping tiện cho prototype hoặc index log ngắn hạn bạn sẽ xoá, nhưng không dùng <code>dynamic: true</code> cho index nhận payload đa dạng từ client. Cũng đừng để sẵn dynamic rồi <em>sau đó</em> mới thêm field — mapping đã chốt kiểu thì không sửa tại chỗ được, phải tạo index mới.</p></div>
+    <div class="code-block" data-lang="json"><pre><code>PUT /products
+{
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "id":        { "type": "keyword" },
+      "name":      { "type": "text",
+                     "fields": { "raw": { "type": "keyword" } } },
+      "category":  { "type": "keyword" },
+      "price":     { "type": "scaled_float", "scaling_factor": 100 },
+      "createdAt": { "type": "date" },
+      "active":    { "type": "boolean" }
+    }
+  }
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Field <code>name</code> dùng <code>text</code> để search từ, nhưng sort theo tên chữ cái hoặc aggregation theo tên dùng <code>name.raw</code> (keyword). Filter category bằng <code>term</code> trên <code>category</code> (keyword) thay vì trên <code>text</code>.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Sort/aggregate trên field <code>text</code> sẽ lỗi hoặc buộc bật <code>fielddata</code> — rất tốn heap, hay bị hỏi. Keyword mặc định bị cắt bởi <code>ignore_above</code> (256) với chuỗi dài. Và đặt <code>dynamic: strict</code> rồi quên thêm field mới sẽ làm toàn bộ bulk index fail.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Mapping = schema, khai tường minh là best practice.</li>
+      <li>text: phân tích, cho full-text search.</li>
+      <li>keyword: nguyên giá trị, cho filter/sort/agg.</li>
+      <li>Multi-field <code>text</code> + <code>keyword</code> khi cần cả hai.</li>
+      <li>dynamic: strict chặn field lạ và mapping explosion.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q3</span> Analysis pipeline: analyzer, tokenizer, filter và custom analyzer cho tiếng Việt?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Analysis pipeline</strong> là chuỗi xử lý biến text thành các term: char filter (tuỳ chọn) rồi <strong>tokenizer</strong> (cắt thành token) rồi <strong>token filter</strong> (lowercase, asciifolding, stop, synonym...). Pipeline chạy ở cả index time (dựng inverted index) và search time (phân tích query), nên hai phía phải cùng analyzer mới match đúng.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Với tiếng Việt, analyzer mặc định không đủ: cùng một từ có nhiều cách bỏ dấu ("hoà" vs "hòa"), người dùng gõ không dấu ("ao thun") trong khi dữ liệu có dấu. Nếu index and query không được chuẩn hoá giống nhau, tìm "hoa" sẽ trượt "hoà". Cần <strong>lowercase</strong> + <strong>asciifolding</strong> để đồng nhất, và cân nhắc tokenize theo từ tiếng Việt (word segmentation) hoặc n-gram cho autocomplete.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Raw text</div></div>
+        <div class="flow-arrow">↓ char filter: html_strip, thay ký tự</div>
+        <div class="flow-row"><div class="flow-node secondary">Tokenizer: standard / whitespace / ngram</div></div>
+        <div class="flow-arrow">↓ token filter: lowercase → asciifolding → stop → synonym</div>
+        <div class="flow-row"><div class="flow-node success">Terms (tokens) → đưa vào inverted index</div></div>
+      </div>
+      <p>Với field <code>keyword</code> không chạy analyzer mà chạy <strong>normalizer</strong> — chỉ gồm <em>filter</em>, không tokenize, thường để <code>lowercase</code> cho mã/tag so khớp không phân biệt hoa thường.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Khi nội dung là tiếng Việt, cần match có dấu lẫn không dấu, cần autocomplete, hoặc khi cần synonym ("laptop" ~ "máy tính xách tay"). Chỉ định rõ <code>analyzer</code> trong mapping của field <code>text</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không để <code>analyzer</code> (index time) khác <code>search_analyzer</code> (query time) một cách vô ý — đây là bug kinh điển khiến filter đúng mà tìm không ra. Không dùng asciifolding cho mã sản phẩm có phân biệt dấu. Và nhớ: <code>keyword</code> không đi qua analyzer, muốn chuẩn hoá phải dùng normalizer.</p></div>
+    <div class="code-block" data-lang="json"><pre><code>PUT /products
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "vi_folded": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "asciifolding"]
+        }
+      },
+      "normalizer": {
+        "lower_norm": { "type": "custom", "filter": ["lowercase"] }
+      }
+    }
+  }
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Field <code>name</code> dùng analyzer <code>vi_folded</code>: người dùng gõ "ao thun" vẫn match document "Áo Thun Nam". Field <code>sku</code> là keyword dùng normalizer <code>lower_norm</code> để filter "abc-01" khớp "ABC-01".</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Đổi analyzer của một field đã có dữ liệu KHÔNG re-index dữ liệu cũ — phải reindex (dùng <code>_reindex</code>). Tokenize từ ghép tiếng Việt chuẩn thường cần plugin (ví dụ ICU), đừng hứa hão là standard analyzer làm được. Bẫy nữa: gọi <code>_analyze</code> với analyzer search time để tự kiểm tra token trước khi tin kết quả query.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Pipeline: char filter → tokenizer → token filter.</li>
+      <li>Chạy ở cả index time và search time, phải khớp nhau.</li>
+      <li>Tiếng Việt: lowercase + asciifolding để match không dấu.</li>
+      <li>keyword dùng normalizer, không dùng analyzer.</li>
+      <li>Đổi analyzer phải reindex — không tự áp cho dữ liệu cũ.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="query-scoring-ph-n-trang">
+          <h2 class="section-title">Query, Scoring & Phân trang</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q4</span> Query DSL cơ bản: match vs term vs range, bool với must/should/filter/must_not?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Query DSL gồm nhóm <em>leaf query</em> và <em>compound query</em>. Ba leaf hay dùng: <code>match</code> (phân tích query text rồi tìm theo token, có tính điểm), <code>term</code> (khớp chính xác, không phân tích), <code>range</code> (so sánh khoảng). <code>bool</code> ghép chúng bằng <code>must</code>, <code>should</code>, <code>filter</code>, <code>must_not</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Nhầm <code>match</code> với <code>term</code> là lỗi phổ biến nhất khi mới dùng ES: <code>term</code> trên field <code>text</code> hiếm khi match vì giá trị đã bị analyzer cắt thành nhiều token, còn <code>match</code> trên field <code>keyword</code> cũng không đúng kỳ vọng. Hiểu rõ cái nào tính điểm, cái nào chỉ lọc, là nền để viết query đúng và nhanh.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">bool query</div></div>
+        <div class="flow-arrow">↓ phân nhánh theo vai trò</div>
+        <div class="flow-row"><div class="flow-node success">must (bắt buộc, có điểm)</div><div class="flow-node success">should (tuỳ chọn, cộng điểm)</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node secondary">filter (bắt buộc, 0 điểm)</div><div class="flow-node warning">must_not (loại trừ)</div></div>
+      </div>
+      <table class="feature-table">
+        <thead><tr><th>Leaf query</th><th>Phân tích?</th><th>Điểm</th><th>Dùng cho</th></tr></thead>
+        <tbody>
+          <tr><td><code>match</code></td><td>Có</td><td>Có</td><td>Full-text trên field <code>text</code></td></tr>
+          <tr><td><code>term</code></td><td>Không</td><td>Không</td><td>Khớp chính xác field <code>keyword</code>, số, boolean</td></tr>
+          <tr><td><code>range</code></td><td>Không</td><td>Không</td><td>Ngày, giá, số trong khoảng</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng <code>match</code> cho tìm text (tên, mô tả), <code>term</code> cho field cấu trúc (status, category, id), <code>range</code> cho ngày/giá, và <code>bool</code> để kết hợp tất cả trong một truy vấn có xếp hạng.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng <code>term</code> để tìm trong field <code>text</code> (trừ khi hiểu rõ token). Không dùng <code>match</code> cho field <code>keyword</code> nếu bạn chỉ muốn khớp chính xác. Không đặt điều kiện lọc cấu trúc trong <code>must</code> — điều đó tốn tính điểm vô ích và làm lệch thứ tự kết quả.</p></div>
+    <div class="code-block" data-lang="http"><pre><code>POST /products/_search
+{
+  "query": {
+    "bool": {
+      "must":     [ { "match": { "name": "ao thun nam" } } ],
+      "filter":   [ { "term":  { "category": "shirt" } },
+                    { "range": { "price": { "gte": 100000, "lte": 500000 } } } ],
+      "must_not": [ { "term":  { "status": "archived" } } ],
+      "should":   [ { "term":  { "brand.keyword": "demo-brand" } } ],
+      "minimum_should_match": 1
+    }
+  }
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Màn hình danh sách sản phẩm: search theo tên (must), lọc category + khoảng giá (filter), loại sản phẩm đã ẩn (must_not), ưu tiên thương hiệu được chọn (should). Một <code>bool</code> gói gọn cả nhu cầu.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p><code>match</code> mặc định ghép các token bằng OR, nên "áo thun" có thể khớp cả document chỉ chứa "áo" — dùng <code>operator: "and"</code> hoặc <code>minimum_should_match</code> khi cần AND. <code>term</code> chỉ khớp đúng MỘT token, không phải một chuỗi. Và <code>should</code> trong ngữ cảnh có <code>must/filter</code> chỉ cộng điểm chứ không bắt buộc trừ khi set <code>minimum_should_match</code>.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li><code>match</code> phân tích + tính điểm, cho text.</li>
+      <li><code>term</code> không phân tích, cho keyword/number.</li>
+      <li><code>range</code> cho khoảng ngày/số.</li>
+      <li><code>bool</code> = must + should + filter + must_not.</li>
+      <li>match mặc định OR — cần AND thì set operator.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q5</span> Filter context vs query context: vì sao filter nhanh hơn?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Query context</strong> tính <code>_score</code> (thường BM25) cho từng document và xếp hạng; <strong>filter context</strong> chỉ trả về đúng/sai, không tính điểm, và kết quả được cache ở tầng node. Điều kiện lọc cấu trúc như status, category hay khoảng thời gian nên đặt trong <code>filter</code>; chỉ phần text cần xếp hạng mới đặt trong <code>must</code>/<code>should</code>.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Bỏ được bước tính điểm đồng nghĩa bỏ công tính toán cho mỗi document khớp. Quan trọng hơn, kết quả boolean của filter được <strong>cache</strong> (node query cache) nên một điều kiện lặp lại nhiều lần, ví dụ <code>status = active</code>, chỉ tính một lần rồi tái dùng — nhanh hơn hẳn và không tốn CPU scoring. Đặt filter đúng chỗ còn tránh việc điều kiện lọc "lẫn" vào điểm số, làm thứ tự kết quả sai lệch.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Query đến</div></div>
+        <div class="flow-arrow">↓ tách hai nhánh</div>
+        <div class="flow-row"><div class="flow-node success">must/should → tính BM25 cho mỗi doc</div><div class="flow-node secondary">filter → match / không match (cache)</div></div>
+        <div class="flow-arrow">↓ giao hai tập kết quả</div>
+        <div class="flow-row"><div class="flow-node">Sắp xếp theo _score (chỉ với phần query context)</div></div>
+      </div>
+      <p>Có thể bọc một leaf query vào <code>constant_score</code> để biến nó thành filter. Dùng <code>track_scores: false</code> khi sort theo field và không cần điểm.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Mọi truy vấn có cả phần tìm kiếm lẫn phần lọc: lọc status/type/category/thời gian trong filter, tìm text trong must. Rất hay dùng cho màn hình có bộ lọc (facet) bên cạnh ô search, và cho phân quyền/tách theo tenant.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không đưa vào filter những điều kiện bạn <em>muốn</em> cộng điểm (ví dụ ưu tiên thương hiệu, ưu tiên hàng mới) — filter không ảnh hưởng thứ tự. Và filter cache không hữu ích với điều kiện cardinality cao, giá trị khác nhau mỗi lần (như id người dùng) vì cache sẽ bị đẩy ra liên tục.</p></div>
+    <div class="code-block" data-lang="http"><pre><code>POST /products/_search
+{
+  "query": {
+    "bool": {
+      "must":   [ { "match": { "name": "ao thun" } } ],
+      "filter": [
+        { "term":  { "status": "active" } },
+        { "range": { "createdAt": { "gte": "now-30d/d" } } }
+      ]
+    }
+  },
+  "track_scores": false
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Dashboard tìm đơn: người dùng search theo mã/tên khách (must), đồng thời lọc theo trạng thái đơn và khoảng ngày (filter). Phần lọc chạy trên cache, phần search mới tính điểm để xếp hạng liên quan.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Đưa <code>match</code> của một điều kiện lọc thuần vào <code>must</code> vừa tốn CPU vừa làm loãng điểm số, khiến relevance bị lệch. Ngược lại, đặt vào <code>filter</code> một điều kiện mà bạn cần nó <em>cộng điểm</em> thì kết quả sẽ không như ý. Nhớ nêu điểm chính khi được hỏi: filter = no scoring + cache.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Query context: có <code>_score</code>, dùng để xếp hạng.</li>
+      <li>Filter context: chỉ đúng/sai, 0 điểm, có cache.</li>
+      <li>Filter nhanh hơn vì bỏ scoring + tái dùng cache.</li>
+      <li>Điều kiện cấu trúc → filter; phần text cần xếp hạng → must.</li>
+      <li>track_scores=false khi sort theo field.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q6</span> Phân trang: from/size, giới hạn max_result_window, search_after và PIT khi export?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>from/size</strong> là phân trang cổ điển nhưng phải thu thập và sắp xếp <code>from + size</code> document trên mỗi shard nên càng lật sâu càng tốn, và bị chặn bởi <code>index.max_result_window</code> (mặc định 10000). <strong>search_after</strong> lật theo con trỏ sort key (thường kèm <strong>PIT</strong>) cho pagination sâu; <strong>scroll</strong> phù hợp export/batch một lần.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Với from/size, mỗi shard phải giữ và sort <code>from + size</code> document rồi coordinator merge lại — <code>from</code> càng lớn thì bộ nhớ và CPU càng tăng, nên ES đặt trần <code>max_result_window</code>. search_after không cần đếm từ đầu: nó dùng giá trị sort của document cuối làm con trỏ, chi phí gần như không đổi dù lật tới trang rất sâu. PIT (point-in-time) giữ một "khung nhìn" nhất quán để các trang không bị nhảy khi index đang thay đổi.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Trang sâu (from/size) → chặn ở max_result_window</div></div>
+        <div class="flow-arrow">↓ thay bằng con trỏ</div>
+        <div class="flow-row"><div class="flow-node secondary">Mở PIT → query với search_after + sort key duy nhất</div></div>
+        <div class="flow-arrow">↓ lấy sort value cuối trang làm điểm bắt đầu trang sau</div>
+        <div class="flow-row"><div class="flow-node success">Lặp tới hết → đóng PIT</div></div>
+      </div>
+      <p>Export toàn bộ dữ liệu: mở PIT, lặp <code>search_after</code> với <code>size</code> vừa phải, dùng <code>_shard_doc</code> hoặc một tiebreaker duy nhất làm khoá sort. Scroll cũng làm được nhưng tốn context trên cluster và không thấy document mới.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Phân trang UI vài trang đầu: from/size là đủ và đơn giản. Infinite scroll hoặc "xem thêm" sâu: search_after + PIT. Export báo cáo, đổ dữ liệu sang hệ khác, batch: PIT + search_after (hoặc scroll).</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Đừng tăng <code>max_result_window</code> để "chữa" deep pagination — nó chỉ đẩy vấn đề về bộ nhớ đi xa hơn. search_after không cho nhảy tới trang bất kỳ (chỉ tiến tuần tự) và cần sort key <em>duy nhất</em>; sort theo score mà không có tiebreaker sẽ lặp/thiếu bản ghi. Không dùng scroll cho UI realtime.</p></div>
+    <div class="code-block" data-lang="http"><pre><code>POST /products/_search
+{
+  "size": 20,
+  "query": { "match": { "name": "ao thun" } },
+  "sort": [
+    { "price": "asc" },
+    { "id": "asc" }
+  ],
+  "search_after": [300000, "prod-500"],
+  "track_total_hits": false
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Màn hình "tải thêm" sản phẩm: giữ PIT, gửi <code>search_after</code> là mảng sort value của bản ghi cuối cùng. Job export cuối ngày cũng dùng cùng cơ chế với <code>size</code> lớn dần thay vì từng lô <code>from</code> tăng dần.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy kinh điển: sort chỉ theo <code>_score</code> rồi search_after → bản ghi trùng hoặc mất. Phải thêm tiebreaker duy nhất (<code>_id</code> hoặc field unique). Chú ý PIT tiêu tốn tài nguyên nên phải <code>close</code>/hết hạn; và <code>track_total_hits: false</code> giúp bỏ chi phí đếm tổng khi không cần hiển thị tổng số.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>from/size tốn dần theo độ sâu, trần 10000.</li>
+      <li>search_after = con trỏ sort, chi phí gần như hằng số.</li>
+      <li>PIT giữ khung nhìn nhất quán giữa các trang.</li>
+      <li>Sort cần tiebreaker duy nhất khi dùng search_after.</li>
+      <li>Scroll/PIT cho export, không cho UI realtime.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q7</span> Relevance: BM25, boost, multi_match, function_score và explain API?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Relevance</strong> là mức độ liên quan quyết định thứ tự kết quả. ES mặc định chấm bằng <strong>BM25</strong> (dựa trên tần suất term, độ hiếm IDF và độ dài trường), có thể điều chỉnh bằng <code>boost</code>, <code>multi_match</code> và <code>function_score</code>, và gỡ rối bằng <code>explain</code> API để xem chi tiết điểm số từng document.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>BM25 khác TF-IDF ở chỗ làm bão hoà tần suất (term xuất hiện 100 lần không đắt hơn nhiều lần 10) và chuẩn hoá theo độ dài trường, nên document ngắn gọn thường được ưu tiên hợp lý. Hiểu cơ chế giúp chọn đúng cách kết hợp nhiều field và biết khi nào nên <em>vứt bỏ</em> điểm để sort theo field (giá, ngày) — vừa nhanh vừa ổn định.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Query text</div></div>
+        <div class="flow-arrow">↓ match/ multi_match trên nhiều field, có boost (name^3)</div>
+        <div class="flow-row"><div class="flow-node secondary">Điểm BM25 cho từng field → kết hợp theo best/most/cross fields</div></div>
+        <div class="flow-arrow">↓ function_score chỉnh điểm (recency, popularity)</div>
+        <div class="flow-row"><div class="flow-node success">Sắp theo _score → trả kết quả</div></div>
+      </div>
+      <p><code>multi_match</code> mặc định <em>best_fields</em> (lấy điểm field cao nhất); <em>most_fields</em> cộng điểm nhiều field; <em>cross_fields</em> coi nhiều field như một. <code>function_score</code> thêm hàm như <code>gauss</code> theo ngày để ưu tiên hàng mới.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Ranking thương mại điện tử (tên quan trọng hơn mô tả), ưu tiên sản phẩm mới/bán chạy bằng function_score, tinh chỉnh trọng số theo kết quả thực tế. Dùng <code>explain: true</code> khi kết quả bất ngờ để xem vì sao một document được điểm cao.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng <code>_score</code> khi người dùng muốn sort theo giá/thời gian — vừa tốn CPU vừa vô nghĩa, hãy sort theo field (và <code>track_scores: false</code>). Không nhồi quá nhiều function lồng nhau tới mức không debug nổi. Đừng coi <code>_score</code> là con số tuyệt đối so sánh giữa các truy vấn khác nhau.</p></div>
+    <div class="code-block" data-lang="json"><pre><code>{
+  "query": {
+    "function_score": {
+      "query": {
+        "multi_match": {
+          "query": "ao thun",
+          "fields": ["name^3", "description"]
+        }
+      },
+      "functions": [
+        { "gauss": { "createdAt": {
+            "origin": "now", "scale": "30d", "decay": 0.5 } } }
+      ],
+      "score_mode": "sum",
+      "boost_mode": "multiply"
+    }
+  },
+  "explain": true
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Sàn thương mại: match tên sản phẩm với trọng số cao, rồi function_score cộng thêm điểm cho sản phẩm mới trong 30 ngày. Khi kết quả đứng đầu bất thường, bật <code>explain</code> để đọc phần đóng góp điểm của từng field.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>IDF được tính theo shard, nên điểm có thể khác nhau giữa các lần chia shard — đừng dựa vào con số tuyệt đối. Nhầm <em>best_fields</em> với <em>most_fields</em> là bẫy hay gặp trong phỏng vấn. Và nhớ: khi sort theo field, việc tính <code>_score</code> là lãng phí — tắt đi.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Mặc định BM25: tf bão hoà, idf, chuẩn hoá độ dài.</li>
+      <li>boost field, multi_match (best/most/cross).</li>
+      <li>function_score cho recency/popularity.</li>
+      <li>explain API để xem cách tính điểm.</li>
+      <li>Sort theo field thì bỏ <code>_score</code>.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+        <section class="section" id="t-ch-h-p-ng-b-v-n-h-nh">
+          <h2 class="section-title">Tích hợp, Đồng bộ & Vận hành</h2>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q8</span> Tích hợp Spring: Spring Data Elasticsearch, mapping entity, khoá version khi update, xử lý khi cluster down?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p><strong>Spring Data Elasticsearch</strong> cung cấp hai mức: <code>ElasticsearchRepository</code> cho CRUD đơn giản và <code>ElasticsearchOperations</code>/<code>ElasticsearchClient</code> cho query DSL linh hoạt. Entity gắn <code>@Document</code>, <code>@Id</code>, <code>@Field</code>; cập nhật đồng thời dùng <code>@Version</code> (dựa trên <code>_seq_no</code>/<code>_primary_term</code>) để chặn lost update; khi cluster down phải degrade chứ không làm sập app.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Repository tiện cho CRUD nhưng nhanh chóng bí khi cần <code>bool</code>, aggregation hay <code>function_score</code> — lúc đó cần operations/client. Về concurrency: hai request cùng đọc rồi ghi một document sẽ ghi đè nhau, nên ES dùng optimistic concurrency qua cặp <code>_seq_no</code> + <code>_primary_term</code>. Về lỗi: ES là hệ phụ trợ, nếu search chết mà app vẫn bán hàng được thì phải degrade (trả kết quả rỗng có báo, dùng fallback DB), không để exception ES làm hỏng luồng chính.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">Service</div><div class="flow-node secondary">ElasticsearchRepository / Operations</div></div>
+        <div class="flow-arrow">↓ ghi kèm version (_seq_no, _primary_term)</div>
+        <div class="flow-row"><div class="flow-node success">Cluster OK → ACK</div><div class="flow-node warning">Cluster down / conflict → xử lý</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row"><div class="flow-node">Conflict → retry; Down → fallback / xếp hàng retry</div></div>
+      </div>
+      <p>Cấu hình client bean theo phiên bản (RestClient/ElasticsearchClient + JSON mapper). Khi ghi cần set <code>SeqNoPrimaryTerm</code> để ES bác bỏ update cũ, và bắt exception lỗi kết nối để fallback.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Microservice search hoặc read-model: API tra cứu đọc từ ES, index được nuôi từ luồng sự kiện. Dùng <code>@Version</code> cho document có cập nhật đồng thời (tồn kho hiển thị, trạng thái đơn). Dùng repository cho CRUD, chuyển sang operations khi query ĐSL phức tạp.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng ES làm primary datastore cần transaction nhiều bước (đặt hàng + trừ kho + ghi sổ) — không có ACID như DB quan hệ. Không bỏ qua version khi update read-modify-write, sẽ lost update âm thầm. Và đừng để lỗi ES ném thẳng ra tầng API làm sập luồng nghiệp vụ chính.</p></div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Document</span>(indexName = <span class="tok-string">"products"</span>)
+<span class="tok-keyword">public class</span> <span class="tok-class">Product</span> {
+  <span class="tok-annotation">@Id</span> <span class="tok-keyword">private</span> <span class="tok-class">String</span> id;
+  <span class="tok-annotation">@Field</span>(type = FieldType.Text, analyzer = <span class="tok-string">"vi_folded"</span>)
+  <span class="tok-keyword">private</span> <span class="tok-class">String</span> name;
+  <span class="tok-annotation">@Field</span>(type = FieldType.Keyword) <span class="tok-keyword">private</span> <span class="tok-class">String</span> category;
+  <span class="tok-annotation">@Version</span> <span class="tok-keyword">private</span> <span class="tok-class">Long</span> version; <span class="tok-comment">// map _seq_no + _primary_term</span>
+}
+
+<span class="tok-keyword">public void</span> <span class="tok-function">update</span>(<span class="tok-class">Product</span> p) {
+  <span class="tok-keyword">try</span> {
+    repo.save(p);                    <span class="tok-comment">// upsert idempotent</span>
+  } <span class="tok-keyword">catch</span> (<span class="tok-class">DataAccessResourceFailureException</span> ex) {
+    log.warn(<span class="tok-string">"ES down, fallback"</span>);
+    retryQueue.enqueue(p.getId());   <span class="tok-comment">// không chặn luồng chính</span>
+  }
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>API tra cứu sản phẩm: repository cho get/save, operations cho query bool + aggregation. Khi ES tạm down, endpoint search trả về thông báo "tạm thời không khả dụng" và luồng đặt hàng vẫn chạy bình thường.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p><code>@Version</code> của Spring Data ES khác <code>@Version</code> JPA — nó dựa trên <code>_seq_no</code>/<code>_primary_term</code>, không phải cột số trong DB, dễ bị hỏi. Bẫy nữa: test ghi xong đọc ngay có thể không thấy vì chưa <code>refresh</code> (dùng <code>refresh(true)</code> trong test). Và nhớ phân biệt <code>save()</code> (index toàn bộ document, ghi đè) với <code>update()</code> theo script (chỉ sửa field).</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Repository cho CRUD, operations/client cho query phức tạp.</li>
+      <li><code>@Document</code>/<code>@Id</code>/<code>@Field</code> map entity.</li>
+      <li><code>@Version</code> = optimistic concurrency theo _seq_no.</li>
+      <li>Cluster down → degrade/fallback, không sập app.</li>
+      <li>ES không phải primary datastore giao dịch.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q9</span> Đồng bộ DB → ES: dual write vs outbox/CDC, reindex alias swap, thứ tự sự kiện?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Đồng bộ DB sang ES có hai hướng: <strong>dual write</strong> (code ghi cả DB lẫn ES) và <strong>outbox/CDC</strong> (ghi DB rồi phát sự kiện qua bảng outbox hoặc transaction log để relay sang ES). DB là <em>source of truth</em>, ES chỉ là read model; reindex không downtime bằng cách dựng index mới rồi <em>atomic swap</em> qua alias.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Dual write dễ mất nhất quán: DB commit xong nhưng ghi ES thất bại (mạng, cluster down) thì hai bên lệch nhau, mà không có transaction chung để rollback — đây là lý do phải ưu tiên outbox/CDC. Outbox ghi sự kiện <em>cùng transaction</em> với thay đổi DB, rồi một tiến trình relay đẩy sang ES, đảm bảo at-least-once; phía tiêu thụ phải idempotent. Reindex qua alias cho phép đổi mapping/analyzer mà người dùng không thấy gián đoạn, và cần quản lý <em>thứ tự</em> sự kiện để update cũ không ghi đè update mới.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <div class="flow-diagram">
+        <div class="flow-row"><div class="flow-node primary">App</div><div class="flow-node secondary">DB (source of truth) + outbox (cùng TX)</div></div>
+        <div class="flow-arrow">↓ relay poll bảng outbox hoặc đọc transaction log (CDC)</div>
+        <div class="flow-row"><div class="flow-node">Đẩy sang ES qua alias "products"</div></div>
+        <div class="flow-arrow">↓ reindex: dựng products_v2 → verify → atomic swap alias</div>
+        <div class="flow-row"><div class="flow-node success">products_v2 phục vụ, xoá products_v1</div></div>
+      </div>
+      <p>Chống lệch thứ tự: gắn <em>external version</em> (hoặc timestamp) cho mỗi lần ghi để ES từ chối document có version cũ hơn; relay xử lý trùng bằng upsert idempotent.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Read model cho search, dashboard tổng hợp, hoặc bất cứ khi nào cần truy vấn full-text/filter linh hoạt trên dữ liệu gốc nằm trong DB quan hệ. Cần reindex khi đổi mapping, đổi analyzer, hoặc muốn rebuild để dọn phân mảnh.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>Không dùng dual write khi có tải ghi cao hoặc nhiều hệ đích — sẽ nhanh chóng lệch và khó gỡ. Không reindex thẳng vào index đang phục vụ. Và app phải query <em>qua alias</em>, nếu hard-code tên index thật thì swap vô nghĩa. Đừng coi ES là nguồn sự thật để xử lý nghiệp vụ.</p></div>
+    <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Transactional</span>
+<span class="tok-keyword">public void</span> <span class="tok-function">updateProduct</span>(<span class="tok-class">Product</span> p) {
+  productRepo.save(p);                                <span class="tok-comment">// DB source of truth</span>
+  outboxRepo.save(<span class="tok-keyword">new</span> <span class="tok-class">OutboxEvent</span>(          <span class="tok-comment">// cùng transaction</span>
+      <span class="tok-string">"product"</span>, p.getId(), <span class="tok-string">"UPDATE"</span>, toJson(p)));
+}
+
+<span class="tok-annotation">@Scheduled</span>(fixedDelay = <span class="tok-number">1000</span>)
+<span class="tok-keyword">public void</span> <span class="tok-function">relay</span>() {                              <span class="tok-comment">// at-least-once</span>
+  <span class="tok-keyword">for</span> (<span class="tok-class">OutboxEvent</span> e : outboxRepo.findUnpublished(<span class="tok-number">100</span>)) {
+    ops.save(toDoc(e));                             <span class="tok-comment">// upsert idempotent</span>
+    outboxRepo.markPublished(e.getId());
+  }
+}</code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Đổi mapping thêm sub-field keyword cho sort: dựng <code>products_v2</code>, chạy <code>_reindex</code> từ v1, kiểm tra số lượng và chất lượng, rồi swap alias <code>products</code> sang v2 — không downtime.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Bẫy hay hỏi: relay có thể gửi trùng (at-least-once) và có thể <em>đảo thứ tự</em> — nếu không dùng external version, một update cũ về sau sẽ ghi đè update mới. Nhớ nêu ba thứ: idempotent upsert, quản lý version/thứ tự, và swap qua alias (không query vào index thật).</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Dual write dễ lệch — ưu tiên outbox/CDC.</li>
+      <li>Outbox ghi cùng TX DB, relay at-least-once.</li>
+      <li>Consumer idempotent + external version chống out-of-order.</li>
+      <li>Reindex sang index mới rồi swap alias atomically.</li>
+      <li>App query qua alias, DB là source of truth.</li>
+    </ul></div>
+  </div>
+</article>
+
+<article class="qa-card">
+  <h3 class="qa-question"><span class="badge">Q10</span> Vận hành: shard/replica, refresh_interval, mapping explosion, disk watermark, cluster health và khi nào KHÔNG nên dùng ES?</h3>
+  <div class="qa-answer">
+    <div class="ans-block"><div class="ans-label">What</div><p>Vận hành ES: <strong>shard</strong> là đơn vị lưu trữ và chạy song song, <strong>replica</strong> là bản sao cho failover và tăng read; <code>refresh_interval</code> (mặc định 1s) quyết định độ trễ thấy document mới; <strong>disk watermark</strong> theo phần trăm dung lượng có thể chuyển index sang read-only; <strong>cluster health</strong> green/yellow/red phản ánh tình trạng shard. ES không phù hợp làm datastore giao dịch chính.</p></div>
+    <div class="ans-block"><div class="ans-label">Why</div><p>Hiểu các khái niệm này để tránh lỗi vận hành: quá nhiều shard nhỏ làm tăng overhead và chậm cluster (_oversharding_); yellow nghĩa là primary đủ nhưng chưa đủ replica (chưa mất dữ liệu nhưng mất khả năng chịu lỗi); red là có primary shard chưa được gán (dữ liệu có thể đang thiếu, cần khôi phục); đầy đĩa vượt watermark làm index chuyển read-only đúng lúc cần ghi nhất. Đây là phần phân biệt người đã vận hành thật với người mới học lý thuyết.</p></div>
+    <div class="ans-block"><div class="ans-label">How</div>
+      <table class="feature-table">
+        <thead><tr><th>Trạng thái</th><th>Ý nghĩa</th><th>Hệ quả</th></tr></thead>
+        <tbody>
+          <tr><td>green</td><td>Tất cả primary và replica đã ở trạng thái active</td><td>Bình thường, đủ dự phòng</td></tr>
+          <tr><td>yellow</td><td>Primary active, thiếu/ chưa gán đủ replica</td><td>Đọc/ghi vẫn được, mất khả năng failover</td></tr>
+          <tr><td>red</td><td>Có primary shard chưa được gán</td><td>Có index không truy vấn được, cần khôi phục</td></tr>
+        </tbody>
+      </table>
+      <p><code>refresh_interval</code> ngắn (1s) = gần realtime nhưng tạo nhiều segment nhỏ; tăng lên 30s cho lúc bulk index giúp giảm tải rồi trả lại. Shard nên đủ lớn (vài chục GB) chứ không vô số shard bé xíu.</p>
+    </div>
+    <div class="ans-block"><div class="ans-label">When</div><p>Dùng ES cho search, log/observability, analytics log-scale. Chọn số shard theo dung lượng dự kiến và tăng replica nếu cần HA + đọc song song. Tuning <code>refresh_interval</code> và dùng <code>_bulk</code> khi nạp dữ liệu lớn.</p></div>
+    <div class="ans-block"><div class="ans-label">When NOT</div><p>KHÔNG dùng ES làm nguồn sự thật cho dữ liệu giao dịch: không transaction nhiều document, không ACID, không join/FK, ghi chỉ <em>near real-time</em>, và mất shard có thể mất dữ liệu nếu không dự phòng. Dữ liệu tài chính, số dư, tồn kho <em>thật</em> phải nằm trong DB quan hệ; ES chỉ phản chiếu để tìm kiếm.</p></div>
+    <div class="code-block" data-lang="bash"><pre><code><span class="tok-comment"># Kiểm tra sức khoẻ và shard</span>
+curl -s <span class="tok-string">'localhost:9200/_cluster/health?pretty'</span>
+curl -s <span class="tok-string">'localhost:9200/_cat/indices?v&amp;h=index,health,docs.count,store.size,pri,rep'</span>
+
+<span class="tok-comment"># Tăng refresh_interval khi bulk index, trả về 1s sau đó</span>
+curl -s -XPUT <span class="tok-string">'localhost:9200/products/_settings'</span> \
+  -H <span class="tok-string">'Content-Type: application/json'</span> \
+  -d <span class="tok-string">'{ "index": { "refresh_interval": "30s" } }'</span>
+
+<span class="tok-comment"># Xem watermark và index đang bị read-only</span>
+curl -s <span class="tok-string">'localhost:9200/_cat/allocation?v'</span></code></pre></div>
+    <div class="callout callout-info"><div class="callout-title">Use case</div><p>Cluster bật yellow thường vì đang chạy 1 node (replica chưa gán được) — với môi trường dev chấp nhận, nhưng production cần đủ node để green. Job nạp dữ liệu lớn tạm đặt <code>refresh_interval: 30s</code>, sau đó trả lại <code>1s</code>.</p></div>
+    <div class="callout callout-warning"><div class="callout-title">Pitfall / Interview trap</div><p>Đừng nhầm yellow = mất dữ liệu (nó chỉ thiếu replica); red mới là có primary chưa gán. Bẫy khác: <em>mapping explosion</em> do dynamic mapping sinh vô số field từ key động làm tràn cluster state — phải kiểm soát mapping, đặt <code>dynamic: strict</code> hoặc dùng <code>flattened</code>. Và tuyệt đối không dùng ES thay DB giao dịch rồi không có chiến lược khôi phục/backup.</p></div>
+    <div class="speak-notes"><div class="ans-label">Nói trong 60 giây</div><ul>
+      <li>Shard = đơn vị chạy song song; replica = HA + read.</li>
+      <li>refresh_interval 1s gần realtime, tăng khi bulk.</li>
+      <li>green/yellow/red: yellow thiếu replica, red mất primary.</li>
+      <li>Watermark đầy đĩa → index read-only.</li>
+      <li>Không dùng ES làm datastore giao dịch chính.</li>
+    </ul></div>
+  </div>
+</article>
+        </section>
+
+['        
+<section class="section" id="interview-redis-es-consistency"><h2 class="section-title">Bổ sung chiều sâu phỏng vấn</h2><article class="qa-card" id="deep-redis-es-consistency"><h3 class="qa-question">DB → ES/Redis: giới hạn consistency, version và chống stale resurrection</h3><div class="qa-answer"><div class="ans-block"><span class="ans-label">What</span><p>Outbox/CDC khép lỗ hổng mất event sau DB commit nhưng không tạo atomic transaction xuyên DB, Elasticsearch và Redis. Read model vẫn có lag; consumer phải idempotent, xử lý version/tombstone và có quy trình rebuild, reconciliation.</p></div><div class="ans-block"><span class="ans-label">Một nguồn sự thật</span><p>Business row và outbox cùng local transaction REQUIRED; relay at-least-once sau commit. Không ghi outbox bằng REQUIRES_NEW độc lập. CDC có thể đọc transaction log thay polling nhưng vẫn phải vận hành offset, retention, schema và bootstrap; exactly-once end-to-end không tự xuất hiện.</p></div><div class="ans-block"><span class="ans-label">ES</span><p>Dùng aggregate version tăng đơn điệu, document ID ổn định; xử lý event out-of-order và delete tombstone. Wall-clock timestamp đơn thuần có clock skew/tie nên không là version đáng tin nếu không có tie-break. External version strategy phải phù hợp API được dùng và test duplicate/retry. Reindex cần snapshot + catch-up offset hoặc cơ chế replay, không chỉ copy index rồi swap alias và bỏ concurrent writes.</p></div><div class="ans-block"><span class="ans-label">Redis</span><p>Cache-aside DB commit rồi DEL cache vẫn có race: reader đọc DB cũ trước commit và SET cache sau invalidation, hồi sinh stale value. TTL chỉ giới hạn thời gian stale, không chứng minh strong consistency. Dùng generation/version và atomic compare-and-set phù hợp, CDC invalidation có quan sát lag, hoặc bypass cache cho read-your-writes quan trọng. Delayed double delete chỉ giảm xác suất race, không bảo đảm tuyệt đối.</p></div><div class="ans-block"><span class="ans-label">Read-your-writes và phục hồi</span><p>Response write trả dữ liệu/version DB; client có thể đọc DB cho thao tác kế tiếp hoặc chờ read-model đạt version với timeout. Nếu event tới ES thành công nhưng Redis fail, retry từng sink theo checkpoint/idempotency; không đánh dấu toàn event hoàn tất quá sớm. Theo dõi oldest outbox age, consumer lag, DLQ, mismatch count và tombstone retention.</p></div><div class="ans-block"><span class="ans-label">Khi không phù hợp</span><p>Không đọc search/cache làm căn cứ final debit hoặc kiểm invariant số dư. Eventual consistency cần UX pending và SLA lag, không chỉ nói “sẽ đồng bộ”. Ví dụ ở đây là thiết kế, không phải số đo production hay lời hứa zero-loss khi mọi storage mất dữ liệu.</p></div><div class="flow-diagram">DB + outbox commit → relay/CDC → ES versioned read model + Redis invalidation → lag/reconcile</div><pre class="code-block"><code>BEGIN;
+UPDATE products SET version = version + 1 WHERE id = :id;
+INSERT INTO outbox_events (...) VALUES (...);
+COMMIT;
+-- relay -&gt; ES versioned upsert/tombstone + Redis invalidate/version policy
+-- retry từng sink; checkpoint chỉ sau khi sink đã nhận theo hợp đồng.</code></pre><div class="ans-block"><span class="ans-label">Nguồn chính thức / tài liệu dự án</span><ul><li><a href="https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html">outbox — tài liệu tham khảo</a></li><li><a href="https://redis.io/docs/latest/develop/data-types/sorted-sets/">redis — tài liệu tham khảo</a></li><li><a href="https://www.postgresql.org/docs/current/transaction-iso.html">pg — tài liệu tham khảo</a></li></ul></div></div></article></section>
+<div class="nav-pager">', '          <a class="prev" href="37-react-architecture-testing.html"><span class="label">Trước</span><span class="title">37. React Architecture &amp; Testing</span></a>', '          <a class="next" href="39-modular-architecture-osgi.html"><span class="label">Tiếp</span><span class="title">39. Modular Architecture &amp; OSGi</span></a>', '        </div>']
+      </div>
+
+      <footer class="site-footer">
+        <p>Knowledge Gym — Module 38 / 42</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7. Microservices &amp; Distributed — Java Interview Bank</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Java Interview<br><span>Bank</span></h1>
+        <p>Interview Prep Notes</p>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-home"><span class="nav-icon">◆</span><span>Trang chủ</span></a>
+
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Lộ trình Java backend: nền tảng, concurrency, database, kiến trúc và system design.">
+          <div class="nav-label">Foundation</div>
+          <a href="01-java-core.html" class="nav-item"><span class="nav-idx">01</span><span class="nav-text">Java Core &amp; Memory</span></a>
+          <a href="02-multithreading.html" class="nav-item"><span class="nav-idx">02</span><span class="nav-text">Multithreading</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Backend</div>
+          <a href="03-spring-boot.html" class="nav-item"><span class="nav-idx">03</span><span class="nav-text">Spring Boot</span></a>
+          <a href="04-jpa-hibernate.html" class="nav-item"><span class="nav-idx">04</span><span class="nav-text">Hibernate / JPA</span></a>
+          <a href="05-database.html" class="nav-item"><span class="nav-idx">05</span><span class="nav-text">Database &amp; SQL</span></a>
+          <a href="06-rest-api.html" class="nav-item"><span class="nav-idx">06</span><span class="nav-text">REST &amp; Security</span></a>
+          <a href="15-auth-rbac-oauth.html" class="nav-item"><span class="nav-idx">15</span><span class="nav-text">Auth / RBAC / OAuth2</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Systems</div>
+          <a href="07-microservices.html" class="nav-item"><span class="nav-idx">07</span><span class="nav-text">Microservices</span></a>
+          <a href="08-system-design.html" class="nav-item"><span class="nav-idx">08</span><span class="nav-text">System Design</span></a>
+          <a href="09-cloud-cicd.html" class="nav-item"><span class="nav-idx">09</span><span class="nav-text">Cloud &amp; CI/CD</span></a>
+          <a href="39-modular-architecture-osgi.html" class="nav-item"><span class="nav-idx">39</span><span class="nav-text">Modular Architecture &amp; OSGi</span></a>
+          <a href="40-build-tools-gradle-maven.html" class="nav-item"><span class="nav-idx">40</span><span class="nav-text">Build Tools &amp; Agile</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Domain &amp; Craft</div>
+          <a href="11-dsa.html" class="nav-item"><span class="nav-idx">11</span><span class="nav-text">Coding &amp; DSA</span></a>
+          <a href="12-software-design.html" class="nav-item"><span class="nav-idx">12</span><span class="nav-text">Software Design</span></a>
+          <a href="13-design-patterns.html" class="nav-item"><span class="nav-idx">13</span><span class="nav-text">Design Patterns</span></a>
+          <a href="42-ecommerce-iot-domain.html" class="nav-item"><span class="nav-idx">42</span><span class="nav-text">E-commerce &amp; IoT Domain</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="Elasticsearch, SQL tuning và tối ưu truy vấn cho backend.">
+          <div class="nav-label">Data &amp; Search</div>
+          <a href="38-elasticsearch.html" class="nav-item"><span class="nav-idx">38</span><span class="nav-text">Elasticsearch</span></a>
+          <a href="41-sql-performance-tuning.html" class="nav-item"><span class="nav-idx">41</span><span class="nav-text">SQL Performance Tuning</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java">
+          <div class="nav-label">Roadmap</div>
+          <a href="14-study-plan.html" class="nav-item"><span class="nav-idx">↻</span><span class="nav-text">Kế hoạch ôn tập</span></a>
+        </div>
+        <div class="nav-group" data-track="java" data-track-name="Java Backend Interview" data-track-icon="java" data-track-desc="AI-assisted development, validation và automation cho kỹ sư phần mềm.">
+          <div class="nav-label">AI Engineering</div>
+          <a href="16-ai-assisted-engineering.html" class="nav-item"><span class="nav-idx">16</span><span class="nav-text">AI-assisted Engineering</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws" data-track-desc="DVA-C02: service cốt lõi, diagram trực quan và tình huống thi thật.">
+          <div class="nav-label">AWS Compute</div>
+          <a href="20-aws-lambda.html" class="nav-item"><span class="nav-idx">20</span><span class="nav-text">AWS Lambda</span></a>
+          <a href="21-aws-containers-ec2.html" class="nav-item"><span class="nav-idx">21</span><span class="nav-text">Containers &amp; EC2</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Storage</div>
+          <a href="22-aws-s3.html" class="nav-item"><span class="nav-idx">22</span><span class="nav-text">Amazon S3</span></a>
+          <a href="23-aws-storage.html" class="nav-item"><span class="nav-idx">23</span><span class="nav-text">EBS, EFS &amp; Storage</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Database</div>
+          <a href="24-aws-dynamodb.html" class="nav-item"><span class="nav-idx">24</span><span class="nav-text">DynamoDB</span></a>
+          <a href="25-aws-databases.html" class="nav-item"><span class="nav-idx">25</span><span class="nav-text">RDS, Aurora &amp; ElastiCache</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Networking</div>
+          <a href="26-aws-vpc-networking.html" class="nav-item"><span class="nav-idx">26</span><span class="nav-text">VPC &amp; Load Balancing</span></a>
+          <a href="27-aws-edge-apigw.html" class="nav-item"><span class="nav-idx">27</span><span class="nav-text">CloudFront, Route 53 &amp; API GW</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Integration</div>
+          <a href="28-aws-messaging.html" class="nav-item"><span class="nav-idx">28</span><span class="nav-text">SQS, SNS &amp; EventBridge</span></a>
+          <a href="29-aws-orchestration-streaming.html" class="nav-item"><span class="nav-idx">29</span><span class="nav-text">Step Functions &amp; Kinesis</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Security</div>
+          <a href="30-aws-iam-identity.html" class="nav-item"><span class="nav-idx">30</span><span class="nav-text">IAM, STS &amp; Cognito</span></a>
+          <a href="31-aws-security-encryption.html" class="nav-item"><span class="nav-idx">31</span><span class="nav-text">KMS &amp; Secrets</span></a>
+        </div>
+        <div class="nav-group" data-track="aws" data-track-name="AWS Certified Developer - Associate (DVA-C02)" data-track-icon="aws">
+          <div class="nav-label">AWS Delivery</div>
+          <a href="32-aws-cicd-iac.html" class="nav-item"><span class="nav-idx">32</span><span class="nav-text">CI/CD &amp; IaC</span></a>
+          <a href="33-aws-observability-troubleshooting.html" class="nav-item"><span class="nav-idx">33</span><span class="nav-text">CloudWatch, X-Ray &amp; Debug</span></a>
+        </div>
+        <div class="nav-group" data-track="frontend" data-track-name="Frontend Engineer (React)" data-track-icon="frontend" data-track-desc="React, TypeScript và kiến trúc frontend cho fullstack engineer.">
+          <div class="nav-label">Frontend</div>
+          <a href="34-fe-javascript-typescript.html" class="nav-item"><span class="nav-idx">34</span><span class="nav-text">JavaScript &amp; TypeScript</span></a>
+          <a href="35-react-fundamentals.html" class="nav-item"><span class="nav-idx">35</span><span class="nav-text">React Fundamentals</span></a>
+          <a href="36-react-hooks-data.html" class="nav-item"><span class="nav-idx">36</span><span class="nav-text">React Hooks &amp; Data</span></a>
+          <a href="37-react-architecture-testing.html" class="nav-item"><span class="nav-idx">37</span><span class="nav-text">React Architecture &amp; Testing</span></a>
+        </div>
+</div>
+    </nav>
+    <div class="sidebar-backdrop" id="backdrop" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('backdrop')&&document.getElementById('backdrop').classList.toggle('show')">☰</button>
+        <span class="breadcrumb"><a href="index.html" style="color:inherit;text-decoration:none">Home</a> / <strong>7. Microservices &amp; Distributed</strong></span>
+      </header>
+
+      <div class="content">
+        <div class="module-header">
+          <div class="module-eyebrow">Module 07</div>
+          <h1 class="module-title">Microservices &amp; Distributed Architecture</h1>
+          <p class="module-subtitle">Service Discovery, CQRS, Saga, Circuit Breaker, Kafka, Distributed Tracing — kiến thức cốt lõi cho hệ thống phân tán quy mô lớn.</p>
+        </div>
+
+        <!-- SECTION: Architecture -->
+        <section class="section" id="architecture">
+          <h2 class="section-title">Cơ trúc &amp; Mô hình giao tiếp</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q1</span> Microservices vs Monolith?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Monolith</strong> — single deployable unit 1 DB ACID vs <strong>Microservices</strong> — independent deploy, DB per service, scale per bottleneck, network complexity.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Trade-off phỏng vấn Architect: team scale, domain boundary vs operational cost tracing saga.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Monolith: simple debug TX ACID, scale whole app. Microservices: bounded context, polyglot, independent release, cần gateway/discovery/tracing/saga.</p>
+              </div>
+<div class="compare-grid">
+                <div class="compare-col">
+                  <h4>Monolith</h4>
+                  <ul>
+                    <li>Deploy đơn giản, debug dễ</li>
+                    <li>Transaction ACID trong 1 DB</li>
+                    <li>Scale toàn bộ app cùng lúc</li>
+                    <li>Phù hợp startup/MVP</li>
+                  </ul>
+                </div>
+              <ul>
+                    <li>Deploy đơn giản, debug dễ</li>
+                    <li>Transaction ACID trong 1 DB</li>
+                    <li>Scale toàn bộ app cùng lúc</li>
+                    <li>Phù hợp startup/MVP</li>
+                  </ul>
+              <ul>
+                    <li>Deploy độc lập từng service</li>
+                    <li>Tech stack linh hoạt</li>
+                    <li>Scale theo bottleneck service</li>
+                    <li>Phức tạp: network, tracing, ops</li>
+                  </ul>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Microservices: team lớn, domain rõ, scale khác nhau Order vs Notification. Monolith: MVP startup monolith-first.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không tách microservices sớm 2 dev — distributed monolith pain. Không monolith forever 50 team same codebase. Không tách without bounded context map.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>WMS: tách Order/Inventory/WCS khi team scale; MVP OMS monolith trước.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Distributed monolith shared DB; premature microservices.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Monolith simple deploy 1 DB ACID.</li>
+                  <li>Microservices independent deploy scale.</li>
+                  <li>Monolith-first MVP startup.</li>
+                  <li>Tách khi team domain scale.</li>
+                  <li>Cost: network tracing ops.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q2</span> Service Discovery &amp; API Gateway?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Service Discovery</strong> (Eureka/Consul) — register/lookup instance dynamic. <strong>API Gateway</strong> — single entry routing SSL rate limit auth aggregation.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Hardcode IP không scale K8s pod ephemeral. Gateway centralize cross-cutting thay mỗi service implement auth/rate limit.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Service register heartbeat → client lb://service-name (Spring Cloud). Gateway routes Path predicate → Filter rate limit → downstream.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Service A</div>
+              <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># Spring Cloud Gateway route</span>
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: <span class="tok-number">100</span></code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>K8s/Eureka dynamic instances ≥3 services. Gateway public API edge.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không service discovery 1 instance dev — overkill. Không gateway business logic fat — belongs domain service. Không skip health check registered dead instance.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Spring Cloud Gateway lb://order-service /api/orders/** rate limit Redis.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Eureka self-preservation false positive; gateway SPOF HA pair.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Discovery register lookup dynamic IP.</li>
+                  <li>Eureka Consul K8s DNS.</li>
+                  <li>Gateway routing SSL rate limit.</li>
+                  <li>lb://service-name not hardcode.</li>
+                  <li>Centralize cross-cutting edge.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q3</span> Sync vs Async communication?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Sync</strong> REST/gRPC caller chờ response immediate vs <strong>Async</strong> Kafka/RabbitMQ fire-and-forget event-driven eventual.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Sync tight coupling cascade failure. Async loose buffer retry DLQ — phù hợp notify side effect.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Sync Feign @GetMapping getStock immediate. Async kafkaTemplate.send OrderCreated fire. Choose sync query need result now; async side effect tolerate delay.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th></th><th>Sync (REST/gRPC)</th><th>Async (Kafka/RabbitMQ)</th></tr></thead>
+                <tbody>
+                  <tr><td>Coupling</td><td>Tight — caller chờ response</td><td>Loose — fire-and-forget / event-driven</td></tr>
+                  <tr><td>Latency</td><td>Immediate</td><td>Eventual</td></tr>
+                  <tr><td>Failure</td><td>Cascade nếu downstream down</td><td>Buffer, retry, DLQ</td></tr>
+                  <tr><td>Use case</td><td>Query cần kết quả ngay</td><td>Order placed → notify, inventory update</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Sync — OpenFeign</span>
+<span class="tok-annotation">@FeignClient</span>(name = <span class="tok-string">"inventory-service"</span>)
+<span class="tok-keyword">public interface</span> <span class="tok-class">InventoryClient</span> {
+  <span class="tok-annotation">@GetMapping</span>(<span class="tok-string">"/stock/{sku}"</span>)
+  <span class="tok-class">StockResponse</span> <span class="tok-function">getStock</span>(<span class="tok-annotation">@PathVariable</span> <span class="tok-class">String</span> sku);
+}
+
+<span class="tok-comment">// Async — Kafka</span>
+kafkaTemplate.send(<span class="tok-string">"order-events"</span>, order.getId(), <span class="tok-keyword">new</span> <span class="tok-class">OrderCreatedEvent</span>(order));</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Sync: checkout get stock price user waiting. Async: order placed → notify email inventory update ERP.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không sync chain 5 service no timeout/CB — cascade. Không async khi user cần immediate confirm payment success UI.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Checkout sync inventory check; OrderCreated Kafka async reserve stock notify WCS.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Sync cascade timeout; async ordering partition key.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Sync REST gRPC immediate tight.</li>
+                  <li>Async Kafka loose eventual.</li>
+                  <li>Sync query user waiting.</li>
+                  <li>Async side effect notify.</li>
+                  <li>Combine both hybrid flow.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q4</span> Database per Service?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Database per Service</strong> — mỗi microservice sở hữu schema riêng, không share table cross-service direct access.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Loose coupling schema evolve independent; tránh shared DB = distributed monolith mất lợi ích tách.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Order service PostgreSQL orders schema; Inventory service own DB. Cross-service: API call, event projection, CQRS read model — không JOIN cross DB.</p>
+              </div>
+<ul>
+                <li><strong>Ưu:</strong> Loose coupling, schema evolve độc lập, polyglot persistence</li>
+                <li><strong>Nhược:</strong> Không JOIN cross-service, distributed transaction phức tạp</li>
+                <li><strong>Cross-service query:</strong> API composition, CQRS read model, event projection</li>
+              </ul>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>True microservices bounded context. Polyglot persistence per access pattern.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không 2 services cùng read/write 1 table — anti-pattern. Không JOIN cross service DB — API composition thay. Không DB per service khi chưa tách domain — premature.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Order DB + Inventory DB; OrderCreated event sync stock view.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Shared database distributed monolith; cross-service query pain.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Each service owns DB schema.</li>
+                  <li>No shared table cross service.</li>
+                  <li>Cross query via API event.</li>
+                  <li>Polyglot per pattern.</li>
+                  <li>Shared DB anti-pattern.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q5</span> API Gateway vs BFF?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>API Gateway</strong> generic edge all clients vs <strong>BFF</strong> Backend-for-Frontend per client type (mobile/web) aggregate/transform API cho UI.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Mobile cần payload nhỏ khác web; BFF tránh over-fetching generic API; Gateway handle infra concerns.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Mobile App → Mobile BFF aggregate 3 calls → Gateway → microservices. Gateway: auth rate limit routing. BFF: shape response UI-specific.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node">Mobile App</div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>API Gateway</h4>
+                  <ul>
+                    <li>Generic — mọi client</li>
+                    <li>Routing, auth, rate limit</li>
+                    <li>Cross-cutting concerns</li>
+                  </ul>
+                </div>
+              <ul>
+                    <li>Generic — mọi client</li>
+                    <li>Routing, auth, rate limit</li>
+                    <li>Cross-cutting concerns</li>
+                  </ul>
+              <ul>
+                    <li>1 BFF per client type (web/mobile)</li>
+                    <li>Aggregate APIs cho UI cụ thể</li>
+                    <li>Transform response shape</li>
+                  </ul>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>BFF: multiple client types different UX needs. Gateway: always public edge.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không BFF per developer — per client type. Không business logic Gateway — domain service. Không duplicate BFF logic — share domain API.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Web BFF aggregate order+lines+tracking 1 call; Gateway SSL JWT rate limit.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>BFF too fat becomes monolith; gateway vs BFF responsibility blur.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Gateway generic edge routing auth.</li>
+                  <li>BFF per client mobile web.</li>
+                  <li>BFF aggregate transform UI.</li>
+                  <li>Gateway cross-cutting infra.</li>
+                  <li>Both: client → BFF → Gateway → svc.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Distributed Theory -->
+        <section class="section" id="distributed-theory">
+          <h2 class="section-title">Distributed Theory</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q6</span> CAP trong microservices?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>CAP</strong> trong microservices context: khi partition chọn CP (consistent unavailable) vs AP (available stale) per service business impact.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Không one-size — payment CP, catalog AP. Design each bounded context trade-off.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Order/Payment: CP PostgreSQL strong consistency. Product catalog: AP cache stale OK sync later. Inventory: CP or saga compensation.</p>
+              </div>
+<ul>
+                <li><strong>Order/Payment service:</strong> CP — không chấp nhận inconsistent balance</li>
+                <li><strong>Product catalog:</strong> AP — hiển thị stale price tạm OK, sync sau</li>
+                <li><strong>Inventory reservation:</strong> CP hoặc saga với compensation</li>
+              </ul>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Architecture review assign CAP profile per service. Partition assume always possible datacenter.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không AP payment balance. Không ignore partition rare — design assume P. Không CAP thay business risk analysis.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Catalog AP Redis cache 30s stale; Payment CP no stale balance.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>CAP-C vs ACID-C confusion; all AP wrong.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Partition choose C or A per service.</li>
+                  <li>Payment CP catalog AP.</li>
+                  <li>Assume partition possible.</li>
+                  <li>Business impact drives choice.</li>
+                  <li>Not all services same CAP.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q7</span> Eventual Consistency patterns?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Eventual consistency patterns</strong>: event-driven sync, read repair, compensating transaction, UI processing hint.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Microservices không global TX — user và dev phải chấp nhận delay vài giây với mitigation UX.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Event chain OrderCreated→ReserveStock→Charge. Read repair detect stale trigger sync. Compensate fail step. UI 'Đang xử lý' not fake instant.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Write (strong)</div>
+              <ul>
+                <li><strong>Event-driven sync:</strong> OrderCreated → InventoryReserved → PaymentCharged</li>
+                <li><strong>Read repair:</strong> Phát hiện stale read → trigger sync</li>
+                <li><strong>Compensating transaction:</strong> Rollback logic khi step fail</li>
+                <li><strong>UI hint:</strong> "Đơn hàng đang xử lý" thay vì giả vờ instant</li>
+              </ul>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Cross-service flow saga outbox. Read replica dashboard. Cross-region replication.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không eventual checkout payment confirmation without clear UX. Không read repair production without monitoring stale detection.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Order placed UI spinner 3s until PaymentCharged event update status.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>User expect instant; missing compensate stuck state.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Event-driven sync chain.</li>
+                  <li>Compensating fail step undo.</li>
+                  <li>UI hint processing not instant.</li>
+                  <li>Read repair stale detect.</li>
+                  <li>Accept seconds delay cross svc.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q8</span> Idempotency trong distributed systems?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Idempotency</strong> — cùng request/event xử lý nhiều lần = kết quả như 1 lần. Network retry duplicate message inevitable.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Kafka at-least-once, HTTP retry, duplicate webhook — double charge double reserve without idempotency.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Idempotency-Key header unique index return cached. processed_events table event_id dedup. Natural idempotency SET balance=100 not +=10.</p>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@KafkaListener</span>(topics = <span class="tok-string">"payment-events"</span>)
+<span class="tok-keyword">public void</span> <span class="tok-function">handle</span>(<span class="tok-class">PaymentEvent</span> event) {
+  <span class="tok-keyword">if</span> (processedRepo.existsByEventId(event.getId())) {
+    <span class="tok-keyword">return</span>; <span class="tok-comment">// already processed — skip</span>
+  }
+  paymentService.charge(event);
+  processedRepo.save(<span class="tok-keyword">new</span> <span class="tok-class">ProcessedEvent</span>(event.getId()));
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Mọi payment/charge endpoint. Kafka consumer mutate state. Outbox relay duplicate.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không idempotency key TTL quá ngắn retry window. Không check-then-act race — unique constraint DB. Không skip idempotent consumer khi at-least-once.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Payment Idempotency-Key duplicate POST return same paymentId no double charge.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Check-then-insert race; idempotency vs concurrency.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Retry causes duplicate delivery.</li>
+                  <li>Idempotency-Key unique index.</li>
+                  <li>processed event_id dedup table.</li>
+                  <li>Natural idempotent SET not +=.</li>
+                  <li>Consumer must idempotent at-least-once.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Patterns -->
+        <section class="section" id="patterns">
+          <h2 class="section-title">Kiến trúc mẫu (Patterns)</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q9</span> CQRS (Command Query Responsibility Segregation)?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>CQRS</strong> — tách Write model (commands business logic) và Read model (denormalized optimized queries).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Read/write ratio cao, query pattern khác write schema — scale read independent projection.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Command → Write DB → domain event → Read DB projection denormalized. Query hits Read DB direct not Write.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Command</div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Dashboard realtime task status WMS OMS. High read scale search list different write aggregate.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không CQRS simple CRUD 10 field — over-engineer. Không skip eventual lag read model — not strong consistent instant. Không 2 model without sync strategy.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Write create pick task; Read dashboard denormalized task+order+customer view.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>CQRS complexity; projection lag UX.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Separate write command read query.</li>
+                  <li>Write DB event projection read DB.</li>
+                  <li>Scale read independent.</li>
+                  <li>WMS dashboard read model.</li>
+                  <li>Not for simple CRUD.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q10</span> Event Sourcing?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Event Sourcing</strong> — lưu immutable event stream thay current state; rebuild state replay fold events.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Full audit trail temporal query debug replay — inventory mọi movement event không chỉ qty hiện tại.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>InventoryReceived +10, InventoryPicked -3 → currentQty fold sum. Event store append-only; snapshot periodic performance.</p>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Events thay vì UPDATE inventory SET qty=5</span>
+InventoryReceived(sku=<span class="tok-string">"A"</span>, qty=<span class="tok-number">10</span>, at=...)
+InventoryPicked(sku=<span class="tok-string">"A"</span>, qty=<span class="tok-number">3</span>, at=...)
+<span class="tok-comment">// Current qty = fold(events) = 10 - 3 = 7</span>
+
+<span class="tok-keyword">public int</span> <span class="tok-function">currentQty</span>(<span class="tok-class">String</span> sku) {
+  <span class="tok-keyword">return</span> eventStore.load(sku).stream()
+    .mapToInt(<span class="tok-class">InventoryEvent</span>::delta).sum();
+}</code></pre></div>
+              <ul>
+                <li><strong>Ưu:</strong> Full audit trail, temporal queries, debug replay</li>
+                <li><strong>Nhược:</strong> Complexity, eventual read model, schema evolution events</li>
+              </ul>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Audit compliance critical financial inventory. Temporal 'qty at time T' query.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không event sourcing mọi CRUD — complexity schema evolution. Không DELETE event — contradict immutable. Không skip read model projection — query slow replay all.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>WMS inventory event log every pick putaway rebuild qty audit dispute.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Event schema migration; snapshot strategy; not true undo DELETE.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Store events not just state.</li>
+                  <li>Rebuild fold replay events.</li>
+                  <li>Full audit trail temporal.</li>
+                  <li>Snapshot periodic performance.</li>
+                  <li>Complexity schema evolution.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q11</span> Bulkhead Pattern?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Bulkhead</strong> — cô lập resource pool (thread/semaphore/connection) — failure một dependency không sink toàn system.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Payment slow không chiếm hết Tomcat threads Inventory cần — vách ngăn tàu metaphor.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Resilience4j @Bulkhead separate thread pool per dependency. Semaphore max 5 parallel WCS calls. Separate Hikari pool per DB.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th>Isolation</th><th>Cơ chế</th><th>Ví dụ</th></tr></thead>
+                <tbody>
+                  <tr><td>Thread pool</td><td>Pool riêng per dependency</td><td>Payment pool 10 threads, Inventory pool 20</td></tr>
+                  <tr><td>Semaphore</td><td>Giới hạn concurrent calls</td><td>Max 5 parallel calls tới legacy WCS</td></tr>
+                  <tr><td>Connection pool</td><td>DB pool per service</td><td>Order DB ≠ Report DB pool</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Resilience4j Bulkhead</span>
+<span class="tok-annotation">@Bulkhead</span>(name = <span class="tok-string">"paymentService"</span>, type = Bulkhead.Type.THREADPOOL)
+<span class="tok-keyword">public</span> <span class="tok-class">PaymentResult</span> <span class="tok-function">charge</span>(<span class="tok-class">PaymentRequest</span> req) { ... }</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Multiple external dependencies varying SLA. Legacy WCS slow protect main API pool.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không bulkhead thay circuit breaker — complementary. Không pool quá nhỏ starve legit traffic. Không shared pool all deps — defeats purpose.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Payment bulkhead 10 threads; Inventory 30 threads — payment timeout không block inventory.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Bulkhead + CB + Timeout together; thread pool sizing.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Isolate resource pools per dep.</li>
+                  <li>Thread pool semaphore bulkhead.</li>
+                  <li>Failure contained not cascade.</li>
+                  <li>Resilience4j @Bulkhead.</li>
+                  <li>Complement CB timeout retry.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q12</span> Service Mesh (Istio, Linkerd)?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Service Mesh</strong> (Istio/Linkerd) — sidecar proxy (Envoy) handle mTLS, traffic canary, retry, timeout, observability service-to-service.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Language-agnostic infra layer — không mỗi Java service copy retry mTLS logic.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Service A → sidecar Envoy → mTLS → sidecar → Service B. Control plane Istio VirtualService canary weight 5%→100%.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Service A</div>
+              <ul>
+                <li><strong>mTLS:</strong> Encrypt + mutual auth tự động</li>
+                <li><strong>Traffic management:</strong> Canary, A/B, retry, timeout</li>
+                <li><strong>Observability:</strong> Metrics, tracing, access log</li>
+              </ul>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>>20 services, zero-trust mTLS, complex canary multi-service. K8s native platform.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không mesh 5 services — Spring Cloud Gateway + Resilience4j đủ. Không mesh without ops team — complexity. Không sidecar latency sensitive ignore overhead ~1-2ms.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>50 microservices Istio mTLS canary order-service v2 5% traffic.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Operational complexity; sidecar resource cost; debug harder.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Sidecar proxy Envoy per pod.</li>
+                  <li>mTLS traffic canary retry.</li>
+                  <li>Istio Linkerd control plane.</li>
+                  <li>>20 services zero-trust.</li>
+                  <li>Small team Gateway Resilience4j enough.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Resilience -->
+        <section class="section" id="resilience">
+          <h2 class="section-title">Khả năng chịu lỗi &amp; Giao dịch phân tán</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q13</span> Circuit Breaker (Resilience4j) — CLOSED / OPEN / HALF-OPEN?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Circuit Breaker</strong> là cơ chế bảo vệ caller khỏi cascade failure: khi dependency (Inventory, Payment, legacy WCS) liên tục timeout hoặc trả lỗi, breaker <em>ngắt mạch</em> — từ chối gọi ngay (fail-fast) thay vì giữ thread chờ. Resilience4j quản lý 3 trạng thái: <strong>CLOSED</strong> (bình thường, đo failure rate trên sliding window), <strong>OPEN</strong> (reject mọi call, trả fallback hoặc exception), <strong>HALF-OPEN</strong> (cho phép số call thử nghiệm giới hạn để kiểm tra dependency đã hồi phục chưa).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Microservices sync (Feign/gRPC) tạo chuỗi phụ thuộc: Order → Inventory → WMS. Một service chậm làm cạn thread pool toàn bộ caller — <strong>retry storm</strong> càng làm downstream sụp nhanh hơn. Circuit breaker cắt vòng lặp sớm, giữ capacity cho request khác và cho phép dependency thở (recovery time). Kết hợp Bulkhead + Timeout: breaker là lớp phòng thủ cuối sau khi retry đã thất bại.</p>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node success">CLOSED</div>
+                  <div class="flow-arrow">calls pass → đo failure%</div>
+                </div>
+                <div class="flow-arrow">↓ failure rate &gt; threshold (vd: 50% / 10 calls) HOẶC slow call rate cao</div>
+                <div class="flow-row">
+                  <div class="flow-node primary">OPEN</div>
+                  <div class="flow-arrow">reject all → fallback / CallNotPermittedException</div>
+                </div>
+                <div class="flow-arrow">↓ waitDurationInOpenState (vd: 30s) hết hạn</div>
+                <div class="flow-row">
+                  <div class="flow-node secondary">HALF-OPEN</div>
+                  <div class="flow-arrow">permittedNumberOfCallsInHalfOpenState (vd: 3 probe calls)</div>
+                </div>
+                <div class="flow-arrow">↓ probe success → CLOSED &nbsp;|&nbsp; probe fail → OPEN (reset timer)</div>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Resilience4j dùng <code>CircuitBreakerRegistry</code> + sliding window đếm failure/slow call. Cấu hình qua <code>application.yml</code>: <code>failureRateThreshold</code>, <code>waitDurationInOpenState</code>, <code>minimumNumberOfCalls</code>, <code>permittedNumberOfCallsInHalfOpenState</code>. Annotation <code>@CircuitBreaker</code> bọc method; khi OPEN, gọi <code>fallbackMethod</code>. Metrics export qua Micrometer: <code>resilience4j.circuitbreaker.state</code>, <code>calls</code> — alert khi state=OPEN kéo dài.</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>State</th><th>Hành vi</th><th>Caller nhận</th><th>Chuyển state khi</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>CLOSED</strong></td><td>Forward mọi request</td><td>Response bình thường hoặc lỗi thật</td><td>Failure rate vượt ngưỡng → OPEN</td></tr>
+                  <tr><td><strong>OPEN</strong></td><td>Fail-fast, không gọi downstream</td><td>Fallback / cached / degraded mode</td><td>Timer hết → HALF-OPEN</td></tr>
+                  <tr><td><strong>HALF-OPEN</strong></td><td>Probe N call thử</td><td>Success → real response; fail → fallback</td><td>Đủ probe OK → CLOSED; fail → OPEN</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Gọi dependency không kiểm soát được SLA: third-party payment, legacy WCS TCP, catalog service quá tải peak sale. Đặc biệt khi caller có thread pool hữu hạn (Tomcat 200 threads) và downstream latency spike 5s → 30s. Fallback hợp lệ: cache stock cũ, default "unknown availability", queue async thay vì block.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không bọc operation <strong>bắt buộc strong consistency</strong> mà fallback gây sai nghiệp vụ (charge payment với số dư cache cũ). Không dùng breaker thay Retry/Timeout — thiếu timeout thì OPEN muộn, thread vẫn chết. Tránh breaker trên internal DB call cùng JVM — dùng connection pool + query timeout. Không set <code>minimumNumberOfCalls=1</code> trên traffic thấp → flapping OPEN/CLOSED liên tục.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// application.yml — Resilience4j Circuit Breaker</span>
+resilience4j.circuitbreaker:
+  instances:
+    inventory:
+      slidingWindowSize: <span class="tok-number">20</span>
+      failureRateThreshold: <span class="tok-number">50</span>
+      waitDurationInOpenState: <span class="tok-number">30</span>s
+      permittedNumberOfCallsInHalfOpenState: <span class="tok-number">3</span>
+      slowCallDurationThreshold: <span class="tok-number">2</span>s
+      slowCallRateThreshold: <span class="tok-number">80</span>
+
+<span class="tok-annotation">@CircuitBreaker</span>(name = <span class="tok-string">"inventory"</span>, fallbackMethod = <span class="tok-string">"fallbackStock"</span>)
+<span class="tok-annotation">@Retry</span>(name = <span class="tok-string">"inventory"</span>)       <span class="tok-comment">// retry TRƯỚC khi breaker đếm failure</span>
+<span class="tok-annotation">@TimeLimiter</span>(name = <span class="tok-string">"inventory"</span>)   <span class="tok-comment">// timeout 3s</span>
+<span class="tok-keyword">public</span> <span class="tok-class">CompletableFuture</span>&lt;<span class="tok-class">StockResponse</span>&gt; <span class="tok-function">getStockAsync</span>(<span class="tok-class">String</span> sku) {
+  <span class="tok-keyword">return</span> CompletableFuture.supplyAsync(() -&gt; inventoryClient.getStock(sku));
+}
+
+<span class="tok-keyword">public</span> <span class="tok-class">StockResponse</span> <span class="tok-function">fallbackStock</span>(<span class="tok-class">String</span> sku, <span class="tok-class">Throwable</span> t) {
+  <span class="tok-keyword">return</span> stockCache.get(sku)                      <span class="tok-comment">// stale-while-degrade</span>
+      .orElse(<span class="tok-class">StockResponse</span>.unknown(sku));
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case — WMS OMS gọi WCS legacy</div>
+                Peak wave release: 500 pick task/giây gọi WCS reservation API. WCS restart → latency 10s. Circuit breaker OPEN sau 30s, Order service trả "task queued" thay vì treo 200 Tomcat threads; sau HALF-OPEN probe OK, traffic restore tự động.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                "Retry + Circuit Breaker cùng lúc có conflict không?" — Retry chạy <em>trong</em> CLOSED; mỗi retry fail đều đếm vào window. Pitfall: fallback không idempotent (double-reserve stock). Trap: HALF-OPEN chỉ 1 probe call nhưng traffic burst → probe success nhưng call tiếp theo fail ngay → flapping. Fix: <code>permittedNumberOfCallsInHalfOpenState ≥ 3</code> + alert on OPEN duration.
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Circuit Breaker = cầu dao tự ngắt khi dependency lỗi liên tục — tránh cascade failure.</li>
+                  <li>3 state Resilience4j: CLOSED bình thường → OPEN fail-fast + fallback → HALF-OPEN probe thử → success thì CLOSED.</li>
+                  <li>Cấu hình: failure rate threshold, wait duration OPEN, số probe HALF-OPEN.</li>
+                  <li>Kết hợp Timeout + Retry + Bulkhead; fallback phải an toàn nghiệp vụ (cache, degraded).</li>
+                  <li>Không dùng cho payment bắt buộc real-time balance; monitor metric state=OPEN.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q14</span> Saga Pattern — Choreography vs Orchestration + Compensating?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Saga</strong> là chuỗi <em>local transactions</em> phân tán — mỗi service commit DB riêng, không có 2PC/XA cross-DB. Khi một bước fail, saga chạy <strong>compensating transactions</strong> (hành động nghiệp vụ undo: release stock, refund, cancel shipment) theo thứ tự ngược. Hai style: <strong>Choreography</strong> (services tự phản ứng event, không coordinator trung tâm) và <strong>Orchestration</strong> (Saga Orchestrator gọi từng participant theo state machine).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Database-per-service loại bỏ distributed ACID. Order + Inventory + Payment không thể <code>BEGIN GLOBAL TX</code>. Saga chấp nhận <strong>eventual consistency</strong> nhưng đảm bảo business invariant: không vừa charge tiền vừa không reserve stock. Compensating ≠ rollback SQL — là logic nghiệp vụ (refund có thể mất phí, email đã gửi không "unsend").</p>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">① Order Svc</div>
+                  <div class="flow-arrow">CreateOrder (PENDING)</div>
+                  <div class="flow-node">② Inventory Svc</div>
+                  <div class="flow-arrow">ReserveStock</div>
+                  <div class="flow-node secondary">③ Payment Svc</div>
+                  <div class="flow-arrow">Charge</div>
+                  <div class="flow-node success">④ Confirm Order</div>
+                </div>
+                <div class="flow-arrow">↓ <strong>Happy path</strong> — Orchestrator hoặc event chain: OrderCreated → StockReserved → PaymentCaptured → OrderConfirmed</div>
+                <div class="flow-row">
+                  <div class="flow-node primary">③ Payment FAIL</div>
+                  <div class="flow-arrow">→ trigger compensate</div>
+                  <div class="flow-node">② ReleaseStock</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-node">① CancelOrder</div>
+                  <div class="flow-arrow">→ saga COMPLETED_WITH_COMPENSATION</div>
+                </div>
+                <div class="flow-arrow">Compensate chạy <em>ngược thứ tự</em> forward steps đã commit — mỗi compensate phải idempotent (retry-safe)</div>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>Choreography</h4>
+                  <ul>
+                    <li>Order publish <code>OrderCreated</code> → Inventory listen, publish <code>StockReserved</code> → Payment listen</li>
+                    <li>Loose coupling, không single point of failure</li>
+                    <li>Compensate: Payment publish <code>PaymentFailed</code> → Inventory tự <code>ReleaseStock</code></li>
+                    <li>Khó trace/debug khi ≥5 services; implicit flow trong event graph</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>Orchestration</h4>
+                  <ul>
+                    <li>Orchestrator (Temporal/Camunda/custom) gọi REST/command từng step</li>
+                    <li>State machine rõ: PENDING → RESERVED → PAID → CONFIRMED | COMPENSATING</li>
+                    <li>Fail path explicit: <code>onPaymentFail → compensateInventory → compensateOrder</code></li>
+                    <li>Orchestrator cần HA; central logic dễ test và audit</li>
+                  </ul>
+                </div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Forward step</th><th>Compensating action</th><th>Idempotent key</th></tr></thead>
+                <tbody>
+                  <tr><td>Reserve inventory</td><td>Release inventory (trả reserved qty)</td><td>reservationId</td></tr>
+                  <tr><td>Charge payment</td><td>Refund / void authorization</td><td>paymentId + idempotencyKey</td></tr>
+                  <tr><td>Create shipment label</td><td>Void label / cancel pickup</td><td>shipmentId</td></tr>
+                  <tr><td>Send confirmation email</td><td>Send cancellation notice (không undo email cũ)</td><td>orderId + "cancel-notify"</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Choreography: mỗi service subscribe event, thực hiện local TX + publish event tiếp; dùng Outbox đảm bảo publish atomic với DB write. Orchestration: orchestrator lưu saga instance state, gọi participant API, timeout → trigger compensate. Cả hai cần: saga ID correlation, idempotent compensate handler, timeout per step, dead-letter cho compensate fail (manual intervention).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Long-running business flow cross-service: place order, booking travel, WMS wave release (allocate → pick → ship). Flow có ≥3 bước và chấp nhận vài giây eventual consistency. Orchestration khi flow phức tạp, cần visibility SLA, audit compliance. Choreography khi team độc lập, event-driven culture mạnh, flow đơn giản linear.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không dùng saga khi cần <strong>strong consistency ngay lập tức</strong> (chuyển tiền real-time giữa 2 ledger — cân nhắc 2PC hoặc single service). Không compensate được (physical action: hàng đã lên xe). Tránh choreography cho flow có branch/parallel phức tạp — debug nightmare. Không quên: compensate cũng có thể fail → cần retry + alerting, không assume auto-heal.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Orchestration-style Saga Orchestrator (simplified)</span>
+<span class="tok-annotation">@Service</span>
+<span class="tok-keyword">public class</span> <span class="tok-class">OrderSagaOrchestrator</span> {
+  <span class="tok-keyword">public void</span> <span class="tok-function">execute</span>(<span class="tok-class">CreateOrderCommand</span> cmd) {
+    <span class="tok-class">String</span> sagaId = cmd.getSagaId();
+    <span class="tok-keyword">try</span> {
+      orderService.createPending(cmd);                    <span class="tok-comment">// step 1</span>
+      inventoryClient.reserve(sagaId, cmd.getLines());    <span class="tok-comment">// step 2</span>
+      paymentClient.charge(sagaId, cmd.getTotal());       <span class="tok-comment">// step 3 — FAIL here</span>
+      orderService.confirm(cmd.getOrderId());
+    } <span class="tok-keyword">catch</span> (<span class="tok-class">PaymentException</span> ex) {
+      compensate(sagaId, cmd);  <span class="tok-comment">// reverse order: release → cancel</span>
+    }
+  }
+
+  <span class="tok-keyword">private void</span> <span class="tok-function">compensate</span>(<span class="tok-class">String</span> sagaId, <span class="tok-class">CreateOrderCommand</span> cmd) {
+    inventoryClient.release(sagaId);   <span class="tok-comment">// idempotent: IF reserved THEN release</span>
+    orderService.cancel(cmd.getOrderId());
+    sagaLog.markCompensated(sagaId);
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case — OMS outbound wave</div>
+                WMS release wave: Allocate bins → Lock inventory → Dispatch WCS tasks → Confirm ERP. Payment step fail (credit hold expired) → compensate: cancel WCS tasks, release bin locks, revert allocation. Orchestrator giữ snapshot trạng thái từng step cho operator dashboard.
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                "Saga = eventual consistency, vậy user thấy gì?" — UI hiển thị PENDING/COMPENSATING, không fake CONFIRMED. Trap: compensate không idempotent → retry release stock 2 lần → oversell. Trap: choreography cyclic event (A→B→A) — thiếu saga timeout. "Saga vs 2PC?" — Saga availability cao hơn, trade-off temporary inconsistency window.
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Saga = chuỗi local TX phân tán, không 2PC; fail thì compensate ngược thứ tự.</li>
+                  <li>Choreography: event-driven, decentralized; Orchestration: coordinator + state machine.</li>
+                  <li>Compensating ≠ SQL rollback — release stock, refund, cancel shipment; phải idempotent.</li>
+                  <li>Happy path: Create → Reserve → Pay → Confirm; fail path: Pay fail → Release → Cancel.</li>
+                  <li>Dùng khi database-per-service; không dùng khi cần instant strong consistency.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q15</span> Two-Phase Commit (2PC)?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Two-Phase Commit 2PC</strong>: Coordinator Phase1 PREPARE all vote YES/NO → Phase2 COMMIT or ABORT all. XA/JTA distributed ACID.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Strong consistency cross DB — hiểu tại sao microservices tránh: blocking, coordinator SPOF, không scale.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Coordinator send PREPARE → participants lock vote → all YES → COMMIT else ABORT. JTA @Transactional cross 2 XA datasources.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row"><div class="flow-node primary">Coordinator</div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Legacy enterprise same vendor 2 DB must atomic rare. Understand why saga preferred microservices.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không 2PC microservices default — blocking availability. Không XA cross cloud latency. Prefer saga outbox eventual.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Interview explain 2PC then why saga/outbox replace in Order+Inventory split.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Coordinator fail blocking; 2PC vs 2PL name confusion.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Phase1 PREPARE vote YES NO.</li>
+                  <li>Phase2 COMMIT if all YES.</li>
+                  <li>Blocking coordinator SPOF.</li>
+                  <li>Microservices prefer saga.</li>
+                  <li>XA rare latency availability cost.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q16</span> Transactional Outbox Pattern — giải quyết Dual-Write?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Transactional Outbox</strong> giải bài toán <strong>dual-write</strong>: service cần vừa ghi DB vừa publish message (Kafka) nhưng hai thao tác không nằm cùng transaction — crash giữa chừng gây mất event hoặc duplicate. Outbox ghi event vào bảng <code>outbox_events</code> <em>trong cùng DB transaction</em> với business data; process relay (polling hoặc CDC) đọc outbox và publish sang message broker, đánh dấu processed.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Naive approach: <code>save(order); kafka.send(event);</code> — nếu crash sau save trước send → downstream không biết order mới (inventory không reserve). Ngược lại send trước save fail → ghost event. Trong saga/event-driven, mất event = stuck saga; duplicate event = double charge nếu consumer không idempotent. Outbox biến "2 writes" thành "1 atomic DB TX + 1 at-least-once relay".</p>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Service</div>
+                  <div class="flow-arrow">① BEGIN TX</div>
+                  <div class="flow-node">orders + outbox_events</div>
+                  <div class="flow-arrow">② COMMIT (atomic)</div>
+                </div>
+                <div class="flow-arrow">↓ Relay/Debezium CDC (async, at-least-once)</div>
+                <div class="flow-row">
+                  <div class="flow-node secondary">Outbox Relay</div>
+                  <div class="flow-arrow">③ publish</div>
+                  <div class="flow-node success">Kafka topic</div>
+                  <div class="flow-arrow">④ mark processed / delete outbox row</div>
+                </div>
+                <div class="flow-arrow" style="margin-top:12px"><strong>Dual-write problem (KHÔNG dùng outbox):</strong></div>
+                <div class="flow-row">
+                  <div class="flow-node primary">save(order) ✓</div>
+                  <div class="flow-arrow">crash ✗</div>
+                  <div class="flow-node">kafka.send — NEVER</div>
+                  <div class="flow-arrow">→ DB có order, Inventory không nhận event</div>
+                </div>
+                <div class="flow-row">
+                  <div class="flow-node">kafka.send ✓</div>
+                  <div class="flow-arrow">save fail ✗</div>
+                  <div class="flow-node primary">→ ghost OrderCreated, consumer reserve stock cho order không tồn tại</div>
+                </div>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Trong <code>@Transactional</code>: insert business row + insert outbox row (event_type, aggregate_id, payload JSON, created_at, status=PENDING). Relay options: (1) <strong>Polling publisher</strong> — scheduled job <code>SELECT ... FOR UPDATE SKIP LOCKED</code>, publish, UPDATE status=SENT; (2) <strong>Debezium CDC</strong> — capture outbox insert → Kafka Connect, không polling load. Consumer bên nhận vẫn phải idempotent (dedup by event_id). Ordering: partition key = aggregate_id (orderId).</p>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Relay strategy</th><th>Ưu</th><th>Nhược</th></tr></thead>
+                <tbody>
+                  <tr><td>Polling publisher</td><td>Đơn giản, không cần Kafka Connect</td><td>Polling lag, DB load, cần SKIP LOCKED</td></tr>
+                  <tr><td>Debezium CDC</td><td>Near real-time, decouple khỏi app poll</td><td>Ops phức tạp, schema evolution, tombstone</td></tr>
+                  <tr><td>Transactional Message (Kafka TX)</td><td>Exactly-once nếu all Kafka</td><td>Chỉ work Kafka↔DB cùng ecosystem, latency</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Mọi nơi service vừa mutate DB vừa emit domain event: OrderCreated, StockReserved, PickTaskReleased. Bắt buộc trong saga choreography (event phải reliable). WMS: confirm pick → update inventory + notify ERP qua Kafka. Kết hợp với idempotent consumer + schema registry.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Fire-and-forget telemetry không ảnh hưởng nghiệp vụ (metric, log) — at-most-once OK. Single monolith với sync in-process event bus (Spring ApplicationEvent) — không cần outbox. Khi có thể dùng single write + CDC trên business table trực tiếp (Debezium on orders) — nhưng khó filter event type và versioning.</p>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Transactional</span>
+<span class="tok-keyword">public void</span> <span class="tok-function">createOrder</span>(<span class="tok-class">Order</span> order) {
+  orderRepo.save(order);
+  outboxRepo.save(<span class="tok-class">OutboxEvent</span>.builder()
+      .id(UUID.randomUUID())
+      .aggregateType(<span class="tok-string">"Order"</span>)
+      .aggregateId(order.getId())
+      .eventType(<span class="tok-string">"OrderCreated"</span>)
+      .payload(objectMapper.writeValueAsString(order))
+      .status(<span class="tok-class">OutboxStatus</span>.PENDING)
+      .build());
+} <span class="tok-comment">// commit cả order + outbox — atomic</span>
+
+<span class="tok-comment">// Polling relay — mỗi instance compete SKIP LOCKED</span>
+<span class="tok-annotation">@Scheduled</span>(fixedDelay = <span class="tok-number">500</span>)
+<span class="tok-keyword">public void</span> <span class="tok-function">publishOutbox</span>() {
+  <span class="tok-class">List</span>&lt;<span class="tok-class">OutboxEvent</span>&gt; batch = outboxRepo.findPendingForUpdate(<span class="tok-number">100</span>);
+  <span class="tok-keyword">for</span> (<span class="tok-class">OutboxEvent</span> e : batch) {
+    kafkaTemplate.send(<span class="tok-string">"order-events"</span>, e.getAggregateId(), e.getPayload());
+    e.markSent();  <span class="tok-comment">// hoặc DELETE — relay at-least-once, consumer dedup</span>
+  }
+}</code></pre></div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case — WMS pick confirm</div>
+                Picker confirm pick: UPDATE inventory + INSERT outbox <code>PickConfirmed</code> cùng TX. Relay publish → ERP adjustment + shipping label service. Crash sau commit: relay retry → ERP nhận đúng 1 lần (idempotent by event_id).
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                "Outbox = exactly-once?" — <strong>Không</strong>, relay at-least-once; exactly-once cần idempotent consumer. Trap: quên DELETE/archived outbox → bảng phình vô hạn. Trap: relay publish trước mark SENT, crash → duplicate (OK nếu consumer dedup). "Outbox vs Kafka Transaction?" — Outbox decouple DB vendor khỏi broker; Kafka TX tight coupling.
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Dual-write problem: save DB + send Kafka không atomic — crash → mất event hoặc ghost event.</li>
+                  <li>Outbox: ghi event vào bảng outbox cùng transaction với business data.</li>
+                  <li>Relay (poll hoặc Debezium CDC) publish sang Kafka at-least-once.</li>
+                  <li>Consumer phải idempotent dedup theo event_id.</li>
+                  <li>Dùng mọi domain event quan trọng; không cần cho telemetry fire-and-forget.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q17</span> Distributed Tracing?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Distributed Tracing</strong> — TraceId xuyên request, SpanId mỗi hop operation. OpenTelemetry/Micrometer → Zipkin/Jaeger/Tempo.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>1 request qua Gateway→Order→Inventory→Payment — debug latency 5s cần correlate logs spans.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Propagate traceparent/X-B3-TraceId header. MDC log pattern %X{traceId}. Auto-instrument Feign Kafka. Manual span reserve-inventory.</p>
+              </div>
+<div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Gateway</div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Micrometer Tracing + OpenTelemetry</span>
+<span class="tok-comment">// Auto-propagate via HTTP headers: traceparent, X-B3-TraceId</span>
+logging.pattern.level=%<span class="tok-number">5</span>p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]
+
+<span class="tok-comment">// Manual span</span>
+<span class="tok-class">Tracer</span> tracer = ...;
+<span class="tok-class">Span</span> span = tracer.nextSpan().name(<span class="tok-string">"reserve-inventory"</span>).start();</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Microservices ≥3 hops production debug SLO. Correlate log metric trace.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không trace without sampling high traffic — cost storage. Không break propagation async thread — MDC lost @Async. Không PII in span attributes.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Order 502 traceId abc: inventory timeout 4.2s span pinpoint.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>MDC async propagation; trace log correlation.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>TraceId whole request SpanId hop.</li>
+                  <li>Propagate HTTP header traceparent.</li>
+                  <li>Micrometer OpenTelemetry export.</li>
+                  <li>Kibana traceId correlate logs.</li>
+                  <li>Sample rate production cost.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q18</span> Compensating Transaction?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Compensating Transaction</strong> — saga undo business effect: release stock, refund payment — không ACID rollback cross-service.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Distributed không global rollback — compensate idempotent business logic reverse forward action.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Forward Reserve→Compensate Release. Charge→Refund. Email sent không unsend — send cancellation. Design idempotent retry compensate.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th>Forward Action</th><th>Compensating Action</th></tr></thead>
+                <tbody>
+                  <tr><td>Reserve inventory</td><td>Release inventory</td></tr>
+                  <tr><td>Charge payment</td><td>Refund payment</td></tr>
+                  <tr><td>Create shipment</td><td>Cancel shipment</td></tr>
+                  <tr><td>Send confirmation email</td><td>Send cancellation email (không "undo" email)</td></tr>
+                </tbody>
+              </table>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Saga step fail mid-flow orchestration/choreography. WMS cancel order release allocation.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không compensate = SQL ROLLBACK cross DB — impossible. Không compensate không idempotent — double release. Không expect undo email physical.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Payment fail after reserve: compensate release inventory idempotent.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Compensate ≠ rollback; not all actions reversible.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Saga fail run compensate undo.</li>
+                  <li>Release stock refund payment.</li>
+                  <li>Business logic not SQL rollback.</li>
+                  <li>Idempotent compensate retry.</li>
+                  <li>Email can't unsend send cancel.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- SECTION: Kafka -->
+        <section class="section" id="kafka">
+          <h2 class="section-title">Message Streaming (Kafka)</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q19</span> Kafka Consumer Lag?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Kafka Consumer Lag</strong> = latest producer offset − committed consumer offset. Lag cao = consumer không theo kịp throughput.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>WMS event backlog pick task delay — SLO breach monitor alert before user report.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>kafka-consumer-groups --describe. Burrow/Prometheus kafka_consumergroup_lag. Fix: scale consumers ≤ partitions, optimize handler, async, reduce GC pause.</p>
+              </div>
+<ul>
+                <li><strong>Nguyên nhân:</strong> Consumer chậm, quá ít partitions/consumers, rebalance, GC pause</li>
+                <li><strong>Monitor:</strong> <code>kafka-consumer-groups.sh --describe</code>, Burrow, Prometheus <code>kafka_consumergroup_lag</code></li>
+                <li><strong>Fix:</strong> Scale consumers (≤ partitions), optimize handler, async processing</li>
+              </ul>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Monitor always production Kafka. Alert lag > threshold 5min.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không thêm consumer > partition count — idle waste. Không ignore rebalance lag spike deploy. Không sync slow handler without scale blame Kafka.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Pick event lag 50K → scale consumer 6→12 match 12 partitions.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Consumers ≤ partitions rule; rebalance stop consume temporary lag.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Lag = latest offset - committed.</li>
+                  <li>High lag consumer slow under-partitioned.</li>
+                  <li>Scale consumers max partitions.</li>
+                  <li>Monitor Burrow Prometheus.</li>
+                  <li>Optimize handler GC rebalance.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q20</span> Message Ordering &amp; Delivery semantics?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Message ordering</strong> Kafka within partition same key ordered. <strong>Delivery semantics</strong>: at-most-once, at-least-once+idempotent, exactly-once Kafka TX.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Order events same orderId must process sequence Created→Paid→Shipped. Wrong semantics lose or duplicate payment.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Producer key=orderId same partition. Consumer manual ack after process at-least-once. Exactly-once: idempotent producer + transaction consume-process-produce.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th>Semantics</th><th>Mô tả</th><th>Cách đạt</th></tr></thead>
+                <tbody>
+                  <tr><td>At-most-once</td><td>Có thể mất message</td><td>Commit trước process</td></tr>
+                  <tr><td>At-least-once</td><td>Có thể duplicate</td><td>Commit sau process + idempotent consumer</td></tr>
+                  <tr><td>Exactly-once</td><td>Không mất, không dup</td><td>Kafka transactions + idempotent producer</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Order events cùng orderId → cùng partition → ordered</span>
+kafkaTemplate.send(<span class="tok-string">"order-events"</span>, order.getId(), event);
+
+<span class="tok-comment">// Consumer: disable auto-commit, commit after process</span>
+<span class="tok-annotation">@KafkaListener</span>(topics = <span class="tok-string">"order-events"</span>)
+<span class="tok-keyword">public void</span> <span class="tok-function">listen</span>(<span class="tok-class">OrderEvent</span> event, <span class="tok-class">Acknowledgment</span> ack) {
+  process(event);
+  ack.acknowledge();
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Partition key aggregate id orderId sku. At-least-once default + idempotent consumer.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không expect global order cross partition. Không auto-commit before process — at-most-once lose. Không exactly-once without idempotent sink complexity.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>order-events key orderId guarantee Created before Paid same partition.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Order cross partition none; ack timing semantics.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Order guaranteed within partition.</li>
+                  <li>Same key same partition ordered.</li>
+                  <li>At-least-once ack after process.</li>
+                  <li>Idempotent consumer dedup.</li>
+                  <li>Exactly-once Kafka TX complex.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q21</span> Dead Letter Queue (DLQ)?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Dead Letter Queue DLQ</strong> — message fail N retries → separate topic không block partition investigate replay.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Poison message infinite retry blocks consumer lag entire partition — WMS pick event parse error.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>DefaultErrorHandler DeadLetterPublishingRecoverer FixedBackOff 3 retries → DLQ topic. Monitor DLQ alert replay tooling after fix.</p>
+              </div>
+<div class="code-block" data-lang="java"><pre><code><span class="tok-annotation">@Bean</span>
+<span class="tok-keyword">public</span> <span class="tok-class">ConcurrentKafkaListenerContainerFactory</span>&lt;<span class="tok-class">String</span>, <span class="tok-class">OrderEvent</span>&gt; <span class="tok-function">factory</span>() {
+  factory.setCommonErrorHandler(<span class="tok-keyword">new</span> <span class="tok-class">DefaultErrorHandler</span>(
+    <span class="tok-keyword">new</span> <span class="tok-class">DeadLetterPublishingRecoverer</span>(template),
+    <span class="tok-keyword">new</span> <span class="tok-class">FixedBackOff</span>(<span class="tok-number">1000L</span>, <span class="tok-number">3</span>))); <span class="tok-comment">// 3 retries → DLQ</span>
+  <span class="tok-keyword">return</span> factory;
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Mọi Kafka consumer production mutate state. Parse error schema mismatch downstream.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không DLQ without monitor — silent data loss perception. Không replay DLQ without fix root cause — re-poison. Không DLQ thay idempotency business duplicate.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>PickTask event invalid sku 3 fail → DLQ → ops fix master data replay.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>DLQ not trash — monitor replay; block partition if no DLQ.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Fail N retries route DLQ topic.</li>
+                  <li>Unblock partition poison message.</li>
+                  <li>Monitor alert DLQ lag.</li>
+                  <li>Replay after fix bug.</li>
+                  <li>WMS pick event manual review.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q22</span> Schema Registry?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Schema Registry</strong> (Confluent) — central Avro/Protobuf/JSON Schema; producer consumer contract compatibility BACKWARD/FORWARD/FULL.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Event evolution add field warehouseId — old consumer không crash; enforce compatibility CI.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>KafkaAvroSerializer schema.registry.url. New field optional default BACKWARD compatible. CI check incompatible schema reject deploy.</p>
+              </div>
+<table class="feature-table">
+                <thead><tr><th>Compatibility</th><th>Quy tắc</th></tr></thead>
+                <tbody>
+                  <tr><td>Backward</td><td>Consumer mới đọc data producer cũ (thêm optional field OK)</td></tr>
+                  <tr><td>Forward</td><td>Consumer cũ đọc data producer mới</td></tr>
+                  <tr><td>Full</td><td>Cả backward + forward</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Confluent Schema Registry + Avro</span>
+props.put(<span class="tok-string">"value.serializer"</span>,
+  io.confluent.kafka.serializers.KafkaAvroSerializer.class);
+props.put(<span class="tok-string">"schema.registry.url"</span>, <span class="tok-string">"http://schema-registry:8081"</span>);
+
+<span class="tok-comment">// Schema evolve: thêm field "warehouseId" với default → backward compatible</span></code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Kafka Avro/Protobuf multi-team producer consumer. Event sourcing schema evolve frequent.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không schema registry JSON schemaless rapid change — chaos. Không BREAKING change without migration plan. Không skip compatibility check prod deploy.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>OrderCreated add warehouseId optional default — backward consumer old code OK.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>BACKWARD vs FORWARD; subject naming TopicNameStrategy.</p>
+              </div>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Central schema Avro Protobuf.</li>
+                  <li>Compatibility BACKWARD FORWARD FULL.</li>
+                  <li>Add optional field default safe.</li>
+                  <li>CI reject incompatible schema.</li>
+                  <li>Confluent Schema Registry Kafka.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+<section class="section" id="decomposition-contracts">
+          <h2 class="section-title">Phân rã Service, Resilience &amp; Contract</h2>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q23</span> Phân rã service: Business Capability vs Bounded Context (DDD)?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Decompose by business capability</strong> — mỗi service ứng với một năng lực tạo giá trị của doanh nghiệp (Order Management, Inventory Management). <strong>Decompose by subdomain</strong> (DDD) — mỗi service là một <em>bounded context</em>, phân loại core / supporting / generic subdomain.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Ranh giới sai sinh ra <strong>distributed monolith</strong>: service gọi nhau chatty, dùng chung DB, đổi một field vỡ cả chuỗi. Ranh giới đúng cho team autonomous (two-pizza, 6-10 người), deploy độc lập, mỗi thay đổi chỉ chạm một service (Common Closure Principle).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Bước 1: liệt kê business capability từ cơ cấu tổ chức + domain model cấp cao. Bước 2: vẽ các bounded context (DDD) và gắn nhãn core (tự làm, tạo khác biệt) / supporting / generic (mua hoặc SaaS). Bước 3: map 1 context = 1 service + DB riêng, giao tiếp qua API/event chứ không share bảng. Áp SRP (một lý do để thay đổi) và CCP (thứ thay đổi cùng nhau thì đóng gói cùng nhau).</p>
+              </div>
+              <div class="compare-grid">
+                <div class="compare-col">
+                  <h4>Business Capability</h4>
+                  <ul>
+                    <li>Góc nhìn: doanh nghiệp làm gì để tạo giá trị</li>
+                    <li>Ổn định, ít đổi nên kiến trúc bền</li>
+                    <li>Xuất phát từ org structure và domain model</li>
+                    <li>Khớp trực tiếp với team autonomous</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h4>Bounded Context (DDD subdomain)</h4>
+                  <ul>
+                    <li>Góc nhìn: ngôn ngữ và domain model nhất quán</li>
+                    <li>Chia core / supporting / generic subdomain</li>
+                    <li>Đặt tên theo ubiquitous language</li>
+                    <li>Sát code hơn, cho biên module rõ ràng</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Domain model</div>
+                  <div class="flow-arrow">&rarr;</div>
+                  <div class="flow-node secondary">Bounded contexts</div>
+                  <div class="flow-arrow">&rarr;</div>
+                  <div class="flow-node">1 context = 1 service + DB riêng</div>
+                </div>
+                <div class="flow-arrow">&darr;</div>
+                <div class="flow-row">
+                  <div class="flow-node success">Order</div>
+                  <div class="flow-node success">Inventory</div>
+                  <div class="flow-node">Notification (generic)</div>
+                </div>
+              </div>
+              <div class="code-block" data-lang="yaml"><pre><code><span class="tok-comment"># Map subdomain -&gt; quyền sở hữu service (khong share DB)</span>
+subdomains:
+  core:        [order, payment]        <span class="tok-comment"># loi the canh tranh, tu build</span>
+  supporting:  [inventory, shipping]   <span class="tok-comment"># tu build, khong khac biet</span>
+  generic:     [notification, auth]    <span class="tok-comment"># mua / dung SaaS</span></code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Team lớn hơn hai-pizza, domain phức tạp, các mảng có tốc độ deploy và nhu cầu scale khác nhau. Cần tách để scale đội ngũ và scale theo đúng service là điểm nghẽn.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>MVP/startup dưới 10 dev: monolith-first. Không tách theo tầng kỹ thuật (UI/DAO) vì sẽ tạo chatty call. Không tách khi chưa vẽ được bounded context — sẽ ra distributed monolith.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Sàn thương mại điện tử: Order và Inventory là core (tự build), Shipping là supporting, Notification/Auth là generic dùng dịch vụ có sẵn.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Tách theo danh từ (entity) thay vì theo capability/subdomain; shared database; service này gọi service kia theo vòng (cyclic).</p>
+              </div>
+              <p class="source-line">Nguồn: <a href="https://microservices.io/patterns/decomposition/decompose-by-business-capability.html" title="microservices.io - Decompose by business capability">microservices.io - Decompose by business capability</a>; <a href="https://microservices.io/patterns/decomposition/decompose-by-subdomain.html" title="microservices.io - Decompose by subdomain">microservices.io - Decompose by subdomain</a></p>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Capability: doanh nghiệp làm gì.</li>
+                  <li>Subdomain/bounded context: ngôn ngữ domain.</li>
+                  <li>1 context = 1 service + DB riêng.</li>
+                  <li>Avoid distributed monolith.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q24</span> Retry sao cho không tạo "retry storm" (Exponential Backoff + Jitter)?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Retry</strong> chỉ cho lỗi tạm thời, kèm <strong>exponential backoff</strong> (delay tăng gấp đôi mỗi lần) + <strong>jitter</strong> (thêm ngẫu nhiên) + số lần thử tối đa + <em>retry budget</em>. <strong>Retry storm / thundering herd</strong> xảy ra khi mọi client retry đồng bộ cùng thời điểm.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Khi sự cố do quá tải, backoff thường không giúp đúng như kỳ vọng vì <em>tương quan</em>: mọi call lỗi backoff về cùng một mốc rồi retry cùng lúc, gây quá tải lần nữa. Jitter rải các lần retry ra theo thời gian (AWS Builders' Library).</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>delay = min(cap, base &times; 2<sup>attempt</sup>) rồi cộng jitter. Chỉ retry thao tác <em>idempotent</em> (GET/PUT/DELETE, POST có idempotency key). Giới hạn retry budget (ví dụ không quá 10% tổng request). Ghép với timeout và circuit breaker; không retry lỗi 4xx không thể phục hồi.</p>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Call</div>
+                  <div class="flow-arrow">&rarr;</div>
+                  <div class="flow-node secondary">Transient error?</div>
+                  <div class="flow-arrow">&rarr;</div>
+                  <div class="flow-node">Sleep base&times;2^n + jitter</div>
+                </div>
+                <div class="flow-arrow">&darr;</div>
+                <div class="flow-row">
+                  <div class="flow-node success">Success &rarr; done</div>
+                  <div class="flow-node">Attempt còn? retry</div>
+                  <div class="flow-node">Hết budget &rarr; fail fast / open CB</div>
+                </div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Chiến lược jitter</th><th>Công thức</th><th>Ghi chú</th></tr></thead>
+                <tbody>
+                  <tr><td>No jitter</td><td>delay = cap</td><td>Dễ tạo retry storm vì đồng bộ</td></tr>
+                  <tr><td>Equal jitter</td><td>cap/2 + random(0, cap/2)</td><td>Giữ tối thiểu một nửa delay</td></tr>
+                  <tr><td>Full jitter</td><td>random(0, cap)</td><td>AWS khuyến nghị, rải đều nhất</td></tr>
+                  <tr><td>Decorrelated jitter</td><td>min(cap, random(base, prev&times;3))</td><td>Tăng dần, chống dồn cục</td></tr>
+                </tbody>
+              </table>
+              <div class="stat-row">
+                <div class="stat-card"><div class="stat-value">3<sup>5</sup></div><div class="stat-label">worst-case fan-out (5 hop, 3 retry)</div></div>
+                <div class="stat-card"><div class="stat-value">&le;10%</div><div class="stat-label">retry budget / tổng request</div></div>
+                <div class="stat-card"><div class="stat-value">100ms</div><div class="stat-label">base &times;2 mỗi lần</div></div>
+              </div>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Resilience4j Retry: backoff luy thua + jitter ngau nhien</span>
+RetryConfig retry = RetryConfig.custom()
+    .maxAttempts(<span class="tok-number">4</span>)
+    .intervalFunction(IntervalFunction.ofExponentialRandomBackoff(
+        Duration.ofMillis(<span class="tok-number">100</span>), <span class="tok-number">2.0</span>, <span class="tok-number">0.5</span>))
+    .retryOnException(e -&gt; e instanceof WebClientRequestException)
+    .ignoreExceptions(BusinessRuleException.class)
+    .build();
+
+<span class="tok-keyword">if</span> (attempts &gt;= maxAttempts) {
+    <span class="tok-comment">// het budget: fail nhanh, mo circuit breaker, khong retry vo han</span>
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Mọi lời gọi mạng có thể lỗi tạm thời: gọi service peer, DB, message broker, API bên thứ ba. Bắt buộc khi client-side load balancing và khi có hàng nghìn client cùng gọi một backend.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Không retry thao tác không idempotent (trừ khi có idempotency key). Không retry lỗi logic/4xx. Không retry vô hạn hay khi downstream đã chết — phải dừng và mở circuit.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>Payment service gọi cổng ngân hàng qua mạng mobile chập chờn: retry 3-4 lần với full jitter, chỉ ảnh hưởng tối thiểu khi cổng ngân hàng quá tải.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Retry không jitter gây storm; retry thao tác non-idempotent gây double-charge; thiếu timeout làm thread treo.</p>
+              </div>
+              <p class="source-line">Nguồn: <a href="https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/" title="AWS Builders' Library - Timeouts, retries, and backoff with jitter">AWS Builders' Library - Timeouts, retries &amp; backoff with jitter</a>; <a href="https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/" title="AWS Architecture Blog - Exponential Backoff And Jitter">AWS Architecture Blog - Exponential Backoff And Jitter</a></p>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Backoff lũy thừa + jitter.</li>
+                  <li>Jitter phá tương quan retry.</li>
+                  <li>Chỉ retry idempotent, có budget.</li>
+                  <li>Ghép timeout + circuit breaker.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <h3 class="qa-question"><span class="badge">Q25</span> Contract Testing (Pact) &amp; Schema Evolution giữa các service?</h3>
+            <div class="qa-answer">
+              <div class="ans-block">
+                <span class="ans-label">What</span>
+                <p><strong>Contract testing</strong> kiểm tra giao diện giữa consumer và provider bằng một <em>contract</em> thay vì dựng cả môi trường integration. <strong>Pact</strong> là consumer-driven: consumer sinh contract, provider verify lại. Với event, contract chính là <em>schema</em> (Avro/Protobuf/JSON) quản lý bởi Schema Registry.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">Why</span>
+                <p>Test integration/E2E toàn hệ chậm, flaky và chặn tốc độ deploy. Contract test chạy nhanh trong CI, phát hiện thay đổi phá vỡ (breaking change) giữa các service trước khi deploy — điều kiện tiên quyết để deploy độc lập.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">How</span>
+                <p>Consumer viết test mock provider → sinh file <code>pact.json</code> → publish lên <strong>Pact Broker</strong> (gắn version + tag <code>prod</code>) → provider pipeline tải về verify (dùng <em>provider states</em> để dựng dữ liệu) → cổng <code>can-i-deploy</code> chặn deploy nếu contract chưa được verify. Với event: cấu hình compatibility mode và bắt buộc bước kiểm schema trong CI.</p>
+              </div>
+              <div class="flow-diagram">
+                <div class="flow-row">
+                  <div class="flow-node primary">Consumer test</div>
+                  <div class="flow-arrow">&rarr;</div>
+                  <div class="flow-node secondary">Pact file</div>
+                  <div class="flow-arrow">&rarr;</div>
+                  <div class="flow-node">Pact Broker</div>
+                </div>
+                <div class="flow-arrow">&darr;</div>
+                <div class="flow-row">
+                  <div class="flow-node">Provider verify + states</div>
+                  <div class="flow-arrow">&rarr;</div>
+                  <div class="flow-node success">can-i-deploy gate</div>
+                  <div class="flow-arrow">&rarr;</div>
+                  <div class="flow-node">Deploy</div>
+                </div>
+              </div>
+              <table class="feature-table">
+                <thead><tr><th>Compatibility</th><th>Ý nghĩa</th><th>Khi dùng</th></tr></thead>
+                <tbody>
+                  <tr><td>BACKWARD</td><td>Consumer mới đọc được data cũ</td><td>Mặc định; nâng cấp consumer trước</td></tr>
+                  <tr><td>FORWARD</td><td>Consumer cũ đọc được data mới</td><td>Nâng cấp producer trước</td></tr>
+                  <tr><td>FULL</td><td>Đọc được cả cũ và mới</td><td>Không kiểm soát thứ tự nâng cấp</td></tr>
+                </tbody>
+              </table>
+              <div class="code-block" data-lang="java"><pre><code><span class="tok-comment">// Pact: consumer dinh nghia ky vong voi provider</span>
+<span class="tok-annotation">@Pact</span>(consumer = <span class="tok-string">"order-service"</span>, provider = <span class="tok-string">"inventory-service"</span>)
+<span class="tok-keyword">public</span> RequestResponsePact reserve(PactDslWithProvider builder) {
+  <span class="tok-keyword">return</span> builder.given(<span class="tok-string">"con hang"</span>)
+      .uponReceiving(<span class="tok-string">"reserve 2 units"</span>)
+      .path(<span class="tok-string">"/api/inventory/reserve"</span>).method(<span class="tok-string">"POST"</span>)
+      .willRespondWith().status(<span class="tok-number">200</span>)
+      .body(<span class="tok-keyword">new</span> PactDslJsonBody().numberType(<span class="tok-string">"remaining"</span>, <span class="tok-number">8</span>))
+      .toPact();
+}</code></pre></div>
+              <div class="ans-block">
+                <span class="ans-label">When</span>
+                <p>Nhiều team/service deploy độc lập với API hoặc event dùng chung. Bắt buộc khi không thể (hoặc quá tốn kém) dựng môi trường integration đầy đủ trong CI.</p>
+              </div>
+              <div class="ans-block">
+                <span class="ans-label">When NOT</span>
+                <p>Monolith hoặc một team sở hữu cả hai phía — contract test ít giá trị. Không thay thế test logic nghiệp vụ. Không dùng contract test để kiểm performance/end-to-end behavior.</p>
+              </div>
+              <div class="callout callout-info">
+                <div class="callout-title">Use case</div>
+                <p>order-service và inventory-service: consumer test định nghĩa endpoint reserve; CI của inventory-service phải verify xanh trước khi order-service được deploy.</p>
+              </div>
+              <div class="callout callout-warning">
+                <div class="callout-title">Pitfall / Interview trap</div>
+                <p>Contract file lỗi thời không publish; only-add optional field có default thay vì đổi tên/xóa field bắt buộc; bỏ qua provider states nên verify giả xanh.</p>
+              </div>
+              <p class="source-line">Nguồn: <a href="https://docs.pact.io/" title="Pact - consumer-driven contract testing">Pact - Consumer-Driven Contract Testing</a>; <a href="https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html" title="Confluent - Schema Evolution and Compatibility">Confluent - Schema Evolution &amp; Compatibility</a>; <a href="https://microservices.io/patterns/testing/consumer-side-contract-test.html" title="microservices.io - Consumer-side contract test">microservices.io - Consumer-side contract test</a></p>
+              <div class="speak-notes">
+                <span class="ans-label">Nói trong 60 giây</span>
+                <ul>
+                  <li>Contract thay cho integration env.</li>
+                  <li>Consumer sinh, provider verify.</li>
+                  <li>Pact Broker + can-i-deploy gate.</li>
+                  <li>Event dùng Schema Registry compatibility.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        
+<section class="section" id="interview-banking-extraction"><h2 class="section-title">Bổ sung chiều sâu phỏng vấn</h2><article class="qa-card" id="deep-banking-extraction"><h3 class="qa-question">Ví dụ thiết kế ngân hàng: tách monolith và saga không giả mạo kinh nghiệm</h3><div class="qa-answer"><div class="ans-block"><span class="ans-label">What</span><p>Ví dụ giả định: tách Notification khỏi banking monolith trước, giữ debit/credit và double-entry ledger trong một transaction có invariant rõ. Saga phù hợp workflow liên dịch vụ có trạng thái pending và compensation, không thay atomic ledger posting bằng hai API độc lập.</p></div><div class="ans-block"><span class="ans-label">Phạm vi và cách trình bày</span><p>Đây là bài tập thiết kế minh họa, không phải dự án cá nhân đã triển khai. Khi phỏng vấn, nói “Tôi đề xuất với giả định…”; chỉ nêu kinh nghiệm thực nếu thực sự có. Liệt kê constraint: audit, idempotency, reconciliation, latency, giới hạn mất dữ liệu và quyền sở hữu ledger.</p></div><div class="ans-block"><span class="ans-label">Strangler từng bước</span><p>Đo baseline và vẽ bounded context; bắt đầu Notification hoặc Reporting read model có coupling thấp. Giữ contract ổn định qua facade/anti-corruption layer, phát event bằng outbox, shadow compare trước cutover, rollback routing được. Tránh cùng lúc tách service, đổi DB và đổi domain rule. Mỗi dữ liệu chỉ có một writer authority trong giai đoạn chuyển.</p></div><div class="ans-block"><span class="ans-label">Ledger boundary</span><p>Chuyển khoản nội bộ cùng ledger: một local transaction ghi bút toán debit và credit cân bằng, unique transfer/idempotency key, kiểm soát số dư bằng locking hoặc constraint phù hợp. Timeout response không có nghĩa transfer thất bại: tra trạng thái theo idempotency key trước retry. Không dùng saga “trừ tài khoản A rồi cộng B” nếu yêu cầu atomic ngay trong một ledger.</p></div><div class="ans-block"><span class="ans-label">Saga ngoài boundary</span><p>Chuyển liên ngân hàng giả định: CreateTransfer(PENDING) → reserve funds → submit external rail → settlement confirmation → post/finalize theo policy ledger. Timeout external rail là UNKNOWN, không tự refund khi có thể đã settle. Query/reconcile hoặc xử lý manual; compensation là release reservation/reversal posting có audit, không xóa bút toán lịch sử. State machine cần durable state, idempotent command, bounded retry, timeout và operator queue.</p></div><div class="ans-block"><span class="ans-label">Đánh giá trade-off</span><p>XA/2PC có thể dùng khi resource manager và yêu cầu cho phép, nhưng khóa lâu/coordinator failure có chi phí. Saga cho availability và long-running workflow nhưng có cửa sổ bất nhất và compensation failure. Không khẳng định mọi banking flow dùng saga hoặc microservices luôn tốt hơn modular monolith. Test duplicate, out-of-order, crash sau commit, timeout không rõ kết quả và reconciliation.</p></div><div class="flow-diagram">Monolith ledger atomic → outbox → notification mới; external transfer → durable saga → reconciliation</div><pre class="code-block"><code>// Minh họa trạng thái, không phải code chuyển tiền production
+PENDING -&gt; RESERVED -&gt; SUBMITTED -&gt; SETTLED
+                     -&gt; UNKNOWN -&gt; RECONCILING
+RESERVED -&gt; REJECTED -&gt; RELEASED
+// UNIQUE(transfer_id), ledger entries immutable, reversal có reference bút toán gốc.</code></pre><div class="ans-block"><span class="ans-label">Nguồn chính thức / tài liệu dự án</span><ul><li><a href="https://microservices.io/patterns/data/saga.html">saga — tài liệu tham khảo</a></li><li><a href="https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html">outbox — tài liệu tham khảo</a></li><li><a href="https://www.postgresql.org/docs/current/transaction-iso.html">pg — tài liệu tham khảo</a></li></ul></div></div></article></section>
+<div class="nav-pager">
+          <a class="prev" href="06-rest-api.html">
+            <span class="label">Trước</span>
+            <span class="title">6. REST API &amp; Security</span>
+          </a>
+          <a class="next" href="08-system-design.html">
+            <span class="label">Tiếp</span>
+            <span class="title">8. System Design &amp; Scalability</span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <p>Java Interview Bank — Module 07 / 14</p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>
